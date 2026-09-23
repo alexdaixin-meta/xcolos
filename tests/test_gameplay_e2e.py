@@ -25,12 +25,14 @@ PUBLIC = {
     "phase",
     "death",
     "no_death",
-    "speech",
     "vote_tally",
     "eliminated",
     "no_elimination",
     "game_over",
 }
+#: Reaches every seat except the one that authored it. A speaker already knows
+#: what it said, and its own words back in its queue read as somebody else's.
+BROADCAST_EXCEPT_AUTHOR = {"speech"}
 PRIVATE = {
     "role_assigned": "the seat it describes",
     "allies": "the mafia",
@@ -262,14 +264,15 @@ def test_a_rejection_is_its_own_message_type_not_a_second_turn():
     game, orch, registry, host = build_match(17, agent_factory=factory)
     Runner(game, orch, registry).run()
 
-    rejections = sent(game, 0, MsgType.ACTION_REJECTED.value)
+    broken = min(game.seats)  # the factory made the first-registered seat broken
+    rejections = sent(game, broken, MsgType.ACTION_REJECTED.value)
     assert rejections, "a broken seat should have been told its answer was illegal"
     for r in rejections:
         assert "not legal" in r["body"]
 
     # One turn request per turn, however many repairs followed it.
-    asked = len(sent(game, 0, MsgType.YOUR_TURN.value))
-    took = len([t for t in turns(game) if t["seat"] == 0])
+    asked = len(sent(game, broken, MsgType.YOUR_TURN.value))
+    took = len([t for t in turns(game) if t["seat"] == broken])
     assert asked == took
 
 
@@ -288,6 +291,19 @@ def test_public_facts_reach_every_seat_including_the_dead(seed):
             assert fact.entitled == everyone, (
                 f"{fact.type} at {fact.seq} reached {sorted(fact.entitled)}, not all"
             )
+
+
+@pytest.mark.parametrize("seed", SEEDS)
+def test_a_speaker_is_not_told_its_own_words(seed):
+    """Everyone else hears it. The author does not need to be told twice."""
+    _, game, _ = play(seed)
+    everyone = set(game.seats)
+    said = [f for f in game.facts if f.type in BROADCAST_EXCEPT_AUTHOR]
+    assert said, "nobody spoke"
+    for fact in said:
+        author = fact.payload["seat"]
+        assert author not in fact.entitled, f"seat {author} was sent its own speech"
+        assert fact.entitled == everyone - {author}
 
 
 @pytest.mark.parametrize("seed", SEEDS)
@@ -312,7 +328,7 @@ def test_private_facts_reach_exactly_who_they_should(seed):
 def test_every_fact_type_is_classified(seed):
     """A new fact type must be declared public or private, not left to chance."""
     _, game, _ = play(seed)
-    known = PUBLIC | set(PRIVATE)
+    known = PUBLIC | BROADCAST_EXCEPT_AUTHOR | set(PRIVATE)
     seen = {f.type for f in game.facts}
     assert seen <= known, f"unclassified fact types: {sorted(seen - known)}"
 
@@ -424,6 +440,8 @@ def test_the_whole_suite_of_guarantees_holds_at_any_table_size(seats):
     for fact in game.facts:
         if fact.type in PUBLIC:
             assert fact.entitled == everyone
+        elif fact.type in BROADCAST_EXCEPT_AUTHOR:
+            assert fact.entitled == everyone - {fact.payload["seat"]}
     for seat in game.seats:
         assert set(game.log.deliveries_to(seat)) == {
             f.seq for f in game.entitled_facts(seat)

@@ -54,8 +54,16 @@ class ActionRequest:
     reason: str = ""
 
 
-#: The orchestrator yields requests and is sent back the resulting Action.
-Play = Generator[ActionRequest, Action, None]
+#: The orchestrator yields a request and is sent back the resulting Action, or
+#: yields a list of requests and is sent back a dict of seat to Action.
+#:
+#: A list means "ask these seats at once". Use it where the game genuinely has
+#: no order, such as a vote: making that serial multiplies the wait by the
+#: table for no gain, and the answers come back in seat order regardless, so
+#: nothing about arrival timing reaches the game.
+Play = Generator[
+    "ActionRequest | list[ActionRequest]", "Action | dict[int, Action]", None
+]
 
 
 class Orchestrator(Protocol):

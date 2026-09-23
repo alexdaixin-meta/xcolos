@@ -13,6 +13,7 @@ from xcolos.agents import ScriptedAgent
 from xcolos.cli import SEATS, build_match
 from xcolos.host import HostUnavailable, LocalAgentHost, Registry, SeatBinding
 from xcolos.runner import Runner
+from xcolos.state import FIRST_SEAT
 
 
 # ----------------------------------------------------------------------
@@ -22,8 +23,8 @@ from xcolos.runner import Runner
 
 def test_the_server_assigns_indices_not_the_client():
     game, _, registry, host = build_match(1)
-    assert registry.seats() == list(range(SEATS))
-    assert sorted(game.seats) == list(range(SEATS))
+    assert registry.seats() == list(range(FIRST_SEAT, FIRST_SEAT + SEATS))
+    assert sorted(game.seats) == list(range(FIRST_SEAT, FIRST_SEAT + SEATS))
     # The client learned the indices it was given; it never chose them.
     for i in registry.seats():
         assert host.connected(i)
@@ -110,7 +111,7 @@ def test_a_match_plays_identically_across_two_clients(seed):
 def test_each_seat_is_routed_to_its_own_host():
     game, orch, registry, (a, b) = make_split_match(3)
     Runner(game, orch, registry).run()
-    assert [registry.host_of[i].host_id for i in range(5)] == [
+    assert [registry.host_of[i].host_id for i in range(1, 6)] == [
         "client-a",
         "client-a",
         "client-b",
@@ -142,7 +143,7 @@ def test_a_dropped_client_does_not_stall_the_match():
 
 def test_dropping_every_client_still_terminates():
     game, orch, registry, host = build_match(6)
-    for i in range(SEATS):
+    for i in registry.seats():
         host.drop(i)
     result = Runner(game, orch, registry).run()
     assert result.status in {"ended", "abandoned"}
@@ -162,8 +163,8 @@ def test_a_reconnecting_seat_receives_what_it_missed():
 
     # Everything seat 3 was entitled to was still marked delivered, because the
     # server, not the client, owns the delivery cursor.
-    delivered = set(game.log.deliveries_to(3))
-    entitled = {f.seq for f in game.entitled_facts(3)}
+    delivered = set(game.log.deliveries_to(4))
+    entitled = {f.seq for f in game.entitled_facts(4)}
     assert delivered == entitled
 
 
@@ -193,7 +194,7 @@ def test_a_client_never_receives_another_clients_secrets():
     game, orch, registry, (a, b) = make_split_match(5)
     Runner(game, orch, registry).run()
 
-    a_seats, b_seats = {0, 1}, {2, 3, 4}
+    a_seats, b_seats = {1, 2}, {3, 4, 5}
     for seat in b_seats:
         for seq in game.log.deliveries_to(seat):
             assert seat in game.facts[seq].entitled

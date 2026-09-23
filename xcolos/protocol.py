@@ -63,11 +63,19 @@ class ActionSchema:
     target: str  # "text" | "seat" | "enum" | "zone_position" | "none"
     choices: tuple[Any, ...] = ()
     default: str = "pass"  # how the failure ladder fills in for a broken agent
+    #: Word ceiling for a text answer. Zero means no limit.
+    #:
+    #: Spoken turns are read by every other seat, so length is multiplied by
+    #: the table. A limit declared here reaches the agent in the request, so it
+    #: knows before it writes rather than after it is refused.
+    max_words: int = 0
 
     def describe(self) -> dict[str, Any]:
         d: dict[str, Any] = {"id": self.id, "target": self.target}
         if self.choices:
             d["choices"] = list(self.choices)
+        if self.max_words:
+            d["max_words"] = self.max_words
         return d
 
 
@@ -101,14 +109,27 @@ class Envelope:
 
 @dataclass(frozen=True)
 class Action:
-    """One structured response from a seat."""
+    """One structured response from a seat.
+
+    Two halves, and the split matters. `target` and `text` are the response
+    itself, which the game may make public. `reason` is the agent's own
+    thinking: recorded for whoever is watching the match, and never turned into
+    a fact, so no other seat can ever be told it.
+    """
 
     type: str
     target: Any = None
     text: str = ""
+    #: Private. Logged, shown to the operator, never shared with another seat.
+    reason: str = ""
 
     def to_json(self) -> dict[str, Any]:
-        return {"type": self.type, "target": self.target, "text": self.text}
+        return {
+            "type": self.type,
+            "target": self.target,
+            "text": self.text,
+            "reason": self.reason,
+        }
 
 
 class ActionInvalid(Exception):
@@ -131,6 +152,14 @@ def validate(action: Action, schema: ActionSchema, legal_targets: tuple[Any, ...
     if schema.target == "text":
         if not isinstance(action.text, str) or not action.text.strip():
             raise ActionInvalid("text must be a non-empty string")
+        if schema.max_words:
+            words = len(action.text.split())
+            if words > schema.max_words:
+                raise ActionInvalid(
+                    f"that is {words} words; keep it to {schema.max_words} or "
+                    "fewer. Put your reasoning in `reason` instead, where it "
+                    "costs nobody anything to read"
+                )
         return action
 
     if action.target is None:

@@ -157,8 +157,8 @@ def test_seat_numbering_follows_the_table_not_who_holds_the_seat():
             {"name": "E", "kind": "scripted"},
         ]
         handle = manager.create({"seed": 4, "seats": seats})
-        assert [s["index"] for s in handle.open_seats] == [1, 3]
-        assert [handle.game.seats[i].name for i in range(5)] == list("ABCDE")
+        assert [s["index"] for s in handle.open_seats] == [2, 4]
+        assert [handle.game.seats[i].name for i in range(1, 6)] == list("ABCDE")
 
 
 # ======================================================================

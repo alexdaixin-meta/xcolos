@@ -14,6 +14,11 @@ if TYPE_CHECKING:  # pragma: no cover
     from xcolos.game import Game
 
 
+#: Seats are numbered from one. They are how players refer to each other out
+#: loud, and "seat 0" reads as a machine detail rather than a place at a table.
+FIRST_SEAT = 1
+
+
 class SeatStatus(str, Enum):
     ACTIVE = "active"
     ELIMINATED = "eliminated"
@@ -122,13 +127,23 @@ class Audience:
     this resolves to, so adding a field to a payload cannot leak it by omission.
     """
 
-    kind: str  # "all" | "seats" | "faction" | "role" | "none"
+    kind: str  # "all" | "all_except" | "seats" | "faction" | "role" | "none"
     seats: tuple[int, ...] = ()
     value: str | None = None
 
     @staticmethod
     def all() -> "Audience":
         return Audience(kind="all")
+
+    @staticmethod
+    def all_except(*seats: int) -> "Audience":
+        """Everyone but these.
+
+        For content a seat authored. It already knows what it said, so putting
+        its own words back in its queue wastes tokens and invites it to read
+        them as somebody else's.
+        """
+        return Audience(kind="all_except", seats=tuple(sorted(seats)))
 
     @staticmethod
     def only(*seats: int) -> "Audience":
@@ -149,6 +164,8 @@ class Audience:
     def resolve(self, seats: dict[int, Seat]) -> set[int]:
         if self.kind == "all":
             return set(seats)
+        if self.kind == "all_except":
+            return set(seats) - set(self.seats)
         if self.kind == "seats":
             return {i for i in self.seats if i in seats}
         if self.kind == "faction":

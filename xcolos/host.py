@@ -88,6 +88,7 @@ class LocalAgentHost:
         self.player = player or Player.new("local operator")
 
     def register(self) -> list[SeatBinding]:
+        self.reset()
         return [
             SeatBinding(
                 name=a.name,
@@ -96,6 +97,15 @@ class LocalAgentHost:
             )
             for a in self._agents
         ]
+
+    def reset(self) -> None:
+        """Forget which seats were bound, so this host can play another game.
+
+        A table outlives any one game. The agents stay; their sessions do not,
+        because a new game is a new conversation.
+        """
+        self._by_index.clear()
+        self._credentials.clear()
 
     def bind(self, index: int, binding: SeatBinding, match_id: str) -> None:
         # Bindings come back in registration order, so the nth binding is the

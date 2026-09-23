@@ -19,7 +19,7 @@ from typing import Any, Callable
 
 from xcolos.log import MatchLog
 from xcolos.protocol import DirectiveRejected
-from xcolos.state import Audience, Fact, Rng, Seat, SeatStatus, Zone
+from xcolos.state import FIRST_SEAT, Audience, Fact, Rng, Seat, SeatStatus, Zone
 
 
 class RunStatus(str, Enum):
@@ -93,7 +93,7 @@ class Game:
         """
         if self.status is not RunStatus.SETUP:
             raise DirectiveRejected("seats may only be registered during setup")
-        index = len(self.seats)
+        index = FIRST_SEAT + len(self.seats)
         self.seats[index] = Seat(index=index, name=name)
         self.log.record(
             "setup",
@@ -282,11 +282,19 @@ class Game:
         )
 
     def ack(self, seat: int, through_seq: int | None) -> int:
-        """Advance a seat's confirmed cursor. Never moves backwards."""
+        """Advance a seat's confirmed cursor. Never moves backwards.
+
+        Clamped to what this seat has actually been *shown*, not to how many
+        facts exist. A table can play several games, each with its own fact
+        list starting at zero, and an agent polling across the boundary still
+        carries the last number from the game before. Clamping to the fact
+        count would let that stale number confirm a whole new game unseen, so
+        the seat would be asked to act having never been told its role.
+        """
         s = self._seat(seat)
         if through_seq is None:
             return s.acked_upto
-        target = min(int(through_seq) + 1, len(self.facts))
+        target = min(int(through_seq) + 1, s.read_upto)
         if target <= s.acked_upto:
             return s.acked_upto
         s.acked_upto = target
@@ -328,11 +336,14 @@ class Game:
         The cursor survives phase transitions, which is what makes rotating
         offices expressible without the orchestrator doing arithmetic.
         """
-        n = len(self.seats)
-        if n == 0:
+        order = sorted(self.seats)
+        if not order:
             raise DirectiveRejected("no seats registered")
-        for step in range(1, n + 1):
-            candidate = (self.cursor + step) % n
+        # Walk the seats that exist rather than doing arithmetic on the index,
+        # so the numbering can start wherever it likes.
+        start = order.index(self.cursor) + 1 if self.cursor in order else 0
+        for step in range(len(order)):
+            candidate = order[(start + step) % len(order)]
             seat = self.seats[candidate]
             if seat.eligible and (where is None or where(seat)):
                 self.cursor = candidate

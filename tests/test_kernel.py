@@ -77,19 +77,19 @@ def test_entitlement_is_frozen_at_emission_time():
     game = Game("m_freeze", "test", 1, log)
     for name in ["a", "b"]:
         game.register_seat(name)
-    game.set_role(0, "mafia", "evil")
     game.set_role(1, "mafia", "evil")
+    game.set_role(2, "mafia", "evil")
 
     from xcolos.state import Audience
 
     fact = game.emit_fact("secret", {}, Audience.faction("evil"))
-    assert fact.entitled == frozenset({0, 1})
+    assert fact.entitled == frozenset({1, 2})
 
-    game.eliminate(1)
+    game.eliminate(2)
     later = game.emit_fact("secret", {}, Audience.faction("evil"))
     # Entitlement on the earlier fact is unchanged by a later death.
-    assert game.facts[fact.seq].entitled == frozenset({0, 1})
-    assert later.entitled == frozenset({0, 1})  # faction membership survives death
+    assert game.facts[fact.seq].entitled == frozenset({1, 2})
+    assert later.entitled == frozenset({1, 2})  # faction membership survives death
 
 
 # ----------------------------------------------------------------------
@@ -187,15 +187,15 @@ def test_rejected_calls_are_rejected_not_silently_applied():
     with pytest.raises(DirectiveRejected):
         game.eliminate(99)
     with pytest.raises(DirectiveRejected):
-        game.assign_office("president", 0)
+        game.assign_office("president", 1)
     with pytest.raises(DirectiveRejected):
         game.set_global("never_declared", 1)
     with pytest.raises(DirectiveRejected):
         game._zone("no_such_zone")
 
-    game.eliminate(0)
+    game.eliminate(1)
     with pytest.raises(DirectiveRejected):
-        game.eliminate(0)  # already eliminated
+        game.eliminate(1)  # already eliminated
 
 
 def test_zone_operations_are_bounds_checked():
@@ -219,15 +219,15 @@ def test_rotation_skips_ineligible_seats_and_survives_phases():
     for name in "abcd":
         game.register_seat(name)
 
-    assert [game.next_in_rotation() for _ in range(4)] == [0, 1, 2, 3]
+    assert [game.next_in_rotation() for _ in range(4)] == [1, 2, 3, 4]
 
-    game.eliminate(1)
-    game.block(2, "silenced")
-    game.set_rotation_cursor(0)
-    assert game.next_in_rotation() == 3  # skips dead 1 and silenced 2
+    game.eliminate(2)
+    game.block(3, "silenced")
+    game.set_rotation_cursor(1)
+    assert game.next_in_rotation() == 4  # skips dead 2 and silenced 3
 
     game.set_phase("other")
-    assert game.cursor == 3  # cursor survives the phase change
+    assert game.cursor == 4  # cursor survives the phase change
 
     game.unblock_all("silenced")
-    assert game.next_in_rotation() == 0
+    assert game.next_in_rotation() == 1

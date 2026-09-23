@@ -73,6 +73,10 @@ class MoveRecord:
 
     def to_fields(self) -> dict[str, Any]:
         return {
+            # Its own number, not the counter's value when it was written.
+            # Simultaneous turns are all opened before any is answered, so the
+            # ambient counter labelled every answer in a batch identically.
+            "turn_seq": self.turn_seq,
             "seat": self.seat,
             "role": self.role,
             "reason": self.reason,

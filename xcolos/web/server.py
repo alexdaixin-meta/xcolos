@@ -30,13 +30,14 @@ from xcolos.agents import (
 )
 from xcolos.game import Game, RunStatus
 from xcolos.identity import OPERATOR, AccessDenied, Player
+from xcolos.state import FIRST_SEAT
 from xcolos.protocol import Action
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.log import MatchLog
 from xcolos.orchestrators.mafia import MAX_SEATS, MIN_SEATS, MafiaOrchestrator, role_plan
 from xcolos.remote import ConnectorHost, RemoteAgentHost
 from xcolos.runner import Runner
-from xcolos.tools import PLAY_PATH, TableTools, invite_text
+from xcolos.tools import DEFAULT_POLL_SECONDS, PLAY_PATH, TableTools, invite_text
 
 STATIC = Path(__file__).parent / "static"
 
@@ -150,6 +151,12 @@ class MatchHandle:
     #: Every seat has someone behind it. The operator still has to say go.
     ready: bool = False
     started: bool = False
+    #: A table outlives its games. These persist across all of them.
+    seat_specs: list[dict[str, Any]] = field(default_factory=list)
+    hosts: dict[str, Any] = field(default_factory=dict)
+    base_seed: int = 1
+    game_no: int = 0
+    history: list[dict[str, Any]] = field(default_factory=list)
 
     def snapshot(self) -> dict[str, Any]:
         g = self.game
@@ -165,6 +172,13 @@ class MatchHandle:
             "waiting": self.waiting,
             "ready": self.ready,
             "started": self.started,
+            "game_no": self.game_no,
+            "history": list(self.history),
+            "can_start": bool(
+                self.ready
+                and not self.open_seats
+                and (not self.started or g.status is not RunStatus.RUNNING)
+            ),
             "open_seats": list(self.open_seats),
             "join_codes": (
                 self.tools.summary()["open_seats"] if self.tools else []
@@ -207,11 +221,11 @@ class MatchManager:
         self._lock = threading.Lock()
 
     def create(self, config: dict[str, Any]) -> MatchHandle:
-        """Build a match. Local seats are filled now; remote seats wait.
+        """Open a table. Seats, players and connections live here.
 
-        A remote seat belongs to a player's own process, so the match cannot
-        start until they connect. Everything else is identical either way: the
-        runner cannot tell a laptop from an in-process agent.
+        No game exists yet. A table hosts a sequence of them, and each Start
+        builds a fresh one, so the same people can play again without
+        reconnecting anything.
         """
         seats = config.get("seats") or []
         if not MIN_SEATS <= len(seats) <= MAX_SEATS:
@@ -224,15 +238,11 @@ class MatchManager:
 
         with self._lock:
             self._counter += 1
-            match_id = f"w{self._counter:04d}"
+            table_id = f"w{self._counter:04d}"
 
         seed = int(config.get("seed") or self._counter)
         pace_ms = int(config.get("pace_ms") or 0)
         deadline_ms = int(config.get("deadline_ms") or 0) or None
-
-        log = MatchLog(match_id)
-        game = Game(match_id=match_id, game_id=game_id, seed=seed, log=log)
-        registry = Registry(match_id)
         operator = Player(player_id=OPERATOR, display_name="console")
 
         kind_of = [sp.get("kind", "random") for sp in seats]
@@ -242,12 +252,11 @@ class MatchManager:
             i for i, k in enumerate(kind_of) if k not in {"remote", "connector"}
         ]
 
-        # Seats are registered in table order regardless of who holds them, so
-        # the seat numbering a player sees matches the console exactly.
-        host = PacedHost(
+        # The agents themselves belong to the table and are reused every game.
+        bots = PacedHost(
             [
                 make_agent(
-                    seats[i].get("kind", "random"),
+                    kind_of[i],
                     seats[i].get("name") or f"Seat {i}",
                     seed,
                     i,
@@ -258,17 +267,14 @@ class MatchManager:
             pace_ms=pace_ms,
             player=operator,
         )
-        local_bindings = iter(host.register())
-
         connector_host = ConnectorHost(
-            Player.new("table"), [seats[i].get("name") or f"Seat {i}" for i in connector_indices]
+            Player.new("table"),
+            [seats[i].get("name") or f"Seat {i}" for i in connector_indices],
         )
-        connector_bindings = iter(connector_host.register())
 
         handle = MatchHandle(
-            match_id=match_id,
-            game=game,
-            registry=registry,
+            match_id=table_id,
+            game=None,  # built by the first Start
             operator=operator,
             config={
                 **config,
@@ -277,51 +283,106 @@ class MatchManager:
                 "deadline_ms": deadline_ms,
             },
             waiting=bool(remote_indices or connector_indices),
+            seat_specs=[
+                {"name": sp.get("name") or f"Seat {i}", "kind": kind_of[i]}
+                for i, sp in enumerate(seats)
+            ],
+            hosts={"bots": bots, "connector": connector_host},
+            base_seed=seed,
+        )
+        # Registration follows table order, so a seat's number is its position
+        # offset by where the numbering starts.
+        for i in remote_indices:
+            handle.open_seats.append(
+                {"index": FIRST_SEAT + i, "name": handle.seat_specs[i]["name"]}
+            )
+
+        handle.tools = TableTools(
+            None,
+            None,
+            None,
+            poll_seconds=int(config.get("poll_seconds") or DEFAULT_POLL_SECONDS),
+            # Attaching makes the table ready. Starting is the operator's call.
+            on_ready=lambda: self._mark_ready(handle),
+        )
+        for i in connector_indices:
+            handle.tools.offer(FIRST_SEAT + i, handle.seat_specs[i]["name"])
+
+        self._matches[table_id] = handle
+        self._hosts[table_id] = bots
+
+        # A game has to exist for anything to read, so build the first one now
+        # and leave it at setup until somebody presses Start.
+        self._new_game(handle)
+        if not remote_indices and not connector_indices:
+            handle.ready = True
+        return handle
+
+    def _new_game(self, handle: MatchHandle) -> None:
+        """Build a fresh game on this table. Seats and players carry over.
+
+        Everything about the previous game is left behind: its state, its log,
+        its roles, and every agent's session. Only the table survives, which is
+        what makes a second round possible without anybody reconnecting.
+        """
+        handle.game_no += 1
+        seed = handle.base_seed + handle.game_no - 1
+        match_id = (
+            handle.match_id if handle.game_no == 1
+            else f"{handle.match_id}-g{handle.game_no}"
         )
 
-        connector_slots: list[tuple[int, str]] = []
-        for i, spec in enumerate(seats):
-            name = spec.get("name") or f"Seat {i}"
-            if i in remote_indices:
-                index = game.register_seat(name, "remote", {"kind": "remote"})
-                handle.open_seats.append({"index": index, "name": name})
-            elif i in connector_indices:
-                binding = next(connector_bindings)
+        log = MatchLog(match_id)
+        game = Game(
+            match_id=match_id,
+            game_id=handle.config.get("game", "mafia"),
+            seed=seed,
+            log=log,
+        )
+        registry = Registry(match_id)
+
+        bots, connector_host = handle.hosts["bots"], handle.hosts["connector"]
+        bot_bindings = iter(bots.register())
+        conn_bindings = iter(connector_host.register())
+        has_connector = False
+
+        for i, spec in enumerate(handle.seat_specs):
+            if spec["kind"] == "remote":
+                index = game.register_seat(spec["name"], "remote", {"kind": "remote"})
+                # A client that joined for game one is still connected. Without
+                # re-attaching it the seat has no host at all: never greeted,
+                # driven as a push seat, refused on every turn, and the client's
+                # own calls rejected because ownership was dropped.
+                remote = handle.remote_hosts.get(str(index))
+                if remote is not None:
+                    binding = remote.seats[index].binding
+                    remote.bind(index, binding, match_id)
+                    remote.claim(index, binding.credential)
+                    registry.attach(index, remote, binding)
+            elif spec["kind"] == "connector":
+                binding = next(conn_bindings)
                 index = game.register_seat(
-                    name, connector_host.host_id, binding.profile
+                    spec["name"], connector_host.host_id, binding.profile
                 )
                 registry.attach(index, connector_host, binding)
-                connector_slots.append((index, name))
+                has_connector = True
             else:
-                binding = next(local_bindings)
-                index = game.register_seat(name, host.host_id, binding.profile)
-                registry.attach(index, host, binding)
+                binding = next(bot_bindings)
+                index = game.register_seat(spec["name"], bots.host_id, binding.profile)
+                registry.attach(index, bots, binding)
 
         runner = Runner(
             game,
             MafiaOrchestrator(),
             registry,
-            deadline_ms=deadline_ms or (600_000 if connector_slots else None),
+            deadline_ms=handle.config.get("deadline_ms")
+            or (600_000 if has_connector else None),
         )
-        handle.runner = runner
-        handle.tools = TableTools(
-            game,
-            runner,
-            registry,
-            poll_seconds=int(config.get("poll_seconds") or 8),
-            # Attaching makes the table ready. Starting is the operator's call.
-            on_ready=lambda: self._mark_ready(handle),
-        )
-        for index, name in connector_slots:
-            handle.tools.offer(index, name)
-
-        self._matches[match_id] = handle
-        self._hosts[match_id] = host
-
-        if not remote_indices and not connector_indices:
-            # Nothing to wait for, but the operator still presses start.
-            handle.ready = True
-        return handle
+        handle.game, handle.registry, handle.runner = game, registry, runner
+        handle.thread = None
+        handle.error = None
+        handle.started = False
+        handle.tools.retarget(game, runner, registry)
 
     def _mark_ready(self, handle: MatchHandle) -> None:
         """Every offered seat has a session behind it. Note it and wait.
@@ -335,10 +396,14 @@ class MatchManager:
         handle.ready = True
 
     def start_match(self, match_id: str) -> dict[str, Any]:
-        """Begin play. The operator's call, not the last connector's."""
+        """Begin a game on this table. The operator's call.
+
+        A finished game does not block the next one. Pressing Start again
+        builds a fresh game with the same people in the same seats.
+        """
         handle = self._require(match_id)
-        if handle.started:
-            return {"started": True, "already": True}
+        if handle.started and handle.game.status is RunStatus.RUNNING:
+            return {"started": True, "already": True, "game_no": handle.game_no}
         if not handle.ready and handle.tools and handle.tools.open_seats:
             unfilled = [
                 s.name for s in handle.tools.open_seats.values() if not s.taken
@@ -349,9 +414,29 @@ class MatchManager:
                 )
         if handle.open_seats:
             raise ValueError("some seats are still waiting for a remote client")
-        handle.started = True
+
+        if handle.started:
+            # The last game is over. Record it and deal a new one.
+            handle.history.append(
+                {
+                    "game_no": handle.game_no,
+                    "winner": handle.game.winner,
+                    "reason": handle.game.reason,
+                    "rounds": handle.game.round,
+                    "roles": {
+                        str(i): s.role for i, s in sorted(handle.game.seats.items())
+                    },
+                }
+            )
+            self._new_game(handle)
+
         self._launch(handle)
-        return {"started": True, "match_id": match_id}
+        return {
+            "started": True,
+            "match_id": handle.game.match_id,
+            "table": handle.match_id,
+            "game_no": handle.game_no,
+        }
 
     def _launch(self, handle: MatchHandle) -> None:
         """Start the runner. Called once every seat has someone behind it.
@@ -360,6 +445,14 @@ class MatchManager:
         until that seat is due, then parks, and the seat's own tool calls drive
         it onward. Only a table of push seats needs somewhere to run.
         """
+        # Joining the last seat and pressing Start both used to call this, so
+        # two threads could drive one runner. With batched turns that is worse
+        # than duplicate work: the two resume the orchestrator generator with
+        # the wrong payload type and corrupt it.
+        with self._lock:
+            if handle.started and handle.thread is not None:
+                return
+            handle.started = True
         handle.waiting = False
         has_pull = any(
             getattr(h, "pull", False) for h in handle.registry.host_of.values()
@@ -431,7 +524,10 @@ class MatchManager:
             seats=[s["index"] for s in issued],
         )
 
-        if not handle.open_seats:
+        if not handle.open_seats and not handle.tools.open_seats:
+            # Only auto-start a purely remote table; a table with connector
+            # seats waits for the operator, and starting twice corrupts the
+            # orchestrator.
             self._launch(handle)
 
         return {
@@ -491,12 +587,16 @@ class MatchManager:
         raise AccessDenied("unknown player id")
 
     def play(self, body: dict[str, Any]) -> dict[str, Any]:
+        """One call. Structured reply or shorthand, both read the same way."""
+        from xcolos import messages
+
         _, tools = self.tools_for_player(body.get("id", ""))
         return tools.play(
             body.get("id", ""),
-            body.get("ack"),
-            body.get("answer"),
+            messages.read_ack(body),
+            messages.read_answer(body),
             body.get("name", ""),
+            bool(body.get("full")),
         )
 
     def open_tables(self) -> list[dict[str, Any]]:
@@ -567,21 +667,40 @@ class MatchManager:
             except AccessDenied:
                 continue
             except KeyError:
-                # Held by a player's own process. Its memory is on their
-                # machine, so we report the seat and say why it is empty
-                # rather than omitting it or inventing one.
+                # Played by a session somewhere else. Its memory is in that
+                # session, not here, so report what the server does know:
+                # whether it is paying attention, and how far it has read.
+                seat = handle.game.seats[index]
+                host = registry.host_of.get(index)
+                pulls = bool(getattr(host, "pull", False))
+                # Presence counts reads, which only the pull transport
+                # increments. A long-poll client can be answering happily and
+                # still show zero, so do not report it as unconnected.
+                presence = (
+                    handle.tools.presence(index)
+                    if handle.tools and pulls
+                    else {"state": "connected" if host and host.connected(index)
+                          else "open"}
+                )
                 out.append(
                     {
                         "seat": index,
-                        "name": handle.game.seats[index].name,
-                        "kind": "remote",
+                        "name": seat.name,
+                        "kind": presence.get("state", "remote"),
                         "remote": True,
                         "owner": registry.ownership.owner_of.get(index, ""),
-                        "session_id": f"{handle.match_id}:seat{index}",
+                        "session_id": f"{handle.game.match_id}:seat{index}",
+                        "reads": seat.reads,
+                        # Counts of this seat's own facts. The raw cursor is an
+                        # index into every fact in the game, so comparing it
+                        # against an entitled count read as nonsense.
+                        "entitled": len(handle.game.entitled_facts(index)),
+                        "unacked": len(handle.game.unacked(index)),
+                        "confirmed": len(handle.game.entitled_facts(index))
+                        - len(handle.game.unacked(index)),
+                        "last_read_at": seat.last_read_at,
+                        "seconds_since_read": presence.get("seconds_since_read"),
                         "turns": 0,
-                        "dropped": 0,
-                        "estimated_tokens": 0,
-                        "token_budget": 0,
                         "history": [],
                     }
                 )

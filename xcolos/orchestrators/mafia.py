@@ -15,7 +15,14 @@ from xcolos.orchestrators.base import ActionRequest, GameBrief, Play
 from xcolos.protocol import ActionSchema
 from xcolos.state import Audience, Seat
 
-SPEAK = ActionSchema(id="speak", target="text", default="pass")
+#: Table talk, not an essay. Every other seat reads every speech, so length is
+#: paid for once per listener. Three or four sentences is what a person says at
+#: a table, and it is enough to make a real argument.
+SPEECH_WORD_LIMIT = 100
+
+SPEAK = ActionSchema(
+    id="speak", target="text", default="pass", max_words=SPEECH_WORD_LIMIT
+)
 KILL = ActionSchema(id="kill", target="seat", default="random")
 INVESTIGATE = ActionSchema(id="investigate", target="seat", default="random")
 VOTE = ActionSchema(id="vote", target="seat", default="random")
@@ -69,8 +76,17 @@ class MafiaOrchestrator:
 
     game_id = "mafia"
 
-    def __init__(self, discussion_rounds: int = 1) -> None:
+    def __init__(
+        self, discussion_rounds: int = 1, speech_word_limit: int = SPEECH_WORD_LIMIT
+    ) -> None:
         self.discussion_rounds = discussion_rounds
+        self.speak = (
+            SPEAK
+            if speech_word_limit == SPEECH_WORD_LIMIT
+            else ActionSchema(
+                id="speak", target="text", default="pass", max_words=speech_word_limit
+            )
+        )
 
     # ------------------------------------------------------------------
 
@@ -101,7 +117,7 @@ class MafiaOrchestrator:
             rules=RULES,
             seat_count=len(game.seats),
             round_shape=["night", "day_reveal", "day_discussion", "day_voting"],
-            actions=[KILL, INVESTIGATE, SPEAK, VOTE],
+            actions=[KILL, INVESTIGATE, self.speak, VOTE],
         )
 
     # ------------------------------------------------------------------
@@ -183,34 +199,54 @@ class MafiaOrchestrator:
             for seat in game.eligible_seats():
                 action = yield ActionRequest(
                     seat=seat,
-                    schema=SPEAK,
-                    prompt="Say something to the town.",
+                    schema=self.speak,
+                    prompt=(
+                        "Say something to the town, in "
+                        f"{self.speak.max_words} words or fewer."
+                    ),
                     reason="discussion_rotation",
                 )
+                # Everyone but the speaker. It knows what it just said, and
+                # the answer it posted was already confirmed to it.
                 game.emit_fact(
-                    "speech", {"seat": seat, "text": action.text}, Audience.all()
+                    "speech",
+                    {"seat": seat, "text": action.text},
+                    Audience.all_except(seat),
                 )
 
     def _vote(self, game: Game) -> object:
         game.set_phase("day_voting")
         game.emit_fact("phase", {"phase": "day_voting"}, Audience.all())
 
-        votes: dict[int, int] = {}
+        # Everyone votes at once. There is no order to a vote, and asking seat
+        # by seat would make the whole table wait on each agent in turn.
+        asks = []
         for seat in game.eligible_seats():
             legal = tuple(s for s in game.active_seats() if s != seat)
             if not legal:
                 continue
-            action = yield ActionRequest(
-                seat=seat,
-                schema=VOTE,
-                prompt="Vote for a seat to eliminate.",
-                legal_targets=legal,
-                reason="voting",
+            asks.append(
+                ActionRequest(
+                    seat=seat,
+                    schema=VOTE,
+                    prompt="Vote for a seat to eliminate.",
+                    legal_targets=legal,
+                    reason="voting",
+                )
             )
-            target = int(action.target)
+        if not asks:
+            return None
+
+        answers = yield asks
+
+        votes: dict[int, int] = {}
+        # Seat order, not the order the answers arrived, so the result does not
+        # depend on who happened to be quickest.
+        for seat in sorted(answers):
+            target = int(answers[seat].target)
             votes[seat] = target
-            # Private until everyone has voted. A sequential run of turns with
-            # results withheld is how this design does a simultaneous vote.
+            # Private until the tally. A run of simultaneous answers with the
+            # results withheld is how this design keeps a vote secret.
             game.emit_fact(
                 "vote_cast", {"seat": seat, "target": target}, Audience.only(seat)
             )

@@ -13,6 +13,11 @@ const el = (tag, cls, text) => {
   return n;
 };
 
+/* Seats are numbered from one, on the server and here. A row's position in
+ * this list is zero-based; its seat number is not. */
+const FIRST_SEAT = 1;
+const seatNo = (row) => row + FIRST_SEAT;
+
 const NAMES = ["Ada", "Blaise", "Curie", "Dirac", "Euler", "Fermi", "Gauss",
                "Hopper", "Ito", "Julia", "Kepler", "Lovelace"];
 
@@ -28,7 +33,8 @@ const state = {
   view: "timeline",
   open: null,   // live seat info once the table exists
   started: false,
-  seatFocus: 0,
+  snap: null,
+  seatFocus: FIRST_SEAT,
 };
 
 /* ---------------------------------------------------------------- setup */
@@ -101,9 +107,9 @@ function renderSeats() {
   list.textContent = "";
 
   state.seats.forEach((seat, i) => {
-    const info = open ? open.byIndex[i] : null;
+    const info = open ? open.byIndex[seatNo(i)] : null;
     const li = el("li", info && info.claimed ? "done" : "");
-    li.append(el("span", "idx", String(i)));
+    li.append(el("span", "idx", String(seatNo(i))));
 
     const name = el("input");
     name.value = seat.name;
@@ -140,14 +146,20 @@ function renderSeats() {
     hint.textContent = ok
       ? "Opens the table so each seat can be connected to."
       : "";
-  } else if (state.started) {
+  } else if (state.snap && state.snap.started && state.snap.status === "running") {
     btn.textContent = "Running";
     btn.disabled = true;
     btn.title = "";
     hint.textContent = "";
+  } else if (state.snap && state.snap.started) {
+    // The game is over but the table is not. Same people, same seats, deal again.
+    btn.textContent = `Start game ${state.snap.game_no + 1}`;
+    btn.disabled = false;
+    btn.title = "";
+    hint.textContent = "Everyone stays connected. A new game deals fresh roles.";
   } else {
     const unfilled = state.seats
-      .map((s, i) => [s, open.byIndex[i]])
+      .map((s, i) => [s, open.byIndex[seatNo(i)]])
       .filter(([s, info]) => s.kind === "connector" && !(info && info.claimed))
       .map(([s]) => s.name);
     btn.textContent = "Start game";
@@ -233,8 +245,16 @@ async function startGame() {
     return;
   }
   state.started = true;
-  setStatus("running", "running");
-  renderSeats();
+  state.since = 0;
+  state.records = [];
+  ["view-timeline", "view-messages", "seat-world", "view-sessions"].forEach(
+    (id) => ($(id).textContent = "")
+  );
+  $("result").classList.add("hidden");
+  setStatus("running", data.game_no > 1 ? `running game ${data.game_no}` : "running");
+  stopPolling();
+  state.poll = setInterval(pump, 700);
+  pump();
 }
 
 /* Clicking Connect on a table that does not exist yet opens it first, then
@@ -244,7 +264,7 @@ async function connectSeat(i) {
     const ok = await openTable();
     if (!ok) return;
   }
-  const info = state.open && state.open.byIndex[i];
+  const info = state.open && state.open.byIndex[seatNo(i)];
   if (info && info.player_id) showInvite(info.player_id);
   else $("error").textContent = "that seat is not open to a connection";
 }
@@ -299,6 +319,7 @@ async function openTable() {
 
 /* Fold the server's view of who is connected back into the seat rows. */
 function absorb(snap) {
+  state.snap = snap;
   const byIndex = {};
   for (const p of snap.connected || []) byIndex[p.seat] = { ...p };
   for (const c of snap.join_codes || []) {
@@ -402,48 +423,74 @@ function render() {
 /* Each agent's own memory, fetched from its client rather than derived from
  * the log. After a long game these diverge, because the client applies its own
  * context budget. That divergence is the thing worth looking at. */
+/* Agents: how each runner is doing, not what it remembers.
+ *
+ * A connected session keeps its own history on the player's machine, so the
+ * server genuinely does not have it. What it does know is whether that session
+ * is keeping up: how often it pulls, how far it has confirmed, and how much it
+ * is behind. That is the thing worth watching when a table stops moving. */
 async function renderSessions() {
   const box = $("view-sessions");
   if (!state.matchId) {
     box.textContent = "";
-    box.append(el("div", "empty", "Play a match to see agent sessions."));
+    box.append(el("div", "empty", "Open a table to see its agents."));
     return;
   }
   const res = await fetch(
     `/api/matches/${state.matchId}/sessions?player=operator&token=${encodeURIComponent(state.operatorToken)}`
   );
   if (!res.ok) return;
-  const sessions = await res.json();
+  const agents = await res.json();
 
   box.textContent = "";
   box.append(
     el("div", "blurb",
-       "Every seat holds its own session. No two are shared, and none contains anything the server did not send it.")
+       "One card per seat. A session played from somebody's own assistant keeps " +
+       "its memory there, so what is shown is how well it is keeping up.")
   );
 
-  for (const s of sessions) {
+  for (const a of agents) {
     const card = el("div", "session");
     const head = el("div", "session-head");
-    head.append(el("span", "who", `seat ${s.seat} · ${s.name}`));
-    head.append(el("span", "meta",
-      `${s.kind} · ${s.turns} turns · ~${s.estimated_tokens}/${s.token_budget} tokens` +
-      (s.dropped ? ` · ${s.dropped} dropped` : "")));
-    head.append(el("span", "meta", s.session_id));
-    head.append(el("span", "meta", `owner ${s.owner}`));
-    card.append(head);
+    head.append(el("span", "who", `seat ${a.seat} · ${a.name}`));
 
-    const body = el("div", "session-body");
-    for (const t of s.history) {
-      const row = el("div", `turn turn-${t.role}${t.pinned ? " pinned" : ""}`);
-      row.append(el("span", "kind", t.pinned ? `${t.kind || t.role} ·pinned` : (t.kind || t.role)));
-      row.append(el("span", "body", t.content));
-      body.append(row);
+    if (a.remote) {
+      const behind = (a.unacked || 0);
+      head.append(el("span", `meta ${behind > 0 ? "" : ""}`, a.kind));
+      head.append(el("span", "meta", `${a.reads} pulls`));
+      head.append(el("span", "meta",
+        behind ? `${behind} unconfirmed` : "fully caught up"));
+      head.append(el("span", "meta",
+        a.seconds_since_read == null ? "never pulled"
+                                     : `last pull ${a.seconds_since_read}s ago`));
+      card.append(head);
+      // append() returns undefined, so chaining off it threw and killed the
+      // render for this card and every one after it.
+      const body = el("div", "session-body");
+      body.append(
+        el("div", "blurb",
+           `Confirmed ${a.confirmed} of ${a.entitled} facts. Its conversation ` +
+           "lives in that session, not here.")
+      );
+      card.append(body);
+    } else {
+      head.append(el("span", "meta",
+        `${a.kind} · ${a.turns} turns · ~${a.estimated_tokens}/${a.token_budget} tokens` +
+        (a.dropped ? ` · ${a.dropped} dropped` : "")));
+      head.append(el("span", "meta", a.session_id));
+      card.append(head);
+      const body = el("div", "session-body");
+      for (const t of a.history || []) {
+        const row = el("div", `turn turn-${t.role}${t.pinned ? " pinned" : ""}`);
+        row.append(el("span", "kind", t.pinned ? `${t.kind || t.role} ·pinned` : (t.kind || t.role)));
+        row.append(el("span", "body", t.content));
+        body.append(row);
+      }
+      card.append(body);
     }
-    card.append(body);
     box.append(card);
   }
 }
-
 function line(parent, n, text, cls) {
   const row = el("div", `line ${cls || ""}`);
   row.append(el("span", "n", `${n}`));
@@ -457,8 +504,10 @@ function renderTimeline() {
   box.textContent = "";
   let header = null;
 
-  const shown = state.records.filter((r) =>
-    ["process", "fact", "orchestrator", "turn", "result"].includes(r.category)
+  const shown = state.records.filter(
+    (r) =>
+      ["process", "fact", "orchestrator", "turn", "result"].includes(r.category) ||
+      (r.category === "message" && ["offered", "expired"].includes(r.type))
   );
   if (!shown.length) return void box.append(el("div", "empty", "No events yet."));
 
@@ -482,6 +531,14 @@ function renderTimeline() {
       const flag = r.degraded ? "  [degraded]" : "";
       line(box, r.log_seq, `seat ${r.seat} (${r.role}) ${a.type}: ${value}${flag}`,
            r.degraded ? "ev-turn ev-degraded" : "ev-turn");
+    } else if (r.category === "message" && r.type === "offered") {
+      line(box, r.log_seq,
+           `turn written for seat ${r.seat} (${r.action_schema}) — waiting for it to pull`,
+           "ev-offer");
+    } else if (r.category === "message" && r.type === "expired") {
+      line(box, r.log_seq,
+           `seat ${r.seat} did not answer in ${r.after_s}s — default applied`,
+           "ev-degraded");
     } else if (r.category === "process") {
       const detail = r.type === "set_phase" ? `${r.was} → ${r.now}`
                    : r.type === "end_game" ? `${r.winner}: ${r.reason}`
@@ -495,16 +552,46 @@ function renderTimeline() {
 function renderMessages() {
   const box = $("view-messages");
   box.textContent = "";
-  const msgs = state.records.filter((r) => r.category === "message");
-  if (!msgs.length) return void box.append(el("div", "empty", "No messages yet."));
+  // Under a pull model the traffic is four things, not two: a turn written
+  // into a seat's state, the runner fetching, the runner confirming what it
+  // took in, and the runner answering.
+  const rows = state.records.filter(
+    (r) => r.category === "message" || r.category === "delivery"
+  );
+  if (!rows.length) return void box.append(el("div", "empty", "No traffic yet."));
 
-  for (const r of msgs) {
-    if (r.type === "to_agent") {
-      line(box, r.log_seq, `→ seat ${r.seat} [${r.msg_type}] ${r.body.replace(/\n/g, " | ")}`, "ev-msg-out");
+  for (const r of rows) {
+    if (r.category === "delivery") {
+      if (r.type === "read") {
+        line(box, r.log_seq,
+             `seat ${r.seat} pulled — ${(r.fact_seqs || []).length} unconfirmed`, "ev-pull");
+      } else if (r.type === "ack") {
+        line(box, r.log_seq,
+             `seat ${r.seat} confirmed through ${r.acked_upto - 1}`, "ev-ack");
+      } else {
+        line(box, r.log_seq,
+             `seat ${r.seat} pushed ${(r.fact_seqs || []).length} facts`, "ev-msg-out");
+      }
+    } else if (r.type === "offered") {
+      line(box, r.log_seq,
+           `written for seat ${r.seat} [${r.action_schema}] ${(r.body || "").replace(/\n/g, " | ")}`,
+           "ev-offer");
+    } else if (r.type === "to_agent") {
+      line(box, r.log_seq,
+           `→ seat ${r.seat} [${r.msg_type}] ${(r.body || "").replace(/\n/g, " | ")}`, "ev-msg-out");
     } else if (r.type === "from_agent") {
-      line(box, r.log_seq, `← seat ${r.seat} ${JSON.stringify(r.response)}`, "ev-msg-in");
+      const said = r.response || {};
+      const note = r.rejected ? ` (refused: ${r.rejected})` : "";
+      const value = said.text || said.target;
+      line(box, r.log_seq, `← seat ${r.seat} ${said.type}: ${value}${note}`,
+           r.rejected ? "ev-degraded" : "ev-msg-in");
+      if (said.reason) {
+        // Private thinking. Visible here because the console is the operator's
+        // view; never sent to another seat.
+        line(box, r.log_seq, `    reason: ${said.reason}`, "ev-reason");
+      }
     } else {
-      line(box, r.log_seq, `× seat ${r.seat} ${r.error}`, "ev-degraded");
+      line(box, r.log_seq, `× seat ${r.seat} ${r.error || r.type}`, "ev-degraded");
     }
   }
   box.scrollTop = box.scrollHeight;
@@ -514,9 +601,10 @@ function renderSeatViews() {
   const picker = $("seat-picker");
   picker.textContent = "";
   state.seats.forEach((s, i) => {
-    const b = el("button", i === state.seatFocus ? "on" : "", `${i} ${s.name}`);
+    const seat = seatNo(i);
+    const b = el("button", seat === state.seatFocus ? "on" : "", `${seat} ${s.name}`);
     b.onclick = () => {
-      state.seatFocus = i;
+      state.seatFocus = seat;
       renderSeatViews();
     };
     picker.append(b);
@@ -524,25 +612,51 @@ function renderSeatViews() {
 
   const box = $("seat-world");
   box.textContent = "";
-  const mine = state.records.filter(
-    (r) => r.category === "message" && r.seat === state.seatFocus
-  );
-  if (!mine.length) return void box.append(el("div", "empty", "This seat has seen nothing yet."));
+  const me = state.seatFocus;
+
+  // Built from entitlement, not from pushed messages: a seat that pulls is
+  // never pushed anything, so the old view was empty for it.
+  const mine = state.records.filter((r) => {
+    if (r.category === "fact") return (r.entitled || []).includes(me);
+    if (r.category === "message" || r.category === "delivery") return r.seat === me;
+    return false;
+  });
+  if (!mine.length) {
+    return void box.append(el("div", "empty", "This seat has been told nothing yet."));
+  }
 
   box.append(
     el("div", "blurb",
-       "Everything this seat was sent, and nothing else. If something here was not meant for it, the kernel leaked.")
+       "Everything this seat is entitled to, and nothing else. If something " +
+       "here was not meant for it, the kernel leaked.")
   );
 
   for (const r of mine) {
     const m = el("div", "msg");
-    if (r.type === "to_agent") {
+    if (r.category === "fact") {
+      const secret = r.audience && r.audience.kind !== "all";
+      m.append(el("div", "kind", secret ? `${r.type} · private` : r.type));
+      m.append(el("div", "body", JSON.stringify(r.payload)));
+    } else if (r.type === "offered") {
+      m.append(el("div", "kind", `your turn · ${r.action_schema}`));
+      m.append(el("div", "body", r.body));
+    } else if (r.type === "to_agent") {
       m.append(el("div", "kind", r.msg_type));
       m.append(el("div", "body", r.body));
     } else if (r.type === "from_agent") {
-      m.append(el("div", "reply", `↳ ${JSON.stringify(r.response)}`));
+      const said = r.response || {};
+      m.append(el("div", "reply",
+        `answered ${said.type}: ${said.text || said.target}` +
+        (r.rejected ? ` — refused: ${r.rejected}` : "")));
+      if (said.reason) m.append(el("div", "reason", `reason: ${said.reason}`));
+    } else if (r.type === "read") {
+      m.append(el("div", "kind", "pulled"));
+      m.append(el("div", "body", `${(r.fact_seqs || []).length} unconfirmed at the time`));
+    } else if (r.type === "ack") {
+      m.append(el("div", "kind", "confirmed"));
+      m.append(el("div", "body", `through fact ${r.acked_upto - 1}`));
     } else {
-      m.append(el("div", "reply", `× unreachable: ${r.error}`));
+      m.append(el("div", "reply", `${r.type}: ${r.error || ""}`));
     }
     box.append(m);
   }

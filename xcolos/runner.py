@@ -79,7 +79,12 @@ class Runner:
         self.degraded_turns = 0
 
         # Turn driving. A pull seat parks here instead of blocking a thread.
-        self.parked: ParkedTurn | None = None
+        # A dict, not one slot, because some steps ask several seats at once:
+        # voting is simultaneous, and making it serial would multiply the wait
+        # by the table when the seats are conversational agents.
+        self.parked: dict[int, ParkedTurn] = {}
+        self.collected: dict[int, Action] = {}
+        self.batch: list[int] = []
         self.result: MatchResult | None = None
         self._play = None
         self._request: ActionRequest | None = None
@@ -120,19 +125,45 @@ class Runner:
         self._pump()
 
     def _pump(self) -> None:
-        """Advance until a pull seat is due, or the match is over."""
+        """Advance until somebody who pulls is due, or the match is over."""
         game = self.game
         while self._request is not None and game.status is RunStatus.RUNNING:
             if game.turn_seq >= self.max_turns:
                 game.abandon(f"turn cap of {self.max_turns} reached")
                 break
-            if self._is_pull(self._request.seat):
-                self._park(self._request)
-                return
-            self._resume(self._take_turn(self._request))
+
+            if isinstance(self._request, list):
+                if not self._open_batch(self._request):
+                    return  # still waiting on at least one seat
+                answers, self.collected, self.batch = self.collected, {}, []
+                self._resume(answers)
+            else:
+                if self._is_pull(self._request.seat):
+                    self._park(self._request)
+                    return
+                self._resume(self._take_turn(self._request))
+
             if game.status is not RunStatus.RUNNING:
                 break
         self._conclude()
+
+    def _open_batch(self, requests: list[ActionRequest]) -> bool:
+        """Ask several seats at once. True when every answer is already in.
+
+        Seats that answer in process are resolved here and now, in seat order.
+        Seats that pull are parked and answer whenever they get round to it.
+        Either way the answers are handed back in seat order, so arrival timing
+        never reaches the game.
+        """
+        if not self.batch:
+            self.batch = [r.seat for r in requests]
+            for request in requests:
+                if self._is_pull(request.seat):
+                    self._park(request)
+                else:
+                    self.collected[request.seat] = self._take_turn(request)
+                    self._flush()
+        return all(seat in self.collected for seat in self.batch)
 
     def _resume(self, action: Action) -> None:
         self._flush()
@@ -158,7 +189,7 @@ class Runner:
         envelope, record = self._open_turn(request)
         ms = self.deadline_ms or request.deadline_ms or 30_000
         now = time.monotonic()
-        self.parked = ParkedTurn(
+        self.parked[request.seat] = ParkedTurn(
             request=request,
             envelope=envelope,
             record=record,
@@ -178,15 +209,26 @@ class Runner:
             deadline_ms=ms,
         )
 
+    def parked_for(self, seat: int) -> ParkedTurn | None:
+        return self.parked.get(seat)
+
     def submit(self, seat: int, action: Action | None) -> tuple[bool, str]:
         """Take one action from a pull seat. Returns accepted, and why not."""
-        parked = self.parked
+        # Whichever turn the caller believed it was answering. Expiry can
+        # default that turn, advance the game, and park a different one on the
+        # same seat, and a late answer must not be applied to the new one: a
+        # sentence meant as speech would be read for its trailing number and
+        # cast as a vote.
+        intended = self.parked.get(seat)
+        self.expire_if_due()
+        parked = self.parked.get(seat)
+        if intended is not None and parked is not intended:
+            return False, "that turn expired while you were thinking"
         if parked is None:
+            waiting = sorted(self.parked)
+            if waiting:
+                return False, f"seat {waiting[0]} is who this is waiting on, not you"
             return False, "nothing is owed right now"
-        if parked.request.seat != seat:
-            return False, f"it is seat {parked.request.seat}'s turn, not yours"
-        if self.expire_if_due():
-            return False, "that turn had already expired"
 
         if action is None:
             return False, "no action was supplied"
@@ -216,31 +258,51 @@ class Runner:
             "message", "from_agent", seat=seat, response=checked.to_json()
         )
 
-        self.parked = None
+        del self.parked[seat]
         self._close_turn(parked.record, checked)
-        self._resume(checked)
-        self._pump()
+        self._advance(seat, checked)
         return True, "accepted"
 
+    def _advance(self, seat: int, action: Action) -> None:
+        """Move the game on, once this seat's answer is in."""
+        if self.batch:
+            self.collected[seat] = action
+            self._flush()
+            if not all(s in self.collected for s in self.batch):
+                return  # others are still thinking
+            answers, self.collected, self.batch = self.collected, {}, []
+            self._resume(answers)
+        else:
+            self._resume(action)
+        self._pump()
+
     def expire_if_due(self) -> bool:
-        """Apply the default if a parked turn has run out of time.
+        """Apply the default to any parked turn that has run out of time.
 
         Checked lazily, on any call that touches the match. A server that never
         calls out has no other moment to notice.
         """
-        parked = self.parked
-        if parked is None or parked.seconds_left > 0:
+        due = [p for p in self.parked.values() if p.seconds_left <= 0]
+        if not due:
             return False
 
-        self.game.log.record(
-            "message", "expired", seat=parked.request.seat,
-            after_s=round(time.monotonic() - parked.opened_at, 1),
-        )
-        action = self._default_action(parked.request, parked.record)
-        self.parked = None
-        self._close_turn(parked.record, action)
-        self._resume(action)
-        self._pump()
+        # Seat order, so a batch that times out resolves the same way twice.
+        for parked in sorted(due, key=lambda p: p.request.seat):
+            seat = parked.request.seat
+            # Resolving one seat can finish the batch, advance the game, and
+            # park a brand new turn on a seat still in this list. Without this
+            # check the loop would default that new turn against the old
+            # record, and delete it before its owner ever saw it.
+            if self.parked.get(seat) is not parked:
+                continue
+            self.game.log.record(
+                "message", "expired", seat=seat,
+                after_s=round(time.monotonic() - parked.opened_at, 1),
+            )
+            action = self._default_action(parked.request, parked.record)
+            del self.parked[seat]
+            self._close_turn(parked.record, action)
+            self._advance(seat, action)
         return True
 
     # ------------------------------------------------------------------

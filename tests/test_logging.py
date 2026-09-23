@@ -212,3 +212,57 @@ def test_unknown_category_is_rejected():
     log = MatchLog("m_cat")
     with pytest.raises(ValueError):
         log.record("not_a_category", "whatever")
+
+
+def test_every_move_carries_its_own_turn_number():
+    """Simultaneous turns are opened before any is answered.
+
+    The log stamps an ambient turn number on every record, which is right for
+    facts and wrong for a move: all the answers in a batch are written after
+    the counter has already run past them, so they all got the same number.
+    """
+    from xcolos.orchestrators.mafia import MafiaOrchestrator
+    from xcolos.remote import ConnectorHost
+    from xcolos.game import Game
+    from xcolos.host import Registry
+    from xcolos.identity import Player
+    from xcolos.runner import Runner
+    from xcolos.tools import TableTools
+
+    log = MatchLog("m_turnseq")
+    game = Game("m_turnseq", MafiaOrchestrator.game_id, 33, log)
+    registry = Registry(game.match_id)
+    host = ConnectorHost(Player.new("t"), [f"S{i}" for i in range(5)])
+    for binding in host.register():
+        index = game.register_seat(binding.name, host.host_id, binding.profile)
+        registry.attach(index, host, binding)
+    runner = Runner(game, MafiaOrchestrator(), registry, deadline_ms=60_000)
+    tools = TableTools(game, runner, registry, poll_seconds=2)
+    for i in range(5):
+        tools.offer(i, f"S{i}")
+    runner.start()
+
+    ids = {tools.open_seats[s["player_id"]].seat: s["player_id"]
+           for s in tools.summary()["open_seats"]}
+    for _ in range(120):
+        owed = [s for s in ids if runner.parked_for(s)]
+        if not owed:
+            break
+        for seat in owed:
+            state = tools.read_state(ids[seat])
+            if not state.get("your_turn"):
+                continue
+            ask = state["ask"]
+            tools.post_action(
+                ids[seat],
+                ask["legal_answers"][0] if ask["legal_answers"] else "A remark.",
+            )
+        if game.status.value != "running":
+            break
+
+    moves = game.log.where("turn", "move")
+    numbers = [m["turn_seq"] for m in moves]
+    assert len(numbers) == len(set(numbers)), (
+        f"two moves share a turn number: {sorted(numbers)}"
+    )
+    assert numbers == sorted(numbers), "turn numbers should only go up"

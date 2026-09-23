@@ -27,7 +27,7 @@ from xcolos.web.server import MatchManager, build_server
 
 
 def two_player_match(seed: int = 3):
-    """Two clients, two principals: seats 0-1 and seats 2-4."""
+    """Two clients, two principals: seats 1-2 and seats 3-5."""
     log = MatchLog(f"m_two_{seed}")
     game = Game(f"m_two_{seed}", MafiaOrchestrator.game_id, seed, log)
 
@@ -54,16 +54,16 @@ def test_a_session_knows_which_player_it_belongs_to():
     game, orch, registry, alice, bob = two_player_match()
     Runner(game, orch, registry).run()
 
-    for seat in (0, 1):
+    for seat in (1, 2):
         assert registry.session_of(seat, alice.player_id, alice.token).owner == "p_alice"
-    for seat in (2, 3, 4):
+    for seat in (3, 4, 5):
         assert registry.session_of(seat, bob.player_id, bob.token).owner == "p_bob"
 
 
 def test_seats_are_attributed_to_the_right_player():
     _, _, registry, alice, bob = two_player_match()
-    assert registry.ownership.seats_of(alice.player_id) == [0, 1]
-    assert registry.ownership.seats_of(bob.player_id) == [2, 3, 4]
+    assert registry.ownership.seats_of(alice.player_id) == [1, 2]
+    assert registry.ownership.seats_of(bob.player_id) == [3, 4, 5]
 
 
 def test_the_ownership_summary_never_leaks_a_secret():
@@ -93,16 +93,16 @@ def test_a_player_cannot_read_another_players_session():
     Runner(game, orch, registry).run()
 
     with pytest.raises(AccessDenied):
-        registry.session_of(2, alice.player_id, alice.token)
+        registry.session_of(3, alice.player_id, alice.token)
     with pytest.raises(AccessDenied):
-        registry.session_of(0, bob.player_id, bob.token)
+        registry.session_of(1, bob.player_id, bob.token)
 
 
 def test_a_wrong_token_is_refused_even_for_your_own_seat():
     game, orch, registry, alice, _ = two_player_match()
     Runner(game, orch, registry).run()
     with pytest.raises(AccessDenied):
-        registry.session_of(0, alice.player_id, "not-the-token")
+        registry.session_of(1, alice.player_id, "not-the-token")
 
 
 def test_an_unknown_player_reads_nothing():
@@ -110,14 +110,14 @@ def test_an_unknown_player_reads_nothing():
     Runner(game, orch, registry).run()
     assert registry.readable_seats("p_nobody", "whatever") == []
     with pytest.raises(AccessDenied):
-        registry.session_of(0, "p_nobody", "whatever")
+        registry.session_of(1, "p_nobody", "whatever")
 
 
 def test_each_player_sees_exactly_its_own_seats():
     game, orch, registry, alice, bob = two_player_match()
     Runner(game, orch, registry).run()
-    assert registry.readable_seats(alice.player_id, alice.token) == [0, 1]
-    assert registry.readable_seats(bob.player_id, bob.token) == [2, 3, 4]
+    assert registry.readable_seats(alice.player_id, alice.token) == [1, 2]
+    assert registry.readable_seats(bob.player_id, bob.token) == [3, 4, 5]
 
 
 def test_the_operator_sees_every_seat_but_must_prove_it():
@@ -136,33 +136,33 @@ def test_acting_needs_the_seat_credential_not_just_the_player_token():
     _, _, registry, alice, _ = two_player_match()
     own = registry.ownership
 
-    good = own.credential_of[0]
-    own.check_act(0, alice.player_id, alice.token, good)  # no raise
+    good = own.credential_of[1]
+    own.check_act(1, alice.player_id, alice.token, good)  # no raise
 
     with pytest.raises(AccessDenied):
-        own.check_act(0, alice.player_id, alice.token, "wrong-credential")
+        own.check_act(1, alice.player_id, alice.token, "wrong-credential")
 
 
 def test_a_credential_for_one_seat_does_not_work_on_another():
     """The failure that actually happens: right player, wrong seat."""
     _, _, registry, alice, _ = two_player_match()
     own = registry.ownership
-    seat_one_credential = own.credential_of[1]
+    seat_one_credential = own.credential_of[2]
     with pytest.raises(AccessDenied):
-        own.check_act(0, alice.player_id, alice.token, seat_one_credential)
+        own.check_act(1, alice.player_id, alice.token, seat_one_credential)
 
 
 def test_the_operator_may_watch_but_not_play():
     game, orch, registry, host = build_match(4)
     own = registry.ownership
     with pytest.raises(AccessDenied):
-        own.check_act(0, OPERATOR, host.player.token, own.credential_of[0])
+        own.check_act(1, OPERATOR, host.player.token, own.credential_of[1])
 
 
 def test_claiming_a_seat_for_an_unknown_player_is_refused():
     own = Ownership("m")
     with pytest.raises(AccessDenied):
-        own.claim(0, "p_ghost", "cred")
+        own.claim(1, "p_ghost", "cred")
 
 
 # ======================================================================
@@ -259,11 +259,11 @@ def test_a_client_resumes_its_own_seat():
         # refused for it. That is the rule, not a bug.
         status, body = post(
             base,
-            f"/api/matches/{handle.match_id}/resume/0",
+            f"/api/matches/{handle.match_id}/resume/1",
             {
                 "player_id": OPERATOR,
                 "token": handle.operator.token,
-                "credential": own.credential_of[0],
+                "credential": own.credential_of[1],
             },
         )
         assert status == 403
@@ -276,10 +276,10 @@ def test_resume_returns_everything_that_seat_is_entitled_to():
 
     # Exercised directly, because this match is not served over HTTP.
     own = registry.ownership
-    own.check_act(0, alice.player_id, alice.token, own.credential_of[0])
+    own.check_act(1, alice.player_id, alice.token, own.credential_of[1])
 
-    entitled = {f.seq for f in game.entitled_facts(0)}
-    delivered = set(game.log.deliveries_to(0))
+    entitled = {f.seq for f in game.entitled_facts(1)}
+    delivered = set(game.log.deliveries_to(1))
     assert entitled == delivered, "resume has nothing to reconcile if these differ"
 
 
@@ -287,4 +287,4 @@ def test_resume_is_refused_for_a_seat_you_do_not_own():
     _, _, registry, alice, bob = two_player_match(8)
     own = registry.ownership
     with pytest.raises(AccessDenied):
-        own.check_act(3, alice.player_id, alice.token, own.credential_of[3])
+        own.check_act(4, alice.player_id, alice.token, own.credential_of[4])
