@@ -1,0 +1,328 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "mafia",
+    "name": "Mafia",
+    "players": {
+      "min": 4,
+      "max": 12
+    },
+    "blurb": "Hidden roles. The mafia kill by night; the town argues and votes by day. Its rules are written in English and a model reads them."
+  },
+  "statuses": [
+    {
+      "id": "active",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "eliminated",
+      "acts": false
+    }
+  ],
+  "allies_by": {
+    "attribute": "faction",
+    "mutual": [
+      "evil"
+    ]
+  },
+  "display": {
+    "role": "role",
+    "faction": "faction"
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "role",
+        "visible": "ally",
+        "type": "text",
+        "mutable": false,
+        "values": [
+          "mafia",
+          "detective",
+          "villager"
+        ]
+      },
+      {
+        "key": "faction",
+        "visible": "ally",
+        "type": "text",
+        "mutable": false,
+        "values": [
+          "good",
+          "evil"
+        ]
+      }
+    ],
+    "game": []
+  },
+  "deal": {
+    "into": [
+      "role",
+      "faction"
+    ],
+    "by_players": {
+      "4": [
+        {
+          "role": "mafia",
+          "faction": "evil"
+        },
+        {
+          "role": "detective",
+          "faction": "good"
+        },
+        {
+          "role": "villager",
+          "faction": "good",
+          "fill": true
+        }
+      ]
+    }
+  },
+  "setup": [
+    {
+      "use": "initialize",
+      "label": "deal the roles",
+      "llm": "Assign roles using the dealing order you were given. The first player in that order is the mafia, with faction evil. The second is the detective, with faction good. Every remaining player is a villager, with faction good.",
+      "requires": {
+        "role": {
+          "mafia": 1,
+          "detective": 1
+        }
+      },
+      "updates": {
+        "each": [
+          "role",
+          "faction"
+        ]
+      }
+    },
+    {
+      "use": "ask",
+      "label": "briefing",
+      "to": "all",
+      "text": "brief",
+      "llm": "Tell this player who they are and what their role lets them do. If you have been shown anyone else's role, tell them that too. Address them directly, at most 80 words."
+    }
+  ],
+  "steps": [
+    {
+      "use": "ask",
+      "phase": "night",
+      "label": "nightfall",
+      "to": "all",
+      "text": "night_falls"
+    },
+    {
+      "use": "poll",
+      "phase": "night",
+      "label": "the kill",
+      "to": {
+        "attribute": "role",
+        "is": "mafia"
+      },
+      "answer": {
+        "type": "player",
+        "exclude_self": true,
+        "exclude": {
+          "attribute": "faction",
+          "is": "evil"
+        }
+      },
+      "verify": {
+        "tally": "plurality",
+        "on_tie": "random",
+        "bind": "target"
+      },
+      "broadcast": {
+        "to": "ally",
+        "text": "kill_agreed"
+      },
+      "prompt": "Agree with your fellow mafia on one player to kill tonight. Answer with their seat number."
+    },
+    {
+      "use": "ask",
+      "phase": "night",
+      "label": "the investigation",
+      "when": {
+        "count": {
+          "attribute": "role",
+          "is": "detective"
+        },
+        "op": ">",
+        "value": 0
+      },
+      "to": {
+        "attribute": "role",
+        "is": "detective"
+      },
+      "answer": {
+        "type": "player",
+        "exclude_self": true
+      },
+      "verify": {
+        "bind": "suspect"
+      },
+      "prompt": "Choose one player to investigate. You will learn their faction. Answer with their seat number."
+    },
+    {
+      "use": "update",
+      "phase": "night",
+      "label": "the night resolves",
+      "do": [
+        {
+          "set_status": {
+            "player": "$target",
+            "to": "eliminated"
+          }
+        },
+        {
+          "disclose": {
+            "attribute": "faction",
+            "of": "$suspect",
+            "to": {
+              "attribute": "role",
+              "is": "detective"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "day",
+      "label": "dawn",
+      "do": [
+        {
+          "disclose": {
+            "attribute": "role",
+            "of": "$target",
+            "to": "all"
+          }
+        }
+      ],
+      "text": "dawn"
+    },
+    {
+      "use": "check",
+      "phase": "day",
+      "label": "after the night",
+      "against": [
+        "mafia_wins"
+      ],
+      "llm": "Count only players whose status is active. Ignore anything players have claimed about each other."
+    },
+    {
+      "use": "ask",
+      "phase": "day",
+      "label": "the debate",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 100
+      },
+      "broadcast": {
+        "to": "others",
+        "text": "said"
+      },
+      "prompt": "It is your turn to speak. Say what you think, to everyone.",
+      "llm": "Tell this player the floor is theirs, and remind them what they have been told so far. Do not suggest what to say."
+    },
+    {
+      "use": "poll",
+      "phase": "day",
+      "label": "the vote",
+      "to": "acting",
+      "answer": {
+        "type": "player",
+        "exclude_self": true
+      },
+      "verify": {
+        "tally": "plurality",
+        "on_tie": "nobody",
+        "bind": "voted_out"
+      },
+      "prompt": "Vote for the player you want eliminated. Answer with their seat number."
+    },
+    {
+      "use": "update",
+      "phase": "day",
+      "label": "the verdict",
+      "do": [
+        {
+          "set_status": {
+            "player": "$voted_out",
+            "to": "eliminated",
+            "unless": "nobody"
+          }
+        },
+        {
+          "disclose": {
+            "attribute": "role",
+            "of": "$voted_out",
+            "to": "all",
+            "unless": "nobody"
+          }
+        }
+      ],
+      "text": "vote_result"
+    },
+    {
+      "use": "check",
+      "phase": "day",
+      "label": "after the vote",
+      "against": [
+        "town_wins",
+        "mafia_wins"
+      ],
+      "llm": "Count only players whose status is active. Ignore anything players have claimed about each other."
+    }
+  ],
+  "end": {
+    "town_wins": {
+      "when": "Every player whose faction is evil has been eliminated.",
+      "result": "town",
+      "reason": "every mafia is eliminated",
+      "reveal": [
+        "role",
+        "faction"
+      ],
+      "text": "town_victory"
+    },
+    "mafia_wins": {
+      "when": "The number of living evil players is greater than or equal to the number of living good players.",
+      "result": "mafia",
+      "reason": "the mafia equal or outnumber the town",
+      "reveal": [
+        "role",
+        "faction"
+      ],
+      "text": "mafia_victory"
+    }
+  },
+  "reveal": [
+    "role",
+    "faction"
+  ],
+  "limits": {
+    "rounds": 20,
+    "rounds_max": 200,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "text": {
+    "brief": "You are seat {you} in a game of Mafia. Your role is {role}.",
+    "night_falls": "Night falls. Everyone closes their eyes.",
+    "dawn": "Seat {target} is dead. They were {target_role}.",
+    "vote_result": "Seat {voted_out} was voted out. They were {voted_out_role}.",
+    "no_vote": "The vote was tied. Nobody was voted out.",
+    "allies": "Your allies are seats {allies}.",
+    "said": "Seat {seat} says: \"{value}\"",
+    "kill_agreed": "Your side has chosen seat {value}.",
+    "disclosed": "Your investigation of seat {subject} says: {value}.",
+    "game_over": "The game is over. The {result} win: {reason}",
+    "town_victory": "The town wins. {reason}",
+    "mafia_victory": "The mafia win. {reason}"
+  },
+  "rules": "Mafia is a hidden-role game. Every player is secretly either mafia or a member of the town. The mafia know each other; nobody else knows anything.\n\nEach round has a night and a day. At night the mafia agree on one player to kill, and the detective privately investigates one player and learns whether they are evil. At dawn the death is announced and the dead player's role is revealed. Then every living player speaks once in seat order, and then everyone votes at the same time. The player with the most votes is eliminated and their role revealed; a tie eliminates nobody.\n\nThe town wins when every mafia is eliminated. The mafia win when they equal or outnumber the town."
+}
