@@ -625,7 +625,7 @@ def test_a_key_that_is_not_a_key_is_named_before_the_call():
     cases = {
         "umask 077 && pbpaste > ~/.config/k": "shell",
         "mg-api-8c276b149adf": "MetaGen",
-        "1418591137091897": "app id",
+        "1234567890123456": "app id",
         "LLM|abc|token": "pipes",
     }
     for bad, expected in cases.items():
