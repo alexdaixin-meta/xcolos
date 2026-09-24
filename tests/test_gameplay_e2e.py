@@ -429,7 +429,13 @@ def test_the_whole_suite_of_guarantees_holds_at_any_table_size(seats):
 
     m = MatchManager()
     handle = m.create(
-        {"seats": [{"name": f"P{i}", "kind": "scripted"} for i in range(seats)], "seed": 3}
+        {
+            # Named, not defaulted: this plays a whole match with no model, so
+            # it needs the game whose rules are arithmetic.
+            "game": "mafia-oracle",
+            "seats": [{"name": f"P{i}", "kind": "scripted"} for i in range(seats)],
+            "seed": 3,
+        }
     )
     m.start_match(handle.match_id)
     handle.thread.join(timeout=15)

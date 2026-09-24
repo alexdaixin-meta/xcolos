@@ -16,6 +16,11 @@ const el = (tag, cls, text) => {
 /* Seats are numbered from one, on the server and here. A row's position in
  * this list is zero-based; its seat number is not. */
 const FIRST_SEAT = 1;
+
+/* How long the built-in bots pause before answering. A whole game finishes in
+ * milliseconds otherwise, which is hard to watch. Connected agents are
+ * unaffected — they answer at their own speed. */
+const DEFAULT_PACE_MS = 150;
 const seatNo = (row) => row + FIRST_SEAT;
 
 const NAMES = ["Ada", "Blaise", "Curie", "Dirac", "Euler", "Fermi", "Gauss",
@@ -77,7 +82,15 @@ function currentGame() {
 
 function describeGame() {
   const g = currentGame();
-  $("game-blurb").textContent = `${g.blurb} ${g.min_seats} to ${g.max_seats} seats.`;
+  /* Which engine is running is the thing being tested right now, so it is on
+   * screen rather than in a log. */
+  const engine =
+    g.engine === "flow"
+      ? "definition-driven"
+      : "hardcoded Python";
+  const judge = g.needs_judge ? " \u00b7 needs a model to judge its rules" : "";
+  $("game-blurb").textContent =
+    `${g.blurb} ${g.min_seats} to ${g.max_seats} seats \u00b7 ${engine}${judge}`;
   renderSeats();
 }
 
@@ -174,7 +187,7 @@ function renderSeats() {
   $("add-seat").disabled = n >= g.max_seats || !!open;
   $("fill").disabled = n >= g.max_seats && !state.seats.some((s) => s.kind === "connector");
   $("role-plan").textContent = ok
-    ? `${rolePlan(n)} \u2014 assigned at random when play begins.`
+    ? planLine(g, n)
     : `Add at least ${g.min_seats} seats to open the table.`;
 }
 
@@ -247,9 +260,8 @@ async function startGame() {
   state.started = true;
   state.since = 0;
   state.records = [];
-  ["view-timeline", "view-messages", "seat-world", "view-sessions"].forEach(
-    (id) => ($(id).textContent = "")
-  );
+  ["view-timeline", "view-messages", "seat-world", "view-sessions",
+   "view-judge"].forEach((id) => ($(id).textContent = ""));
   $("result").classList.add("hidden");
   setStatus("running", data.game_no > 1 ? `running game ${data.game_no}` : "running");
   stopPolling();
@@ -269,10 +281,19 @@ async function connectSeat(i) {
   else $("error").textContent = "that seat is not open to a connection";
 }
 
-/* Mirrors the server's role plan, for a preview only. The server decides. */
-function rolePlan(n) {
-  const mafia = n <= 6 ? 1 : n <= 9 ? 2 : 3;
-  return `${mafia} mafia, 1 detective, ${n - mafia - 1} villagers`;
+/* What the table will look like once roles are dealt.
+ *
+ * This used to mirror the Mafia role plan in JavaScript, which meant the
+ * console confidently announced "2 mafia" for a seven-player table that the
+ * game file deals one mafia to. A console cannot know a game's roster without
+ * reading its definition, so it no longer pretends to: it reports the shape of
+ * the round, which the server does send, and leaves the deal to the deal. */
+function planLine(g, n) {
+  const steps = (g.steps || []).join(" \u2192 ");
+  const bits = [`${n} seats`];
+  if (g.engine === "flow") bits.push("roles dealt from the game file");
+  if (steps) bits.push(steps);
+  return bits.join(" \u2014 ");
 }
 
 /* ----------------------------------------------------------------- play */
@@ -288,8 +309,10 @@ async function openTable() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       game: $("game").value,
-      seed: Number($("seed").value),
-      pace_ms: Number($("pace").value),
+      // No seed and no pace from the console. The server draws a fresh seed
+      // per table; an explicit one is still accepted over the API, which is
+      // how a match is replayed for comparison against the arithmetic game.
+      pace_ms: DEFAULT_PACE_MS,
       seats: state.seats.map((s) => ({ name: s.name, kind: s.kind })),
     }),
   });
@@ -407,8 +430,12 @@ function switchView(view) {
   document.querySelectorAll(".tab").forEach((t) =>
     t.classList.toggle("active", t.dataset.view === view)
   );
-  ["timeline", "messages", "seats", "sessions"].forEach((v) =>
-    $(`view-${v}`).classList.toggle("hidden", v !== view)
+  /* Every pane in the DOM, not a list written here. The list was the bug: a
+   * new tab rendered its contents into a div that nothing ever unhid, so the
+   * feature looked unimplemented while working perfectly. Asking the document
+   * what panes exist means adding one cannot miss this step. */
+  document.querySelectorAll("#stage .view").forEach((pane) =>
+    pane.classList.toggle("hidden", pane.id !== `view-${view}`)
   );
   render();
 }
@@ -417,7 +444,78 @@ function render() {
   if (state.view === "timeline") renderTimeline();
   else if (state.view === "messages") renderMessages();
   else if (state.view === "seats") renderSeatViews();
+  else if (state.view === "judge") renderJudge();
   else renderSessions();
+}
+
+/* Every call the orchestrator made to a model, in full.
+ *
+ * Not a summary. The system prompt, the user prompt, the model's unparsed
+ * reply, and what the system decided that reply meant. A verdict on its own
+ * tells you nothing when it looks wrong: the question is always whether the
+ * model said something odd or the parser read it wrongly, and only the two
+ * texts side by side answer that.
+ *
+ * This is the one view that shows every hidden role, because the judge is sent
+ * the whole table. It is an operator view and says so. Nothing here is ever
+ * sent to a seat. */
+function renderJudge() {
+  const box = $("view-judge");
+  box.textContent = "";
+
+  const calls = state.records.filter((r) => r.type === "judge_call");
+  if (!calls.length) {
+    /* Three different reasons for an empty list, and saying the wrong one is
+     * worse than saying nothing. The first version asserted "this game states
+     * its rules as arithmetic" without checking, which was simply false for a
+     * game that had just not reached its first decision yet. The table now
+     * reports which game it is running and whether anything in it is decided
+     * by a model, so this reads that instead of guessing. */
+    const snap = state.snap || {};
+    let why;
+    if (!state.started) {
+      why = "Nothing has begun. Press Play.";
+    } else if (snap.needs_judge === false) {
+      why =
+        `No model calls, and there will be none: ${snap.game || "this game"} ` +
+        "states every rule as arithmetic, so the system answers them itself. " +
+        "Write a rule as a sentence and it will appear here.";
+    } else {
+      why =
+        "No model calls yet. The first comes at the round's check step, " +
+        "after the night is resolved and the death announced.";
+    }
+    box.append(el("div", "empty", why));
+    return;
+  }
+
+  for (const r of calls) {
+    const card = el("div", "call");
+    const ok = r.value !== null && r.value !== undefined;
+    card.append(
+      el("div", "call-head",
+        `round ${r.round} · ${(r.where && r.where.tag) || "?"} · ${r.output}` +
+        ` · ${r.seconds}s · ${r.model || r.source || "?"}`)
+    );
+    card.append(
+      el("div", ok ? "call-verdict" : "call-verdict bad",
+        `${ok ? JSON.stringify(r.value) : "no usable answer"}` +
+        (r.reason ? ` — ${r.reason}` : ""))
+    );
+    fold(card, "system prompt (cached, same every call)", r.system);
+    fold(card, "user prompt (the table right now)", r.prompt);
+    fold(card, "raw reply from the model", r.raw || "(nothing recorded)");
+    box.append(card);
+  }
+}
+
+/* A collapsed block. Prompts run to thousands of characters, so the default is
+ * shut: the list is meant to be scannable, and one call expanded at a time. */
+function fold(parent, label, text) {
+  const d = el("details", "fold");
+  d.append(el("summary", null, `${label} · ${(text || "").length} chars`));
+  d.append(el("pre", "fold-body", text || ""));
+  parent.append(d);
 }
 
 /* Each agent's own memory, fetched from its client rather than derived from
@@ -524,7 +622,31 @@ function renderTimeline() {
       line(box, r.log_seq, `${r.type} → ${who}: ${JSON.stringify(r.payload)}`,
            secret ? "ev-fact ev-secret" : "ev-fact");
     } else if (r.category === "orchestrator") {
-      line(box, r.log_seq, `orchestrator asks seat ${r.seat} to ${r.action_schema} (${r.reason})`, "ev-orch");
+      // Not every orchestrator record is a turn request. A judge call carries
+      // no seat and no schema, so printing it as one produced
+      // "asks seat undefined to undefined" with the model's reasoning left
+      // dangling in brackets behind it.
+      if (r.type === "judge_call") {
+        const where = (r.where && r.where.tag) || "?";
+        const got = r.value === null || r.value === undefined
+          ? "no usable answer"
+          : JSON.stringify(r.value);
+        line(box, r.log_seq,
+             `model · ${where} · ${r.output} · ${r.seconds}s → ${got}` +
+             (r.reason ? ` — ${r.reason}` : ""), "ev-orch");
+      } else if (r.type === "dealt") {
+        const who = r.by === "seed" ? "dealt by seed" : "assigned by the model";
+        const seats = Object.entries(r.assigned || {})
+          .map(([seat, row]) => `${seat}=${Object.values(row)[0]}`).join("  ");
+        line(box, r.log_seq, `${who} — ${seats}`, "ev-orch");
+      } else if (r.type === "roster_rejected") {
+        line(box, r.log_seq,
+             `model's roster refused at ${r.step} — ${r.reason}`, "ev-orch");
+      } else {
+        line(box, r.log_seq,
+             `orchestrator asks seat ${r.seat} to ${r.action_schema} (${r.reason})`,
+             "ev-orch");
+      }
     } else if (r.category === "turn") {
       const a = r.action || {};
       const value = a.text || a.target;
@@ -549,6 +671,20 @@ function renderTimeline() {
   box.scrollTop = box.scrollHeight;
 }
 
+/* Polls are not traffic.
+ *
+ * Every connected agent asks "anything new?" every two seconds, so reads
+ * outnumber real messages by orders of magnitude and say only that the
+ * transport is alive — which the Agents tab already reports, with timings.
+ * They stay in the log, because that is the delivery audit trail and the
+ * record of who was shown what. They just are not something to read.
+ *
+ * What survives here is what somebody said or was told: pushes, turns,
+ * answers, and acknowledgements. */
+function isTraffic(r) {
+  return r.type !== "read";
+}
+
 function renderMessages() {
   const box = $("view-messages");
   box.textContent = "";
@@ -556,16 +692,13 @@ function renderMessages() {
   // into a seat's state, the runner fetching, the runner confirming what it
   // took in, and the runner answering.
   const rows = state.records.filter(
-    (r) => r.category === "message" || r.category === "delivery"
+    (r) => (r.category === "message" || r.category === "delivery") && isTraffic(r)
   );
   if (!rows.length) return void box.append(el("div", "empty", "No traffic yet."));
 
   for (const r of rows) {
     if (r.category === "delivery") {
-      if (r.type === "read") {
-        line(box, r.log_seq,
-             `seat ${r.seat} pulled — ${(r.fact_seqs || []).length} unconfirmed`, "ev-pull");
-      } else if (r.type === "ack") {
+      if (r.type === "ack") {
         line(box, r.log_seq,
              `seat ${r.seat} confirmed through ${r.acked_upto - 1}`, "ev-ack");
       } else {
@@ -618,7 +751,7 @@ function renderSeatViews() {
   // never pushed anything, so the old view was empty for it.
   const mine = state.records.filter((r) => {
     if (r.category === "fact") return (r.entitled || []).includes(me);
-    if (r.category === "message" || r.category === "delivery") return r.seat === me;
+    if (r.category === "message" || r.category === "delivery") return r.seat === me && isTraffic(r);
     return false;
   });
   if (!mine.length) {
@@ -649,9 +782,6 @@ function renderSeatViews() {
         `answered ${said.type}: ${said.text || said.target}` +
         (r.rejected ? ` — refused: ${r.rejected}` : "")));
       if (said.reason) m.append(el("div", "reason", `reason: ${said.reason}`));
-    } else if (r.type === "read") {
-      m.append(el("div", "kind", "pulled"));
-      m.append(el("div", "body", `${(r.fact_seqs || []).length} unconfirmed at the time`));
     } else if (r.type === "ack") {
       m.append(el("div", "kind", "confirmed"));
       m.append(el("div", "body", `through fact ${r.acked_upto - 1}`));

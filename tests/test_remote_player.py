@@ -53,6 +53,14 @@ def post(base, path, payload):
         return e.code, json.loads(e.read())
 
 
+#: The game these tests play. Named rather than defaulted: they run whole
+#: matches with no model reachable, which only the arithmetic reference can do.
+#: A test that rode the default was really asserting that the default happens
+#: to need no model, which is not what any of them is about and is no longer
+#: true.
+OFFLINE_GAME = "mafia-oracle"
+
+
 def table(local: int, remote: int):
     seats = [{"name": f"Bot{i}", "kind": "scripted"} for i in range(local)]
     seats += [{"name": f"Open{i}", "kind": "remote"} for i in range(remote)]
@@ -93,7 +101,7 @@ class WatchfulAgent(BaseAgent):
 
 def test_a_match_with_a_remote_seat_waits_before_starting():
     with server() as (base, manager):
-        handle = manager.create({"seed": 2, "seats": table(4, 1)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 2, "seats": table(4, 1)})
         assert handle.waiting
         assert handle.thread is None
         assert [s["name"] for s in handle.open_seats] == ["Open0"]
@@ -102,7 +110,7 @@ def test_a_match_with_a_remote_seat_waits_before_starting():
 def test_a_table_of_bots_is_ready_but_still_waits_to_be_started():
     """Nothing runs itself. Whoever set the table decides when play begins."""
     with server() as (base, manager):
-        handle = manager.create({"seed": 2, "seats": table(5, 0)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 2, "seats": table(5, 0)})
         assert not handle.waiting
         assert handle.ready and not handle.started
         assert handle.thread is None
@@ -113,7 +121,7 @@ def test_a_table_of_bots_is_ready_but_still_waits_to_be_started():
 
 def test_joining_the_last_open_seat_starts_the_match():
     with server() as (base, manager):
-        handle = manager.create({"seed": 3, "seats": table(4, 1)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 3, "seats": table(4, 1)})
         status, body = post(
             base, f"/api/matches/{handle.match_id}/join",
             {"player_name": "Alex", "seats": ["mine"]},
@@ -126,7 +134,7 @@ def test_joining_the_last_open_seat_starts_the_match():
 
 def test_a_player_cannot_claim_more_seats_than_are_open():
     with server() as (base, manager):
-        handle = manager.create({"seed": 3, "seats": table(4, 1)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 3, "seats": table(4, 1)})
         status, body = post(
             base, f"/api/matches/{handle.match_id}/join",
             {"player_name": "Greedy", "seats": ["a", "b", "c"]},
@@ -137,7 +145,7 @@ def test_a_player_cannot_claim_more_seats_than_are_open():
 
 def test_joining_a_running_match_is_refused():
     with server() as (base, manager):
-        handle = manager.create({"seed": 3, "seats": table(5, 0)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 3, "seats": table(5, 0)})
         status, body = post(
             base, f"/api/matches/{handle.match_id}/join",
             {"player_name": "Late", "seats": ["mine"]},
@@ -156,7 +164,7 @@ def test_seat_numbering_follows_the_table_not_who_holds_the_seat():
             {"name": "D", "kind": "remote"},
             {"name": "E", "kind": "scripted"},
         ]
-        handle = manager.create({"seed": 4, "seats": seats})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 4, "seats": seats})
         assert [s["index"] for s in handle.open_seats] == [2, 4]
         assert [handle.game.seats[i].name for i in range(1, 6)] == list("ABCDE")
 
@@ -168,7 +176,7 @@ def test_seat_numbering_follows_the_table_not_who_holds_the_seat():
 
 def test_a_remote_player_plays_a_whole_match():
     with server() as (base, manager):
-        handle = manager.create({"seed": 5, "seats": table(4, 1)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 5, "seats": table(4, 1)})
 
         agent = WatchfulAgent("my-bot")
         client = XColosClient(base, "Alex", poll_timeout_s=3)
@@ -186,7 +194,7 @@ def test_a_remote_player_plays_a_whole_match():
 
 def test_two_separate_players_share_one_table():
     with server() as (base, manager):
-        handle = manager.create({"seed": 6, "seats": table(3, 2)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 6, "seats": table(3, 2)})
 
         a, b = WatchfulAgent("alex-bot"), WatchfulAgent("blair-bot")
         ca = XColosClient(base, "Alex", poll_timeout_s=3)
@@ -215,7 +223,7 @@ def test_two_separate_players_share_one_table():
 def test_the_players_session_lives_on_the_players_machine():
     """The server holds what it sent. The client holds what it remembers."""
     with server() as (base, manager):
-        handle = manager.create({"seed": 7, "seats": table(4, 1)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 7, "seats": table(4, 1)})
         agent = WatchfulAgent("mine")
         client = XColosClient(base, "Alex", poll_timeout_s=3)
         client.join(handle.match_id, [agent])
@@ -238,7 +246,7 @@ def test_the_players_session_lives_on_the_players_machine():
 
 def test_a_remote_seat_sees_only_what_it_is_entitled_to():
     with server() as (base, manager):
-        handle = manager.create({"seed": 8, "seats": table(4, 1)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 8, "seats": table(4, 1)})
         agent = WatchfulAgent("mine")
         client = XColosClient(base, "Alex", poll_timeout_s=3)
         client.join(handle.match_id, [agent])
@@ -278,7 +286,7 @@ def test_a_client_that_stops_answering_does_not_stall_the_match():
 
 def test_polling_a_seat_you_do_not_own_is_refused():
     with server() as (base, manager):
-        handle = manager.create({"seed": 10, "seats": table(3, 2)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 10, "seats": table(3, 2)})
         _, alex = post(
             base, f"/api/matches/{handle.match_id}/join",
             {"player_name": "Alex", "seats": ["a"]},
@@ -304,7 +312,7 @@ def test_polling_a_seat_you_do_not_own_is_refused():
 
 def test_a_wrong_credential_is_refused():
     with server() as (base, manager):
-        handle = manager.create({"seed": 11, "seats": table(4, 1)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 11, "seats": table(4, 1)})
         _, joined = post(
             base, f"/api/matches/{handle.match_id}/join",
             {"player_name": "Alex", "seats": ["a"]},
@@ -327,7 +335,7 @@ def test_a_stray_reply_is_dropped_rather_than_queued():
     with server() as (base, manager):
         # Two open seats, one joiner, so the match has not started and no seat
         # is being asked anything yet.
-        handle = manager.create({"seed": 12, "seats": table(3, 2)})
+        handle = manager.create({"game": OFFLINE_GAME, "seed": 12, "seats": table(3, 2)})
         _, joined = post(
             base, f"/api/matches/{handle.match_id}/join",
             {"player_name": "Alex", "seats": ["a"]},

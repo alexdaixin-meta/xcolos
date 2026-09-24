@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import os
+import secrets
 import threading
 import time
 from dataclasses import dataclass, field
@@ -34,22 +36,102 @@ from xcolos.state import FIRST_SEAT
 from xcolos.protocol import Action
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.log import MatchLog
-from xcolos.orchestrators.mafia import MAX_SEATS, MIN_SEATS, MafiaOrchestrator, role_plan
+from xcolos.flow import FlowOrchestrator, ModelJudge
+from xcolos.flow.backends import CompletionError, MuseCompletion, read_key
+from xcolos.games import available
+from xcolos.legacy import mafia as legacy_mafia
+from xcolos.legacy.mafia import (
+    MAX_SEATS,
+    MIN_SEATS,
+    MafiaOrchestrator,
+    role_plan,
+)
 from xcolos.remote import ConnectorHost, RemoteAgentHost
 from xcolos.runner import Runner
 from xcolos.tools import DEFAULT_POLL_SECONDS, PLAY_PATH, TableTools, invite_text
 
 STATIC = Path(__file__).parent / "static"
 
-GAMES = [
-    {
-        "id": "mafia",
-        "name": "Mafia",
-        "min_seats": MIN_SEATS,
-        "max_seats": MAX_SEATS,
-        "blurb": "Hidden-role social deduction. Mafia kill by night, the town votes by day.",
-    }
-]
+#: What a table plays when a request does not say. The first game in the
+#: library rather than a name written here, so adding or removing a definition
+#: file is the whole change.
+def default_game() -> str:
+    return catalogue()[0]["id"]
+
+#: The hardcoded Python Mafia from Milestone 1. Kept as the reference: it is
+#: what the definition-driven engine is graded against, so deleting it would
+#: remove the only thing that can say whether a game file is right.
+LEGACY_GAME = {
+    "id": legacy_mafia.LEGACY_ID,
+    "name": legacy_mafia.NAME,
+    "engine": "legacy",
+    "min_seats": MIN_SEATS,
+    "max_seats": MAX_SEATS,
+    "blurb": legacy_mafia.BLURB,
+}
+
+
+def catalogue() -> list[dict[str, Any]]:
+    """Every game that can be started: the library, plus the legacy reference.
+
+    Read on each request rather than cached at import, so editing a definition
+    and reloading the page is the whole development loop.
+    """
+    games: list[dict[str, Any]] = []
+    for definition in available().values():
+        games.append(
+            {
+                "id": definition.id,
+                "name": definition.name,
+                "engine": "flow",
+                "min_seats": definition.min_players,
+                "max_seats": definition.max_players,
+                "blurb": definition.blurb,
+                "steps": [s.label for s in definition.steps if s.use != "brief"],
+                "needs_judge": any(r.when.kind == "prose" for r in definition.end),
+            }
+        )
+    # The hardcoded Mafia is not offered. It is kept as the reference a game
+    # file is graded against, not as something to play, and putting it in the
+    # picker invites a table to be opened on the implementation this milestone
+    # replaced. It is still reachable by asking for its id directly.
+    return games
+
+
+#: Set this and no table will ever build a live judge. The test suite sets it,
+#: because a test that silently reaches a paid API is slow, flaky, and charges
+#: somebody real money for a run nobody reads. A game whose rules need a model
+#: then behaves as it does for anyone with no key: it declines its endings and
+#: runs out the round cap, which is the documented offline behaviour.
+NO_MODEL = "XCOLOS_NO_MODEL"
+
+
+def build_judge() -> Any:
+    """A judge, if a key is configured and models are allowed. None is fine.
+
+    A game whose rules are all arithmetic never asks, so a table must be able
+    to start with no model reachable at all.
+    """
+    if os.environ.get(NO_MODEL):
+        return None
+    try:
+        if not read_key():
+            return None
+        backend = MuseCompletion()
+        backend._key()  # shape check now, rather than mid-match
+    except CompletionError:
+        return None
+    return ModelJudge(backend, name=backend.model)
+
+
+def orchestrator_for(game_id: str) -> Any:
+    """The orchestrator a game id names. The only place the two engines meet."""
+    if game_id == LEGACY_GAME["id"]:
+        return MafiaOrchestrator()
+    definition = available().get(game_id)
+    if definition is None:
+        raise ValueError(f"unknown game '{game_id}'")
+    return FlowOrchestrator(definition, judge=build_judge())
 
 AGENT_TYPES = [
     {
@@ -158,10 +240,28 @@ class MatchHandle:
     game_no: int = 0
     history: list[dict[str, Any]] = field(default_factory=list)
 
+    @property
+    def needs_judge(self) -> bool:
+        """Does anything in this game get decided by a model?"""
+        definition = getattr(getattr(self.runner, "orchestrator", None),
+                             "definition", None)
+        if definition is None:
+            return False
+        return any(rule.when.kind == "prose" for rule in definition.end) or any(
+            step.llm or (step.when is not None and step.when.kind == "prose")
+            for step in definition.steps
+        )
+
     def snapshot(self) -> dict[str, Any]:
         g = self.game
         return {
             "match_id": self.match_id,
+            # Which game is actually running, and whether its rules need a
+            # model. The console used to infer both from the dropdown, which is
+            # whatever the operator last clicked rather than what is on the
+            # table, so a table could be described by a game it was not playing.
+            "game": g.game_id,
+            "needs_judge": self.needs_judge,
             "status": g.status.value,
             "winner": g.winner,
             "reason": g.reason,
@@ -228,19 +328,29 @@ class MatchManager:
         reconnecting anything.
         """
         seats = config.get("seats") or []
-        if not MIN_SEATS <= len(seats) <= MAX_SEATS:
-            raise ValueError(
-                f"a table needs between {MIN_SEATS} and {MAX_SEATS} seats, got {len(seats)}"
-            )
-        game_id = config.get("game", "mafia")
-        if game_id not in {g["id"] for g in GAMES}:
+        game_id = config.get("game") or default_game()
+        chosen = next((g for g in catalogue() if g["id"] == game_id), None)
+        if chosen is None:
             raise ValueError(f"unknown game '{game_id}'")
+        # Seat limits come from the game, not from the server, so a definition
+        # that takes five to ten players is checked against its own numbers.
+        low, high = chosen["min_seats"], chosen["max_seats"]
+        if not low <= len(seats) <= high:
+            raise ValueError(
+                f"{chosen['name']} takes between {low} and {high} seats, "
+                f"got {len(seats)}"
+            )
 
         with self._lock:
             self._counter += 1
             table_id = f"w{self._counter:04d}"
 
-        seed = int(config.get("seed") or self._counter)
+        # A fresh seed unless one is asked for. It used to default to the
+        # table counter, which resets when the process does — so the first
+        # table after every restart was seed 1 and dealt exactly the same
+        # roles, over and over. Reproducibility is worth having and has to be
+        # asked for; getting it by accident just looks like a broken shuffle.
+        seed = int(config.get("seed") or secrets.randbelow(1_000_000) + 1)
         pace_ms = int(config.get("pace_ms") or 0)
         deadline_ms = int(config.get("deadline_ms") or 0) or None
         operator = Player(player_id=OPERATOR, display_name="console")
@@ -335,7 +445,7 @@ class MatchManager:
         log = MatchLog(match_id)
         game = Game(
             match_id=match_id,
-            game_id=handle.config.get("game", "mafia"),
+            game_id=handle.config.get("game") or default_game(),
             seed=seed,
             log=log,
         )
@@ -373,7 +483,7 @@ class MatchManager:
 
         runner = Runner(
             game,
-            MafiaOrchestrator(),
+            orchestrator_for(handle.config.get("game") or default_game()),
             registry,
             deadline_ms=handle.config.get("deadline_ms")
             or (600_000 if has_connector else None),
@@ -785,6 +895,12 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
+        # Never cached. With no headers at all a browser caches heuristically,
+        # so editing the console and restarting the server left the old page
+        # running — and the symptom is a feature that looks unimplemented
+        # rather than a stale file. This is a development console; the files
+        # are local and a few kilobytes.
+        self.send_header("Cache-Control", "no-store, must-revalidate")
         self.end_headers()
         self.wfile.write(body)
 
@@ -826,7 +942,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._static("/".join(parts))
 
         if parts[1:] == ["games"]:
-            return self._json(GAMES)
+            return self._json(catalogue())
         if parts[1:] == ["agent_types"]:
             return self._json(AGENT_TYPES)
         if parts[1:] == ["matches"]:

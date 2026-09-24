@@ -8,6 +8,7 @@ tests/_minipytest.py, which supports the subset of pytest the suite uses.
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 import traceback
 from pathlib import Path
@@ -31,6 +32,12 @@ def _install_shim() -> bool:
     sys.modules["pytest"] = module
     spec.loader.exec_module(module)
     return True
+
+
+# No test may reach a model. A key on the developer's machine must not
+# change what the suite does, or the suite means something different for
+# them than it does in review.
+os.environ["XCOLOS_NO_MODEL"] = "1"
 
 
 def main() -> int:
