@@ -1,0 +1,137 @@
+# Mafia, written entirely against the Milestone 2 game definition.
+#
+# This is the definition the new engine will be built against. The hardcoded
+# Python Mafia stays as the reference implementation, and the two are compared
+# on the same seed by the differential test.
+#
+# Writing it is what found the missing `disclose` operation: the detective's
+# result is neither a state change nor a message a model may compose.
+
+schema: 1
+
+meta:
+  id: mafia
+  name: Mafia
+  players: {min: 4, max: 12}
+
+statuses:
+  - {id: active,     acts: true, initial: true}
+  - {id: eliminated, acts: false}
+
+# Both sides have a faction, but only one side knows itself.
+allies_by: {attribute: faction, mutual: [evil]}
+
+attributes:
+  player:
+    - {key: role,    visible: ally, type: text, mutable: false}
+    - {key: faction, visible: ally, type: text, mutable: false}
+  game: []
+
+deal:
+  into: [role, faction]
+  # One mafia and one detective at every table size, for now. Larger brackets
+  # are one more row each, keyed by the size at which they start applying.
+  by_players:
+    4:  [{role: mafia, faction: evil},
+         {role: detective, faction: good},
+         {role: villager, faction: good, fill: true}]
+
+steps:
+  # ---- setup -------------------------------------------------------
+  - use: brief
+    text: brief
+
+  # ---- night -------------------------------------------------------
+  - use: open
+    label: night
+    text: night_falls
+
+  - use: secret_act
+    label: the kill
+    to: {attribute: role, is: mafia}
+    mode: simultaneous
+    answer:
+      type: player
+      exclude_self: true
+      exclude: {attribute: faction, is: evil}
+    answers_visible: ally
+    verify: {tally: plurality, on_tie: random, bind: target}
+
+  - use: secret_act
+    label: the investigation
+    when: {count: {attribute: role, is: detective}, op: ">", value: 0}
+    to: {attribute: role, is: detective}
+    answer: {type: player, exclude_self: true}
+    verify: {bind: suspect}
+
+  - use: resolve
+    do:
+      - {set_status: {player: $target, to: eliminated}}
+      # The detective learns one fact about one player. The system reads it and
+      # delivers it; no model is ever shown the target's faction.
+      - {disclose: {attribute: faction, of: $suspect,
+                    to: {attribute: role, is: detective}}}
+
+  - use: reveal
+    label: dawn
+    do:
+      - {disclose: {attribute: role, of: $target, to: all}}
+    text: dawn
+
+  - use: check
+
+  # ---- day ---------------------------------------------------------
+  - use: discuss
+    mode: sequential
+    to: acting
+    answer: {type: text, max_words: 100}
+    answers_visible: public
+
+  - use: vote
+    mode: simultaneous
+    to: acting
+    answer: {type: player, exclude_self: true}
+    answers_visible: none
+    verify: {tally: plurality, on_tie: nobody, bind: voted_out}
+
+  - use: resolve_vote
+    do:
+      - {set_status: {player: $voted_out, to: eliminated, unless: nobody}}
+      - {disclose: {attribute: role, of: $voted_out, to: all, unless: nobody}}
+    text: vote_result
+
+  - use: check
+
+end:
+  - when: {count: {attribute: faction, is: evil}, op: "==", value: 0}
+    result: town
+    reason: "every mafia is eliminated"
+  - when: {count: {attribute: faction, is: evil}, op: ">=",
+           other: {count: {attribute: faction, is: good}}}
+    result: mafia
+    reason: "the mafia equal or outnumber the town"
+reveal: [role, faction]
+
+limits: {rounds: 20, rounds_max: 200, actions_max: 400, deadline_s: 120}
+
+text:
+  brief: |
+    You are seat {you} in a game of Mafia. Your role is {role}.
+  night_falls: "Night falls. Everyone closes their eyes."
+  dawn: "Seat {target} is dead. They were {role}."
+  vote_result: "Seat {voted_out} was voted out. They were {role}."
+  no_vote: "The vote was tied. Nobody was voted out."
+
+rules: |
+  Mafia is a hidden-role game. Every player is secretly either mafia or a
+  member of the town. The mafia know each other; nobody else knows anything.
+
+  Each round has a night and a day. At night the mafia agree on one player to
+  kill, and the detective privately investigates one player and learns whether
+  they are evil. At dawn the death is announced and the dead player's role is
+  revealed. Then every living player speaks once in seat order, and then
+  everyone votes at the same time. The player with the most votes is
+  eliminated and their role revealed; a tie eliminates nobody.
+
+  The town wins when every mafia is eliminated. The mafia win when they equal
+  or outnumber the town.
