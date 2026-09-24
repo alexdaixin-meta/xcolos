@@ -71,7 +71,7 @@ def make_split_match(seed: int):
     from xcolos.cli import SEAT_NAMES
     from xcolos.game import Game
     from xcolos.log import MatchLog
-    from xcolos.orchestrators.mafia import MafiaOrchestrator
+    from xcolos.legacy.mafia import MafiaOrchestrator
 
     log = MatchLog(f"m_split_{seed}")
     game = Game(f"m_split_{seed}", MafiaOrchestrator.game_id, seed, log)

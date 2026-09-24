@@ -20,7 +20,7 @@ from xcolos.game import Game
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.identity import AccessDenied, Player
 from xcolos.log import MatchLog
-from xcolos.orchestrators.mafia import MafiaOrchestrator
+from xcolos.legacy.mafia import MafiaOrchestrator
 from xcolos.remote import ConnectorHost
 from xcolos.runner import Runner
 from xcolos.tools import MIN_POLL_SECONDS, TableTools
@@ -523,7 +523,7 @@ def test_a_seat_that_only_acknowledges_is_eventually_defaulted():
 
 def test_a_speech_is_capped_and_the_limit_is_stated_up_front():
     """An agent should learn the limit from the request, not from a refusal."""
-    from xcolos.orchestrators.mafia import SPEECH_WORD_LIMIT
+    from xcolos.legacy.mafia import SPEECH_WORD_LIMIT
 
     game, runner, tools = build(26)
     runner.start()
@@ -583,7 +583,7 @@ def test_a_long_reason_is_not_capped():
 
 
 def test_the_limit_is_a_setting_not_a_rule():
-    from xcolos.orchestrators.mafia import MafiaOrchestrator
+    from xcolos.legacy.mafia import MafiaOrchestrator
 
     assert MafiaOrchestrator(speech_word_limit=40).speak.max_words == 40
     assert MafiaOrchestrator().speak.max_words == 100

@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Any
 
 from xcolos.protocol import PROTOCOL_BRIEFING, ActionSchema
-from xcolos.state import Fact
+from xcolos.state import FIRST_SEAT, Fact
 
 
 def _one(view: dict[str, Any], fact: Fact) -> str:
@@ -21,37 +21,18 @@ def _one(view: dict[str, Any], fact: Fact) -> str:
     t = fact.type
     me = view["you"]["index"]
 
-    if t == "role_assigned":
-        return f"You are seat {me} ({view['you']['name']}). Your role is {p['role']} ({p['faction']})."
-    if t == "allies":
-        others = [s for s in p["seats"] if s != me]
-        if not others:
-            return "You have no allies."
-        return "Your allies are seats " + ", ".join(str(s) for s in others) + "."
-    if t == "phase":
-        return f"--- Round {fact.round}: {p['phase']} ---"
-    if t == "speech":
-        return f"Seat {p['seat']}: \"{p['text']}\""
-    if t == "death":
-        return f"Seat {p['seat']} is dead. They were {p['role']}."
-    if t == "no_death":
-        return "Nobody died."
-    if t == "investigation":
-        return f"Your investigation of seat {p['seat']} says: {p['result']}."
-    if t == "kill_target":
-        return f"Your side has chosen to kill seat {p['seat']}."
-    if t == "vote_cast":
-        return f"Seat {p['seat']} voted for seat {p['target']}."
-    if t == "vote_tally":
-        parts = [f"seat {k} got {v}" for k, v in sorted(p["tally"].items())]
-        return "Vote result: " + ", ".join(parts) + "."
-    if t == "eliminated":
-        return f"Seat {p['seat']} was voted out. They were {p['role']}."
-    if t == "no_elimination":
-        return "The vote was tied. Nobody was voted out."
-    if t == "game_over":
-        return f"Game over. {p['winner']} wins: {p['reason']}"
-    return f"{t}: {p}"
+    # A definition-driven game renders from its own declared templates and
+    # carries the result on the fact, so the kernel needs no game knowledge.
+    if "rendered" in p:
+        return str(p["rendered"])
+
+    # No game knowledge. A definition-driven game renders from its own
+    # declared templates and puts the result on the fact, which the branch
+    # above returns. The hardcoded Mafia is the only thing that still arrives
+    # here without one, and its wording now lives with it.
+    from xcolos.legacy.render import legacy_text
+
+    return legacy_text(view, fact) or f"{t}: {p}"
 
 
 def render_facts(view: dict[str, Any], facts: list[Fact]) -> str:
@@ -75,7 +56,12 @@ def render_briefing(view: dict[str, Any], facts: list[Fact], brief: Any) -> str:
         "",
         "--- Your place at the table ---",
         "",
-        f"Players: {brief.seat_count}. Seats are numbered 0 to {brief.seat_count - 1}.",
+        # Numbered from FIRST_SEAT, not from zero. This line said "0 to N-1"
+        # while the very next one said "you are seat 1", so every agent was
+        # handed two contradictory statements about the only identifier the
+        # protocol uses. Read from the constant now, so the two cannot drift.
+        f"Players: {brief.seat_count}. Seats are numbered {FIRST_SEAT} to "
+        f"{FIRST_SEAT + brief.seat_count - 1}.",
         f"You are seat {me['index']}, {me['name']}. Seats are referred to by number.",
     ]
 

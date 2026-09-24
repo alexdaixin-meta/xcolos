@@ -11,7 +11,7 @@ from xcolos.agents import ScriptedAgent
 from xcolos.game import Game
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.log import MatchLog, validate_log
-from xcolos.orchestrators.mafia import MafiaOrchestrator
+from xcolos.legacy.mafia import MafiaOrchestrator
 from xcolos.runner import MatchResult, Runner
 from xcolos.transcript import seat_transcript, summarize, timeline
 

@@ -8,7 +8,7 @@ from xcolos.agents import BrokenAgent, ScriptedAgent, SilentAgent
 from xcolos.cli import SEAT_NAMES, build_match, run_match
 from xcolos.game import Game
 from xcolos.log import MatchLog
-from xcolos.orchestrators.mafia import MafiaOrchestrator
+from xcolos.legacy.mafia import MafiaOrchestrator
 from xcolos.protocol import DirectiveRejected
 from xcolos.runner import Runner
 from xcolos.state import Rng

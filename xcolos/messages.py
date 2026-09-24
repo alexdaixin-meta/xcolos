@@ -29,11 +29,11 @@ arrives. It carries no `seq`, because acknowledging receipt is not answering.
 
     {"kind": "action", "action": "vote",
      "response": 3,
-     "reason": "Seat 3 answered a question nobody asked."}
+     "reason": "Seat 3 volunteered an answer nobody asked for."}
 
     {"kind": "action", "action": "speak",
-     "response": "Seat 1 has not accounted for last night.",
-     "reason": "I am mafia. Pointing at 1 keeps the table off me."}
+     "response": "Seat 1 has not accounted for their last move.",
+     "reason": "Pointing at seat 1 keeps attention away from me."}
 
 An action reply has two halves and the split is the point.
 

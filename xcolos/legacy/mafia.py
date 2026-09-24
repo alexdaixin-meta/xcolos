@@ -71,6 +71,16 @@ outnumber the town. Eliminated players see everything public that follows, but
 never act again."""
 
 
+#: How this game presents itself in a menu. Here rather than in the server for
+#: the same reason a definition declares its own: what a game is called is the
+#: game's business, and the server is not allowed to know any game.
+#: How the catalogue names this implementation, kept distinct from the game
+#: file's own id so a table can be pointed at either and the two compared.
+LEGACY_ID = "mafia-legacy"
+NAME = "Mafia (hardcoded)"
+BLURB = "The Milestone 1 Python implementation. The reference the game file is graded against."
+
+
 class MafiaOrchestrator:
     """Mafia, hardcoded, for any table between four and twelve seats."""
 

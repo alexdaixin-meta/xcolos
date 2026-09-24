@@ -221,7 +221,7 @@ def test_every_move_carries_its_own_turn_number():
     facts and wrong for a move: all the answers in a batch are written after
     the counter has already run past them, so they all got the same number.
     """
-    from xcolos.orchestrators.mafia import MafiaOrchestrator
+    from xcolos.legacy.mafia import MafiaOrchestrator
     from xcolos.remote import ConnectorHost
     from xcolos.game import Game
     from xcolos.host import Registry

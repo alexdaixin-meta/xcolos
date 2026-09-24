@@ -21,7 +21,7 @@ from xcolos.game import Game
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.identity import OPERATOR, AccessDenied, Ownership, Player
 from xcolos.log import MatchLog
-from xcolos.orchestrators.mafia import MafiaOrchestrator
+from xcolos.legacy.mafia import MafiaOrchestrator
 from xcolos.runner import Runner
 from xcolos.web.server import MatchManager, build_server
 
