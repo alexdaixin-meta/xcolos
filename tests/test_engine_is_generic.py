@@ -496,3 +496,53 @@ def test_the_flow_engine_never_reaches_the_legacy_renderer():
     _, game = play(ORCHARD)
     unworded = [f.type for f in game.facts if "rendered" not in f.payload]
     assert not unworded, f"these would fall through to the legacy path: {unworded}"
+
+
+def test_the_action_reference_documents_the_whole_vocabulary():
+    """`design/actions.md` is meant to be enough to write a game from.
+
+    That is only true while it keeps up. Adding an action, an operation, a step
+    key or a value to a closed set without documenting it fails here, because a
+    reference that is 90% complete is worse than none: it is trusted and wrong.
+    """
+    from xcolos.flow.judge import MESSAGE_TYPES
+    from xcolos.games import definition as spec
+
+    doc = (ROOT / "design" / "actions.md").read_text(encoding="utf-8")
+    missing = []
+
+    for name, values in [
+        ("action", spec.KINDS),
+        ("operation", spec.OPERATIONS),
+        ("update target", spec.UPDATE_TARGETS),
+        ("tell kind", spec.TELL_KINDS),
+        ("sync mode", spec.SYNC_MODES),
+        ("tally", spec.TALLIES),
+        ("tie rule", spec.ON_TIE),
+        ("answer type", spec.ANSWER_TYPES),
+        ("attribute type", spec.TYPES),
+        ("visibility", spec.PLAYER_VISIBILITY),
+        ("message type", MESSAGE_TYPES),
+    ]:
+        missing += [f"{name} {v!r}" for v in values if f"`{v}`" not in doc]
+
+    for key in spec.COMMON_KEYS:
+        if f"`{key}`" not in doc:
+            missing.append(f"common key {key!r}")
+    for action, keys in spec.ACTION_KEYS.items():
+        for key in keys:
+            if f"`{key}`" not in doc:
+                missing.append(f"{action} key {key!r}")
+
+    assert not missing, "actions.md does not mention:\n  " + "\n  ".join(missing)
+
+
+def test_the_reference_names_the_gaps_it_cannot_do():
+    """A reference that lists only what works teaches a false schema.
+
+    Each of these is something a reader would otherwise try, write, and watch
+    fail at load or — worse — silently do nothing.
+    """
+    doc = (ROOT / "design" / "actions.md").read_text(encoding="utf-8")
+    for gap in ("$chancellor", "Not supported"):
+        assert gap in doc, f"the reference does not warn about {gap!r}"
