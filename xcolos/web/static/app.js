@@ -619,7 +619,7 @@ function renderTimeline() {
     if (r.category === "fact") {
       const who = r.audience.kind === "all" ? "everyone" : `seats ${r.entitled.join(", ")}`;
       const secret = r.audience.kind !== "all";
-      line(box, r.log_seq, `${r.type} → ${who}: ${JSON.stringify(r.payload)}`,
+      line(box, r.log_seq, `${r.type} → ${who}: ${factText(r)}`,
            secret ? "ev-fact ev-secret" : "ev-fact");
     } else if (r.category === "orchestrator") {
       // Not every orchestrator record is a turn request. A judge call carries
@@ -681,6 +681,19 @@ function renderTimeline() {
  *
  * What survives here is what somebody said or was told: pushes, turns,
  * answers, and acknowledgements. */
+/* What a fact says, as its recipients see it.
+ *
+ * `rendered` is the whole of what reaches an agent. Everything else on a
+ * payload is bookkeeping the engine kept for itself — the structured state
+ * behind a sync, the seat and raw value behind an echo. Dumping the lot made
+ * the console look like it was sending players a wall of JSON, which it was
+ * not. A fact with no rendered text falls back to the payload, and that is a
+ * fact nobody should be able to emit. */
+function factText(r) {
+  const p = r.payload || {};
+  return p.rendered !== undefined ? p.rendered : JSON.stringify(p);
+}
+
 function isTraffic(r) {
   return r.type !== "read";
 }
@@ -769,7 +782,7 @@ function renderSeatViews() {
     if (r.category === "fact") {
       const secret = r.audience && r.audience.kind !== "all";
       m.append(el("div", "kind", secret ? `${r.type} · private` : r.type));
-      m.append(el("div", "body", JSON.stringify(r.payload)));
+      m.append(el("div", "body", factText(r)));
     } else if (r.type === "offered") {
       m.append(el("div", "kind", `your turn · ${r.action_schema}`));
       m.append(el("div", "body", r.body));
