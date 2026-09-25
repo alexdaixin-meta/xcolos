@@ -205,6 +205,7 @@ class FlowOrchestrator:
                     # only then is the tally taken.
                     answers = yield from self._run_ask(game, step)
                     self._verify(game, step, answers)
+                    self._settle(game, step)
                 elif step.use == "sync":
                     self._sync(game, step)
                 elif step.use == "tell":
@@ -605,13 +606,10 @@ class FlowOrchestrator:
         )
 
     def _announce(self, game: Game, step: StepDef) -> None:
-        """What an `update` says about what it just changed. One fact, to all."""
-        if not step.text:
-            return
-        game.emit_fact(
-            step.label.replace(" ", "_"),
-            self._payload(None, step.text, {}),
-            Audience.all(),
+        """What an `update` says about what it just changed."""
+        self._say(
+            game, list(self._state().players), step.text or "", step.llm or "",
+            {}, step.label.replace(" ", "_"), step.max_words,
         )
 
     def _sync(self, game: Game, step: StepDef) -> None:
@@ -774,9 +772,13 @@ class FlowOrchestrator:
         grouped: dict[str, list[int]] = {}
         for seat in seats:
             said = written.get(seat)
+            subject = self._subject_of(step)
             rendered = (
                 said["text"] if said
-                else self._render(seat, step.text, {"you": seat})
+                else self._render(
+                    seat, step.text,
+                    {"you": seat} | ({"subject": subject} if subject else {}),
+                )
             )
             if rendered:
                 grouped.setdefault(rendered, []).append(seat)
@@ -887,6 +889,38 @@ class FlowOrchestrator:
                 written[seat] = reply.value
         return written
 
+    def _status_update(self, step: StepDef, subject: int, reader: int) -> str:
+        """What the subject's named fields now hold, as this reader may see them.
+
+        Assembled by the engine so a game never writes "player 3 is now
+        eliminated" into a prompt by hand: it says which player and which
+        fields, and the current values go in front of the model.
+
+        Filtered per reader, not once for the step. Two players told about the
+        same subject can be shown different things, which is the only way this
+        is safe in a game where an attribute may be visible to one side alone.
+        """
+        flow, definition = self._state(), self.definition
+        wanted = set(step.fields)
+        shown = {
+            a.key: flow.attribute(subject, a.key)
+            for a in definition.player_attributes
+            if (not wanted or a.key in wanted) and flow.can_see(reader, subject, a)
+        }
+        if not wanted or "status" in wanted:
+            shown["status"] = flow.status[subject]
+        return (
+            f"Player {subject} now stands as: "
+            + json.dumps(shown, sort_keys=True, default=str)
+            + ". Report only these."
+        )
+
+    def _subject_of(self, step: StepDef) -> int | None:
+        """The seat a step says it is about, if it names one."""
+        if not step.about:
+            return None
+        return _seat(self._bind(step.about))
+
     def _compose_task(
         self, step: StepDef, legal: tuple[Any, ...], seat: int
     ) -> str:
@@ -908,7 +942,17 @@ class FlowOrchestrator:
         ]
         if step.llm:
             lines.append(step.llm)
-        elif step.prompt:
+        subject = self._subject_of(step)
+        if subject is not None:
+            # Who the message is about. A template reaches this through the
+            # binding; without saying it here, a prompt cannot.
+            lines.append(
+                f"This message is about player {subject}. What you have been "
+                f"shown of them is in the state above; say nothing else."
+            )
+            if step.kind == "status_update":
+                lines.append(self._status_update(step, subject, seat))
+        elif step.text:
             lines.append(f"What this step is for: {self._prompt(step)}")
         if step.asks:
             lines.append(
@@ -985,7 +1029,7 @@ class FlowOrchestrator:
         """
         words = step.answer.max_words if step.answer else 0
         limit = f" in {words} words or fewer" if words else ""
-        return f"{step.prompt}{limit}".strip()
+        return f"{self._render(None, step.text, {})}{limit}".strip()
 
     # ------------------------------------------------------------------
     # Answers
@@ -1018,16 +1062,7 @@ class FlowOrchestrator:
         flow, spec = self._state(), step.broadcast
         value = action.target if action.target is not None else action.text
 
-        if spec.to == "all":
-            heard = list(flow.players)
-        elif spec.to == "ally":
-            heard = sorted(flow.allies_of(seat))
-        elif spec.to == "author":
-            heard = [seat]
-        elif spec.to == "selector" and spec.selector is not None:
-            heard = flow.select(spec.selector, acting_only=False)
-        else:  # "others"
-            heard = [p for p in flow.players if p != seat]
+        heard = flow.select(spec.to, acting_only=False, subject=seat)
         if not heard:
             return
 
@@ -1097,6 +1132,92 @@ class FlowOrchestrator:
                 out[listener] = reply.value["text"]
         return out
 
+    def _settle(self, game: Game, step: StepDef) -> None:
+        """Act on what the answers came to, and say what happened.
+
+        One step now covers asking, reducing, applying and announcing, because
+        in a game they are one act. They used to be a `poll` that bound a name
+        and an `update` that read it back, with every operation guarded for the
+        case where the tally chose nobody — and that guard was the whole of the
+        tie handling, so a tie announced nothing.
+
+        `$result` is this step's own outcome, available to the branch without
+        the game naming it. `verify.bind` still exists for a result a *later*
+        step needs, which is a different thing.
+        """
+        if step.outcome is None:
+            return
+        flow = self._state()
+        # `_verify` stores this step's outcome under `result`, and under the
+        # game's own name too when `bind` asks for one. Reading it back as
+        # "$result" — the form a game *writes* — found nothing, so every vote
+        # took the tie branch and the table was told a decided vote was tied.
+        result = flow.bindings.get("result")
+        if result is None and step.verify and step.verify.bind:
+            result = flow.bindings.get(step.verify.bind)
+        chose = _seat(result) is not None
+        branch = step.outcome.chosen if chose else step.outcome.none
+        if branch is None:
+            return
+
+        flow.bindings["result"] = result
+        self._say_outcome(game, step, branch, result)
+        # After the announcement, because these elaborate on it: a role
+        # disclosure reads as a non sequitur before anyone has been told who
+        # it is about.
+        self._apply(game, branch.do)
+
+    def _say_outcome(
+        self, game: Game, step: StepDef, branch: Any, result: Any
+    ) -> None:
+        flow = self._state()
+        key = branch.text
+        if branch.llm and self.judge is not None:
+            key = ""
+        if not key and not branch.llm:
+            return
+        heard = flow.select(branch.to, acting_only=False, subject=_seat(result))
+        if not heard:
+            return
+        written = self._word_outcome(game, step, branch, result, heard)
+        for seat in heard if written else [None]:
+            rendered = written.get(seat) if written else self._render(
+                None, key, {"result": result})
+            if not rendered:
+                continue
+            game.emit_fact(
+                step.label.replace(" ", "_") + "_result",
+                {"result": result, "rendered": rendered},
+                Audience.all() if len(heard) == len(flow.players) and not written
+                else Audience.only(*(heard if not written else [seat])),
+            )
+
+    def _word_outcome(
+        self, game: Game, step: StepDef, branch: Any, result: Any, heard: list[int]
+    ) -> dict[int, str]:
+        """Have a model announce the outcome, one listener at a time."""
+        if not branch.llm or self.judge is None:
+            return {}
+        out: dict[int, str] = {}
+        for listener in heard:
+            reply = self._ask(
+                game,
+                self._call(
+                    game,
+                    task=(
+                        f"{branch.llm}\n\n"
+                        f"The step was {step.label!r} and it came to: {result!r}."
+                    ),
+                    output=Output(kind="message", max_words=step.max_words),
+                    step=step,
+                    tag=f"outcome:{step.label}:seat{listener}",
+                    seat=listener,
+                ),
+            )
+            if reply.value:
+                out[listener] = reply.value["text"]
+        return out
+
     def _verify(self, game: Game, step: StepDef, answers: dict[int, Action]) -> None:
         """The system's own arithmetic, binding a name for later steps."""
         if step.verify is None:
@@ -1119,12 +1240,23 @@ class FlowOrchestrator:
 
         if step.verify.bind:
             flow.bindings[step.verify.bind] = result
+        # This step's own outcome, for its `outcome` block. Named separately so
+        # a step can act on its result without the game inventing a binding.
+        flow.bindings["result"] = result
 
     # ------------------------------------------------------------------
     # Operations
     # ------------------------------------------------------------------
 
     def _apply(self, game: Game, operations: tuple[Operation, ...]) -> None:
+        """Perform each declared change, and say so where the game asked.
+
+        Announcing is handled here rather than inside each operation, so every
+        one of the six gets it on the same terms. It used to be wired into
+        `set_status` alone — added for the elimination message — which left a
+        score change or a card entering a hand with no way to be told to
+        anybody.
+        """
         for operation in operations:
             args = self._bind(operation.args)
             if args.get("unless") is not None and args.get(
@@ -1132,6 +1264,7 @@ class FlowOrchestrator:
             ) == args["unless"]:
                 continue
             getattr(self, "_op_" + operation.op)(game, args)
+            self._announce_change(game, operation, args)
 
     def _op_set_status(self, game: Game, args: dict[str, Any]) -> None:
         """Change a player's status, and say so if the game asked.
@@ -1149,34 +1282,92 @@ class FlowOrchestrator:
         self._state().set_status(seat, str(args["to"]))
         if not self._state().acts(seat) and game.seats[seat].alive:
             game.eliminate(seat)
-        self._announce_change(game, args, {"player": seat, "subject": seat,
-                                           "status": str(args["to"])})
 
     def _announce_change(
-        self, game: Game, args: dict[str, Any], extra: dict[str, Any]
+        self, game: Game, operation: Operation, args: dict[str, Any]
     ) -> None:
         """Tell whoever the operation names about the change it just made.
 
-        Silent unless the operation declares `text`. Audience defaults to
-        everyone, because a state change nobody may hear about is better
-        expressed as no announcement at all than as one sent nowhere.
+        Silent unless it declares `text` or `llm`. `announce_to` chooses the
+        audience and defaults to everyone; a change nobody may hear about is
+        better expressed as no announcement than as one sent nowhere.
+
+        A `disclose` announces itself, because the message *is* the disclosure
+        and it goes to exactly the players who learned it.
         """
-        key = args.get("text")
-        if not key:
+        if operation.op == "disclose":
+            return
+        if not (args.get("text") or args.get("llm")):
             return
         flow = self._state()
-        to = args.get("announce_to", "all")
-        heard = (
-            flow.players if to == "all"
-            else flow.select(Selector.parse(to, "announce_to"), acting_only=False)
+        subject = _seat(args.get(_subject_key(operation)))
+        heard = flow.select(
+            Selector.parse(args.get("announce_to", "all"), "announce_to"),
+            acting_only=False, subject=subject,
         )
+        self._say(
+            game, heard,
+            str(args.get("text") or ""), str(args.get("llm") or ""),
+            {k: v for k, v in args.items()
+             if k not in ("text", "llm", "announce_to", "unless")}
+            | {"player": subject, "subject": subject},
+            str(args.get("text") or operation.op),
+            int(args.get("max_words", 0)),
+        )
+
+    def _say(
+        self,
+        game: Game,
+        heard: list[int],
+        text: str,
+        llm: str,
+        extra: dict[str, Any],
+        fact_type: str,
+        max_words: int = 0,
+    ) -> None:
+        """Announce something, worded by the game or by a model.
+
+        The one place an announcement is turned into words, so every site gets
+        the same choice: a prompt if the game wrote one and a model is
+        reachable, its template otherwise. Three announcements used to be
+        template-only for no reason other than the order they were written in.
+
+        A model-written announcement is composed per listener, on that
+        listener's own view, like every other player-facing call.
+        """
+        flow = self._state()
         if not heard:
             return
+        everyone = len(heard) == len(flow.players)
+
+        if llm and self.judge is not None:
+            for listener in heard:
+                reply = self._ask(
+                    game,
+                    self._call(
+                        game,
+                        task=f"{llm}\n\nWhat happened: "
+                             + json.dumps(extra, sort_keys=True, default=str),
+                        output=Output(kind="message", max_words=max_words),
+                        tag=f"announce:{fact_type}:seat{listener}",
+                        seat=listener,
+                    ),
+                )
+                if reply.value:
+                    game.emit_fact(
+                        fact_type,
+                        {**extra, "rendered": reply.value["text"]},
+                        Audience.only(listener),
+                    )
+            return
+
+        rendered = self._render(None, text, extra) if text else ""
+        if not rendered:
+            return
         game.emit_fact(
-            str(key),
-            self._payload(None, str(key), extra),
-            Audience.all() if len(heard) == len(flow.players)
-            else Audience.only(*heard),
+            fact_type,
+            {**extra, "rendered": rendered},
+            Audience.all() if everyone else Audience.only(*heard),
         )
 
     def _op_set(self, game: Game, args: dict[str, Any]) -> None:
@@ -1277,14 +1468,12 @@ class FlowOrchestrator:
             for key in rule.reveal or self.definition.reveal:
                 for seat in flow.players:
                     game.seats[seat].attributes[key] = flow.attribute(seat, key)
-            game.emit_fact(
+            self._say(
+                game, list(flow.players),
+                rule.text or "game_over", rule.llm,
+                {"winner": rule.result, "result": rule.result,
+                 "ending": rule.name, "reason": reason},
                 "game_over",
-                self._payload(
-                    None, rule.text or "game_over",
-                    {"winner": rule.result, "result": rule.result,
-                     "ending": rule.name, "reason": reason},
-                ),
-                Audience.all(),
             )
             game.end_game(rule.result, reason)
             return True
@@ -1328,9 +1517,11 @@ class FlowOrchestrator:
           named. This is how a death notice reaches the dead player's role
           without the engine knowing that a binding called `target` exists.
         """
-        # No fallback. A key with no template renders to nothing, and the
-        # loader has already refused any game that needs one and lacks it.
-        template = self.definition.text.get(key, "")
+        # A name in the `text` block, or the words themselves. Every template
+        # in Mafia was referenced exactly once, so the indirection cost a
+        # lookup on every read and bought no reuse; a game may still name one
+        # where it genuinely shares wording between steps.
+        template = self.definition.text.get(key, key)
         flow = self._state()
 
         context: dict[str, Any] = dict(flow.bindings)

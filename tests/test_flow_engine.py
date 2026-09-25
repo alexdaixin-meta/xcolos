@@ -445,7 +445,10 @@ def test_a_spoken_answer_is_its_own_broadcast():
     base = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
     debate = next(s for s in base["steps"] if s["label"] == "the debate")
     assert debate["broadcast"] == "others"
-    assert "text" not in debate and "llm" not in debate
+    # `text` now carries the step's own instruction to the speaker, which is a
+    # different thing from how their answer is broadcast. The broadcast still
+    # declares no wording, which is what makes it verbatim.
+    assert "llm" not in debate
 
     _, game = play_with(base, None)
     spoken = [
@@ -500,3 +503,80 @@ def test_a_worded_sync_says_only_what_the_seat_may_see():
                 assert not attributes, (
                     f"seat {seat}'s sync carried seat {other}'s state"
                 )
+
+
+def test_a_vote_names_both_outcomes_so_a_tie_cannot_be_forgotten():
+    """Asking, reducing, applying and announcing are one act.
+
+    They used to be a `poll` that bound a name and an `update` that read it
+    back, with every operation guarded for the case where the tally chose
+    nobody — and that guard *was* the tie handling, so a tied vote applied
+    nothing and announced nothing. The table watched a vote happen and was
+    told absolutely nothing. Naming both branches makes that unwriteable.
+    """
+    raw = json.loads((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"))
+    vote = next(s for s in raw["steps"] if s["label"] == "the vote")
+    assert set(vote["outcome"]) == {"chosen", "none"}, "both outcomes named"
+    assert not any(s["label"] == "the verdict" for s in raw["steps"]), (
+        "the separate resolution step is gone"
+    )
+
+    # Two players, each the other's only legal target, so the vote is 1-1 and
+    # the tally settles on nobody. Nothing else in the game can eliminate
+    # anyone, so what the table hears is the tie and nothing else.
+    tie = json.loads(json.dumps(raw))
+    tie["steps"] = [s for s in tie["steps"]
+                    if s["label"] in ("the vote", "after the vote")]
+    tie["meta"]["players"]["min"] = 2
+    tie["deal"]["by_players"]["2"] = [
+        {"role": "mafia", "faction": "evil"},
+        {"role": "villager", "faction": "good", "fill": True},
+    ]
+    _, game = play_with(tie, None, seats=2)
+    announced = [f.payload["rendered"] for f in game.facts
+                 if f.type.endswith("_result")]
+    assert announced, "a tie must still tell the table something"
+    assert all("tied" in line for line in announced)
+    assert all(s.alive for s in game.seats.values()), "and eliminate nobody"
+
+
+def test_a_decided_vote_eliminates_and_announces_in_one_step():
+    result, game = play(seed=1)
+    outcomes = [f for f in game.facts if f.type == "the_vote_result"]
+    assert outcomes, "the vote announced its own outcome"
+    for fact in outcomes:
+        assert fact.entitled == frozenset(game.seats), "to the whole table"
+        assert "voted out" in fact.payload["rendered"]
+        # And the elimination happened, without a separate step to do it.
+        assert not game.seats[fact.payload["result"]].alive
+
+
+def test_who_is_out_is_announced_before_what_they_were():
+    """An elimination is news; the reveal elaborates on it.
+
+    `_settle` applied the branch's operations and announced afterwards, so a
+    vote read "They were a villager." and only then "Seat 2 was voted out." —
+    a reveal about nobody in particular, followed by the news it referred to.
+    """
+    _, game = play(seed=1)
+    public = [f for f in game.facts
+              if f.entitled == frozenset(game.seats) and f.payload.get("rendered")]
+    order = [f.type for f in public]
+
+    assert "the_vote_result" in order, "the vote announced its outcome"
+    told = order.index("the_vote_result")
+    reveal = next(i for i, t in enumerate(order) if t == "disclosed" and i > told)
+    assert told < reveal, (
+        f"the reveal came first: {order[max(0, told - 1):reveal + 1]}"
+    )
+
+    # Every elimination is announced to the whole table, by whichever step
+    # made it: the night kill by `set_status`, the vote by its outcome.
+    dead = {r["seat"] for r in game.log.records
+            if r.get("category") == "state" and r.get("type") == "eliminate"}
+    named = set()
+    for fact in public:
+        for seat in dead:
+            if f"Seat {seat} " in fact.payload["rendered"]:
+                named.add(seat)
+    assert named == dead, f"eliminated {sorted(dead)}, announced {sorted(named)}"

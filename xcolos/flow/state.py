@@ -121,12 +121,30 @@ class FlowState:
     # Selectors and conditions
     # ------------------------------------------------------------------
 
-    def select(self, selector: Selector, *, acting_only: bool = True) -> list[int]:
+    def select(
+        self, selector: Selector, *, acting_only: bool = True,
+        subject: int | None = None,
+    ) -> list[int]:
         """Who a selector names. Intersected with "may act" unless told not to.
 
         Doing the intersection here is why no definition has to remember to
         exclude eliminated players.
+
+        `subject` is who the message is about — the player who just answered.
+        Three kinds are relative to them: `others` is everyone else, `ally` is
+        their own side, `author` is just them. A selector using one of those
+        without a subject names nobody, which is the safe direction.
         """
+        if selector.kind in ("others", "ally", "author"):
+            if subject is None:
+                return []
+            if selector.kind == "author":
+                chosen = [subject]
+            elif selector.kind == "ally":
+                chosen = sorted(self.allies_of(subject))
+            else:
+                chosen = [p for p in self.players if p != subject]
+            return sorted(p for p in chosen if not acting_only or self.acts(p))
         if selector.kind == "ids":
             chosen = [p for p in selector.ids if p in self.status]
         elif selector.kind == "attribute":

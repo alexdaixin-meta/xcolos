@@ -157,7 +157,7 @@ ORCHARD = {
             "use": "ask",
             "phase": "morning",
             "label": "the gossip",
-            "prompt": "Say something to the other pickers.",
+            "text": "ask_gossip",
             "to": "acting",
             "answer": {"type": "text", "max_words": 20},
             "broadcast": {"to": "others", "text": "said"},
@@ -166,7 +166,7 @@ ORCHARD = {
             "use": "poll",
             "phase": "morning",
             "label": "the picking",
-            "prompt": "Point at whoever should take today's fruit.",
+            "text": "ask_pick",
             "to": "acting",
             "answer": {"type": "player", "exclude_self": True},
             "broadcast": {"to": "others", "text": "said"},
@@ -201,6 +201,8 @@ ORCHARD = {
         "morning": "The morning mist lifts over the orchard.",
         "tally": "Picker {picker} takes the fruit. {fruit_left} left on the trees.",
         "said": "Picker {seat} says: {value}",
+        "ask_gossip": "Say something to the other pickers.",
+        "ask_pick": "Point at whoever should take today's fruit.",
         "game_over": "The season closes. {result}: {reason}.",
     },
     "rules": "Pickers gossip, then each points at whoever should take the "
@@ -404,32 +406,25 @@ def test_the_briefing_numbers_seats_the_way_the_kernel_does():
 
 
 def test_the_no_winner_sentinel_is_one_constant_not_two_spellings():
-    """`tally()` produces it, `_seat()` refuses it, a game file writes it.
+    """`tally()` produces it, `_seat()` refuses it, a game file may write it.
 
-    Three places, so it is one name. A misspelled `unless` in a game file used
-    to load and never match, running the operation it was written to prevent.
+    Three places, so it is one name. A misspelled `unless` used to load and
+    never match, running the operation it was written to prevent. Mafia no
+    longer needs the guard — its vote names both outcomes instead — so this
+    builds a file that does use one rather than depending on a shipped game to
+    keep exercising it.
     """
     from xcolos.games.definition import NOBODY, DefinitionError
 
-    base = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
-    guards = [
-        args
-        for step in base["steps"]
-        for op in step.get("do", [])
-        for args in op.values()
-        if isinstance(args, dict) and "unless" in args
-    ]
-    assert guards, "Mafia guards its resolutions against a tie"
-    assert all(g["unless"] == NOBODY for g in guards)
+    base = json.loads((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"))
+    guarded = json.loads(json.dumps(base))
+    step = next(s for s in guarded["steps"] if s["label"] == "the night resolves")
+    step["do"][0]["set_status"]["unless"] = NOBODY
+    load(json.dumps(guarded), source="guarded")          # the right spelling loads
 
-    raw = json.loads(json.dumps(base))
-    for step in raw["steps"]:
-        for op in step.get("do", []):
-            for args in op.values():
-                if isinstance(args, dict) and "unless" in args:
-                    args["unless"] = "noboby"
+    step["do"][0]["set_status"]["unless"] = "noboby"
     try:
-        load(json.dumps(raw), source="typo")
+        load(json.dumps(guarded), source="typo")
     except DefinitionError as error:
         assert "noboby" in str(error) and NOBODY in str(error)
     else:

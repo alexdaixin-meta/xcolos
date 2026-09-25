@@ -102,7 +102,7 @@
       "label": "your state",
       "mode": "self",
       "to": "all",
-      "text": "state_header",
+      "text": "What you know to begin with:",
       "max_words": 90,
       "llm": "Write this player a short opening briefing. Tell them how many are at the table and which seat they are, what their own role and faction are, and anything you have been shown about anyone else. Do not invent anything you were not shown, and do not list raw fields. Address them directly."
     }
@@ -113,7 +113,7 @@
       "phase": "night",
       "label": "nightfall",
       "to": "all",
-      "text": "night_falls"
+      "text": "Night falls. Everyone closes their eyes."
     },
     {
       "use": "poll",
@@ -138,9 +138,9 @@
       },
       "broadcast": {
         "to": "ally",
-        "text": "kill_agreed"
+        "text": "Your side has chosen seat {value}."
       },
-      "prompt": "Agree with your fellow mafia on one player to kill tonight. Answer with their seat number."
+      "text": "Agree with your fellow mafia on one player to kill tonight. Answer with their seat number."
     },
     {
       "use": "ask",
@@ -165,7 +165,7 @@
       "verify": {
         "bind": "suspect"
       },
-      "prompt": "Choose one player to investigate. You will learn their faction. Answer with their seat number."
+      "text": "Choose one player to investigate. You will learn their faction. Answer with their seat number."
     },
     {
       "use": "update",
@@ -176,7 +176,7 @@
           "set_status": {
             "player": "$target",
             "to": "eliminated",
-            "text": "killed_overnight"
+            "text": "Seat {player} did not survive the night."
           }
         },
         {
@@ -187,25 +187,25 @@
               "attribute": "role",
               "is": "detective"
             },
-            "text": "investigation_result"
+            "text": "Your investigation of seat {subject} says: {value}."
           }
         }
       ]
     },
     {
-      "use": "update",
+      "use": "tell",
       "phase": "day",
       "label": "dawn",
-      "do": [
-        {
-          "disclose": {
-            "attribute": "role",
-            "of": "$target",
-            "to": "all",
-            "text": "found_dead"
-          }
-        }
-      ]
+      "kind": "status_update",
+      "about": "$target",
+      "fields": [
+        "status",
+        "role"
+      ],
+      "to": "all",
+      "max_words": 30,
+      "text": "Seat {subject} was found dead.",
+      "llm": "Announce to the table who was found dead this morning, and what they turned out to be."
     },
     {
       "use": "check",
@@ -226,7 +226,7 @@
         "max_words": 100
       },
       "broadcast": "others",
-      "prompt": "It is your turn to speak. Say what you think, to everyone."
+      "text": "It is your turn to speak. Say what you think, to everyone."
     },
     {
       "use": "poll",
@@ -237,36 +237,35 @@
         "type": "player",
         "exclude_self": true
       },
+      "outcome": {
+        "chosen": {
+          "do": [
+            {
+              "set_status": {
+                "player": "$result",
+                "to": "eliminated"
+              }
+            },
+            {
+              "disclose": {
+                "attribute": "role",
+                "of": "$result",
+                "to": "all",
+                "text": "They were a {value}."
+              }
+            }
+          ],
+          "text": "Seat {result} was voted out."
+        },
+        "none": {
+          "text": "The vote was tied. Nobody was voted out."
+        }
+      },
       "verify": {
         "tally": "plurality",
-        "on_tie": "nobody",
-        "bind": "voted_out"
+        "on_tie": "nobody"
       },
-      "prompt": "Vote for the player you want eliminated. Answer with their seat number."
-    },
-    {
-      "use": "update",
-      "phase": "day",
-      "label": "the verdict",
-      "do": [
-        {
-          "set_status": {
-            "player": "$voted_out",
-            "to": "eliminated",
-            "unless": "nobody",
-            "text": "voted_out"
-          }
-        },
-        {
-          "disclose": {
-            "attribute": "role",
-            "of": "$voted_out",
-            "to": "all",
-            "unless": "nobody",
-            "text": "voted_out_role"
-          }
-        }
-      ]
+      "text": "Vote for the player you want eliminated. Answer with their seat number."
     },
     {
       "use": "check",
@@ -288,7 +287,7 @@
         "role",
         "faction"
       ],
-      "text": "town_victory"
+      "text": "The town wins. {reason}"
     },
     "mafia_wins": {
       "when": "The number of living evil players is greater than or equal to the number of living good players.",
@@ -298,7 +297,7 @@
         "role",
         "faction"
       ],
-      "text": "mafia_victory"
+      "text": "The mafia win. {reason}"
     }
   },
   "reveal": [
@@ -310,20 +309,6 @@
     "rounds_max": 200,
     "actions_max": 400,
     "deadline_s": 120
-  },
-  "text": {
-    "night_falls": "Night falls. Everyone closes their eyes.",
-    "no_vote": "The vote was tied. Nobody was voted out.",
-    "kill_agreed": "Your side has chosen seat {value}.",
-    "game_over": "The game is over. The {result} win: {reason}",
-    "town_victory": "The town wins. {reason}",
-    "mafia_victory": "The mafia win. {reason}",
-    "state_header": "What you know to begin with:",
-    "investigation_result": "Your investigation of seat {subject} says: {value}.",
-    "found_dead": "They were a {value}.",
-    "voted_out_role": "They were a {value}.",
-    "voted_out": "Seat {player} was voted out.",
-    "killed_overnight": "Seat {player} did not survive the night."
   },
   "rules": "Mafia is a hidden-role game. Every player is secretly either mafia or a member of the town. The mafia know each other; nobody else knows anything.\n\nEach round has a night and a day. At night the mafia agree on one player to kill, and the detective privately investigates one player and learns whether they are evil. At dawn the death is announced and the dead player's role is revealed. Then every living player speaks once in seat order, and then everyone votes at the same time. The player with the most votes is eliminated and their role revealed; a tie eliminates nobody.\n\nThe town wins when every mafia is eliminated. The mafia win when they equal or outnumber the town."
 }

@@ -53,8 +53,48 @@ KINDS = ("initialize", "sync", "tell", "ask", "poll", "update", "check")
 SPEAKING_KINDS = ("sync", "tell", "ask", "poll")
 #: Whose state a `sync` sends, and to whom.
 SYNC_MODES = ("self", "others")
+
+#: What kind of message a `tell` is. The action stays one action; the kind
+#: says what the engine should assemble into the request, so a game states the
+#: subject and the fields rather than describing them in prose.
+#:
+#:   message        just the prompt, on the recipient's view
+#:   status_update  plus what the subject's named fields now hold, filtered
+#:                  separately for each recipient
+#:
+#: Adding a kind is a row here and a branch in the request builder. The point
+#: is that a game never has to write "player 3 is now eliminated" into a
+#: prompt by hand; it says which player and which fields, and the engine puts
+#: the current values in front of the model.
+TELL_KINDS = ("message", "status_update")
 #: Kinds that stop the game until an answer arrives.
 ASKING_KINDS = ("ask", "poll")
+
+#: Every key on a step, and nothing else. The union is long because it is the
+#: union of seven actions' needs; no single action reads more than a third of
+#: it.
+COMMON_KEYS = ("use", "label", "phase", "when")
+
+#: Which keys each action reads. A key an action ignores is refused at load,
+#: because a silently ignored field is the same failure as a misspelled one —
+#: the game does not do what the file says, and nothing says so. Six such
+#: combinations used to load cleanly: a `check` with `about`, a `tell` with
+#: `verify`, an `update` with `to`, and more.
+#:
+#: This table is also the honest answer to "which fields apply to me": a
+#: reader of the schema sees a list of twenty-two, and a writer of a step
+#: needs at most eight.
+ACTION_KEYS = {
+    "initialize": ("updates", "requires", "llm"),
+    "sync": ("to", "mode", "fields", "text", "llm", "max_words"),
+    "tell": ("to", "kind", "about", "fields", "text", "llm", "max_words"),
+    "ask": ("to", "answer", "verify", "outcome", "broadcast", "text", "llm",
+            "max_words", "deadline_s", "on_timeout"),
+    "poll": ("to", "answer", "verify", "outcome", "broadcast", "text", "llm",
+             "max_words", "deadline_s", "on_timeout"),
+    "update": ("do", "text", "llm", "max_words"),
+    "check": ("against", "llm"),
+}
 
 #: Kinds a `setup` step may use. Setup runs before the game is running and
 #: before anybody has been greeted, so there is nobody to wait on and nothing
@@ -195,7 +235,13 @@ class Selector:
     to exclude eliminated players.
     """
 
-    kind: str  # "acting" | "attribute" | "ids" | "all"
+    #: "acting" | "all" | "attribute" | "ids" | "others" | "ally" | "author"
+    #:
+    #: The last three are relative to whoever the message is about — the player
+    #: who just answered. They were a separate four-value enum on `broadcast`,
+    #: so "who" was spelled four ways across the schema with four types. One
+    #: grammar means one word and one parser.
+    kind: str
     attribute: str | None = None
     is_: Any = None
     negate: bool = False
@@ -205,8 +251,8 @@ class Selector:
     def parse(raw: Any, where: str) -> "Selector":
         if raw is None or raw == "acting":
             return Selector(kind="acting")
-        if raw == "all":
-            return Selector(kind="all")
+        if raw in ("all", "others", "ally", "author"):
+            return Selector(kind=str(raw))
         _require(isinstance(raw, dict), where, f"expected a selector, got {raw!r}")
         _only(raw, ("ids", "attribute", "is", "not", "acting"), where)
         if "ids" in raw:
@@ -323,6 +369,16 @@ class AnswerDef:
         kind = _one_of(raw.get("type"), ANSWER_TYPES, where + ".type")
         if kind == "choice":
             _require(raw.get("options"), where, "a choice needs `options`")
+        # A string here is silently mangled: tuple("$hand") becomes five
+        # one-character options and the file loads clean. Anything that is not
+        # a list is a mistake, and this is the one place a mistake produces a
+        # plausible-looking answer spec rather than an error.
+        _require(
+            "options" not in raw or isinstance(raw["options"], list),
+            where + ".options",
+            f"is a list of values, not {type(raw.get('options')).__name__}. "
+            f"Options drawn from state are not supported yet.",
+        )
         return AnswerDef(
             type=kind,
             max_words=int(raw.get("max_words", 0)),
@@ -379,6 +435,59 @@ class UpdatesDef:
 
 
 @dataclass(frozen=True)
+class Branch:
+    """What happens on one of the two outcomes a tally can have."""
+
+    do: tuple["Operation", ...] = ()
+    text: str = ""
+    llm: str = ""
+    to: Selector = field(default_factory=lambda: Selector(kind="all"))
+
+    @staticmethod
+    def parse(raw: Any, where: str) -> "Branch":
+        _require(isinstance(raw, dict), where, f"expected an object, got {raw!r}")
+        _only(raw, ("do", "text", "llm", "to"), where)
+        return Branch(
+            do=tuple(Operation.parse(o, f"{where}.do[{i}]")
+                     for i, o in enumerate(raw.get("do", ()))),
+            text=str(raw.get("text", "")),
+            llm=str(raw.get("llm", "")),
+            to=Selector.parse(raw.get("to", "all"), where + ".to"),
+        )
+
+
+@dataclass(frozen=True)
+class OutcomeDef:
+    """What a step does with the answers it just gathered.
+
+    Asking, reducing, applying and announcing are one act in a game and were
+    three things here: a `poll` that bound a name, an `update` that read it
+    back, and a guard on every operation for the case where the tally chose
+    nobody. The plumbing was visible and the tie was easy to forget — Mafia
+    forgot it, and a tied vote told the table nothing at all.
+
+    Naming both outcomes is the point. A tally either settles on someone or it
+    does not, and a schema that names only the first invites a game that
+    handles only the first.
+    """
+
+    chosen: Branch | None = None
+    none: Branch | None = None
+
+    @staticmethod
+    def parse(raw: Any, where: str) -> "OutcomeDef":
+        _require(isinstance(raw, dict), where, f"expected an object, got {raw!r}")
+        _only(raw, ("chosen", "none"), where)
+        _require(bool(raw), where, "names neither outcome, so it does nothing")
+        return OutcomeDef(
+            chosen=Branch.parse(raw["chosen"], where + ".chosen")
+            if "chosen" in raw else None,
+            none=Branch.parse(raw["none"], where + ".none")
+            if "none" in raw else None,
+        )
+
+
+@dataclass(frozen=True)
 class BroadcastDef:
     """What the table is told about an answer somebody just gave.
 
@@ -390,34 +499,23 @@ class BroadcastDef:
     game: a step has to ask to be published.
     """
 
-    #: Who hears it. `others` is everyone but the author — the usual case,
-    #: since the author already knows what they said and echoing it back reads
-    #: as somebody else's words. `ally` is the author's own side.
-    to: str = "others"
-    selector: Selector | None = None
+    #: Who hears it, as a selector. `others` is the usual case: the author
+    #: already knows what they said, and echoing it back reads as somebody
+    #: else's words.
+    to: Selector = field(default_factory=lambda: Selector(kind="others"))
     #: A template key from the game's `text` block.
     text: str = ""
     #: A prompt. With a model wired in, it writes the broadcast instead.
     llm: str = ""
 
-    AUDIENCES = ("others", "all", "ally", "author")
-
     @staticmethod
     def parse(raw: Any, where: str) -> "BroadcastDef":
         if isinstance(raw, str):
-            return BroadcastDef(to=_one_of(raw, BroadcastDef.AUDIENCES, where))
+            return BroadcastDef(to=Selector.parse(raw, where))
         _require(isinstance(raw, dict), where, f"expected a broadcast, got {raw!r}")
         _only(raw, ("to", "text", "llm"), where)
-        to = raw.get("to", "others")
-        if isinstance(to, dict):
-            return BroadcastDef(
-                to="selector",
-                selector=Selector.parse(to, where + ".to"),
-                text=str(raw.get("text", "")),
-                llm=str(raw.get("llm", "")),
-            )
         return BroadcastDef(
-            to=_one_of(to, BroadcastDef.AUDIENCES, where + ".to"),
+            to=Selector.parse(raw.get("to", "others"), where + ".to"),
             text=str(raw.get("text", "")),
             llm=str(raw.get("llm", "")),
         )
@@ -475,9 +573,7 @@ class StepDef:
     #: step declared no wording, which read sensibly only because these labels
     #: happen to be noun phrases. Call a step `s2` and that prompt is noise.
     label: str
-    #: What an addressed player is told, when no model writes it. Plain text,
-    #: not a template key — this is the instruction itself.
-    prompt: str = ""
+
     #: Derived from `use`, not declared. `ask` takes players one at a time so
     #: each hears the last; `poll` takes them together so none does. That was a
     #: `mode` field with a default, which meant a step addressing two players
@@ -489,6 +585,9 @@ class StepDef:
     to: Selector = field(default_factory=lambda: Selector(kind="acting"))
     mode: str = "simultaneous"
     answer: AnswerDef | None = None
+    #: What to do with the answers once they are reduced: apply state, and say
+    #: what happened. Both outcomes are named, so a tie cannot be forgotten.
+    outcome: OutcomeDef | None = None
     #: What the table is told about the answers this step collects. None means
     #: nothing is said, which is what a secret ballot wants.
     broadcast: BroadcastDef | None = None
@@ -533,6 +632,15 @@ class StepDef:
     #: briefing has no answer at all and still wants a length. Asking for
     #: a limit in the prose with nothing enforcing it is the worst of both.
     max_words: int = 0
+    #: What this message is about — usually a binding an earlier step left,
+    #: like `$target` or `$voted_out`. A template could already reach those
+    #: through `{target}`; a prompt could not, so a model asked to "announce
+    #: who died overnight" was never told who. Naming the subject puts it in
+    #: both.
+    about: str = ""
+    #: For `tell`: what sort of message this is, which decides what the engine
+    #: assembles into the request. See TELL_KINDS.
+    kind: str = "message"
     #: For `sync`: which attributes to send. Empty sends everything the
     #: recipient may see, which is the usual case and the safe default —
     #: naming fields can only ever narrow it, never widen it.
@@ -558,11 +666,8 @@ class StepDef:
     def parse(raw: Any, index: int, where: str | None = None) -> "StepDef":
         where = where or f"steps[{index}]"
         _require(isinstance(raw, dict), where, f"expected an object, got {raw!r}")
-        _only(raw, ("use", "label", "phase", "prompt", "when", "to", "answer",
-                    "broadcast", "llm", "max_words", "fields", "mode",
-                    "updates", "requires", "against",
-                    "deadline_s", "on_timeout", "verify", "do", "text"), where)
         use = _one_of(raw.get("use"), KINDS, where + ".use")
+        _only(raw, COMMON_KEYS + ACTION_KEYS[use], where + f" (a {use!r} step)")
         mode = "sequential" if use == "ask" else "simultaneous"
         _require(
             use != "initialize" or raw.get("updates"),
@@ -571,16 +676,30 @@ class StepDef:
             '{"updates": {"players": ["role"]}}',
         )
         _require(
+            use in ASKING_KINDS or "outcome" not in raw,
+            where + ".outcome",
+            "only an `ask` or `poll` has answers to act on",
+        )
+        _require(
+            use == "tell" or "kind" not in raw,
+            where + ".kind",
+            "only a `tell` has kinds; the other actions differ by name",
+        )
+        _require(
+            raw.get("kind") != "status_update" or raw.get("about"),
+            where + ".about",
+            "a status update must say which player it is about",
+        )
+        _require(
+            use in ("sync", "tell") or "fields" not in raw,
+            where + ".fields",
+            "only `sync` and a `tell` status update name fields",
+        )
+        _require(
             use == "sync" or "mode" not in raw,
             where + ".mode",
             "only a `sync` step takes a mode; `ask` and `poll` differ by the "
             "action name, not by a flag",
-        )
-        _require(
-            use == "sync" or "fields" not in raw,
-            where + ".fields",
-            "only a `sync` step names fields; other steps say what to send "
-            "with `text` or `llm`",
         )
         _require(
             use in ASKING_KINDS or "answer" not in raw,
@@ -602,7 +721,7 @@ class StepDef:
         return StepDef(
             use=use,
             label=str(raw.get("label", use)),
-            prompt=str(raw.get("prompt", "")),
+
             phase=str(raw.get("phase", "")),
             when=Condition.parse(raw["when"], where + ".when") if "when" in raw else None,
             to=Selector.parse(raw.get("to"), where + ".to"),
@@ -610,10 +729,17 @@ class StepDef:
             answer=AnswerDef.parse(raw["answer"], where + ".answer")
             if "answer" in raw
             else None,
+            outcome=OutcomeDef.parse(raw["outcome"], where + ".outcome")
+            if "outcome" in raw
+            else None,
             broadcast=BroadcastDef.parse(raw["broadcast"], where + ".broadcast")
             if "broadcast" in raw
             else None,
             max_words=int(raw.get("max_words", 0)),
+            about=str(raw.get("about", "")),
+            kind=_one_of(raw.get("kind", "message"), TELL_KINDS, where + ".kind")
+            if use == "tell"
+            else "message",
             fields=tuple(raw.get("fields", ())),
             sync_mode=_one_of(raw.get("mode", "self"), SYNC_MODES, where + ".mode")
             if use == "sync"
@@ -667,11 +793,15 @@ class EndRule:
     reveal: tuple[str, ...] = ()
     #: The template that announces this ending. Falls back to `game_over`.
     text: str = ""
+    #: Or a prompt, and a model writes the announcement instead. Every
+    #: announcement in the engine takes one or the other, so a game chooses
+    #: per message whether it wants a fixed sentence or a written one.
+    llm: str = ""
 
     @staticmethod
     def parse(name: str, raw: Any, where: str) -> "EndRule":
         _require(isinstance(raw, dict), where, f"expected an ending, got {raw!r}")
-        _only(raw, ("when", "result", "reason", "reveal", "text"), where)
+        _only(raw, ("when", "result", "reason", "reveal", "text", "llm"), where)
         _require("when" in raw, where, "needs a `when`")
         _require("result" in raw, where, "needs a `result`")
         return EndRule(
@@ -681,6 +811,7 @@ class EndRule:
             reason=str(raw.get("reason", "")),
             reveal=tuple(raw.get("reveal", ())),
             text=str(raw.get("text", "")),
+            llm=str(raw.get("llm", "")),
         )
 
 
@@ -941,19 +1072,23 @@ def _check_requires(d: GameDefinition) -> None:
 def _check_prompts(d: GameDefinition) -> None:
     """A step that asks something must say what it is asking.
 
-    Either `prompt` — the words themselves — or `llm`, so a model writes them.
-    Without this the engine fell back to the step's label, which is an
-    identifier and not an instruction.
+    Either `text` naming a template, or `llm` so a model writes it. There used
+    to be a third field, `prompt`, holding the words themselves — so a game
+    wrote an instruction one way for a `tell` and another way for an `ask`,
+    and one of them indirected through the text block while the other did not.
     """
     for i, step in enumerate(d.steps):
         if not step.asks:
             continue
         _require(
-            bool(step.prompt or step.llm),
+            bool(step.text or step.llm),
             f"steps[{i}]",
-            f"{step.label!r} asks players for an answer, so it needs a "
-            f"`prompt` telling them what to do, or an `llm` to write one",
+            f"{step.label!r} asks players for an answer, so it needs `text` "
+            f"naming a template that tells them what to do, or an `llm` to "
+            f"write one",
         )
+        if step.text:
+            _wording(step.text, d.text, f"steps[{i}].text")
 
 
 def _check_sentinels(d: GameDefinition) -> None:
@@ -998,8 +1133,28 @@ def _check_endings(d: GameDefinition) -> None:
                 f"{key!r} is not a declared player attribute",
             )
         if rule.text:
-            _require(rule.text in d.text, f"end.{rule.name}.text",
-                     f"{rule.text!r} is not declared in `text`")
+            _wording(rule.text, d.text, f"end.{rule.name}.text")
+
+
+def _wording(value: str, declared: dict[str, str], where: str) -> None:
+    """A message may be the words themselves or a name in the `text` block.
+
+    Every template in the first game was referenced exactly once, so the
+    indirection cost a lookup on every read and bought no reuse. Naming one is
+    still allowed, for wording a game genuinely shares between steps.
+
+    A bare identifier that names nothing is the mistake worth catching: it is
+    almost certainly a typo'd template name, and taken literally it would send
+    a player the word `found_dad`.
+    """
+    if value in declared:
+        return
+    _require(
+        " " in value or "{" in value,
+        where,
+        f"{value!r} is neither a declared template nor a sentence. Write the "
+        f"words here, or add {value!r} to the `text` block.",
+    )
 
 
 def _check_text(d: GameDefinition) -> None:
@@ -1011,9 +1166,10 @@ def _check_text(d: GameDefinition) -> None:
     """
     text = d.text
 
-    if d.end:
+    if d.end and not all(r.llm or r.text for r in d.end):
         _require("game_over" in text, "text.game_over",
-                 "a game that can end must say how the ending is announced")
+                 "a game that can end must say how the ending is announced, "
+                 "with `text.game_over` or an `llm` on each ending")
 
     for where, step in (
         [(f"setup[{i}]", s) for i, s in enumerate(d.setup)]
@@ -1027,25 +1183,27 @@ def _check_text(d: GameDefinition) -> None:
             # sentence, so the game has to say how it is announced.
             speaks = step.answer is not None and step.answer.type == "text"
             if spec.text:
-                _require(spec.text in text, where + ".broadcast.text",
-                         f"{spec.text!r} is not declared in `text`")
+                _wording(spec.text, text, where + ".broadcast.text")
             else:
                 _require(
                     speaks,
                     where + ".broadcast",
                     f"a {step.answer.type if step.answer else 'silent'} answer "
-                    f"is not a message on its own, so this needs `text` naming "
-                    f"a template, or `llm` to have one written",
+                    f"is not a message on its own, so this needs `text` giving "
+                    f"the words, or `llm` to have them written",
                 )
         if step.text:
-            _require(step.text in text, where + ".text",
-                     f"{step.text!r} is not declared in `text`")
+            _wording(step.text, text, where + ".text")
+        # Any operation may word itself, and a disclosure must, because its
+        # message is the disclosure.
         for j, op in enumerate(step.do):
-            if op.op != "disclose":
-                continue
-            key = str(op.args.get("text") or "disclosed")
-            _require(key in text, f"{where}.do[{j}]",
-                     f"a disclosure needs {key!r} in `text`")
+            wording = op.args.get("text")
+            if wording:
+                _wording(str(wording), text, f"{where}.do[{j}].text")
+            elif op.op == "disclose" and not op.args.get("llm"):
+                _require(False, f"{where}.do[{j}]",
+                         "a disclosure is a message, so it needs `text` giving "
+                         "the words, or `llm` to have them written")
 
 
 def _check_references(d: GameDefinition) -> None:
@@ -1104,8 +1262,7 @@ def _check_references(d: GameDefinition) -> None:
         if step.verify and step.verify.bind:
             bound.add(step.verify.bind)
         if step.text:
-            _require(step.text in d.text, where + ".text",
-                     f"no wording declared for {step.text!r}")
+            _wording(step.text, d.text, where + ".text")
         for j, op in enumerate(step.do):
             _check_operation(op, bound, player_keys, game_keys, status_ids,
                              f"{where}.do[{j}]")
