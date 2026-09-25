@@ -9,6 +9,7 @@ It knows the twelve flow slots and the five operations. It knows no game.
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field as dataclass_field
 from typing import Any, Iterator
@@ -72,6 +73,16 @@ ACTIONS = {
                 "exists yet",
         "returns": "records",
         "engine_calls": "set_attribute / set_status, after a seeded shuffle",
+    },
+    "sync": {
+        "sees": "nothing — no model is called",
+        "returns": "no reply",
+        "engine_calls": "emit_fact of that seat's own view, to that seat",
+    },
+    "tell": {
+        "sees": "one recipient's view, per call",
+        "returns": "message",
+        "engine_calls": "emit_fact, and carry on",
     },
     "ask": {
         "sees": "one recipient's view, per call",
@@ -190,15 +201,15 @@ class FlowOrchestrator:
                 game.set_phase(step.phase or step.label)
 
                 if step.use in ("ask", "poll"):
-                    if step.asks:
-                        # An action. Nothing moves until the addressed players
-                        # answer, and only then is the tally taken.
-                        answers = yield from self._run_ask(game, step)
-                        self._verify(game, step, answers)
-                    else:
-                        # Information. Delivered and acknowledged; the loop
-                        # does not wait, and any reply is discarded.
-                        self._inform(game, step)
+                    # Nothing moves until the addressed players answer, and
+                    # only then is the tally taken.
+                    answers = yield from self._run_ask(game, step)
+                    self._verify(game, step, answers)
+                elif step.use == "sync":
+                    self._sync(game, step)
+                elif step.use == "tell":
+                    # Delivered and acknowledged; the loop does not wait.
+                    self._inform(game, step)
 
                 elif step.use == "update":
                     self._apply(game, step.do)
@@ -239,6 +250,8 @@ class FlowOrchestrator:
             game.set_phase(step.phase or step.label)
             if step.use == "initialize":
                 self._initialize(game, step)
+            elif step.use == "sync":
+                self._sync(game, step)
             elif step.use == "update":
                 self._apply(game, step.do)
                 self._announce(game, step)
@@ -601,6 +614,141 @@ class FlowOrchestrator:
             Audience.all(),
         )
 
+    def _sync(self, game: Game, step: StepDef) -> None:
+        """Send each addressed player their own state, as data.
+
+        The one action that cannot leak by construction, because its payload
+        *is* the entitlement filter: it sends `view(seat)` and nothing else, so
+        there is no wording for a model to overreach in and no template for an
+        author to get wrong.
+
+        It also needs no authoring at all. A game with eight attributes does
+        not write eight templates; the fields come from the schema and the
+        filtering from the declared visibilities. `fields` may narrow it and
+        can never widen it.
+
+        Used after a deal or a resolution, when what a player needs is their
+        standing rather than a sentence about it.
+        """
+        flow = self._state()
+        if step.sync_mode == "others":
+            self._sync_outward(game, step)
+            return
+        for seat in flow.select(step.to, acting_only=False):
+            state = flow.view(seat)
+            if step.fields:
+                keep = set(step.fields)
+                state = {
+                    **state,
+                    "you": {
+                        **state["you"],
+                        "attributes": {k: v for k, v in
+                                       state["you"]["attributes"].items()
+                                       if k in keep},
+                    },
+                    "players": [
+                        {**p, "attributes": {k: v for k, v in
+                                             p["attributes"].items() if k in keep}}
+                        for p in state["players"]
+                    ],
+                }
+            # The fact always carries the state as data. What a player
+            # *reads* is prose when the step asks for it: a raw JSON dump is
+            # accurate and close to unreadable, and an agent given one spends
+            # its attention parsing rather than playing.
+            written = self._word_state(game, step, seat, state)
+            if written is None:
+                # No model to word it. Pretty-printed JSON was going straight
+                # to the player — thirty lines of braces for five facts. A
+                # compact line says the same thing and can be read.
+                header = (self._render(seat, step.text, {"you": seat})
+                          if step.text else "")
+                written = " ".join(
+                    part for part in (header, _plain_state(state)) if part
+                )
+            game.emit_fact(
+                step.label.replace(" ", "_"),
+                {"state": state, "rendered": written},
+                Audience.only(seat),
+            )
+
+    def _word_state(
+        self, game: Game, step: StepDef, seat: int, state: dict[str, Any]
+    ) -> str | None:
+        """Have a model turn one player's state into something readable.
+
+        None when the step asks for no wording or no model is reachable, and
+        the caller falls back to the template plus the raw state.
+
+        The call is given this seat's view and nothing else, so the prose can
+        only ever describe what the player already holds. It is also told the
+        shape of the table — how many are playing, who they are by seat — which
+        is public and is the context a state dump lacks.
+        """
+        if not step.llm or self.judge is None:
+            return None
+        flow = self._state()
+        reply = self._ask(
+            game,
+            self._call(
+                game,
+                task="\n\n".join((
+                    step.llm,
+                    f"There are {len(flow.players)} players, in seats "
+                    f"{list(flow.players)}. You are writing to seat {seat}.",
+                    "This is their own state, and everything they may see of "
+                    "the others. Say only what is here.",
+                )),
+                output=Output(kind="message", max_words=step.max_words),
+                step=step,
+                tag=f"sync:{step.label}:seat{seat}",
+                seat=seat,
+            ),
+        )
+        return reply.value["text"] if reply.value else None
+
+    def _sync_outward(self, game: Game, step: StepDef) -> None:
+        """Send each addressed player's state to everyone but them.
+
+        The mirror of the default. `self` answers "what do I know?"; this
+        answers "what has just changed about them?" — the same facts arriving
+        as news about somebody else rather than as your own standing.
+
+        Each recipient is filtered separately through `can_see`, so a subject's
+        hidden attributes reach only those entitled to them. Two players can be
+        told about the same subject and be told different things, which is
+        exactly what a hidden-role game needs.
+        """
+        flow, definition = self._state(), self.definition
+        keep = set(step.fields)
+        for subject in flow.select(step.to, acting_only=False):
+            grouped: dict[str, list[int]] = {}
+            for viewer in flow.players:
+                if viewer == subject:
+                    continue
+                visible = {
+                    a.key: flow.attribute(subject, a.key)
+                    for a in definition.player_attributes
+                    if (not keep or a.key in keep)
+                    and flow.can_see(viewer, subject, a)
+                }
+                state = {
+                    "player": subject,
+                    "status": flow.status[subject],
+                    "attributes": visible,
+                }
+                rendered = json.dumps(state, indent=2, sort_keys=True, default=str)
+                grouped.setdefault(rendered, []).append(viewer)
+            for rendered, audience in grouped.items():
+                header = (self._render(None, step.text, {"seat": subject})
+                          if step.text else "")
+                game.emit_fact(
+                    step.label.replace(" ", "_"),
+                    {"player": subject,
+                     "rendered": (header + "\n" if header else "") + rendered},
+                    Audience.only(*audience),
+                )
+
     def _inform(self, game: Game, step: StepDef) -> None:
         """Deliver an `ask` that wants no reply, to whoever it addresses.
 
@@ -723,7 +871,12 @@ class FlowOrchestrator:
                     task=self._compose_task(step, legal.get(seat, ()), seat),
                     output=Output(
                         kind="message",
-                        max_words=step.answer.max_words if step.answer else 0,
+                        # `max_words` on the step caps the message the model
+                        # writes. The answer's own limit caps what the *player*
+                        # replies, which is a different thing: a briefing has
+                        # no answer at all and still wants a length.
+                        max_words=step.max_words
+                        or (step.answer.max_words if step.answer else 0),
                     ),
                     step=step,
                     tag=f"compose:{step.label}:seat{seat}",
@@ -743,12 +896,20 @@ class FlowOrchestrator:
         it has been shown. The restricted view is the guarantee; this is the
         instruction that stops it inventing what it was not given.
         """
+        # The game's own instruction, first and unconditionally. It used to be
+        # squeezed into a "What this step is for:" line built from `prompt`,
+        # which is a different field — so a step that declared only `llm` lost
+        # its instruction entirely and the model wrote from the generic opener
+        # below. The briefing was doing exactly that.
         lines = [
             f"Write the message that player {seat} receives now. Address them "
             f"directly. You have been shown only what this player may see, and "
             f"you must not write anything you were not shown.",
-            f"What this step is for: {self._prompt(step)}",
         ]
+        if step.llm:
+            lines.append(step.llm)
+        elif step.prompt:
+            lines.append(f"What this step is for: {self._prompt(step)}")
         if step.asks:
             lines.append(
                 f"This player must answer. Mark the message `action`."
@@ -876,10 +1037,14 @@ class FlowOrchestrator:
             # Rendered with no owning seat, so a listener's own attributes
             # cannot shadow `seat` or `value` and put their hidden state into
             # somebody else's copy of the message.
-            rendered = written.get(listener) or self._render(
-                None,
-                spec.text,
-                {"seat": seat, "you": seat, "value": value},
+            rendered = written.get(listener) or (
+                self._render(None, spec.text,
+                             {"seat": seat, "you": seat, "value": value})
+                if spec.text
+                # No template: the answer is the message. Delivered whole,
+                # word for word — a broadcast that reworded what a player said
+                # would be the referee putting words in their mouth.
+                else str(value)
             )
             if rendered:
                 grouped.setdefault(rendered, []).append(listener)
@@ -969,12 +1134,50 @@ class FlowOrchestrator:
             getattr(self, "_op_" + operation.op)(game, args)
 
     def _op_set_status(self, game: Game, args: dict[str, Any]) -> None:
+        """Change a player's status, and say so if the game asked.
+
+        `text` is what makes an elimination announceable without revealing
+        anything about the player. Before it, the only way to tell the table
+        that somebody was voted out was to `disclose` their role in the same
+        breath — so a game that eliminates without revealing could not be
+        written, and Mafia's own "who is out" message was a side effect of the
+        reveal rather than a thing it asked for.
+        """
         seat = _seat(args.get("player"))
         if seat is None:
             return
         self._state().set_status(seat, str(args["to"]))
         if not self._state().acts(seat) and game.seats[seat].alive:
             game.eliminate(seat)
+        self._announce_change(game, args, {"player": seat, "subject": seat,
+                                           "status": str(args["to"])})
+
+    def _announce_change(
+        self, game: Game, args: dict[str, Any], extra: dict[str, Any]
+    ) -> None:
+        """Tell whoever the operation names about the change it just made.
+
+        Silent unless the operation declares `text`. Audience defaults to
+        everyone, because a state change nobody may hear about is better
+        expressed as no announcement at all than as one sent nowhere.
+        """
+        key = args.get("text")
+        if not key:
+            return
+        flow = self._state()
+        to = args.get("announce_to", "all")
+        heard = (
+            flow.players if to == "all"
+            else flow.select(Selector.parse(to, "announce_to"), acting_only=False)
+        )
+        if not heard:
+            return
+        game.emit_fact(
+            str(key),
+            self._payload(None, str(key), extra),
+            Audience.all() if len(heard) == len(flow.players)
+            else Audience.only(*heard),
+        )
 
     def _op_set(self, game: Game, args: dict[str, Any]) -> None:
         self._state().set_attribute(args.get("player"), str(args["key"]), args.get("value"))
@@ -1155,6 +1358,34 @@ class FlowOrchestrator:
 
 def _subject_key(operation: Operation) -> str:
     return "of" if operation.op == "disclose" else "player"
+
+
+def _plain_state(state: dict[str, Any]) -> str:
+    """One seat's state on one line, for when no model is there to word it.
+
+    Not prose and not trying to be: it is the offline fallback, and its job is
+    to be complete and legible rather than good. Skips players it can say
+    nothing about, because "seat 3: nothing" repeated four times is noise.
+    """
+    you = state.get("you") or {}
+    bits = [f"You are seat {you.get('id')}"]
+    own = ", ".join(f"{k} {v}" for k, v in sorted((you.get("attributes") or {}).items())
+                    if v is not None)
+    if own:
+        bits.append(own)
+    known = [
+        f"seat {p['id']} " + ", ".join(f"{k} {v}" for k, v in sorted(p["attributes"].items()))
+        for p in state.get("players") or []
+        if p["id"] != you.get("id") and p.get("attributes")
+    ]
+    if known:
+        bits.append("you know " + "; ".join(known))
+    table = ", ".join(f"{k} {v}" for k, v in sorted((state.get("table") or {}).items()))
+    if table:
+        bits.append(table)
+    acting = state.get("acting") or []
+    bits.append(f"still playing: {', '.join(str(a) for a in acting)}")
+    return ". ".join(bits) + "."
 
 
 def _requirement_text(requires: dict[str, Any]) -> str:

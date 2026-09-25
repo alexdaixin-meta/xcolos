@@ -83,31 +83,33 @@
     {
       "use": "initialize",
       "label": "deal the roles",
-      "llm": "Assign roles using the dealing order you were given. The first player in that order is the mafia, with faction evil. The second is the detective, with faction good. Every remaining player is a villager, with faction good.",
+      "updates": {
+        "each": [
+          "role",
+          "faction"
+        ]
+      },
       "requires": {
         "role": {
           "mafia": 1,
           "detective": 1
         }
       },
-      "updates": {
-        "each": [
-          "role",
-          "faction"
-        ]
-      }
+      "llm": "Assign roles using the dealing order you were given. The first player in that order is the mafia, with faction evil. The second is the detective, with faction good. Every remaining player is a villager, with faction good."
     },
     {
-      "use": "ask",
-      "label": "briefing",
+      "use": "sync",
+      "label": "your state",
+      "mode": "self",
       "to": "all",
-      "text": "brief",
-      "llm": "Tell this player who they are and what their role lets them do. If you have been shown anyone else's role, tell them that too. Address them directly, at most 80 words."
+      "text": "state_header",
+      "max_words": 90,
+      "llm": "Write this player a short opening briefing. Tell them how many are at the table and which seat they are, what their own role and faction are, and anything you have been shown about anyone else. Do not invent anything you were not shown, and do not list raw fields. Address them directly."
     }
   ],
   "steps": [
     {
-      "use": "ask",
+      "use": "tell",
       "phase": "night",
       "label": "nightfall",
       "to": "all",
@@ -173,7 +175,8 @@
         {
           "set_status": {
             "player": "$target",
-            "to": "eliminated"
+            "to": "eliminated",
+            "text": "killed_overnight"
           }
         },
         {
@@ -183,7 +186,8 @@
             "to": {
               "attribute": "role",
               "is": "detective"
-            }
+            },
+            "text": "investigation_result"
           }
         }
       ]
@@ -197,11 +201,11 @@
           "disclose": {
             "attribute": "role",
             "of": "$target",
-            "to": "all"
+            "to": "all",
+            "text": "found_dead"
           }
         }
-      ],
-      "text": "dawn"
+      ]
     },
     {
       "use": "check",
@@ -221,12 +225,8 @@
         "type": "text",
         "max_words": 100
       },
-      "broadcast": {
-        "to": "others",
-        "text": "said"
-      },
-      "prompt": "It is your turn to speak. Say what you think, to everyone.",
-      "llm": "Tell this player the floor is theirs, and remind them what they have been told so far. Do not suggest what to say."
+      "broadcast": "others",
+      "prompt": "It is your turn to speak. Say what you think, to everyone."
     },
     {
       "use": "poll",
@@ -253,7 +253,8 @@
           "set_status": {
             "player": "$voted_out",
             "to": "eliminated",
-            "unless": "nobody"
+            "unless": "nobody",
+            "text": "voted_out"
           }
         },
         {
@@ -261,11 +262,11 @@
             "attribute": "role",
             "of": "$voted_out",
             "to": "all",
-            "unless": "nobody"
+            "unless": "nobody",
+            "text": "voted_out_role"
           }
         }
-      ],
-      "text": "vote_result"
+      ]
     },
     {
       "use": "check",
@@ -311,18 +312,18 @@
     "deadline_s": 120
   },
   "text": {
-    "brief": "You are seat {you} in a game of Mafia. Your role is {role}.",
     "night_falls": "Night falls. Everyone closes their eyes.",
-    "dawn": "Seat {target} is dead. They were {target_role}.",
-    "vote_result": "Seat {voted_out} was voted out. They were {voted_out_role}.",
     "no_vote": "The vote was tied. Nobody was voted out.",
-    "allies": "Your allies are seats {allies}.",
-    "said": "Seat {seat} says: \"{value}\"",
     "kill_agreed": "Your side has chosen seat {value}.",
-    "disclosed": "Your investigation of seat {subject} says: {value}.",
     "game_over": "The game is over. The {result} win: {reason}",
     "town_victory": "The town wins. {reason}",
-    "mafia_victory": "The mafia win. {reason}"
+    "mafia_victory": "The mafia win. {reason}",
+    "state_header": "What you know to begin with:",
+    "investigation_result": "Your investigation of seat {subject} says: {value}.",
+    "found_dead": "They were a {value}.",
+    "voted_out_role": "They were a {value}.",
+    "voted_out": "Seat {player} was voted out.",
+    "killed_overnight": "Seat {player} did not survive the night."
   },
   "rules": "Mafia is a hidden-role game. Every player is secretly either mafia or a member of the town. The mafia know each other; nobody else knows anything.\n\nEach round has a night and a day. At night the mafia agree on one player to kill, and the detective privately investigates one player and learns whether they are evil. At dawn the death is announced and the dead player's role is revealed. Then every living player speaks once in seat order, and then everyone votes at the same time. The player with the most votes is eliminated and their role revealed; a tie eliminates nobody.\n\nThe town wins when every mafia is eliminated. The mafia win when they equal or outnumber the town."
 }

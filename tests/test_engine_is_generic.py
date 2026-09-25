@@ -148,10 +148,10 @@ ORCHARD = {
     # A game says for itself what its players are told to begin with. This one
     # has a briefing and no allies notice, which the engine must not supply.
     "setup": [
-        {"use": "ask", "label": "the welcome", "to": "all", "text": "brief"},
+        {"use": "tell", "label": "the welcome", "to": "all", "text": "brief"},
     ],
     "steps": [
-        {"use": "ask", "phase": "morning", "label": "the mist", "to": "all",
+        {"use": "tell", "phase": "morning", "label": "the mist", "to": "all",
          "text": "morning"},
         {
             "use": "ask",

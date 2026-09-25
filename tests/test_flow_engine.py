@@ -431,3 +431,72 @@ def test_the_model_is_told_the_requirement_not_only_checked_against_it():
     assert "exactly 1 player(s) with role = mafia" in text
     assert "between 1 and 2 player(s) with role = detective" in text
     assert _requirement_text({}) == ""
+
+
+def test_a_spoken_answer_is_its_own_broadcast():
+    """`broadcast: "others"` and nothing else, for a step that asks for text.
+
+    A speech needs no template: the player's words are the message, and the
+    engine has nothing to add. Anything else — a seat number, a choice — is not
+    a sentence, so the game still has to say how it is announced.
+    """
+    from xcolos.games.definition import DefinitionError
+
+    base = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
+    debate = next(s for s in base["steps"] if s["label"] == "the debate")
+    assert debate["broadcast"] == "others"
+    assert "text" not in debate and "llm" not in debate
+
+    _, game = play_with(base, None)
+    spoken = [
+        f for f in game.facts
+        if f.type == "the_debate" and f.payload.get("value")
+    ]
+    assert spoken, "the debate was heard"
+    for fact in spoken:
+        assert fact.payload["rendered"] == str(fact.payload["value"]), (
+            "a broadcast that rewords a player is the referee speaking for them"
+        )
+        assert fact.payload["seat"] not in fact.entitled, "not echoed to its author"
+
+    # The same shortcut on an answer that is not a sentence is refused.
+    broken = json.loads(json.dumps(base))
+    next(s for s in broken["steps"] if s["label"] == "the vote")["broadcast"] = "others"
+    try:
+        load(json.dumps(broken), source="vote-verbatim")
+    except DefinitionError as error:
+        assert "not a message on its own" in str(error)
+    else:
+        raise AssertionError("a bare seat number is not a broadcast")
+
+
+def test_a_worded_sync_says_only_what_the_seat_may_see():
+    """`sync` sends state; with `llm` a model turns it into something readable.
+
+    A raw JSON dump is accurate and close to unreadable, and an agent given one
+    spends its attention parsing rather than playing. The prose is written per
+    recipient from that recipient's view, so it cannot describe anything they
+    do not already hold, and the structured state stays on the fact for
+    anything that wants to read it as data.
+    """
+    judge = ScriptedJudge(
+        lambda call: ({"type": "info", "text": f"Briefing for {call.where.tag}."}
+                      if call.output.kind == "message" else None)
+    )
+    raw = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
+    _, game = play_with(raw, judge)
+
+    synced = [f for f in game.facts if f.type == "your_state"]
+    assert len(synced) == len(game.seats), "one per player"
+    secret = {i: s.role for i, s in game.seats.items()}
+    for fact in synced:
+        seat = sorted(fact.entitled)[0]
+        assert len(fact.entitled) == 1, "a sync is private by construction"
+        assert "state" in fact.payload, "the data survives alongside the prose"
+        shown = {p["id"]: p["attributes"] for p in fact.payload["state"]["players"]}
+        assert shown[seat], "a player sees their own attributes"
+        for other, attributes in shown.items():
+            if other != seat and secret[other] != "villager":
+                assert not attributes, (
+                    f"seat {seat}'s sync carried seat {other}'s state"
+                )

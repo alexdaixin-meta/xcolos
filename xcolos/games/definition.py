@@ -30,6 +30,8 @@ SCHEMA_VERSION = 1
 #: do:
 #:
 #:   initialize  fill every player's declared fields, then deal them by seed
+#:   sync    send each player their own state, as data rather than prose
+#:   tell    send a message and carry on; nobody is waited for
 #:   ask     address players one at a time, each seeing the last one's answer
 #:   poll     address every player at once and gather; nobody sees another's
 #:            answer until all are in, and answers commit in seat order
@@ -38,16 +40,26 @@ SCHEMA_VERSION = 1
 #:
 #: A game's own vocabulary lives in `phase` and `label`, so Mafia still has a
 #: night and a vote; the engine has neither.
-KINDS = ("initialize", "ask", "poll", "update", "check")
+KINDS = ("initialize", "sync", "tell", "ask", "poll", "update", "check")
 
-#: Kinds that address players. Both may inform instead of question, by
-#: declaring no `answer`.
-SPEAKING_KINDS = ("ask", "poll")
+#: Kinds that address players. `tell` speaks and carries on; the other two
+#: stop the game until the addressed players answer.
+#:
+#: These were one action whose behaviour depended on whether a sibling
+#: `answer` key happened to be present — so `use` did not tell a reader whether
+#: the flow waits, which is the single most important thing about a step. A
+#: briefing was declared as `ask` and asked nothing. Splitting them is what
+#: makes the word mean what it says.
+SPEAKING_KINDS = ("sync", "tell", "ask", "poll")
+#: Whose state a `sync` sends, and to whom.
+SYNC_MODES = ("self", "others")
+#: Kinds that stop the game until an answer arrives.
+ASKING_KINDS = ("ask", "poll")
 
 #: Kinds a `setup` step may use. Setup runs before the game is running and
 #: before anybody has been greeted, so there is nobody to wait on and nothing
 #: to end: an `ask` there may inform, never question.
-SETUP_KINDS = ("initialize", "ask", "update")
+SETUP_KINDS = ("initialize", "sync", "tell", "update")
 
 #: Who can see a player attribute. `ally` resolves to the owner alone when the
 #: game declares no allegiance, which is what makes a solo role work without a
@@ -516,6 +528,26 @@ class StepDef:
     #: Absent, the step uses its `text` template, which is free, reproducible
     #: and cannot hallucinate.
     llm: str = ""
+    #: How long the message a model writes for this step may be. Distinct
+    #: from `answer.max_words`, which caps what a *player* replies: a
+    #: briefing has no answer at all and still wants a length. Asking for
+    #: a limit in the prose with nothing enforcing it is the worst of both.
+    max_words: int = 0
+    #: For `sync`: which attributes to send. Empty sends everything the
+    #: recipient may see, which is the usual case and the safe default —
+    #: naming fields can only ever narrow it, never widen it.
+    fields: tuple[str, ...] = ()
+    #: For `sync`: whose state goes where.
+    #:
+    #:   self    each addressed player receives their own view — what they
+    #:           know, including what they may see of everyone else
+    #:   others  each addressed player's state is sent to everyone *but* them,
+    #:           filtered by what each recipient is entitled to see
+    #:
+    #: `self` answers "what do I know?". `others` answers "what has just
+    #: changed about them?", which is a different message even when it carries
+    #: the same facts.
+    sync_mode: str = "self"
     deadline_s: int | None = None
     on_timeout: Any = "random"
     verify: VerifyDef | None = None
@@ -527,7 +559,8 @@ class StepDef:
         where = where or f"steps[{index}]"
         _require(isinstance(raw, dict), where, f"expected an object, got {raw!r}")
         _only(raw, ("use", "label", "phase", "prompt", "when", "to", "answer",
-                    "broadcast", "llm", "updates", "requires", "against",
+                    "broadcast", "llm", "max_words", "fields", "mode",
+                    "updates", "requires", "against",
                     "deadline_s", "on_timeout", "verify", "do", "text"), where)
         use = _one_of(raw.get("use"), KINDS, where + ".use")
         mode = "sequential" if use == "ask" else "simultaneous"
@@ -538,9 +571,28 @@ class StepDef:
             '{"updates": {"players": ["role"]}}',
         )
         _require(
-            use in SPEAKING_KINDS or "answer" not in raw,
+            use == "sync" or "mode" not in raw,
+            where + ".mode",
+            "only a `sync` step takes a mode; `ask` and `poll` differ by the "
+            "action name, not by a flag",
+        )
+        _require(
+            use == "sync" or "fields" not in raw,
+            where + ".fields",
+            "only a `sync` step names fields; other steps say what to send "
+            "with `text` or `llm`",
+        )
+        _require(
+            use in ASKING_KINDS or "answer" not in raw,
             where + ".answer",
-            "only an `ask` or `poll` step can take an answer",
+            f"a {use!r} step takes no `answer`: it does not wait for one. "
+            f"Use `ask` or `poll` to ask a question.",
+        )
+        _require(
+            use not in ASKING_KINDS or "answer" in raw,
+            where + ".answer",
+            f"an {use!r} step waits for a reply, so it must say what a reply "
+            f"may be. Use `tell` to send a message without waiting.",
         )
         _require(
             use != "check" or not raw.get("do"),
@@ -561,6 +613,11 @@ class StepDef:
             broadcast=BroadcastDef.parse(raw["broadcast"], where + ".broadcast")
             if "broadcast" in raw
             else None,
+            max_words=int(raw.get("max_words", 0)),
+            fields=tuple(raw.get("fields", ())),
+            sync_mode=_one_of(raw.get("mode", "self"), SYNC_MODES, where + ".mode")
+            if use == "sync"
+            else "self",
             updates=UpdatesDef.parse(raw["updates"], where + ".updates")
             if "updates" in raw
             else None,
@@ -588,12 +645,12 @@ class StepDef:
         until they give one. An `ask` without one is information: it is
         delivered, acknowledged, and the game carries straight on.
         """
-        return self.use in SPEAKING_KINDS and self.answer is not None
+        return self.use in ASKING_KINDS
 
     @property
     def informs(self) -> bool:
         """An `ask` that wants no reply. Delivered, never waited on."""
-        return self.use in SPEAKING_KINDS and self.answer is None
+        return self.use == "tell"
 
 
 @dataclass(frozen=True)
@@ -964,14 +1021,22 @@ def _check_text(d: GameDefinition) -> None:
     ):
         spec = step.broadcast
         if spec and not spec.llm:
-            key = spec.text
-            _require(
-                bool(key),
-                where + ".broadcast",
-                "needs `text` naming a template, or `llm` to have one written",
-            )
-            _require(key in text, where + ".broadcast.text",
-                     f"{key!r} is not declared in `text`")
+            # A free-text answer is its own message: the player's words are
+            # what the table hears, and the engine has nothing to add but who
+            # said it. Anything else — a seat number, a choice — is not a
+            # sentence, so the game has to say how it is announced.
+            speaks = step.answer is not None and step.answer.type == "text"
+            if spec.text:
+                _require(spec.text in text, where + ".broadcast.text",
+                         f"{spec.text!r} is not declared in `text`")
+            else:
+                _require(
+                    speaks,
+                    where + ".broadcast",
+                    f"a {step.answer.type if step.answer else 'silent'} answer "
+                    f"is not a message on its own, so this needs `text` naming "
+                    f"a template, or `llm` to have one written",
+                )
         if step.text:
             _require(step.text in text, where + ".text",
                      f"{step.text!r} is not declared in `text`")
