@@ -211,16 +211,41 @@ broadcast, `to` on an outcome branch, `announce_to` on an operation.
 | `"author"` | that player alone |
 | `{"attribute": "role", "is": "mafia"}` | whoever matches; add `"not": true` to invert |
 | `{"ids": [2, 5]}` | named seats |
-
-`others`, `ally` and `author` are relative to a subject and name nobody when
-there is none.
+| `{"ids": ["$chancellor"]}` | whoever an earlier step bound to that name |
 
 Every selector except `"all"` is intersected with "may act", which is why no
 game has to remember to exclude the dead.
 
-**Not supported:** a selector cannot name a player an earlier step chose.
-`{"ids": ["$chancellor"]}` is refused. This blocks any game where one player's
-answer selects who acts next.
+### Addressing a player another step chose
+
+`verify.bind` stores the seat a step's answer landed on. `to` can then name it,
+which is how one player's choice decides who is asked next:
+
+```json
+{"use": "poll",  "label": "the nomination", "to": "acting",
+ "answer": {"type": "player"},
+ "verify": {"tally": "plurality", "on_tie": "nobody", "bind": "chancellor"}},
+
+{"use": "ask",   "label": "the legislation", "to": {"ids": ["$chancellor"]},
+ "answer": {"type": "choice", "options": ["enact", "discard"]}}
+```
+
+The name resolves when the step runs, not when the file loads, because the seat
+does not exist until the question has been answered. Three consequences:
+
+- A binding that named **nobody** — a tie, or a step gated out — addresses
+  nobody. It is not seat zero.
+- A name **no step binds** is a load error, not an empty audience.
+- A step **cannot address its own** not-yet-made binding. `to` is resolved
+  before the question is asked.
+
+### Relative selectors
+
+`others`, `ally` and `author` are relative to a *subject*, and only `about`
+supplies one — so they are available on `tell`, on a `broadcast`, and on an
+`outcome` branch. Declared on a step with no subject they are refused at load
+rather than quietly naming nobody, which is indistinguishable from a step
+meant to be silent.
 
 ---
 
@@ -407,6 +432,9 @@ naming the key and listing what is accepted.
 - an `unless` naming a value no tally can produce
 - a `requires` naming an attribute the step does not write
 - a bare identifier in `text` that names no declared template
+- a `$name` in `to` that no earlier step binds
+- a subject-relative `to` on a step with no `about`
+- an `ids` entry that is neither a seat number nor a `$name`
 - `options` that is not a list
 
 The last one is the pattern: `"options": "$hand"` became five one-character

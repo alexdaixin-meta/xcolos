@@ -24,7 +24,7 @@ from xcolos.flow.judge import (
     prompt as user_prompt,
     system_prompt,
 )
-from xcolos.flow.state import Answer, FlowError, FlowState, tally
+from xcolos.flow.state import Answer, FlowError, FlowState, seat_of as _seat, tally
 from xcolos.games.definition import (
     NOBODY,
     Condition,
@@ -761,7 +761,12 @@ class FlowOrchestrator:
         produces a single fact for the table.
         """
         flow = self._state()
-        seats = flow.select(step.to, acting_only=False)
+        # Resolved before the audience is chosen, not after: `to` may be stated
+        # relative to the subject — `author` to address the player this is
+        # about, `others` to address everyone but them. Computing it afterwards
+        # left those selectors naming nobody, silently.
+        subject = self._subject_of(step)
+        seats = flow.select(step.to, acting_only=False, subject=subject)
         if not seats:
             return
 
@@ -772,7 +777,6 @@ class FlowOrchestrator:
         grouped: dict[str, list[int]] = {}
         for seat in seats:
             said = written.get(seat)
-            subject = self._subject_of(step)
             rendered = (
                 said["text"] if said
                 else self._render(
@@ -1616,19 +1620,3 @@ def _shortfall(requires: dict[str, Any], records: Any) -> str:
                     f"in {len(rows)} players"
                 )
     return ""
-
-
-def _seat(value: Any) -> int | None:
-    """A seat number, or None if this does not name one.
-
-    Bindings hold whatever the last `verify` produced, which is NOBODY for a
-    tie, and nothing at all for a step that was gated out. Every operation that
-    acts on a player goes through here so that the absence of a subject is an
-    operation that does not happen.
-    """
-    if value is None or value == NOBODY or value == "":
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None

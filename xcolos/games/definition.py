@@ -247,6 +247,17 @@ class Selector:
     negate: bool = False
     ids: tuple[int, ...] = ()
 
+    #: Names an earlier step bound, as in `{"ids": ["$chancellor"]}`. Resolved
+    #: when the step runs, not when the file loads, because the seat is not
+    #: known until the question has been asked. This is what lets one step
+    #: address the player another step chose.
+    refs: tuple[str, ...] = ()
+
+    @property
+    def relative(self) -> bool:
+        """Whether this selector means nothing without a subject."""
+        return self.kind in ("others", "ally", "author")
+
     @staticmethod
     def parse(raw: Any, where: str) -> "Selector":
         if raw is None or raw == "acting":
@@ -258,7 +269,19 @@ class Selector:
         if "ids" in raw:
             ids = raw["ids"]
             _require(isinstance(ids, list), where, "ids must be a list")
-            return Selector(kind="ids", ids=tuple(int(i) for i in ids))
+            seats, refs = [], []
+            for entry in ids:
+                if isinstance(entry, str) and entry.startswith("$"):
+                    refs.append(entry[1:])
+                    continue
+                try:
+                    seats.append(int(entry))
+                except (TypeError, ValueError):
+                    # Reported here rather than as a bare int() traceback, which
+                    # named neither the step nor the offending entry.
+                    _require(False, where,
+                             f"ids takes seat numbers or $bindings, got {entry!r}")
+            return Selector(kind="ids", ids=tuple(seats), refs=tuple(refs))
         _require("attribute" in raw, where, "a selector needs `attribute` or `ids`")
         return Selector(
             kind="attribute",
@@ -1253,6 +1276,20 @@ def _check_references(d: GameDefinition) -> None:
         if step.to.kind == "attribute":
             _require(step.to.attribute in player_keys, where + ".to",
                      f"{step.to.attribute!r} is not a declared player attribute")
+        # Checked before this step's own bind is recorded: `to` is resolved
+        # before the question is asked, so a step cannot address the player its
+        # own answer is about to name.
+        for name in step.to.refs:
+            _require(name in bound, where + ".to",
+                     f"${name} is used before any step binds it")
+        if step.to.relative:
+            # `others`, `ally` and `author` mean nothing without a subject, and
+            # only `about` supplies one. Without this they named nobody and the
+            # step ran with an empty audience, which looks exactly like a step
+            # that was meant to be quiet.
+            _require(step.about, where + ".to",
+                     f"{step.to.kind!r} is relative to the player the step is "
+                     f"about, so the step needs `about`")
         if step.answer and step.answer.exclude and step.answer.exclude.kind == "attribute":
             _require(step.answer.exclude.attribute in player_keys,
                      where + ".answer.exclude",

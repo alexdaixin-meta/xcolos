@@ -300,6 +300,122 @@ def test_every_shipped_definition_is_loadable_and_self_consistent():
 # ----------------------------------------------------------------------
 
 
+def _with_a_step_addressing_the_picker(**extra):
+    """The Orchard, plus a step aimed at whoever the poll chose."""
+    raw = json.loads(json.dumps(ORCHARD))
+    step = {"use": "tell", "phase": "evening", "label": "the nod",
+            "to": {"ids": ["$picker"]}, "text": "nod"}
+    step.update(extra)
+    raw["steps"].insert(3, step)
+    raw["text"]["nod"] = "You were pointed at, picker {you}."
+    return raw
+
+
+def test_a_step_can_address_the_player_an_earlier_step_chose():
+    """The president-nominates-a-chancellor shape, which had no spelling.
+
+    A `verify` binds the seat its tally landed on, and until now that name was
+    readable in operations and in wording but not in `to` — so a game could act
+    on the chosen player and talk about them, but could not talk *to* them.
+    Secret Hitler and Avalon are both that pattern and both were unwriteable.
+    """
+    _, game = play(_with_a_step_addressing_the_picker())
+
+    nods = [f for f in game.facts if f.type == "the_nod"]
+    assert nods, "a step addressed to $picker reached nobody"
+
+    for fact in nods:
+        assert fact.audience.kind == "seats", (
+            f"a bound seat should address exactly that seat, got "
+            f"{fact.audience.kind!r}"
+        )
+        assert len(fact.audience.seats) == 1
+        # And it is the seat the poll actually landed on, not merely some seat.
+        seat = fact.audience.seats[0]
+        assert f"picker {seat}" in str(fact.payload["rendered"])
+
+
+def test_a_binding_that_named_nobody_addresses_nobody():
+    """A tie binds NOBODY, and NOBODY is not seat zero.
+
+    The dangerous reading of an unresolved binding is a falsy one: `int("")`
+    fails, but a stray 0 or a dropped filter would quietly aim the step at the
+    first seat in the table.
+    """
+    raw = _with_a_step_addressing_the_picker()
+    # Nobody can be pointed at, so the poll binds the no-winner sentinel.
+    raw["steps"][2]["answer"] = {"type": "text", "max_words": 5}
+    raw["steps"][2]["verify"] = {"tally": "unanimity", "on_tie": "nobody",
+                                 "bind": "picker"}
+    _, game = play(raw)
+
+    nods = [f for f in game.facts if f.type == "the_nod"]
+    assert not nods, (
+        "a binding that named nobody still addressed somebody: "
+        f"{[f.audience for f in nods]}"
+    )
+
+
+def test_a_selector_naming_a_binding_no_step_makes_is_refused():
+    from xcolos.games.definition import DefinitionError
+
+    raw = json.loads(json.dumps(ORCHARD))
+    raw["steps"].insert(3, {"use": "tell", "label": "the nod", "text": "morning",
+                            "to": {"ids": ["$chancellor"]}})
+    try:
+        load(json.dumps(raw), source="unbound")
+    except DefinitionError as error:
+        assert "$chancellor" in str(error) and "binds it" in str(error)
+    else:
+        raise AssertionError("a selector named a binding nothing produces")
+
+
+def test_a_step_cannot_address_the_player_its_own_answer_will_name():
+    """`to` is resolved before the question is asked, so this cannot work."""
+    from xcolos.games.definition import DefinitionError
+
+    raw = json.loads(json.dumps(ORCHARD))
+    raw["steps"][2]["to"] = {"ids": ["$picker"]}  # the step that binds `picker`
+    try:
+        load(json.dumps(raw), source="circular")
+    except DefinitionError as error:
+        assert "$picker" in str(error)
+    else:
+        raise AssertionError("a step addressed its own not-yet-made binding")
+
+
+def test_a_relative_selector_without_a_subject_is_refused_not_ignored():
+    """`author` with nothing to be relative to used to name nobody in silence.
+
+    Same failure as `answers_visable`: the step loaded, ran, and addressed an
+    empty audience, which is indistinguishable from a step meant to be quiet.
+    """
+    from xcolos.games.definition import DefinitionError
+
+    raw = json.loads(json.dumps(ORCHARD))
+    raw["steps"][0]["to"] = "author"  # a tell with no `about`
+    try:
+        load(json.dumps(raw), source="subjectless")
+    except DefinitionError as error:
+        assert "about" in str(error), error
+    else:
+        raise AssertionError("a subject-relative selector loaded with no subject")
+
+
+def test_ids_rejects_a_word_that_is_neither_a_seat_nor_a_binding():
+    """The old failure was a bare int() traceback naming neither step nor value."""
+    from xcolos.games.definition import DefinitionError
+
+    raw = json.loads(json.dumps(ORCHARD))
+    raw["steps"][0]["to"] = {"ids": ["picker"]}  # the missing $
+    try:
+        load(json.dumps(raw), source="nodollar")
+    except DefinitionError as error:
+        assert "'picker'" in str(error) and "steps[0].to" in str(error), error
+    else:
+        raise AssertionError("ids accepted a word that names nothing")
+
+
 def test_a_misspelled_field_is_refused_rather_than_ignored():
     """The failure mode of hand-written configuration is the ignored field.
 
@@ -544,5 +660,16 @@ def test_the_reference_names_the_gaps_it_cannot_do():
     fail at load or — worse — silently do nothing.
     """
     doc = (ROOT / "design" / "actions.md").read_text(encoding="utf-8")
-    for gap in ("$chancellor", "Not supported"):
-        assert gap in doc, f"the reference does not warn about {gap!r}"
+
+    # What the loader refuses has to be listed, or a reader learns the schema
+    # by watching load errors.
+    refusals = doc.split("## What the loader refuses", 1)
+    assert len(refusals) == 2, "the reference no longer says what it refuses"
+    for refusal in ("$name", "about", "ids"):
+        assert refusal in refusals[1], (
+            f"the refusals list does not mention {refusal!r}"
+        )
+
+    # Bindings in `to` are the one place a reader is most likely to guess
+    # wrong, so the reference has to show the shape rather than describe it.
+    assert '"$chancellor"' in doc, "the reference does not show a bound selector"

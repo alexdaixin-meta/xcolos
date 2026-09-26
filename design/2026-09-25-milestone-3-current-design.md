@@ -116,13 +116,8 @@ is the only independent implementation of the same game.
 
 ## 6. What it cannot do
 
-Four gaps, in the order a second game would hit them.
-
-**A step cannot address a player an earlier step chose.** `{"ids":
-["$chancellor"]}` is refused; `$name` resolves in operation arguments and
-nowhere else. Secret Hitler's president nominating a chancellor who then
-legislates, and Avalon's leader picking a team that then votes, are both
-unwriteable. Half a day's work and the one I would do first.
+Three gaps, in the order a second game would hit them. A fourth — the largest —
+is now closed, and is recorded below it.
 
 **Choices cannot come from state.** `answer.options` is a literal list. "Discard
 one of the three policies you drew" cannot be said. Any card game needs it.
@@ -135,8 +130,37 @@ that one" cannot be said.
 **No variable repetition.** Avalon allows up to five team proposals per
 mission until one passes. You would write the steps five times.
 
-Three of the four are the same shape: **a place that takes only literals should
-take a reference to state.** That suggests one fix rather than three.
+Two of the three are the same shape: **a place that takes only literals should
+take a reference to state.** That suggests one fix rather than two, and it is
+the fix that closed the fourth gap.
+
+### Closed: a step can now address a player an earlier step chose
+
+The pattern is one player naming another, who is then asked to act — a mafia
+choosing a victim who gets a last word, a leader picking the team that votes.
+Every selector until now described a *property* (all living players, whoever
+has this role, seat 3); none could describe *a choice just made*.
+
+The odd part was that the engine already knew the seat. After a tally,
+`bindings["chancellor"] = 4` exists, and a game could act on seat 4 through an
+operation and name them in wording — but `{"ids": ["$chancellor"]}` died on a
+bare `int()` cast. Act on them, talk about them, but not talk to them.
+
+`to` now resolves a bound name when the step runs. What the work cost beyond
+that is the interesting part, because none of it was the feature:
+
+- A binding that named nobody had to address nobody. The dangerous reading of
+  an unresolved name is a falsy one that quietly aims at seat zero.
+- A name no step binds is a load error, reusing the check operations already
+  had. A step naming its own not-yet-made binding is too — `to` is resolved
+  before the question is asked.
+- `author` on a step was already broken and silent. The subject was computed
+  nine lines *after* the recipients were chosen, so `to: "author"` loaded, ran,
+  and reached an empty audience. Third instance of that failure class after
+  `answers_visable` and the tied vote. A subject-relative selector on a step
+  with no `about` is now refused.
+
+Six tests, one of which is the feature.
 
 ---
 

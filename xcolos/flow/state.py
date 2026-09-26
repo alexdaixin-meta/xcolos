@@ -134,6 +134,11 @@ class FlowState:
         Three kinds are relative to them: `others` is everyone else, `ally` is
         their own side, `author` is just them. A selector using one of those
         without a subject names nobody, which is the safe direction.
+
+        An `ids` selector may also hold `$name`, which resolves here against
+        whatever an earlier step bound. That is deliberately late: the seat is
+        not known when the file loads. A name bound to NOBODY — a tie, or a
+        step that was gated out — names nobody rather than seat zero.
         """
         if selector.kind in ("others", "ally", "author"):
             if subject is None:
@@ -146,7 +151,9 @@ class FlowState:
                 chosen = [p for p in self.players if p != subject]
             return sorted(p for p in chosen if not acting_only or self.acts(p))
         if selector.kind == "ids":
-            chosen = [p for p in selector.ids if p in self.status]
+            named = [seat_of(self.bindings.get(r)) for r in selector.refs]
+            wanted = list(selector.ids) + [s for s in named if s is not None]
+            chosen = [p for p in wanted if p in self.status]
         elif selector.kind == "attribute":
             chosen = [
                 p
@@ -297,6 +304,22 @@ class FlowState:
             "acting": self.acting(),
             "record": [a.to_json() for a in self.record],
         }
+
+
+def seat_of(value: Any) -> int | None:
+    """A seat number, or None if this does not name one.
+
+    Bindings hold whatever the last `verify` produced, which is NOBODY for a
+    tie, and nothing at all for a step that was gated out. Every place that
+    acts on a player goes through here, so the absence of a subject is a thing
+    that does not happen rather than a crash or a wrong seat.
+    """
+    if value is None or value == NOBODY or value == "":
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _compare(left: Any, op: str, right: Any) -> bool:
