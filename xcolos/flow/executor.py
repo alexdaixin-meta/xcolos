@@ -278,6 +278,9 @@ class FlowOrchestrator:
         requirement, the declarative `deal` block runs instead.
         """
         d, flow = self.definition, self._state()
+        # The roster follows the table, not the file: two mafia at a table of
+        # five is not a harder game, it is a finished one.
+        roster = step.roster_for(len(flow.players))
 
         def schema(keys, lookup, kind):
             out: dict[str, dict[str, Any]] = {}
@@ -338,7 +341,7 @@ class FlowOrchestrator:
                         # check is thrown away, so telling the model the
                         # requirement up front is the difference between one
                         # call and a fallback to the declarative deal.
-                        _requirement_text(step.requires),
+                        _requirement_text(roster),
                     ) if part),
                     output=Output(
                         kind="state",
@@ -355,7 +358,7 @@ class FlowOrchestrator:
                 rostered = written.get("players")
                 if rostered is None and "each" in written:
                     rostered = list(written["each"].values())
-                shortfall = _shortfall(step.requires, rostered)
+                shortfall = _shortfall(roster, rostered)
                 if shortfall:
                     # Every field was individually legal and the result is
                     # still unplayable. Declined whole rather than applied:

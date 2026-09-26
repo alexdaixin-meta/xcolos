@@ -21,7 +21,8 @@ from xcolos.identity import Player
 from xcolos.log import MatchLog
 from xcolos.runner import Runner
 
-NAMES = ["Ada", "Blaise", "Curie", "Dirac", "Euler", "Fermi", "Gauss"]
+NAMES = ["Ada", "Blaise", "Curie", "Dirac", "Euler", "Fermi", "Gauss",
+         "Hilbert", "Ito", "Jacobi", "Kepler", "Lagrange"]
 
 
 def play(seed: int = 1, seats: int = 5, game_id: str = "mafia-oracle"):
@@ -170,13 +171,74 @@ def test_the_shipped_definition_plays_a_match_to_a_declared_ending():
     assert len(game.seats) == 5
 
 
-def test_the_roster_is_one_mafia_and_one_detective_at_every_size():
-    for seats in (4, 5, 6, 7):
+def test_the_mafia_count_follows_the_table_size():
+    """One mafia in a table of eleven is not a game; three in five is over.
+
+    Sizes are declared where they change and fill forward, so seven through
+    nine all take the `7` roster.
+    """
+    expected = {4: 1, 5: 1, 6: 1, 7: 2, 8: 2, 9: 2, 10: 3, 11: 3}
+    for seats, mafia in expected.items():
         _, game = play(seed=3, seats=seats)
         roles = [s.role for s in game.seats.values()]
-        assert roles.count("mafia") == 1, f"{seats} seats dealt {roles}"
+        assert roles.count("mafia") == mafia, f"{seats} seats dealt {roles}"
+        # One detective at every size: the town's information does not scale
+        # with the town, which is what keeps a large table hard.
         assert roles.count("detective") == 1, f"{seats} seats dealt {roles}"
-        assert roles.count("villager") == seats - 2
+        assert roles.count("villager") == seats - mafia - 1
+
+
+def test_two_mafia_know_each_other_and_nobody_else_knows_anything():
+    """The allies path, which a one-mafia roster could not exercise at all.
+
+    This is the bug that started the milestone: written as plain `allies_by:
+    faction`, every villager was told who the other villagers were, because
+    they share a faction as surely as the mafia do. With the roster scaling,
+    the case that catches it is reachable again.
+    """
+    _, game = play(seed=3, seats=7)
+    roles = {i: s.role for i, s in game.seats.items()}
+    mafia = {i for i, r in roles.items() if r == "mafia"}
+    assert len(mafia) == 2, f"this test needs two mafia, got {roles}"
+
+    flow = _flow_state_matching(game, roles)
+    for seat in sorted(game.seats):
+        visible = {
+            entry["id"] for entry in flow.view(seat)["players"]
+            if entry["attributes"].get("role")
+        }
+        expected = mafia if seat in mafia else {seat}
+        assert visible == expected, (
+            f"seat {seat} ({roles[seat]}) sees roles for {sorted(visible)}, "
+            f"expected {sorted(expected)}"
+        )
+
+
+def _flow_state_matching(game, roles):
+    """A FlowState holding the roles this match dealt."""
+    from xcolos.flow.state import FlowState
+    from xcolos.games.loader import LIBRARY, load
+
+    definition = load((LIBRARY / "mafia.json").read_text(encoding="utf-8"),
+                      source="mafia")
+    flow = FlowState(definition, sorted(game.seats))
+    for seat, role in roles.items():
+        flow.set_attribute(seat, "role", role, dealing=True)
+        flow.set_attribute(seat, "faction",
+                           "evil" if role == "mafia" else "good", dealing=True)
+    return flow
+
+
+def test_no_table_size_opens_already_decided():
+    """The mafia win on equalling the town, so a roster may not start there."""
+    for seats in range(4, 13):
+        _, game = play(seed=5, seats=seats)
+        roles = [s.role for s in game.seats.values()]
+        evil = roles.count("mafia")
+        assert evil < seats - evil, (
+            f"{seats} seats dealt {evil} mafia, so the game is over before it "
+            f"starts"
+        )
 
 
 def test_the_same_seed_plays_the_same_match():

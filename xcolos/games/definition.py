@@ -671,7 +671,33 @@ class StepDef:
     #: A count may be a number, or a two-item list for a range. Values not
     #: named are unconstrained, so "one mafia, everyone else whatever the
     #: prompt says" needs only the one entry.
+    #:
+    #: A roster that scales with the table is written by player count, filling
+    #: forward exactly as `deal.by_players` does — sizes are declared where
+    #: they change, so an eight-player table uses the `7` row:
+    #:
+    #:     "requires": {"by_players": {
+    #:         "4": {"role": {"mafia": 1, "detective": 1}},
+    #:         "7": {"role": {"mafia": 2, "detective": 1}}}}
+    #:
+    #: Two mafia in a table of five is not a harder game, it is a finished
+    #: one, so the count has to follow the table rather than the file.
     requires: dict[str, dict[str, Any]] = field(default_factory=dict)
+    #: Set instead of `requires` when the roster is written by player count.
+    requires_by_players: dict[int, dict[str, dict[str, Any]]] = field(
+        default_factory=dict
+    )
+
+    def roster_for(self, players: int) -> dict[str, dict[str, Any]]:
+        """What this table must end up with, for this many players."""
+        if not self.requires_by_players:
+            return self.requires
+        sizes = sorted(s for s in self.requires_by_players if s <= players)
+        if not sizes:
+            raise DefinitionError(
+                f"requires: no roster declared at or below {players} players"
+            )
+        return self.requires_by_players[sizes[-1]]
     #: What this step asks the model for, in the game's own words. The action
     #: fixes the shape of the call; this is the only part a game writes.
     #:
@@ -804,7 +830,10 @@ class StepDef:
             updates=UpdatesDef.parse(raw["updates"], where + ".updates")
             if "updates" in raw
             else None,
-            requires=dict(raw.get("requires") or {}),
+            requires=_fixed_roster(raw.get("requires") or {}, where + ".requires"),
+            requires_by_players=_scaled_roster(
+                raw.get("requires") or {}, where + ".requires"
+            ),
             against=tuple(raw.get("against", ())),
             llm=str(raw.get("llm", "")),
             deadline_s=raw.get("deadline_s"),
@@ -1098,8 +1127,32 @@ def _attribute(raw: Any, allowed: tuple[str, ...], where: str) -> AttributeDef:
 def _check_requires(d: GameDefinition) -> None:
     """A `requires` must name attributes and values the game declares."""
     for i, step in enumerate(d.setup):
-        for key, counts in step.requires.items():
-            where = f"setup[{i}].requires.{key}"
+        # Every size is checked, not just the one this table will use, so a
+        # typo in the nine-player roster is found now rather than the first
+        # time nine people sit down.
+        rosters = [("", step.requires)] + [
+            (f".by_players.{n}", roster)
+            for n, roster in sorted(step.requires_by_players.items())
+        ]
+        for size, roster in rosters:
+            _check_one_roster(d, step, roster, f"setup[{i}].requires{size}")
+
+        seats_needed = [
+            sum(c if isinstance(c, int) else c[0]
+                for counts in roster.values() for c in counts.values())
+            for roster in step.requires_by_players.values()
+        ]
+        for n, needed in zip(sorted(step.requires_by_players), seats_needed):
+            # A roster wanting more players than the size it is declared at
+            # can never be satisfied, and the failure arrives as a rejected
+            # deal mid-setup rather than as a bad file.
+            _require(needed <= n, f"setup[{i}].requires.by_players.{n}",
+                     f"names {needed} players at a table of {n}")
+
+
+def _check_one_roster(d: GameDefinition, step, roster, prefix: str) -> None:
+        for key, counts in roster.items():
+            where = f"{prefix}.{key}"
             attribute = d.player_attribute(key)
             _require(attribute is not None, where,
                      f"{key!r} is not a declared player attribute")
@@ -1343,6 +1396,7 @@ def _check_references(d: GameDefinition) -> None:
                      f"{step.answer.exclude.attribute!r} is not declared")
         if step.when:
             _check_condition(step.when, player_keys, game_keys, where + ".when")
+            _check_gate_is_not_its_own_audience(step, where)
         if step.verify and step.verify.bind:
             bound.add(step.verify.bind)
         if step.text:
@@ -1355,6 +1409,64 @@ def _check_references(d: GameDefinition) -> None:
         _check_condition(rule.when, player_keys, game_keys, f"end[{i}].when")
     for key in d.reveal:
         _require(key in player_keys, "reveal", f"{key!r} is not a declared attribute")
+
+
+def _fixed_roster(raw: dict[str, Any], where: str) -> dict[str, dict[str, Any]]:
+    """The roster, when it is the same at every table size."""
+    return {} if "by_players" in raw else dict(raw)
+
+
+def _scaled_roster(raw: dict[str, Any], where: str) -> dict[int, dict[str, Any]]:
+    """The roster by player count, filling forward like `deal.by_players`."""
+    if "by_players" not in raw:
+        return {}
+    _require(len(raw) == 1, where,
+             "takes either the counts themselves or `by_players`, not both")
+    table = raw["by_players"]
+    _require(isinstance(table, dict) and table, where + ".by_players",
+             "maps a player count to a roster")
+    out: dict[int, dict[str, Any]] = {}
+    for size, roster in table.items():
+        try:
+            n = int(size)
+        except (TypeError, ValueError):
+            _require(False, where + ".by_players", f"{size!r} is not a player count")
+        _require(isinstance(roster, dict) and roster,
+                 f"{where}.by_players[{size}]", "is a roster like the fixed form")
+        out[n] = {k: dict(v) for k, v in roster.items()}
+    return out
+
+
+#: Actions that do nothing when their `to` names nobody, and so need no gate
+#: saying whether anybody is there.
+_SKIPS_WHEN_UNADDRESSED = ("ask", "poll", "tell", "sync")
+
+
+def _check_gate_is_not_its_own_audience(step: "StepDef", where: str) -> None:
+    """Refuse `when: count(X) > 0` on a step already addressed to X.
+
+    Mafia's investigation was written this way: the detective was named twice,
+    once as the audience and once as a gate asking whether that audience
+    exists. The gate could not change anything — an `ask` with nobody to ask
+    already does nothing — so it was a clause a reader has to understand and
+    then discover means nothing.
+
+    Redundant rather than wrong, which is why it survived. But two spellings of
+    one fact is exactly what drifts: change the audience, forget the gate, and
+    now the step is gated on a role it no longer addresses.
+    """
+    condition, to = step.when, step.to
+    if step.use not in _SKIPS_WHEN_UNADDRESSED or condition.kind != "compare":
+        return
+    left = condition.left
+    if not left or left.kind != "count" or left.selector != to:
+        return
+    if (condition.op, condition.value) not in ((">", 0), (">=", 1), ("!=", 0)):
+        return
+    _require(False, where + ".when",
+             f"restates `to`: a {step.use} addressed to nobody already does "
+             f"nothing, so counting that audience gates nothing. Drop the "
+             f"`when`, or gate on something `to` does not already say")
 
 
 def _check_condition(c: Condition, player_keys, game_keys, where: str) -> None:

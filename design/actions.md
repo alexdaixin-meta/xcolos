@@ -407,6 +407,33 @@ who assigns:
 individually legal and the roster still unplayable. Four villagers and no mafia
 passes every type check and produces a game nobody can win.
 
+A count is a number, or a two-item list for a range. Values not named are
+unconstrained, so "one mafia, everyone else whatever the prompt says" needs
+only the one entry.
+
+### A roster that scales with the table
+
+Write it by player count. Sizes are declared where they change and fill
+forward, so eight players use the `7` row — the same rule `deal.by_players`
+follows, because it is the same question:
+
+```json
+"requires": {"by_players": {
+   "4": {"role": {"mafia": 1, "detective": 1}},
+   "7": {"role": {"mafia": 2, "detective": 1}},
+  "10": {"role": {"mafia": 3, "detective": 1}}}}
+```
+
+One mafia at a table of eleven is not a game; three at a table of five is
+already over. Every declared size is checked at load, not just the one this
+table will use, and a roster naming more players than the size it is declared
+at is refused.
+
+Say it generically in `llm` — "take the mafia from the front of the dealing
+order, as many as the roster requires" — because the resolved counts are put
+in front of the model anyway. A prompt that hardcodes "the first two" is a
+second place the roster is written, and it will drift from the first.
+
 The engine supplies a seeded dealing order to any `each` call. A model has no
 randomness of its own: asked to assign at random it returns the same answer
 every match, which was measured, not assumed. The game says what to do with the
@@ -451,6 +478,8 @@ naming the key and listing what is accepted.
 - an ending with no wording
 - an `unless` naming a value no tally can produce
 - a `requires` naming an attribute the step does not write
+- a `requires` roster naming more players than the size it is declared at
+- a `when` that only asks whether its own `to` has anybody in it
 - a bare identifier in `text` that names no declared template
 - a `$name` in `to` that no earlier step binds
 - a subject-relative `to` on a step with no `about`

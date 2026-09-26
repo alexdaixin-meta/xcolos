@@ -287,6 +287,30 @@ def test_a_table_attribute_can_drive_the_ending_with_no_player_counting():
     assert result.rounds == 1
 
 
+def test_the_oracle_deals_the_roster_the_model_game_requires():
+    """The pair only grades anything if both play the same game.
+
+    One states its roster in English for a model to satisfy; the other deals
+    it declaratively from the seed. A roster that scales had to scale in both,
+    and nothing else would have noticed if it had not — the two files would
+    simply have been different games above six players.
+    """
+    model = load((LIBRARY / "mafia.json").read_text(encoding="utf-8"), source="m")
+    oracle = load((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"),
+                  source="o")
+    init = next(s for s in model.setup if s.use == "initialize")
+
+    for n in range(model.min_players, model.max_players + 1):
+        required = init.roster_for(n)["role"]
+        dealt = oracle.deal.plan(n)
+        for role, wanted in required.items():
+            got = sum(1 for row in dealt if row["role"] == role)
+            assert got == wanted, (
+                f"{n} players: the model game requires {wanted} {role}, the "
+                f"oracle deals {got}"
+            )
+
+
 def test_every_shipped_definition_is_loadable_and_self_consistent():
     for path in sorted(Path(LIBRARY).glob("*.json")):
         definition = load(path.read_text(encoding="utf-8"), source=str(path))
@@ -510,6 +534,55 @@ def test_ids_rejects_a_word_that_is_neither_a_seat_nor_a_binding():
         assert "'picker'" in str(error) and "steps[0].to" in str(error), error
     else:
         raise AssertionError("ids accepted a word that names nothing")
+
+
+def test_a_gate_that_only_asks_whether_its_audience_exists_is_refused():
+    """Mafia's investigation named the detective twice: as `to`, and as a
+    `when` counting whether that audience exists.
+
+    The gate could not change anything — an `ask` addressed to nobody already
+    does nothing — so it was a clause a reader has to understand and then
+    discover means nothing. Removing it left every fact identical on four
+    seeds. Redundant rather than wrong, which is why it survived; but two
+    spellings of one fact is what drifts, and a gate on a role the step no
+    longer addresses would then be silently wrong.
+    """
+    from xcolos.games.definition import DefinitionError
+
+    for op, value in ((">", 0), (">=", 1), ("!=", 0)):
+        raw = json.loads(json.dumps(ORCHARD))
+        raw["steps"][1]["to"] = {"attribute": "ladder", "is": "tall"}
+        raw["steps"][1]["when"] = {
+            "count": {"attribute": "ladder", "is": "tall"}, "op": op,
+            "value": value,
+        }
+        try:
+            load(json.dumps(raw), source="redundant")
+        except DefinitionError as error:
+            assert "restates `to`" in str(error), error
+        else:
+            raise AssertionError(f"a gate of {op} {value} restating `to` loaded")
+
+
+def test_a_gate_that_says_something_to_does_not_is_kept():
+    """The check must not punish a real gate that happens to count players."""
+    raw = json.loads(json.dumps(ORCHARD))
+    raw["steps"][1]["to"] = {"attribute": "ladder", "is": "tall"}
+    raw["steps"][1]["when"] = {"count": {"attribute": "ladder", "is": "tall"},
+                               "op": ">", "value": 1}
+    load(json.dumps(raw), source="genuine")  # more than one is a real gate
+
+    raw["steps"][1]["when"] = {"game": "fruit_left", "op": ">", "value": 1}
+    load(json.dumps(raw), source="table")
+
+    raw["steps"][1]["when"] = "the orchard still has fruit worth picking"
+    load(json.dumps(raw), source="prose")
+
+
+def test_no_shipped_game_gates_a_step_on_its_own_audience():
+    """The loader refuses it; this proves the shipped files were cleaned."""
+    for path in sorted(Path(LIBRARY).glob("*.json")):
+        load(path.read_text(encoding="utf-8"), source=str(path))
 
 
 def test_a_misspelled_field_is_refused_rather_than_ignored():
