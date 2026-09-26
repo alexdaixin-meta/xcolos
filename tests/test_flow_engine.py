@@ -188,6 +188,68 @@ def test_the_mafia_count_follows_the_table_size():
         assert roles.count("villager") == seats - mafia - 1
 
 
+def _greedy_roster_judge(mafia: int):
+    """A judge that deals `mafia` mafia — legal by the range, maybe unplayable."""
+    def decide(call):
+        if call.output.kind == "state":
+            seats = sorted(call.output.players)
+            roles = (["mafia"] * mafia + ["detective"]
+                     + ["villager"] * (len(seats) - mafia - 1))
+            return {"each": {
+                str(seat): {"role": role,
+                            "faction": "evil" if role == "mafia" else "good"}
+                for seat, role in zip(seats, roles)
+            }}
+        if call.output.kind == "choice":
+            # Answer the prose ending the way the arithmetic game would. With
+            # spoken endings the roster check *is* a model call, so a stub
+            # that always says "continue" would be testing the stub.
+            living = [p for p in call.table.get("players", [])
+                      if p["id"] in call.table.get("acting", [])]
+            evil = sum(1 for p in living if p["attributes"].get("faction") == "evil")
+            good = len(living) - evil
+            if evil == 0:
+                return "town_wins"
+            return "mafia_wins" if evil >= good else "continue"
+        return None
+    return ScriptedJudge(decide)
+
+
+def test_a_roster_inside_the_declared_range_can_still_be_unplayable():
+    """The range is the rail; it cannot also be the judgement.
+
+    A range wide enough to be useful at twelve players permits a roster at
+    five that is already won, and every field in it passes. So the engine
+    asks the game's own endings whether the game has finished before a move
+    has been made, which is true of every game and needs no knowledge of this
+    one.
+    """
+    raw = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
+    # Three mafia against two townsfolk: inside `mafia: [1, 4]`, and over.
+    _, game = play_with(raw, _greedy_roster_judge(3), seats=5)
+
+    rejected = [r for r in game.log.records if r["type"] == "roster_rejected"]
+    assert rejected, "a roster that begins already won was accepted"
+    assert "already over" in rejected[0]["reason"], rejected[0]
+
+    roles = [s.role for s in game.seats.values()]
+    evil = roles.count("mafia")
+    assert evil < 5 - evil, f"fell back to another finished roster: {roles}"
+
+
+def test_a_playable_roster_the_model_chose_is_kept():
+    """The check must reject what is unplayable, not everything the model says."""
+    raw = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
+    _, game = play_with(raw, _greedy_roster_judge(1), seats=5)
+
+    rejected = [r for r in game.log.records if r["type"] == "roster_rejected"]
+    assert not rejected, f"a playable roster was rejected: {rejected}"
+    dealt = [r for r in game.log.records if r["type"] == "dealt"]
+    assert any(r.get("by") == "model" for r in dealt), (
+        "the model's own roster should have been the one used"
+    )
+
+
 def test_two_mafia_know_each_other_and_nobody_else_knows_anything():
     """The allies path, which a one-mafia roster could not exercise at all.
 

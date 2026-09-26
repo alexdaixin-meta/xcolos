@@ -303,12 +303,29 @@ def test_the_oracle_deals_the_roster_the_model_game_requires():
     for n in range(model.min_players, model.max_players + 1):
         required = init.roster_for(n)["role"]
         dealt = oracle.deal.plan(n)
+        assert len(dealt) == n, f"{n} players: the oracle deals {len(dealt)}"
         for role, wanted in required.items():
             got = sum(1 for row in dealt if row["role"] == role)
-            assert got == wanted, (
-                f"{n} players: the model game requires {wanted} {role}, the "
-                f"oracle deals {got}"
+            low, high = (wanted, wanted) if isinstance(wanted, int) else wanted
+            assert low <= got <= high, (
+                f"{n} players: the model game permits {low}-{high} {role}, the "
+                f"oracle deals {got}, so the fallback is a roster the game "
+                f"itself would reject"
             )
+
+
+def test_the_oracle_never_deals_a_game_that_is_already_over():
+    """The fallback is what a rejected roster falls back to, so it has to be
+    a roster nothing would reject."""
+    oracle = load((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"),
+                  source="o")
+    for n in range(oracle.min_players, oracle.max_players + 1):
+        dealt = oracle.deal.plan(n)
+        evil = sum(1 for row in dealt if row["faction"] == "evil")
+        assert evil < n - evil, (
+            f"{n} players: the oracle deals {evil} evil against {n - evil} "
+            f"good, which is the mafia's own winning condition"
+        )
 
 
 def test_every_shipped_definition_is_loadable_and_self_consistent():

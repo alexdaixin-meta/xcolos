@@ -413,26 +413,50 @@ only the one entry.
 
 ### A roster that scales with the table
 
-Write it by player count. Sizes are declared where they change and fill
-forward, so eight players use the `7` row — the same rule `deal.by_players`
-follows, because it is the same question:
+One mafia at a table of eleven is not a game; three at a table of five is
+already over. Two ways to say so.
+
+**Preferred — a range, and the rule in words.** The engine holds the rail, the
+model decides where inside it:
+
+```json
+"requires": {"role": {"mafia": [1, 4], "detective": 1}},
+"llm": "Decide how many mafia this table should have. Roughly one for every
+        three players, and never so many that the mafia already equal the
+        town. Exactly one detective..."
+```
+
+This is what Mafia ships. It needs no entry per table size, so a table of
+twenty needs no edit, and the rule stays in one place written once.
+
+**A table, when the counts are exact.** Sizes are declared where they change
+and fill forward, so eight players use the `7` row — the same rule
+`deal.by_players` follows, because it is the same question:
 
 ```json
 "requires": {"by_players": {
    "4": {"role": {"mafia": 1, "detective": 1}},
-   "7": {"role": {"mafia": 2, "detective": 1}},
-  "10": {"role": {"mafia": 3, "detective": 1}}}}
+   "7": {"role": {"mafia": 2, "detective": 1}}}}
 ```
 
-One mafia at a table of eleven is not a game; three at a table of five is
-already over. Every declared size is checked at load, not just the one this
-table will use, and a roster naming more players than the size it is declared
-at is refused.
+Every declared size is checked at load, not just the one this table will use,
+and a roster naming more players than the size it is declared at is refused.
 
-Say it generically in `llm` — "take the mafia from the front of the dealing
-order, as many as the roster requires" — because the resolved counts are put
-in front of the model anyway. A prompt that hardcodes "the first two" is a
-second place the roster is written, and it will drift from the first.
+### A game may not begin already finished
+
+A range wide enough to be useful at twelve players permits a roster at five
+that is already won, and every field in it is legal. Counting a roster is not
+the same as checking it is playable.
+
+So after a model's roster is applied, the engine asks the game's **own**
+endings whether the game has already finished — in whichever language they are
+written. If one holds, the roster is rejected and the declarative `deal` is
+used instead, with `roster_rejected` in the log saying which ending fired.
+
+This needs no knowledge of any particular game: "a game may not begin over" is
+true of all of them. It does mean a game with spoken endings spends one model
+call at setup, and that the fallback `deal` must itself be a roster nothing
+would reject.
 
 The engine supplies a seeded dealing order to any `each` call. A model has no
 randomness of its own: asked to assign at random it returns the same answer

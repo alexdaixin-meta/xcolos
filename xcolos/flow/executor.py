@@ -370,15 +370,7 @@ class FlowOrchestrator:
                     written = None
 
         if written is None:
-            if not d.deal:
-                raise FlowError(
-                    f"{step.label}: no model answered and the game declares no "
-                    f"`deal` block to fall back to"
-                )
-            rows = list(d.deal.plan(len(flow.players)))
-            offered = [dict(r) for r in rows]
-            game.rng.shuffle(rows)
-            self._assign(game, rows, label=step.label, offered=offered, by="seed")
+            self._deal_declared(game, step)
             return
 
         # The table first, so a player record may depend on it.
@@ -398,6 +390,48 @@ class FlowOrchestrator:
                 assigned={str(p): dict(r) for p, r in written["each"].items()},
                 by="model",
             )
+
+        # Counting the roster is not the same as checking it is playable. A
+        # range wide enough to be useful at twelve players permits a roster at
+        # four that is already won, and every field in it is legal.
+        decided = self._already_decided(game)
+        if decided:
+            game.log.record(
+                "orchestrator", "roster_rejected",
+                step=step.label, reason=f"the game would begin already over: {decided}",
+            )
+            self._deal_declared(game, step)
+
+    def _deal_declared(self, game: Game, step: StepDef) -> None:
+        """Deal from the game's own `deal` block, using the seed."""
+        d, flow = self.definition, self._state()
+        if not d.deal:
+            raise FlowError(
+                f"{step.label}: no usable roster and the game declares no "
+                f"`deal` block to fall back to"
+            )
+        rows = list(d.deal.plan(len(flow.players)))
+        offered = [dict(r) for r in rows]
+        game.rng.shuffle(rows)
+        self._assign(game, rows, label=step.label, offered=offered, by="seed")
+
+    def _already_decided(self, game: Game) -> str:
+        """The name of an ending that holds before a move has been made.
+
+        A game may not begin finished. That is true of every game, so the
+        engine may check it without knowing which one it is running: it asks
+        the game's own endings, in whichever language the game wrote them.
+        """
+        flow = self._state()
+        spoken = self._which_ending(game, None)
+        named = spoken[0].name if spoken else None
+        for rule in self._endings_for(None):
+            if rule.when.kind == "prose":
+                if named == rule.name:
+                    return rule.name
+            elif flow.holds(rule.when):
+                return rule.name
+        return ""
 
     def _dealing_order(self, game: Game) -> list[int]:
         """A random ordering of the players, drawn from the seed.
