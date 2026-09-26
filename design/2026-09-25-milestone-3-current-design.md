@@ -116,11 +116,9 @@ is the only independent implementation of the same game.
 
 ## 6. What it cannot do
 
-Three gaps, in the order a second game would hit them. A fourth — the largest —
-is now closed, and is recorded below it.
-
-**Choices cannot come from state.** `answer.options` is a literal list. "Discard
-one of the three policies you drew" cannot be said. Any card game needs it.
+Two gaps, in the order a second game would hit them. Two more are now closed,
+and are recorded below them, because what closing them cost is the part worth
+keeping.
 
 **No conditional sub-sequences.** Steps run in declared order, gated
 individually. Secret Hitler's powers — investigate at three policies, special
@@ -130,9 +128,11 @@ that one" cannot be said.
 **No variable repetition.** Avalon allows up to five team proposals per
 mission until one passes. You would write the steps five times.
 
-Two of the three are the same shape: **a place that takes only literals should
-take a reference to state.** That suggests one fix rather than two, and it is
-the fix that closed the fourth gap.
+Both are the same shape, and it is not the shape the closed two were: these are
+about **control flow**, where those were about **references**. The remaining
+two need the step list to stop being flat. That is a larger change than
+teaching one more field to read state, and it is the next real piece of design
+rather than the next afternoon's work.
 
 ### Closed: a step can now address a player an earlier step chose
 
@@ -161,6 +161,31 @@ that is the interesting part, because none of it was the feature:
   with no `about` is now refused.
 
 Six tests, one of which is the feature.
+
+### Closed: a choice can be drawn from state
+
+`answer.options` was a literal list, so a game could only offer choices that
+were knowable when it was written. "Play one of the cards in your hand" names
+choices that differ per player and do not exist until the deal.
+
+`options` now also takes `{"attribute": "hand"}` — the asked player's own — or
+`{"game": "deck"}`. The plumbing was mostly already right: `_legal_for` was
+per-seat before this, because targeting a player always was.
+
+What was not right was the schema. `choices` lived on one `ActionSchema` for
+the whole step, and both the reply validator and the rendered "answer with one
+of" read it. A per-player hand had to reach both per player, so the schema is
+now built per seat for enum answers. For a literal list it produces exactly
+what it did before.
+
+A player holding nothing is not asked, which needed no new code: the "nobody
+left to point at" skip already covered `choice`. And an attribute that is not
+a `list` is refused at load — pointing at a number yields no choices, which
+would skip every seat and run the step with nobody asked. The empty-audience
+failure again, one level down.
+
+Both closed gaps were the same sentence: **a place that took only literals
+should take a reference to state.** Two fields, one idea.
 
 ---
 

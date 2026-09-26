@@ -278,9 +278,29 @@ the player a binding names, and `{subject}` where a step declares `about`.
 | `max_words` | for `text` |
 | `exclude_self` | a player may not name themselves |
 | `exclude` | a selector whose members may not be named |
-| `options` | for `choice`; a list of literals |
+| `options` | for `choice`; a list, or a pointer into state |
 | `count` | for `players`; how many |
 | `min` / `max` | for `number` |
+
+### Options drawn from state
+
+A hand of cards is not knowable when the game is written and differs per
+player, so `options` may point at a `list` attribute instead of holding one:
+
+```json
+{"options": ["enact", "discard"]}   // the same choices for everyone
+{"options": {"attribute": "hand"}}  // the asked player's own list
+{"options": {"game": "deck"}}       // a list on the table
+```
+
+Resolved per seat when the step runs, so two players are offered two different
+hands from one declaration. The attribute must be declared and must be of type
+`list`; pointing at a number or a word is a load error, because it would yield
+no choices and silently skip every seat.
+
+A player whose list is empty is **not asked**. A question with no possible
+answer is not a question — the same treatment a vote gets when there is nobody
+left to point at.
 
 `verify` reduces the answers, arithmetically, in the engine. Never by a model:
 asking one to count is how you get a result that is wrong occasionally and
@@ -435,8 +455,9 @@ naming the key and listing what is accepted.
 - a `$name` in `to` that no earlier step binds
 - a subject-relative `to` on a step with no `about`
 - an `ids` entry that is neither a seat number nor a `$name`
-- `options` that is not a list
+- `options` that is neither a list nor a pointer into state
+- `options` drawn from an attribute that is not a `list`
 
-The last one is the pattern: `"options": "$hand"` became five one-character
-choices, because `tuple()` of a string splits it. A loader that accepts
-anything produces a game that is quietly not the game somebody wrote.
+The third from last is the pattern: `"options": "$hand"` became five
+one-character choices, because `tuple()` of a string splits it. A loader that
+accepts anything produces a game that is quietly not the game somebody wrote.

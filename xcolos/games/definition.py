@@ -374,12 +374,37 @@ class Condition:
 
 
 @dataclass(frozen=True)
+class OptionSource:
+    """Where a choice's options come from, when the file cannot list them.
+
+    A hand of cards is not knowable when the game is written, and it differs
+    per player, so `options` has to be able to point at state instead of
+    holding it. Resolved per seat when the step runs.
+    """
+
+    #: "attribute" — the asked player's own | "game" — the table's
+    scope: str
+    key: str
+
+    @staticmethod
+    def parse(raw: dict[str, Any], where: str) -> "OptionSource":
+        _only(raw, ("attribute", "game"), where)
+        _require(len(raw) == 1, where,
+                 "names one source: `attribute` for the asked player's own, "
+                 "or `game` for the table's")
+        scope, key = next(iter(raw.items()))
+        return OptionSource(scope=scope, key=str(key))
+
+
+@dataclass(frozen=True)
 class AnswerDef:
     type: str
     max_words: int = 0
     exclude_self: bool = False
     exclude: Selector | None = None
     options: tuple[Any, ...] = ()
+    #: Set instead of `options` when the choices are drawn from state.
+    options_from: OptionSource | None = None
     count: int = 0
     minimum: float | None = None
     maximum: float | None = None
@@ -392,16 +417,24 @@ class AnswerDef:
         kind = _one_of(raw.get("type"), ANSWER_TYPES, where + ".type")
         if kind == "choice":
             _require(raw.get("options"), where, "a choice needs `options`")
-        # A string here is silently mangled: tuple("$hand") becomes five
-        # one-character options and the file loads clean. Anything that is not
-        # a list is a mistake, and this is the one place a mistake produces a
-        # plausible-looking answer spec rather than an error.
-        _require(
-            "options" not in raw or isinstance(raw["options"], list),
-            where + ".options",
-            f"is a list of values, not {type(raw.get('options')).__name__}. "
-            f"Options drawn from state are not supported yet.",
-        )
+
+        options, source = (), None
+        if isinstance(raw.get("options"), dict):
+            source = OptionSource.parse(raw["options"], where + ".options")
+        elif "options" in raw:
+            # A string here is silently mangled: tuple("$hand") becomes five
+            # one-character options and the file loads clean. This is the one
+            # place a mistake produces a plausible-looking answer spec rather
+            # than an error.
+            _require(
+                isinstance(raw["options"], list),
+                where + ".options",
+                f"is a list of values, or {{\"attribute\": ...}} / "
+                f"{{\"game\": ...}} to draw them from state. "
+                f"Got {type(raw['options']).__name__}.",
+            )
+            options = tuple(raw["options"])
+
         return AnswerDef(
             type=kind,
             max_words=int(raw.get("max_words", 0)),
@@ -409,7 +442,8 @@ class AnswerDef:
             exclude=Selector.parse(raw["exclude"], where + ".exclude")
             if "exclude" in raw
             else None,
-            options=tuple(raw.get("options", ())),
+            options=options,
+            options_from=source,
             count=int(raw.get("count", 0)),
             minimum=raw.get("min"),
             maximum=raw.get("max"),
@@ -1290,6 +1324,19 @@ def _check_references(d: GameDefinition) -> None:
             _require(step.about, where + ".to",
                      f"{step.to.kind!r} is relative to the player the step is "
                      f"about, so the step needs `about`")
+        if step.answer and step.answer.options_from:
+            source = step.answer.options_from
+            declared = (d.game_attribute(source.key) if source.scope == "game"
+                        else d.player_attribute(source.key))
+            scope = "table" if source.scope == "game" else "player"
+            _require(declared is not None, where + ".answer.options",
+                     f"{source.key!r} is not a declared {scope} attribute")
+            # Options are a list of things to pick from. Pointing at a number
+            # or a word yields no choices, so the step would skip every seat
+            # and the game would run with a question nobody was asked.
+            _require(declared.type == "list", where + ".answer.options",
+                     f"{source.key!r} is declared {declared.type!r}; options "
+                     f"must come from a `list` attribute")
         if step.answer and step.answer.exclude and step.answer.exclude.kind == "attribute":
             _require(step.answer.exclude.attribute in player_keys,
                      where + ".answer.exclude",

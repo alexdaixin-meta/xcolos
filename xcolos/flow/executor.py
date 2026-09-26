@@ -30,6 +30,7 @@ from xcolos.games.definition import (
     Condition,
     GameDefinition,
     Operation,
+    OptionSource,
     Selector,
     StepDef,
 )
@@ -989,6 +990,8 @@ class FlowOrchestrator:
     def _legal_for(self, step: StepDef, seat: int) -> tuple[Any, ...]:
         answer, flow = step.answer, self._state()
         if answer.type not in ("player", "players"):
+            if answer.options_from:
+                return self._options_from_state(answer.options_from, seat)
             return tuple(answer.options)
 
         candidates = flow.acting()
@@ -999,17 +1002,38 @@ class FlowOrchestrator:
             candidates = [p for p in candidates if p not in excluded]
         return tuple(candidates)
 
+    def _options_from_state(self, source: OptionSource, seat: int) -> tuple[Any, ...]:
+        """The choices this one player has, read from the table as it stands.
+
+        A player holding nothing gets an empty tuple and is skipped by
+        `_resolve_ask`, which is the same treatment as a vote with nobody left
+        to point at: a question with no answer is not asked.
+        """
+        flow = self._state()
+        held = (flow.game_attributes.get(source.key) if source.scope == "game"
+                else flow.attribute(seat, source.key))
+        return tuple(held) if isinstance(held, list) else ()
+
     def _request(self, step: StepDef, ask: _Ask, seat: int) -> ActionRequest:
+        schema = ask.schema
+        if schema.target == "enum":
+            # The step's schema carries whatever the file listed, which is
+            # nothing when the options come from state. Validation and the
+            # rendered "answer with one of" both read `choices`, so a
+            # per-player hand has to reach them per player.
+            schema = self._schema(step, ask.legal[seat])
         return ActionRequest(
             seat=seat,
-            schema=ask.schema,
+            schema=schema,
             prompt=ask.prompts.get(seat) or self._prompt(step),
             legal_targets=ask.legal[seat],
             deadline_ms=(step.deadline_s or self.definition.limits.deadline_s) * 1000,
             reason=f"{step.use}:{step.label}",
         )
 
-    def _schema(self, step: StepDef) -> ActionSchema:
+    def _schema(
+        self, step: StepDef, choices: tuple[Any, ...] | None = None
+    ) -> ActionSchema:
         answer = step.answer
         target = {"player": "seat", "players": "seat", "choice": "enum"}.get(
             answer.type, answer.type
@@ -1017,7 +1041,7 @@ class FlowOrchestrator:
         return ActionSchema(
             id=step.label.replace(" ", "_"),
             target=target,
-            choices=tuple(answer.options),
+            choices=tuple(answer.options) if choices is None else tuple(choices),
             default="random" if target == "seat" else "pass",
             max_words=answer.max_words,
         )

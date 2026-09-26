@@ -300,6 +300,102 @@ def test_every_shipped_definition_is_loadable_and_self_consistent():
 # ----------------------------------------------------------------------
 
 
+#: Three players, each holding different cards, asked to play one. The point
+#: is that no `options` list could have been written when the game was: the
+#: choices differ per player and are not known until the deal.
+CARDS = {
+    "schema": 1,
+    "meta": {"id": "cards", "name": "Cards", "players": {"min": 3, "max": 3}},
+    "statuses": [{"id": "in", "acts": True, "initial": True},
+                 {"id": "out", "acts": False}],
+    "attributes": {
+        "player": [{"key": "hand", "visible": "ally", "type": "list",
+                    "initial": []}],
+        "game": [{"key": "played", "visible": "public", "type": "number",
+                  "initial": 0}],
+    },
+    "deal": {
+        "into": ["hand"],
+        "by_players": {"3": [{"hand": ["oak", "ash"]},
+                             {"hand": ["elm"]},
+                             {"hand": []}]},
+    },
+    "setup": [{"use": "tell", "label": "the welcome", "to": "all",
+               "text": "You hold {hand}."}],
+    "steps": [
+        {"use": "ask", "label": "the play", "to": "acting",
+         "text": "Play a card.",
+         "answer": {"type": "choice", "options": {"attribute": "hand"}}},
+        {"use": "update", "label": "the count",
+         "do": [{"adjust": {"key": "played", "value": 1}}],
+         "text": "A card is played."},
+        {"use": "check", "label": "the last trick"},
+    ],
+    "end": {"done": {"when": {"game": "played", "op": ">=", "value": 1},
+                     "result": "the deck", "reason": "the cards are spent"}},
+    "reveal": ["hand"],
+    "limits": {"rounds": 3, "rounds_max": 5, "actions_max": 50, "deadline_s": 60},
+    "text": {"game_over": "{result}: {reason}."},
+    "rules": "Each player holds cards and plays one.",
+}
+
+
+def test_a_choice_can_be_drawn_from_the_players_own_hand():
+    """`options` had to be a literal list, so no card game could be written.
+
+    "Discard one of the three policies you drew" names choices that differ per
+    player and do not exist until the deal. A list in the file cannot say it.
+    """
+    _, game = play(CARDS, seats=3)
+
+    asked = [r for r in game.log.records if r["type"] == "action_request"]
+    assert asked, "nobody was asked to play a card"
+
+    for record in asked:
+        offered = set(record["legal_targets"])
+        assert offered, f"seat {record['seat']} was asked with no cards to play"
+        # Exactly this player's hand, not the union of everyone's.
+        assert offered in ({"oak", "ash"}, {"elm"}), (
+            f"seat {record['seat']} was offered {offered}, which is nobody's hand"
+        )
+
+
+def test_a_player_holding_nothing_is_not_asked():
+    """An empty hand is not a question with no answer; it is not a question.
+
+    The same treatment a vote gets when there is nobody left to point at.
+    Asking anyway returns an empty choice, and an empty choice is what ends up
+    in a binding and then in an operation.
+    """
+    _, game = play(CARDS, seats=3)
+
+    asked = {r["seat"] for r in game.log.records
+             if r["type"] == "action_request"}
+    assert len(asked) == 2, (
+        f"three players, one holding nothing, but {len(asked)} were asked"
+    )
+
+
+def test_options_must_name_a_list_attribute():
+    """Pointing at a number yields no choices, so every seat would be skipped.
+
+    The step would then run silently with nobody asked — the empty-audience
+    failure again, one level down.
+    """
+    from xcolos.games.definition import DefinitionError
+
+    for key, complaint in (("played", "must come from a `list`"),
+                           ("purse", "not a declared")):
+        raw = json.loads(json.dumps(CARDS))
+        raw["steps"][0]["answer"]["options"] = {"game": key}
+        try:
+            load(json.dumps(raw), source="notalist")
+        except DefinitionError as error:
+            assert complaint in str(error), error
+        else:
+            raise AssertionError(f"options drawn from {key!r} was accepted")
+
+
 def _with_a_step_addressing_the_picker(**extra):
     """The Orchard, plus a step aimed at whoever the poll chose."""
     raw = json.loads(json.dumps(ORCHARD))
