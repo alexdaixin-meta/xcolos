@@ -93,6 +93,9 @@ def _answer_hint(schema: ActionSchema) -> str:
         return f"answer with one of: {', '.join(str(c) for c in schema.choices)}"
     if schema.target == "none":
         return "answer to confirm"
+    if schema.target == "number":
+        extra = f", or {' or '.join(map(str, schema.choices))}" if schema.choices else ""
+        return f"answer with a whole number, in the range you are given{extra}"
     return f"answer with one {schema.target}"
 
 
@@ -113,6 +116,9 @@ def render_turn(
     lines.append(prompt)
     if schema.target == "text":
         lines.append("Answer with the text you want to say.")
+    elif schema.target == "number":
+        # The prompt already states the range, worked out for this seat.
+        pass
     elif legal_targets:
         lines.append(f"Answer with one of: {list(legal_targets)}.")
     return "\n".join(lines)

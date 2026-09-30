@@ -582,6 +582,40 @@ def test_a_long_reason_is_not_capped():
     raise AssertionError("never asked to speak")
 
 
+def test_predict_and_adjust_are_asked_for_kept_and_never_shared():
+    """Two more private fields beside `reason`: the opponents' strategy as the
+    agent reads it, and how it changed its own. Logged, never a fact."""
+    game, runner, tools = build(27)
+    runner.start()
+    pid = seat_in(tools)
+    predict = "Seat 4 will keep deflecting onto seat 2 PREDICT-MARK."
+    adjust = "I stay quiet on seat 2 and watch seat 4 ADJUST-MARK."
+
+    ack = None
+    for _ in range(60):
+        state = tools.read_state(pid, ack)
+        ack = state.get("ack_through", ack)
+        if not state.get("your_turn"):
+            continue
+        assert set(state["ask"]["reply_with"]) == {"response", "reason", "predict", "adjust"}
+        reply = first_legal(state)
+        reply = reply if isinstance(reply, dict) else {
+            "kind": "action", "action": state["ask"]["action"], "response": reply}
+        out = tools.post_action(pid, {**reply, "reason": "Seat 4 dodged twice.",
+                                      "predict": predict, "adjust": adjust})
+        assert out["accepted"] is True
+        break
+    else:
+        raise AssertionError("never asked to act")
+
+    mine = [r["response"] for r in game.log.records if r["type"] == "from_agent"
+            and (r.get("response") or {}).get("predict")]
+    assert mine and mine[0]["predict"] == predict and mine[0]["adjust"] == adjust
+    for fact in game.facts:
+        assert "PREDICT-MARK" not in str(fact.payload)
+        assert "ADJUST-MARK" not in str(fact.payload)
+
+
 def test_the_limit_is_a_setting_not_a_rule():
     from xcolos.legacy.mafia import MafiaOrchestrator
 
@@ -1082,3 +1116,104 @@ def test_an_answer_sent_when_nothing_is_owed_is_reported_not_applied():
         pytest.skip("this seat happened to be first")
     state = tools.play(pid, None, 0)
     assert state["action_result"]["accepted"] is False
+
+
+# ======================================================================
+# What a pulling seat was handed, as the console sees it
+# ======================================================================
+
+
+def test_the_briefing_a_pulling_seat_fetched_is_logged_once():
+    """A pushed seat's briefing is logged as it is sent; a pulled one was not."""
+    game, runner, tools = build(5)
+    runner.start()
+    token = seat_in(tools)
+    seat = tools.open_seats[token].seat
+
+    first = tools.read_state(token)
+    tools.read_state(token)  # the briefing repeats until acknowledged
+    handed = game.log.where("message", "delivered", seat=seat, msg_type="GAME_START")
+    assert len(handed) == 1
+    assert handed[0]["body"] == first["briefing"]
+
+
+def test_news_is_logged_when_first_fetched_not_on_every_repeat():
+    game, runner, tools = build(6)
+    runner.start()
+    token = seat_in(tools)
+    seat = tools.open_seats[token].seat
+
+    a = tools.read_state(token)
+    tools.read_state(token)  # the same unacknowledged news, again
+    logged = game.log.where("message", "delivered", seat=seat, msg_type="SITUATION")
+    assert len(logged) == 1
+    for item in news(a):
+        assert item["text"] in logged[0]["body"]
+
+
+def test_a_whole_pulled_match_leaves_its_hand_overs_in_the_log():
+    game, runner, tools = build(3)
+    runner.start()
+    state, _, token = play_through(tools, first_legal)
+    seat = tools.open_seats[token].seat
+    kinds = [r["msg_type"] for r in game.log.where("message", "delivered", seat=seat)]
+    assert kinds[0] == "GAME_START" and kinds.count("GAME_START") == 1
+    assert kinds[-1] == "GAME_END" and kinds.count("GAME_END") == 1
+    assert "SITUATION" in kinds
+
+
+def test_each_turn_a_pulling_seat_fetched_is_logged_once_as_the_question_it_read():
+    game, runner, tools = build(4)
+    runner.start()
+    token = seat_in(tools)
+    seat = tools.open_seats[token].seat
+
+    asked = {}
+    ack = None
+    while True:
+        state = tools.read_state(token, ack)
+        ack = state["ack_through"]
+        if state["status"] != "running":
+            break
+        if state["your_turn"]:
+            tools.read_state(token, ack)  # the question repeats until answered
+            asked[state["ask"]["action"]] = state["ask"]["prompt"]
+            tools.post_action(token, first_legal(state))
+
+    questions = game.log.where("message", "delivered", seat=seat, msg_type="QUESTION")
+    answers = game.log.where("message", "from_agent", seat=seat)
+    assert len(questions) == len(answers)
+    assert len({q["turn_seq"] for q in questions}) == len(questions)
+    for q in questions:
+        assert q["body"].startswith(asked[q["action"]])
+
+
+def test_every_fact_a_pulling_seat_is_owed_is_logged_as_handed_exactly_once():
+    game, runner, tools = build(7)
+    runner.start()
+    _, _, token = play_through(tools, first_legal)
+    seat = tools.open_seats[token].seat
+
+    handed = []
+    for r in game.log.where("message", "delivered", seat=seat, msg_type="SITUATION"):
+        assert len(r["items"]) == len(r["fact_seqs"])
+        handed += r["fact_seqs"]
+    owed = [f.seq for f in game.facts if seat in f.entitled]
+    assert sorted(handed) == owed
+
+
+def test_a_pulling_seats_turn_covers_only_what_it_has_not_confirmed():
+    """Its push cursor never moves, so the turn used to restate the whole game."""
+    for seed in range(8, 40):
+        game, runner, tools = build(seed)
+        runner.start()
+        _, _, token = play_through(tools, first_legal)
+        seat = tools.open_seats[token].seat
+        moves = [r for r in game.log.where("turn", "move") if r["seat"] == seat]
+        if len(moves) > 2:
+            break
+    else:
+        raise AssertionError("no seed kept the pulling seat alive for three turns")
+    first_fact = next(f.seq for f in game.facts if seat in f.entitled)
+    for later in moves[2:]:
+        assert first_fact not in later["shown_fact_seqs"]

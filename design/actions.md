@@ -25,7 +25,12 @@ Three parts.
 setup     runs once, before anybody is greeted
 steps     every one, in order, once per round, until a check ends it
 end       named conditions, tested by check steps
+rules     the rules as players read them; {key} fills from public table attributes
 ```
+
+`rules` may name any public game attribute in braces — `{start_cash}`,
+`{min_raise}` — and is shown with the attribute's starting value. A number
+written once in the attributes then cannot disagree with the rules text.
 
 `setup` and `steps` are lists of actions. `end` is a map of named conditions.
 
@@ -38,7 +43,7 @@ Mafia chose; the engine has none of them.
 
 ---
 
-## The seven actions
+## The eight actions
 
 | action | what it does | waits? | setup? |
 |---|---|---|---|
@@ -49,10 +54,12 @@ Mafia chose; the engine has none of them.
 | `poll` | address everyone at once and gather | **yes** | no |
 | `update` | change state, and say what changed | no | yes |
 | `check` | continue, or end | no | no |
+| `repeat` | run its own steps again and again, until a condition holds | if they do | no |
 
 `ask` and `poll` are excluded from setup because setup runs before the greeting
 goes out; there is nobody to wait on. `check` is excluded because there is
-nothing to end.
+nothing to end. `repeat` is excluded because a loop that asks nobody has
+nothing to repeat for.
 
 ### What each action asks a model for
 
@@ -65,6 +72,7 @@ nothing to end.
 | `poll` | one recipient's view, per call | `message` | `emit_fact` for all, commit in seat order |
 | `update` | the whole table | `update` | the six operations |
 | `check` | the whole table | `choice` | `end_game`, or nothing |
+| `repeat` | nothing; its inner steps call models as they would anywhere | — | its inner steps |
 
 Every one of these is optional. Omit `llm` and the step uses its `text`
 template instead: free, instant, reproducible, and incapable of hallucinating.
@@ -130,10 +138,11 @@ action that does not read it is refused at load.
 | `initialize` | `updates` `requires` `llm` |
 | `sync` | `to` `mode` `fields` `text` `llm` `max_words` |
 | `tell` | `to` `kind` `about` `fields` `text` `llm` `max_words` |
-| `ask` | `to` `answer` `verify` `outcome` `broadcast` `text` `llm` `max_words` `deadline_s` `on_timeout` |
-| `poll` | the same as `ask` |
+| `ask` | `to` `answer` `verify` `outcome` `broadcast` `each` `text` `llm` `max_words` `deadline_s` `on_timeout` |
+| `poll` | the same as `ask`, except `each` |
 | `update` | `do` `text` `llm` `max_words` |
 | `check` | `against` `llm` |
+| `repeat` | `until` `max` `steps` |
 
 ---
 
@@ -212,6 +221,7 @@ broadcast, `to` on an outcome branch, `announce_to` on an operation.
 | `{"attribute": "role", "is": "mafia"}` | whoever matches; add `"not": true` to invert |
 | `{"ids": [2, 5]}` | named seats |
 | `{"ids": ["$chancellor"]}` | whoever an earlier step bound to that name |
+| `{"where": "you.cash < min_bid"}` | whoever the expression holds for, read with `you` as each player in turn (see *Calculating*) |
 
 Every selector except `"all"` is intersected with "may act", which is why no
 game has to remember to exclude the dead.
@@ -280,8 +290,14 @@ the player a binding names, and `{subject}` where a step declares `about`.
 | `exclude` | a selector whose members may not be named |
 | `options` | for `choice`; a list, or a pointer into state |
 | `count` | for `players`; how many |
-| `min` / `max` | for `number` |
+| `min` / `max` | for `number`; a number, or `{"calc": ...}` worked out per player when asked |
+| `or` | for `number`; words accepted instead of a number, such as `["pass"]` |
 
+A number answer's range is worked out for each player at the moment they are
+asked, so `"min": {"calc": "high_bid + min_raise"}` follows the last bid and
+`"max": {"calc": "you.cash"}` follows the asked player's own purse. The prompt
+states the range; a reply outside it is rejected and asked again. A player
+whose range is empty and who has no `or` words is **not asked**.
 ### Options drawn from state
 
 A hand of cards is not knowable when the game is written and differs per
@@ -313,6 +329,28 @@ unreproducibly.
 | `bind` | a name a *later* step can read as `$name` |
 
 `$result` is this step's own outcome and needs no `bind`.
+
+### Acting on each answer: `each`
+
+On an `ask` — one player at a time — `each` runs after every single answer,
+before the next player is asked:
+
+```json
+"each": {"do": [
+  {"set": {"player": "$seat", "key": "bidding", "value": "out",
+           "if": {"calc": "$answer == 'pass'"},
+           "text": "Seat {player} passes."}},
+  {"set": {"key": "high_bid", "value": "$answer",
+           "if": {"calc": "$answer != 'pass'"},
+           "text": "Seat {seat} bids {value}."}}
+]}
+```
+
+`$seat` is who answered and `$answer` what they said; both exist only inside
+`each`. Because the next player is asked afterwards, the step's `to` and each
+player's range are worked out again: a player `each` has just ruled out is
+skipped, and the next bidder is asked for more than the bid just made. That is
+what makes an open, ascending auction one step.
 
 ---
 
@@ -374,14 +412,88 @@ a seat number is not a sentence.
 | `remove` | `player`, `key`, `value` — from a list |
 | `set_status` | `player`, `to` |
 | `disclose` | `of`, `attribute`, `to` |
+| `say` | nothing — the announcement is the whole effect |
 
 Every one also takes `text` or `llm` to announce itself, `announce_to` for the
-audience, and `unless` to skip when a binding named nobody.
+audience, and `unless` to skip when a binding named nobody. `say` must have
+`text` or `llm`, because it has nothing else to do.
+
+Two more keys make an operation conditional or plural:
+
+- **`if`** — a condition, arithmetic or `{"calc": ...}`. False skips the
+  operation silently. Prose is refused: an operation runs too often to spend a
+  model call on each.
+- **`players`** — a selector instead of `player`. The operation runs once per
+  matching player, in seat order, and inside it `you` is that player. Not with
+  `player`, and not on `disclose` or `say`.
+
+Any `value` may be `{"calc": ...}`.
 
 `disclose` differs from the rest: it records that the recipients now *know*
 something, in their `learned`, so the game can later reason about who knows
 what. The others only change state. That is why a knowledge reveal is a
 `disclose` and not a `tell`.
+
+---
+
+## Calculating: `{"calc": ...}`
+
+Arithmetic a game needs — a price, a split of a total, who can still afford
+to bid — is written as a small expression, in the engine, never asked of a
+model:
+
+```json
+{"set": {"key": "values", "value": {"calc": "split(total_value, items, value_min, value_max)"}}}
+"min": {"calc": "max(min_bid, high_bid + min_raise)"}
+"when": {"calc": "item >= items"}
+```
+
+Accepted wherever a value, a number answer's `min`/`max`, a condition (`when`,
+`until`, `if`), a `where` selector or a `rank` is expected.
+
+What an expression can read:
+
+| name | what it is |
+|---|---|
+| a game attribute | its current value, by key |
+| `you` | the player in question; `you.cash`, `you.seat`, `you.status` |
+| `$name` | a binding; `$name.cash` when it names a seat |
+| `players` | every player; `acting`, those who may act |
+
+It can use arithmetic, comparisons, `and`/`or`/`not`, indexing, `x if c else
+y`, list comprehensions and these functions: `sum` `min` `max` `len` `abs`
+`round` `int` `any` `all` `sorted`, plus two seeded draws:
+
+- `uniform(lo, hi)` — a number in the range.
+- `split(total, n, lo, hi)` — `n` whole numbers, each in `[lo, hi]`, summing
+  to exactly `total`.
+
+Both draw from the match seed, so a match replays exactly. Nothing else is
+callable — no attributes beyond a player's, no keywords, no imports. Names are
+checked at load: a key no attribute declares, or a `$name` nothing binds, is
+an error.
+
+---
+
+## Repeating: `repeat`
+
+A round is one pass over `steps`. When a part of the round must run an unknown
+number of times — bidding until everyone but the leader has passed — `repeat`
+runs its own `steps` in order, again and again:
+
+```json
+{"use": "repeat", "label": "the bidding",
+ "until": {"count": {"attribute": "bidding", "is": "in"}, "op": "==", "value": 0},
+ "max": 200,
+ "steps": [ {"use": "ask", "label": "bid", ...} ]}
+```
+
+`until` is tested before every pass, so a loop whose condition already holds
+runs nothing. `max` is the number of passes allowed; reaching it with `until`
+still false **abandons the match**, because a loop that never ends is a broken
+file, not a result. Inner steps may be `sync`, `tell`, `ask`, `poll`,
+`update` or `check`, but not another `repeat`. A `check` inside that ends the
+game ends it at once.
 
 ---
 
@@ -484,6 +596,19 @@ name or `continue`.
 `against` is the check's input: a check after the night need not ask about an
 ending only a vote can reach.
 
+An ending names its winner with `result`, or ranks players instead:
+
+```json
+"richest": {"when": {"calc": "item >= items"},
+            "rank": {"by": "you.cash + you.holdings", "highest": true},
+            "text": "{result} wins with {score}. Final wealth: {standings}."}
+```
+
+`rank.by` is worked out for every player; the best score wins (`"highest":
+false` for the lowest) and players level on it share the win, as `seats 1 and
+3`. The wording may use `{score}`, `{standings}` and `{winners}`. Exactly one
+of `result` and `rank` is required.
+
 An unanswered ending is declined. A match that overruns hits the round cap and
 says so; a match that ended on a question nobody answered is indistinguishable
 from one that ended correctly.
@@ -510,6 +635,15 @@ naming the key and listing what is accepted.
 - an `ids` entry that is neither a seat number nor a `$name`
 - `options` that is neither a list nor a pointer into state
 - `options` drawn from an attribute that is not a `list`
+- a `calc` that does not parse, calls anything not listed, or names a key no
+  attribute declares
+- `$seat` or `$answer` outside an `each`, or `each` anywhere but an `ask`
+- `min`, `max` or `or` on an answer that is not a `number`
+- a `repeat` with no `until`, a `max` that is not a positive whole number, or
+  a nested `repeat`
+- `players` together with `player`, or on `disclose` or `say`
+- an `if` written as prose
+- an ending with both `result` and `rank`, or neither
 
 The third from last is the pattern: `"options": "$hand"` became five
 one-character choices, because `tuple()` of a string splits it. A loader that

@@ -1,0 +1,481 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "auction",
+    "name": "Sequential Budget Auction",
+    "players": {
+      "min": 2,
+      "max": 6
+    },
+    "blurb": "Items with hidden values, one fixed budget each. Bid in the open, learn each item's worth after it sells, and finish with the most cash plus value."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "cash",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "holdings",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "won",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "bidding",
+        "visible": "public",
+        "type": "text",
+        "initial": "out",
+        "values": [
+          "in",
+          "leading",
+          "out"
+        ]
+      }
+    ],
+    "game": [
+      {
+        "key": "total_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 2000
+      },
+      {
+        "key": "items",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "start_cash",
+        "visible": "public",
+        "type": "number",
+        "initial": 1000
+      },
+      {
+        "key": "min_raise",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "value_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      },
+      {
+        "key": "value_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 400
+      },
+      {
+        "key": "ratio_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 0.45
+      },
+      {
+        "key": "ratio_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 0.75
+      },
+      {
+        "key": "values",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "min_bids",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "item",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "min_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "high_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "high_bidder",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "revealed",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "remaining_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the lots",
+      "do": [
+        {
+          "set": {
+            "key": "values",
+            "value": {
+              "calc": "split(total_value, items, value_min, value_max)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "min_bids",
+            "value": {
+              "calc": "[round(v * uniform(ratio_min, ratio_max) / min_raise) * min_raise for v in values]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "remaining_value",
+            "value": {
+              "calc": "total_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "cash",
+            "value": {
+              "calc": "start_cash"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "label": "the next item",
+      "do": [
+        {
+          "adjust": {
+            "key": "item",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "min_bid",
+            "value": {
+              "calc": "min_bids[item - 1]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "high_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "high_bidder",
+            "value": 0
+          }
+        },
+        {
+          "say": {
+            "text": "Item {item} of {items} is up. The minimum bid is {min_bid}."
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.cash >= min_bid"
+            },
+            "key": "bidding",
+            "value": "in"
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.cash < min_bid"
+            },
+            "key": "bidding",
+            "value": "out",
+            "text": "Seat {player} cannot afford the minimum bid and sits out item {item}."
+          }
+        }
+      ]
+    },
+    {
+      "use": "repeat",
+      "label": "the bidding",
+      "until": {
+        "count": {
+          "attribute": "bidding",
+          "is": "in"
+        },
+        "op": "==",
+        "value": 0
+      },
+      "max": 200,
+      "steps": [
+        {
+          "use": "ask",
+          "label": "bid",
+          "to": {
+            "attribute": "bidding",
+            "is": "in"
+          },
+          "answer": {
+            "type": "number",
+            "min": {
+              "calc": "max(min_bid, high_bid + min_raise)"
+            },
+            "max": {
+              "calc": "you.cash"
+            },
+            "or": [
+              "pass"
+            ]
+          },
+          "each": {
+            "do": [
+              {
+                "set": {
+                  "player": "$seat",
+                  "key": "bidding",
+                  "value": "out",
+                  "if": {
+                    "calc": "$answer == 'pass'"
+                  },
+                  "text": "Seat {player} passes on item {item}."
+                }
+              },
+              {
+                "set": {
+                  "players": {
+                    "attribute": "bidding",
+                    "is": "leading"
+                  },
+                  "key": "bidding",
+                  "value": "in",
+                  "if": {
+                    "calc": "$answer != 'pass'"
+                  }
+                }
+              },
+              {
+                "set": {
+                  "player": "$seat",
+                  "key": "bidding",
+                  "value": "leading",
+                  "if": {
+                    "calc": "$answer != 'pass'"
+                  }
+                }
+              },
+              {
+                "set": {
+                  "key": "high_bidder",
+                  "value": "$seat",
+                  "if": {
+                    "calc": "$answer != 'pass'"
+                  }
+                }
+              },
+              {
+                "set": {
+                  "key": "high_bid",
+                  "value": "$answer",
+                  "if": {
+                    "calc": "$answer != 'pass'"
+                  },
+                  "text": "Seat {seat} bids {value} on item {item}."
+                }
+              },
+              {
+                "set": {
+                  "players": {
+                    "where": "you.bidding == 'in' and you.cash < high_bid + min_raise"
+                  },
+                  "key": "bidding",
+                  "value": "out",
+                  "text": "Seat {player} cannot afford to raise and drops out of item {item}."
+                }
+              }
+            ]
+          },
+          "text": "Item {item} of {items}: minimum bid {min_bid}, high bid so far {high_bid}. Bid higher to take the lead, or pass to drop out of this item for good."
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the sale",
+      "do": [
+        {
+          "set": {
+            "key": "last_value",
+            "value": {
+              "calc": "values[item - 1]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "revealed",
+            "value": {
+              "calc": "last_value"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "remaining_value",
+            "value": {
+              "calc": "-last_value"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "high_bidder"
+            },
+            "key": "cash",
+            "value": {
+              "calc": "-high_bid"
+            },
+            "if": {
+              "calc": "high_bidder > 0"
+            },
+            "text": "Seat {player} wins item {item} for {high_bid}."
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "high_bidder"
+            },
+            "key": "holdings",
+            "value": {
+              "calc": "last_value"
+            },
+            "if": {
+              "calc": "high_bidder > 0"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "high_bidder"
+            },
+            "key": "won",
+            "value": {
+              "calc": "item"
+            },
+            "if": {
+              "calc": "high_bidder > 0"
+            }
+          }
+        },
+        {
+          "say": {
+            "text": "Nobody bid on item {item}.",
+            "if": {
+              "calc": "high_bidder == 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bidding",
+            "value": "out"
+          }
+        }
+      ],
+      "text": "Item {item} was worth {last_value}. Value not yet revealed: {remaining_value}."
+    },
+    {
+      "use": "check",
+      "label": "after the last item",
+      "when": {
+        "calc": "item >= items"
+      }
+    }
+  ],
+  "end": {
+    "richest": {
+      "when": {
+        "calc": "item >= items"
+      },
+      "rank": {
+        "by": "you.cash + you.holdings",
+        "highest": true
+      },
+      "reason": "the highest final wealth, cash plus the value of items won ({standings})",
+      "text": "The auction is over. {result} wins with a final wealth of {score}. Final wealth: {standings}."
+    }
+  },
+  "limits": {
+    "rounds": 20,
+    "rounds_max": 20,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "{items} items are auctioned one at a time. Every item has a true value that nobody knows until it has sold. The {items} values together always add up to {total_value}, and each is between {value_min} and {value_max}. Everyone starts with {start_cash} in cash.\n\nEvery item has a public minimum bid, set at between {ratio_min} and {ratio_max} times its true value, so a minimum bid is a clue to what the item is worth. All the minimum bids are shown from the start, in the order the items will be sold.\n\nEach item is sold in an open, ascending auction. The players still in are asked in seat order, again and again, until only the leader is left. When asked, either bid a whole number that is at least the minimum bid, at least {min_raise} above the current high bid, and no more than your cash; or pass. Passing takes you out of this item only; you are back in for the next one. The leader is not asked again until someone outbids them. A player who cannot afford the next legal bid is out of that item. Everyone sees every bid and every pass. Nobody talks: you only bid.\n\nWhen bidding stops, the leader pays their bid and takes the item. Its true value is then revealed to everyone. If nobody bids, the item goes unsold and its value is still revealed.\n\nAfter the last item, your final wealth is your remaining cash plus the true value of every item you won. The highest final wealth wins; players level at the top share the win. Cash you keep counts exactly as much as value you buy, so paying more than an item is worth loses you wealth."
+}

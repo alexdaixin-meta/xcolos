@@ -142,6 +142,15 @@ class RandomAgent(BaseAgent):
         if schema.target == "none":
             return Action(type=schema.id)
 
+        if schema.target == "number":
+            low, high = schema.minimum, schema.maximum
+            can_bid = low is not None and high is not None and low <= high
+            if schema.choices and (not can_bid or self._rng.below(3) == 0):
+                return Action(type=schema.id, target=schema.choices[0])
+            if can_bid:
+                return Action(type=schema.id, target=low + self._rng.below(high - low + 1))
+            return Action(type=schema.id, target=low if low is not None else 0)
+
         if env.legal_targets:
             return Action(type=schema.id, target=self._rng.choice(list(env.legal_targets)))
 
@@ -218,6 +227,16 @@ def parse_action(
         except (ValueError, TypeError):
             pass
 
+    if schema.target == "number":
+        numbers = re.findall(r"-?\d+", text.replace(",", ""))
+        if numbers:
+            return Action(type=schema.id, target=int(numbers[-1]))
+        lowered = text.lower()
+        for choice in schema.choices:
+            if str(choice).lower() in lowered:
+                return Action(type=schema.id, target=choice)
+        return None
+
     if schema.target == "enum" and schema.choices:
         lowered = text.lower()
         for choice in schema.choices:
@@ -265,6 +284,12 @@ def offline_model(seed: int = 0) -> Completion:
                     "Nothing in the last round changed my read.",
                 ]
             )
+
+        if schema.target == "number":
+            low, high = schema.minimum, schema.maximum
+            if low is not None and high is not None and low <= high and rng.below(2):
+                return f"I bid {low + rng.below(high - low + 1)}."
+            return f"I {schema.choices[0]}." if schema.choices else f"{low or 0}"
 
         if env.legal_targets:
             target = rng.choice(list(env.legal_targets))

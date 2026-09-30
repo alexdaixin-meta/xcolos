@@ -367,7 +367,7 @@ def test_at_least_one_shipped_game_needs_no_model_at_all():
     offline = [
         path.name
         for path, definition in shipped()
-        if all(rule.when.kind == "compare" for rule in definition.end)
+        if all(rule.when.kind != "prose" for rule in definition.end)
     ]
     assert offline, "every shipped game now requires a judge"
 
@@ -380,7 +380,7 @@ def test_a_game_that_wants_a_judge_still_runs_without_one():
     which is a bug you can see rather than a match that looks finished.
     """
     for path, definition in shipped():
-        if all(rule.when.kind == "compare" for rule in definition.end):
+        if all(rule.when.kind != "prose" for rule in definition.end):
             continue
         result, _ = play(definition, seed=1)
         assert result.status != "ended", (
@@ -393,7 +393,7 @@ def test_a_game_that_wants_a_judge_still_runs_without_one():
 
 def test_every_shipped_game_that_needs_a_judge_reaches_a_verdict_with_one():
     for path, definition in shipped():
-        if all(rule.when.kind == "compare" for rule in definition.end):
+        if all(rule.when.kind != "prose" for rule in definition.end):
             continue
         result, _ = play(definition, seed=1, judge=ScriptedJudge(oracle))
         assert result.status == "ended", f"{path.name} never finished"

@@ -29,7 +29,9 @@ arrives. It carries no `seq`, because acknowledging receipt is not answering.
 
     {"kind": "action", "action": "vote",
      "response": 3,
-     "reason": "Seat 3 volunteered an answer nobody asked for."}
+     "reason": "Seat 3 volunteered an answer nobody asked for.",
+     "predict": "Seat 3 will push the vote onto seat 1 next round.",
+     "adjust": "I vote early so seat 3 cannot set the agenda."}
 
     {"kind": "action", "action": "speak",
      "response": "Seat 1 has not accounted for their last move.",
@@ -40,9 +42,12 @@ An action reply has two halves and the split is the point.
 `response` is the move itself: a seat number, or the words you want the table
 to hear. The game may make it public.
 
-`reason` is your own thinking. It is recorded so whoever is watching the match
-can see why you moved, and it is never turned into a fact, so no other player
-is ever told it. Say what you actually think there.
+`reason`, `predict` and `adjust` are your own thinking. `reason` is why you
+made this move, in concrete details: the seats, numbers and facts it rests on.
+`predict` is what you expect your opponents to do and why. `adjust` is how you
+changed your own strategy in response. All three are recorded so whoever is
+watching the match can see your thinking, and none is ever turned into a fact,
+so no other player is ever told them. Say what you actually think there.
 
 The shorthand `{"ack": 14, "answer": 3}` means the same thing and is accepted
 everywhere, because it is easier to type into a command line.
@@ -80,6 +85,16 @@ def information(
     }
 
 
+#: The shape of an answer, repeated on every turn so the private fields are
+#: asked for each time rather than only in the briefing read once.
+REPLY_WITH = {
+    "response": "your move: one of legal_answers, or your words if answer_with is text",
+    "reason": "why you made this move, in concrete details: the seats, numbers and facts it rests on",
+    "predict": "predict your opponents' strategy: what each will do next, and why",
+    "adjust": "how you adjusted your strategy in response to that prediction",
+}
+
+
 def action_required(
     action: str,
     prompt: str,
@@ -104,6 +119,7 @@ def action_required(
         "legal_answers": legal_answers,
         "seconds_left": seconds_left,
         **({"max_words": max_words} if max_words else {}),
+        "reply_with": REPLY_WITH,
     }
 
 
@@ -151,11 +167,12 @@ def parse_action(
         return None
 
     if isinstance(answer, dict):
-        reason = str(answer.get("reason") or "")
+        # The private half. Kept whatever the move turns out to be.
+        private = {k: str(answer.get(k) or "") for k in ("reason", "predict", "adjust")}
         named = answer.get("action")
         if named and named != schema.id:
             # Answering a different question than the one asked.
-            return Action(type=str(named), reason=reason)
+            return Action(type=str(named), **private)
 
         # `response` is the documented field. The others are older spellings
         # and what a model tends to reach for, so they are accepted too.
@@ -172,8 +189,8 @@ def parse_action(
             return None
 
         if schema.target == "text":
-            return Action(type=schema.id, text=str(given), reason=reason)
-        return Action(type=schema.id, target=_coerce(given, legal), reason=reason)
+            return Action(type=schema.id, text=str(given), **private)
+        return Action(type=schema.id, target=_coerce(given, legal), **private)
 
     if schema.target == "text":
         return Action(type=schema.id, text=str(answer))

@@ -17,6 +17,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from xcolos.games.calc import BUILTIN_NAMES, CalcError, Expr
+
 SCHEMA_VERSION = 1
 
 #: The whole flow, in four kinds. A round is a list of steps, each of one of
@@ -40,7 +42,7 @@ SCHEMA_VERSION = 1
 #:
 #: A game's own vocabulary lives in `phase` and `label`, so Mafia still has a
 #: night and a vote; the engine has neither.
-KINDS = ("initialize", "sync", "tell", "ask", "poll", "update", "check")
+KINDS = ("initialize", "sync", "tell", "ask", "poll", "update", "check", "repeat")
 
 #: Kinds that address players. `tell` speaks and carries on; the other two
 #: stop the game until the addressed players answer.
@@ -88,13 +90,19 @@ ACTION_KEYS = {
     "initialize": ("updates", "requires", "llm"),
     "sync": ("to", "mode", "fields", "text", "llm", "max_words"),
     "tell": ("to", "kind", "about", "fields", "text", "llm", "max_words"),
-    "ask": ("to", "answer", "verify", "outcome", "broadcast", "text", "llm",
-            "max_words", "deadline_s", "on_timeout"),
+    "ask": ("to", "answer", "verify", "outcome", "broadcast", "each", "text",
+            "llm", "max_words", "deadline_s", "on_timeout"),
     "poll": ("to", "answer", "verify", "outcome", "broadcast", "text", "llm",
              "max_words", "deadline_s", "on_timeout"),
     "update": ("do", "text", "llm", "max_words"),
     "check": ("against", "llm"),
+    "repeat": ("until", "max", "steps"),
 }
+
+#: Kinds a `repeat` may hold. Not `initialize`, which deals the table once,
+#: and not another `repeat`: one level of loop has covered every game so far,
+#: and a nested one is where a cap stops meaning anything a reader can check.
+REPEATABLE_KINDS = ("sync", "tell", "ask", "poll", "update", "check")
 
 #: Kinds a `setup` step may use. Setup runs before the game is running and
 #: before anybody has been greeted, so there is nobody to wait on and nothing
@@ -110,7 +118,7 @@ GAME_VISIBILITY = ("public", "none")
 
 TYPES = ("text", "number", "bool", "list")
 ANSWER_TYPES = ("text", "player", "players", "choice", "number", "none")
-OPERATIONS = ("set", "adjust", "append", "remove", "set_status", "disclose")
+OPERATIONS = ("set", "adjust", "append", "remove", "set_status", "disclose", "say")
 OPERATORS = ("==", "!=", "<", "<=", ">", ">=")
 TALLIES = ("plurality", "majority", "unanimity")
 #: What a tally yields when it settles on no one: a tie under `on_tie:
@@ -160,6 +168,32 @@ def _only(raw: dict[str, Any], allowed: tuple[str, ...], where: str) -> None:
             f"{', '.join(repr(k) for k in unknown)}. "
             f"This structure takes: {', '.join(sorted(allowed))}"
         )
+
+
+def _expr(raw: Any, where: str) -> Expr:
+    """Read one expression, reporting a bad one at its path."""
+    _require(isinstance(raw, str) and raw.strip(), where,
+             f"an expression is a non-empty string, got {raw!r}")
+    try:
+        return Expr(raw)
+    except CalcError as exc:
+        raise DefinitionError(f"{where}: {exc}") from None
+
+
+def is_calc(raw: Any) -> bool:
+    """`{"calc": "..."}`: a value the engine works out when it is needed."""
+    return isinstance(raw, dict) and set(raw) == {"calc"}
+
+
+def _compile(raw: Any, where: str) -> Any:
+    """A value with every `{"calc": ...}` in it read into an Expr."""
+    if is_calc(raw):
+        return _expr(raw["calc"], where + ".calc")
+    if isinstance(raw, dict):
+        return {k: _compile(v, f"{where}.{k}") for k, v in raw.items()}
+    if isinstance(raw, list):
+        return [_compile(v, f"{where}[{i}]") for i, v in enumerate(raw)]
+    return raw
 
 
 def _one_of(value: Any, allowed: tuple[str, ...], where: str) -> str:
@@ -235,7 +269,8 @@ class Selector:
     to exclude eliminated players.
     """
 
-    #: "acting" | "all" | "attribute" | "ids" | "others" | "ally" | "author"
+    #: "acting" | "all" | "attribute" | "ids" | "where" | "others" | "ally" |
+    #: "author"
     #:
     #: The last three are relative to whoever the message is about — the player
     #: who just answered. They were a separate four-value enum on `broadcast`,
@@ -253,6 +288,11 @@ class Selector:
     #: address the player another step chose.
     refs: tuple[str, ...] = ()
 
+    #: For `where`: an expression asked of each player in turn, as `you`.
+    #: `{"where": "you.cash >= min_bid"}` names everyone who can afford the
+    #: item — a question the one-attribute form cannot ask.
+    test: Expr | None = None
+
     @property
     def relative(self) -> bool:
         """Whether this selector means nothing without a subject."""
@@ -265,7 +305,11 @@ class Selector:
         if raw in ("all", "others", "ally", "author"):
             return Selector(kind=str(raw))
         _require(isinstance(raw, dict), where, f"expected a selector, got {raw!r}")
-        _only(raw, ("ids", "attribute", "is", "not", "acting"), where)
+        _only(raw, ("ids", "attribute", "is", "not", "acting", "where"), where)
+        if "where" in raw:
+            _require(len(set(raw) - {"acting"}) == 1, where,
+                     "`where` is the whole test; it takes no `attribute` or `ids`")
+            return Selector(kind="where", test=_expr(raw["where"], where + ".where"))
         if "ids" in raw:
             ids = raw["ids"]
             _require(isinstance(ids, list), where, "ids must be a list")
@@ -342,13 +386,15 @@ class Condition:
     arithmetic should stay arithmetic.
     """
 
-    kind: str  # "compare" | "prose"
+    kind: str  # "compare" | "prose" | "calc"
     left: Operand | None = None
     op: str = "=="
     value: Any = None
     other: Operand | None = None
     #: The sentence a judge is asked, for `kind == "prose"`.
     prose: str = ""
+    #: For `kind == "calc"`: an expression, true or false.
+    expr: Expr | None = None
 
     @staticmethod
     def parse(raw: Any, where: str) -> "Condition":
@@ -356,7 +402,10 @@ class Condition:
             _require(raw.strip(), where, "an empty condition asks nothing")
             return Condition(kind="prose", prose=raw.strip())
         _require(isinstance(raw, dict), where, f"expected a condition, got {raw!r}")
-        _only(raw, ("prose", "count", "game", "op", "value", "other"), where)
+        _only(raw, ("prose", "count", "game", "op", "value", "other", "calc"), where)
+        if "calc" in raw:
+            _require(len(raw) == 1, where, "`calc` is the whole condition")
+            return Condition(kind="calc", expr=_expr(raw["calc"], where + ".calc"))
         if "prose" in raw:
             text = str(raw["prose"]).strip()
             _require(text, where + ".prose", "an empty condition asks nothing")
@@ -406,17 +455,37 @@ class AnswerDef:
     #: Set instead of `options` when the choices are drawn from state.
     options_from: OptionSource | None = None
     count: int = 0
-    minimum: float | None = None
-    maximum: float | None = None
+    #: For `number`: the range, inclusive. A number, or an Expr worked out for
+    #: each asked player at the moment they are asked — the lowest legal bid
+    #: is the current bid plus the raise, and the highest is what they hold.
+    minimum: Any = None
+    maximum: Any = None
+    #: For `number`: words accepted instead of a number, like `pass`. Without
+    #: them a player who wants no part of it has no legal answer.
+    alternatives: tuple[str, ...] = ()
 
     @staticmethod
     def parse(raw: Any, where: str) -> "AnswerDef":
         _require(isinstance(raw, dict), where, f"expected an answer spec, got {raw!r}")
         _only(raw, ("type", "max_words", "exclude_self", "exclude", "options",
-                    "count", "min", "max"), where)
+                    "count", "min", "max", "or"), where)
         kind = _one_of(raw.get("type"), ANSWER_TYPES, where + ".type")
         if kind == "choice":
             _require(raw.get("options"), where, "a choice needs `options`")
+        for key in ("min", "max", "or"):
+            _require(kind == "number" or key not in raw, f"{where}.{key}",
+                     "only a `number` answer has a range")
+        alternatives = raw.get("or", [])
+        _require(isinstance(alternatives, list)
+                 and all(isinstance(a, str) and a for a in alternatives),
+                 where + ".or", "is a list of words, like [\"pass\"]")
+        bounds = {}
+        for key in ("min", "max"):
+            value = raw.get(key)
+            _require(value is None or is_calc(value)
+                     or (isinstance(value, (int, float)) and not isinstance(value, bool)),
+                     f"{where}.{key}", f"is a number or {{\"calc\": ...}}, got {value!r}")
+            bounds[key] = _compile(value, f"{where}.{key}")
 
         options, source = (), None
         if isinstance(raw.get("options"), dict):
@@ -445,8 +514,9 @@ class AnswerDef:
             options=options,
             options_from=source,
             count=int(raw.get("count", 0)),
-            minimum=raw.get("min"),
-            maximum=raw.get("max"),
+            minimum=bounds["min"],
+            maximum=bounds["max"],
+            alternatives=tuple(alternatives),
         )
 
 
@@ -618,7 +688,25 @@ class Operation:
         _one_of(op, OPERATIONS, where)
         args = raw[op]
         _require(isinstance(args, dict), where, f"{op} takes an object of arguments")
-        return Operation(op=op, args=args)
+        args = dict(args)
+        # `players` and `if` are read here, once, rather than on every run:
+        # both are shapes the loader can check, and a typo in either should
+        # stop the file loading, not quietly act on nobody.
+        if "players" in args:
+            _require("player" not in args, where,
+                     "give `player` for one seat or `players` for a group, not both")
+            _require(op not in ("disclose", "say"), where + ".players",
+                     f"{op} does not act on a player")
+            args["players"] = Selector.parse(args["players"], where + ".players")
+        if "if" in args:
+            args["if"] = Condition.parse(args["if"], where + ".if")
+            _require(args["if"].kind != "prose", where + ".if",
+                     "an operation's `if` is arithmetic; a judge is not asked")
+        return Operation(
+            op=op,
+            args={k: v if k in ("players", "if") else _compile(v, f"{where}.{k}")
+                  for k, v in args.items()},
+        )
 
 
 @dataclass(frozen=True)
@@ -744,6 +832,18 @@ class StepDef:
     verify: VerifyDef | None = None
     do: tuple[Operation, ...] = ()
     text: str | None = None
+    #: For `ask`: what happens after *each* answer, before the next player is
+    #: asked. `$seat` is who answered and `$answer` what they said. An
+    #: `outcome` acts once on the reduced result; this acts on every reply,
+    #: which is what an auction needs — each bid moves the price the next
+    #: bidder is asked to beat.
+    each: Branch | None = None
+    #: For `repeat`: the steps to run again, until `until` holds, at most
+    #: `max` times. Tested before every pass, so a loop whose condition is
+    #: already true runs none.
+    until: Condition | None = None
+    max: int = 0
+    steps: tuple["StepDef", ...] = ()
 
     @staticmethod
     def parse(raw: Any, index: int, where: str | None = None) -> "StepDef":
@@ -801,6 +901,23 @@ class StepDef:
             where + ".do",
             "a `check` step decides whether to end; it changes nothing",
         )
+        inner: tuple[StepDef, ...] = ()
+        if use == "repeat":
+            _require("until" in raw, where + ".until",
+                     "a `repeat` must say when it stops")
+            _require(isinstance(raw.get("max"), int) and raw["max"] > 0,
+                     where + ".max",
+                     "a `repeat` needs a positive `max`, so a loop that never "
+                     "meets its `until` ends the match instead of hanging it")
+            _require(isinstance(raw.get("steps"), list) and raw["steps"],
+                     where + ".steps", "a `repeat` needs steps to repeat")
+            inner = tuple(
+                StepDef.parse(s, i, where=f"{where}.steps[{i}]")
+                for i, s in enumerate(raw["steps"])
+            )
+            for i, step in enumerate(inner):
+                _require(step.use in REPEATABLE_KINDS, f"{where}.steps[{i}].use",
+                         f"a `repeat` holds {list(REPEATABLE_KINDS)}")
         return StepDef(
             use=use,
             label=str(raw.get("label", use)),
@@ -846,6 +963,11 @@ class StepDef:
                 for i, o in enumerate(raw.get("do", ()))
             ),
             text=raw.get("text"),
+            each=Branch.parse(raw["each"], where + ".each") if "each" in raw else None,
+            until=Condition.parse(raw["until"], where + ".until")
+            if "until" in raw else None,
+            max=int(raw.get("max", 0)),
+            steps=inner,
         )
 
     @property
@@ -883,17 +1005,33 @@ class EndRule:
     #: announcement in the engine takes one or the other, so a game chooses
     #: per message whether it wants a fixed sentence or a written one.
     llm: str = ""
+    #: Instead of a fixed `result`: score every player with this expression,
+    #: `you` being each in turn, and the best score wins. Players level on the
+    #: best score share the win. A fixed result cannot name the winner of a
+    #: game for any number of players; this can.
+    rank: Expr | None = None
+    highest: bool = True
 
     @staticmethod
     def parse(name: str, raw: Any, where: str) -> "EndRule":
         _require(isinstance(raw, dict), where, f"expected an ending, got {raw!r}")
-        _only(raw, ("when", "result", "reason", "reveal", "text", "llm"), where)
+        _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "rank"),
+              where)
         _require("when" in raw, where, "needs a `when`")
-        _require("result" in raw, where, "needs a `result`")
+        _require(("result" in raw) != ("rank" in raw), where,
+                 "needs a `result`, or a `rank` to work one out; not both")
+        rank = raw.get("rank")
+        if rank is not None:
+            _require(isinstance(rank, dict), where + ".rank",
+                     'is {"by": "<expression>", "highest": true}')
+            _only(rank, ("by", "highest"), where + ".rank")
+            _require("by" in rank, where + ".rank", "needs `by`, the score")
         return EndRule(
             name=name,
             when=Condition.parse(raw["when"], where + ".when"),
-            result=str(raw["result"]),
+            result=str(raw.get("result", "")),
+            rank=_expr(rank["by"], where + ".rank.by") if rank else None,
+            highest=bool(rank.get("highest", True)) if rank else True,
             reason=str(raw.get("reason", "")),
             reveal=tuple(raw.get("reveal", ())),
             text=str(raw.get("text", "")),
@@ -993,6 +1131,26 @@ class GameDefinition:
 
     def game_attribute(self, key: str) -> AttributeDef | None:
         return next((a for a in self.game_attributes if a.key == key), None)
+
+    @property
+    def rules_text(self) -> str:
+        """The rules, with `{key}` filled from public table attributes.
+
+        So a number is written once, as an attribute, and the rules read it:
+        "Everyone starts with {start_cash}" cannot drift from the cash the
+        game actually deals. Only public attributes, at their declared initial
+        values — the rules are read before anything is dealt, by everyone.
+        """
+        import re
+
+        known = {a.key: a.initial for a in self.game_attributes
+                 if a.visible == "public" and a.initial is not None}
+
+        def fill(match: "re.Match[str]") -> str:
+            value = known.get(match.group(1), match.group(0))
+            return f"{value:g}" if isinstance(value, float) else str(value)
+
+        return re.sub(r"\{(\w+)\}", fill, self.rules)
 
 
 # ----------------------------------------------------------------------
@@ -1179,6 +1337,26 @@ def _check_one_roster(d: GameDefinition, step, roster, prefix: str) -> None:
                              "a count is a whole number, or a two-item range")
 
 
+def _walk(d: GameDefinition) -> list[tuple[str, "StepDef"]]:
+    """Every step with its path, setup first, a repeat's steps after it.
+
+    One list for every check, so a step inside a loop is held to exactly the
+    rules a step outside one is.
+    """
+    out: list[tuple[str, StepDef]] = []
+
+    def add(where: str, step: StepDef) -> None:
+        out.append((where, step))
+        for i, inner in enumerate(step.steps):
+            add(f"{where}.steps[{i}]", inner)
+
+    for i, step in enumerate(d.setup):
+        add(f"setup[{i}]", step)
+    for i, step in enumerate(d.steps):
+        add(f"steps[{i}]", step)
+    return out
+
+
 def _check_prompts(d: GameDefinition) -> None:
     """A step that asks something must say what it is asking.
 
@@ -1187,18 +1365,18 @@ def _check_prompts(d: GameDefinition) -> None:
     wrote an instruction one way for a `tell` and another way for an `ask`,
     and one of them indirected through the text block while the other did not.
     """
-    for i, step in enumerate(d.steps):
+    for where, step in _walk(d):
         if not step.asks:
             continue
         _require(
             bool(step.text or step.llm),
-            f"steps[{i}]",
+            where,
             f"{step.label!r} asks players for an answer, so it needs `text` "
             f"naming a template that tells them what to do, or an `llm` to "
             f"write one",
         )
         if step.text:
-            _wording(step.text, d.text, f"steps[{i}].text")
+            _wording(step.text, d.text, f"{where}.text")
 
 
 def _check_sentinels(d: GameDefinition) -> None:
@@ -1208,10 +1386,7 @@ def _check_sentinels(d: GameDefinition) -> None:
     guarded ran on a binding that named no one. The guard was written to stop
     exactly that, and a typo turned it off in silence.
     """
-    for where, step in (
-        [(f"setup[{i}]", x) for i, x in enumerate(d.setup)]
-        + [(f"steps[{i}]", x) for i, x in enumerate(d.steps)]
-    ):
+    for where, step in _walk(d):
         for j, op in enumerate(step.do):
             guard = op.args.get("unless")
             if guard is None:
@@ -1227,11 +1402,11 @@ def _check_sentinels(d: GameDefinition) -> None:
 def _check_endings(d: GameDefinition) -> None:
     """A check step must name endings the game actually declares."""
     known = {rule.name for rule in d.end}
-    for i, step in enumerate(d.steps):
+    for where, step in _walk(d):
         for name in step.against:
             _require(
                 name in known,
-                f"steps[{i}].against",
+                f"{where}.against",
                 f"{name!r} is not a declared ending. This game has: "
                 f"{', '.join(sorted(known))}",
             )
@@ -1281,10 +1456,7 @@ def _check_text(d: GameDefinition) -> None:
                  "a game that can end must say how the ending is announced, "
                  "with `text.game_over` or an `llm` on each ending")
 
-    for where, step in (
-        [(f"setup[{i}]", s) for i, s in enumerate(d.setup)]
-        + [(f"steps[{i}]", s) for i, s in enumerate(d.steps)]
-    ):
+    for where, step in _walk(d):
         spec = step.broadcast
         if spec and not spec.llm:
             # A free-text answer is its own message: the player's words are
@@ -1306,13 +1478,16 @@ def _check_text(d: GameDefinition) -> None:
             _wording(step.text, text, where + ".text")
         # Any operation may word itself, and a disclosure must, because its
         # message is the disclosure.
-        for j, op in enumerate(step.do):
+        each = step.each.do if step.each else ()
+        for j, op in [(f"do[{j}]", o) for j, o in enumerate(step.do)] + [
+            (f"each.do[{j}]", o) for j, o in enumerate(each)
+        ]:
             wording = op.args.get("text")
             if wording:
-                _wording(str(wording), text, f"{where}.do[{j}].text")
-            elif op.op == "disclose" and not op.args.get("llm"):
-                _require(False, f"{where}.do[{j}]",
-                         "a disclosure is a message, so it needs `text` giving "
+                _wording(str(wording), text, f"{where}.{j}.text")
+            elif op.op in ("disclose", "say") and not op.args.get("llm"):
+                _require(False, f"{where}.{j}",
+                         f"a `{op.op}` is a message, so it needs `text` giving "
                          "the words, or `llm` to have them written")
 
 
@@ -1357,9 +1532,7 @@ def _check_references(d: GameDefinition) -> None:
     bound: set[str] = set()
     # Setup is checked on the same terms as a round's steps: a selector naming
     # an attribute nobody declared is a typo wherever it appears.
-    numbered = [(f"setup[{i}]", s) for i, s in enumerate(d.setup)]
-    numbered += [(f"steps[{i}]", s) for i, s in enumerate(d.steps)]
-    for where, step in numbered:
+    for where, step in _walk(d):
         if step.to.kind == "attribute":
             _require(step.to.attribute in player_keys, where + ".to",
                      f"{step.to.attribute!r} is not a declared player attribute")
@@ -1394,9 +1567,20 @@ def _check_references(d: GameDefinition) -> None:
             _require(step.answer.exclude.attribute in player_keys,
                      where + ".answer.exclude",
                      f"{step.answer.exclude.attribute!r} is not declared")
+        _check_selector(step.to, player_keys, game_keys, bound, where + ".to")
+        if step.answer:
+            for side, value in (("min", step.answer.minimum),
+                                ("max", step.answer.maximum)):
+                if isinstance(value, Expr):
+                    _check_expr(value, player_keys, game_keys, bound,
+                                f"{where}.answer.{side}")
         if step.when:
-            _check_condition(step.when, player_keys, game_keys, where + ".when")
+            _check_condition(step.when, player_keys, game_keys, where + ".when",
+                             bound)
             _check_gate_is_not_its_own_audience(step, where)
+        if step.until:
+            _check_condition(step.until, player_keys, game_keys, where + ".until",
+                             bound)
         if step.verify and step.verify.bind:
             bound.add(step.verify.bind)
         if step.text:
@@ -1404,9 +1588,20 @@ def _check_references(d: GameDefinition) -> None:
         for j, op in enumerate(step.do):
             _check_operation(op, bound, player_keys, game_keys, status_ids,
                              f"{where}.do[{j}]")
+        if step.each:
+            _require(step.use == "ask", where + ".each",
+                     "only an `ask` takes players one at a time")
+            # Bound by the step itself, for its own `each` and nothing later.
+            mine = bound | {"seat", "answer"}
+            for j, op in enumerate(step.each.do):
+                _check_operation(op, mine, player_keys, game_keys, status_ids,
+                                 f"{where}.each.do[{j}]")
 
     for i, rule in enumerate(d.end):
         _check_condition(rule.when, player_keys, game_keys, f"end[{i}].when")
+        if rule.rank:
+            _check_expr(rule.rank, player_keys, game_keys, None,
+                        f"end.{rule.name}.rank.by")
     for key in d.reveal:
         _require(key in player_keys, "reveal", f"{key!r} is not a declared attribute")
 
@@ -1469,9 +1664,40 @@ def _check_gate_is_not_its_own_audience(step: "StepDef", where: str) -> None:
              f"`when`, or gate on something `to` does not already say")
 
 
-def _check_condition(c: Condition, player_keys, game_keys, where: str) -> None:
+def _check_expr(expr: Expr, player_keys, game_keys, bound, where: str) -> None:
+    """Every name an expression reads must be one the game declared.
+
+    A misspelled attribute in arithmetic is the same silent failure as one in
+    a selector, with a worse symptom: it does not match nobody, it crashes the
+    match on the first turn that reaches it.
+    """
+    for name in sorted(expr.names()):
+        _require(name in game_keys or name in BUILTIN_NAMES, where,
+                 f"{name!r} is not a declared table attribute")
+    for name in sorted(expr.attributes()):
+        _require(name in player_keys or name in ("seat", "status"), where,
+                 f".{name} is not a declared player attribute")
+    if bound is not None:
+        for name in sorted(expr.bindings()):
+            _require(name in bound, where, f"${name} is used before any step binds it")
+
+
+def _check_selector(selector: Selector, player_keys, game_keys, bound,
+                    where: str) -> None:
+    if selector.kind == "where" and selector.test is not None:
+        _check_expr(selector.test, player_keys, game_keys, bound, where + ".where")
+    elif selector.kind == "attribute":
+        _require(selector.attribute in player_keys, where,
+                 f"{selector.attribute!r} is not a declared player attribute")
+
+
+def _check_condition(c: Condition, player_keys, game_keys, where: str,
+                     bound=None) -> None:
     if c.kind == "prose":
         return  # nothing to check against: a judge reads it, not the loader
+    if c.kind == "calc":
+        _check_expr(c.expr, player_keys, game_keys, bound, where)
+        return
     for side, operand in (("", c.left), (".other", c.other)):
         if operand is None:
             continue
@@ -1489,6 +1715,14 @@ def _check_operation(op: Operation, bound, player_keys, game_keys, status_ids,
     for name in _bindings_in(args):
         _require(name in bound, where,
                  f"${name} is used before any step binds it")
+    for key, value in args.items():
+        if isinstance(value, Expr):
+            _check_expr(value, player_keys, game_keys, bound, f"{where}.{key}")
+    if isinstance(args.get("players"), Selector):
+        _check_selector(args["players"], player_keys, game_keys, bound,
+                        where + ".players")
+    if isinstance(args.get("if"), Condition):
+        _check_condition(args["if"], player_keys, game_keys, where + ".if", bound)
 
     if op.op == "set_status":
         _require(args.get("to") in status_ids, where,
@@ -1504,6 +1738,8 @@ def _check_operation(op: Operation, bound, player_keys, game_keys, status_ids,
 
 
 def _bindings_in(value: Any) -> list[str]:
+    if isinstance(value, (Expr, Selector, Condition)):
+        return []  # checked on their own terms, by what they contain
     if isinstance(value, str) and value.startswith("$"):
         return [value[1:]]
     if isinstance(value, dict):

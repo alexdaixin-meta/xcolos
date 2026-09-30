@@ -10,6 +10,7 @@ It knows the twelve flow slots and the five operations. It knows no game.
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass, field as dataclass_field
 from typing import Any, Iterator
@@ -25,6 +26,7 @@ from xcolos.flow.judge import (
     system_prompt,
 )
 from xcolos.flow.state import Answer, FlowError, FlowState, seat_of as _seat, tally
+from xcolos.games.calc import CalcError, Expr
 from xcolos.games.definition import (
     NOBODY,
     Condition,
@@ -104,12 +106,17 @@ ACTIONS = {
         "sees": "the whole table",
         "returns": "update",
         "engine_calls": "the declared operations: set, adjust, append, remove, "
-                        "set_status, disclose",
+                        "set_status, disclose, say",
     },
     "check": {
         "sees": "the whole table",
         "returns": "boolean or choice",
         "engine_calls": "end_game, or nothing",
+    },
+    "repeat": {
+        "sees": "nothing — no model is called; `until` is arithmetic",
+        "returns": "no reply",
+        "engine_calls": "its own steps, again, until `until` holds or `max` runs out",
     },
 }
 
@@ -155,6 +162,7 @@ class FlowOrchestrator:
             )
 
         self.flow = FlowState(d, seats)
+        self.flow.rng = game.rng
         for key, attribute in ((a.key, a) for a in d.game_attributes):
             self.flow.game_attributes[key] = attribute.initial
 
@@ -169,7 +177,7 @@ class FlowOrchestrator:
         d = self.definition
         return GameBrief(
             name=d.name,
-            rules=d.rules,
+            rules=d.rules_text,
             seat_count=len(game.seats),
             round_shape=[s.label for s in d.steps],
             actions=[self._schema(s) for s in d.steps if s.asks],
@@ -195,33 +203,70 @@ class FlowOrchestrator:
                 return
             flow.bindings.clear()
 
-            for step in d.steps:
-                if not self._gate(step, game):
-                    continue
+            ended = yield from self._run_steps(game, d.steps)
+            if ended or game.status.value != "running":
+                return
 
-                game.set_phase(step.phase or step.label)
+    def _run_steps(self, game: Game, steps: tuple[StepDef, ...]) -> Iterator[Any]:
+        """Run steps in order. Returns True once the game has ended.
 
-                if step.use in ("ask", "poll"):
-                    # Nothing moves until the addressed players answer, and
-                    # only then is the tally taken.
-                    answers = yield from self._run_ask(game, step)
-                    self._verify(game, step, answers)
-                    self._settle(game, step)
-                elif step.use == "sync":
-                    self._sync(game, step)
-                elif step.use == "tell":
-                    # Delivered and acknowledged; the loop does not wait.
-                    self._inform(game, step)
+        A round's steps and a `repeat`'s are run by this same loop, so a step
+        inside a loop behaves exactly as it would outside one.
+        """
+        for step in steps:
+            if not self._gate(step, game):
+                continue
 
-                elif step.use == "update":
-                    self._apply(game, step.do)
-                    self._announce(game, step)
+            game.set_phase(step.phase or step.label)
 
-                elif step.use == "check" and self._finish(game, step):
-                    return
+            if step.use in ("ask", "poll"):
+                # Nothing moves until the addressed players answer, and
+                # only then is the tally taken.
+                answers = yield from self._run_ask(game, step)
+                self._verify(game, step, answers)
+                self._settle(game, step)
+            elif step.use == "sync":
+                self._sync(game, step)
+            elif step.use == "tell":
+                # Delivered and acknowledged; the loop does not wait.
+                self._inform(game, step)
+
+            elif step.use == "update":
+                self._apply(game, step.do, kind=step.label.replace(" ", "_"))
+                self._announce(game, step)
+
+            elif step.use == "check" and self._finish(game, step):
+                return True
+
+            elif step.use == "repeat":
+                ended = yield from self._repeat(game, step)
+                if ended:
+                    return True
 
             if game.status.value != "running":
-                return
+                return True
+        return False
+
+    def _repeat(self, game: Game, step: StepDef) -> Iterator[Any]:
+        """Run a block again and again until its condition holds.
+
+        The condition is tested before every pass, including the first. A loop
+        that reaches `max` without it holding abandons the match and says so:
+        carrying on would run the rest of the round on a state the game never
+        meant to reach, and that looks like a result rather than a bug.
+        """
+        flow = self._state()
+        for _ in range(step.max):
+            if flow.holds(step.until):
+                return False
+            ended = yield from self._run_steps(game, step.steps)
+            if ended:
+                return True
+        if flow.holds(step.until):
+            return False
+        game.abandon(f"{step.label!r} ran {step.max} times without its "
+                     f"`until` holding")
+        return True
 
     # ------------------------------------------------------------------
     # Setup
@@ -255,7 +300,7 @@ class FlowOrchestrator:
             elif step.use == "sync":
                 self._sync(game, step)
             elif step.use == "update":
-                self._apply(game, step.do)
+                self._apply(game, step.do, kind=step.label.replace(" ", "_"))
                 self._announce(game, step)
             else:
                 self._inform(game, step)
@@ -632,7 +677,7 @@ class FlowOrchestrator:
         return Call(
             task=task,
             output=output,
-            rules=self.definition.rules,
+            rules=self.definition.rules_text,
             table=flow.view(seat) if seat is not None else flow.full_view(),
             where=Where(
                 round=game.round,
@@ -864,10 +909,18 @@ class FlowOrchestrator:
         if step.mode == "sequential":
             answers: dict[int, Action] = {}
             for seat in ask.seats:
+                if step.each and answers:
+                    # An `each` may have changed the table since this step
+                    # began: who is still in, and what they may answer.
+                    fresh = self._resolve_ask(step)
+                    if seat not in fresh.seats:
+                        continue
+                    ask.legal[seat] = fresh.legal[seat]
                 action = yield self._request(step, ask, seat)
                 answers[seat] = action
                 self._remember(game, step, seat, action)
                 self._echo(game, step, seat, action)
+                self._each(game, step, seat, action)
             return answers
 
         actions = yield [self._request(step, ask, seat) for seat in ask.seats]
@@ -876,6 +929,24 @@ class FlowOrchestrator:
         for seat in sorted(actions):
             self._echo(game, step, seat, actions[seat])
         return actions
+
+    def _each(self, game: Game, step: StepDef, seat: int, action: Action) -> None:
+        """Act on one answer, before the next player is asked."""
+        branch = step.each
+        if branch is None:
+            return
+        flow = self._state()
+        value = action.target if action.target is not None else action.text
+        flow.bindings["seat"] = seat
+        flow.bindings["answer"] = value
+        self._apply(game, branch.do, you=seat,
+                    kind=step.label.replace(" ", "_") + "_each")
+        if branch.text or branch.llm:
+            self._say(
+                game, flow.select(branch.to, acting_only=False, subject=seat),
+                branch.text, branch.llm, {"seat": seat, "answer": value},
+                step.label.replace(" ", "_") + "_each",
+            )
 
     def _compose(
         self, game: Game, step: StepDef, ask: _Ask
@@ -1020,12 +1091,20 @@ class FlowOrchestrator:
                 # that looks like a choice, and an empty choice is what ends up
                 # in a binding and then in an operation.
                 continue
+            if step.answer.type == "number" and not candidates:
+                low, high = self._bounds(step, seat)
+                if low is not None and high is not None and low > high:
+                    continue  # no number is legal and nothing else is offered
             seats.append(seat)
             legal[seat] = candidates
         return _Ask(step=step, seats=seats, schema=self._schema(step), legal=legal)
 
     def _legal_for(self, step: StepDef, seat: int) -> tuple[Any, ...]:
         answer, flow = step.answer, self._state()
+        if answer.type == "number":
+            # A range is not a list. What is listed is the words accepted
+            # instead of a number; the range travels on the schema.
+            return tuple(answer.alternatives)
         if answer.type not in ("player", "players"):
             if answer.options_from:
                 return self._options_from_state(answer.options_from, seat)
@@ -1053,35 +1132,68 @@ class FlowOrchestrator:
 
     def _request(self, step: StepDef, ask: _Ask, seat: int) -> ActionRequest:
         schema = ask.schema
+        prompt = ask.prompts.get(seat) or self._prompt(step)
         if schema.target == "enum":
             # The step's schema carries whatever the file listed, which is
             # nothing when the options come from state. Validation and the
             # rendered "answer with one of" both read `choices`, so a
             # per-player hand has to reach them per player.
             schema = self._schema(step, ask.legal[seat])
+        elif schema.target == "number":
+            # Worked out now, for this player: the lowest legal bid depends on
+            # the last one, the highest on what this player holds.
+            schema = self._schema(step, seat=seat)
+            prompt = f"{prompt}\n{schema.range_text()}".strip()
         return ActionRequest(
             seat=seat,
             schema=schema,
-            prompt=ask.prompts.get(seat) or self._prompt(step),
+            prompt=prompt,
             legal_targets=ask.legal[seat],
             deadline_ms=(step.deadline_s or self.definition.limits.deadline_s) * 1000,
             reason=f"{step.use}:{step.label}",
         )
 
     def _schema(
-        self, step: StepDef, choices: tuple[Any, ...] | None = None
+        self, step: StepDef, choices: tuple[Any, ...] | None = None,
+        seat: int | None = None,
     ) -> ActionSchema:
         answer = step.answer
         target = {"player": "seat", "players": "seat", "choice": "enum"}.get(
             answer.type, answer.type
         )
+        low = high = None
+        if target == "number":
+            choices = answer.alternatives
+            low, high = self._bounds(step, seat)
         return ActionSchema(
             id=step.label.replace(" ", "_"),
             target=target,
             choices=tuple(answer.options) if choices is None else tuple(choices),
             default="random" if target == "seat" else "pass",
             max_words=answer.max_words,
+            minimum=low,
+            maximum=high,
         )
+
+    def _bounds(self, step: StepDef, seat: int | None) -> tuple[int | None, int | None]:
+        """A number answer's range for this player, as whole numbers.
+
+        A bound that reads the table can only be worked out for a player at a
+        moment, so without one (the briefing's list of actions) it is left
+        open rather than guessed.
+        """
+        answer, flow = step.answer, self._state()
+
+        def work_out(value: Any, rounding) -> int | None:
+            if value is None:
+                return None
+            if isinstance(value, Expr):
+                if seat is None:
+                    return None
+                value = flow.calc(value, you=seat)
+            return None if value is None else int(rounding(value))
+
+        return work_out(answer.minimum, math.ceil), work_out(answer.maximum, math.floor)
 
     def _prompt(self, step: StepDef) -> str:
         """What an addressed player is told, when no model writes it.
@@ -1230,7 +1342,7 @@ class FlowOrchestrator:
         # After the announcement, because these elaborate on it: a role
         # disclosure reads as a non sequitur before anyone has been told who
         # it is about.
-        self._apply(game, branch.do)
+        self._apply(game, branch.do, kind=step.label.replace(" ", "_") + "_result")
 
     def _say_outcome(
         self, game: Game, step: StepDef, branch: Any, result: Any
@@ -1313,7 +1425,13 @@ class FlowOrchestrator:
     # Operations
     # ------------------------------------------------------------------
 
-    def _apply(self, game: Game, operations: tuple[Operation, ...]) -> None:
+    def _apply(
+        self,
+        game: Game,
+        operations: tuple[Operation, ...],
+        you: int | None = None,
+        kind: str = "",
+    ) -> None:
         """Perform each declared change, and say so where the game asked.
 
         Announcing is handled here rather than inside each operation, so every
@@ -1321,15 +1439,56 @@ class FlowOrchestrator:
         `set_status` alone — added for the elimination message — which left a
         score change or a card entering a hand with no way to be told to
         anybody.
+
+        `kind` names the step the operations belong to, so an announcement is
+        logged as `<step>_<operation>` rather than as its own wording.
         """
+        flow = self._state()
         for operation in operations:
-            args = self._bind(operation.args)
-            if args.get("unless") is not None and args.get(
-                _subject_key(operation)
-            ) == args["unless"]:
+            guard = operation.args.get("if")
+            # Asked once per operation, not once per member of a group: the
+            # group's own selector is where a per-player test belongs.
+            if guard is not None and not flow.holds(guard, you=you):
                 continue
-            getattr(self, "_op_" + operation.op)(game, args)
-            self._announce_change(game, operation, args)
+            group = operation.args.get("players")
+            if group is not None:
+                # Chosen before any of them is changed, so an operation that
+                # moves players out of its own selector still reaches them all.
+                for seat in flow.select(group, acting_only=False):
+                    self._apply_one(game, operation, seat, you=seat, kind=kind)
+                continue
+            self._apply_one(game, operation, None, you=you, kind=kind)
+
+    def _apply_one(
+        self,
+        game: Game,
+        operation: Operation,
+        seat: int | None,
+        you: int | None,
+        kind: str = "",
+    ) -> None:
+        """One operation, on one player if a group named them.
+
+        `you` is who an expression in it means by `you`: each member in turn
+        for a group, the player who just answered inside an `each`.
+        """
+        raw = {k: v for k, v in operation.args.items() if k not in ("players", "if")}
+        if seat is not None:
+            raw["player"] = seat
+        args = self._bind(raw, you=you)
+        if args.get("unless") is not None and args.get(
+            _subject_key(operation)
+        ) == args["unless"]:
+            return
+        getattr(self, "_op_" + operation.op)(game, args)
+        self._announce_change(game, operation, args, kind)
+
+    def _op_say(self, game: Game, args: dict[str, Any]) -> None:
+        """Change nothing. The announcement is the whole of it.
+
+        For a message that belongs among the operations because it depends on
+        an `if` — "nobody bid on this one" — rather than at the end of the step.
+        """
 
     def _op_set_status(self, game: Game, args: dict[str, Any]) -> None:
         """Change a player's status, and say so if the game asked.
@@ -1349,7 +1508,7 @@ class FlowOrchestrator:
             game.eliminate(seat)
 
     def _announce_change(
-        self, game: Game, operation: Operation, args: dict[str, Any]
+        self, game: Game, operation: Operation, args: dict[str, Any], kind: str = ""
     ) -> None:
         """Tell whoever the operation names about the change it just made.
 
@@ -1376,7 +1535,7 @@ class FlowOrchestrator:
             {k: v for k, v in args.items()
              if k not in ("text", "llm", "announce_to", "unless")}
             | {"player": subject, "subject": subject},
-            str(args.get("text") or operation.op),
+            f"{kind}_{operation.op}" if kind else operation.op,
             int(args.get("max_words", 0)),
         )
 
@@ -1533,16 +1692,42 @@ class FlowOrchestrator:
             for key in rule.reveal or self.definition.reveal:
                 for seat in flow.players:
                     game.seats[seat].attributes[key] = flow.attribute(seat, key)
+            result, ranked = rule.result, {}
+            if rule.rank is not None:
+                result, ranked = self._rank(rule)
+                reason = self._render(None, reason, ranked)
             self._say(
                 game, list(flow.players),
                 rule.text or "game_over", rule.llm,
-                {"winner": rule.result, "result": rule.result,
-                 "ending": rule.name, "reason": reason},
+                {"winner": result, "result": result,
+                 "ending": rule.name, "reason": reason, **ranked},
                 "game_over",
             )
-            game.end_game(rule.result, reason)
+            game.end_game(result, reason)
             return True
         return False
+
+    def _rank(self, rule: Any) -> tuple[str, dict[str, Any]]:
+        """Who the ending's score puts first. Players level on it share.
+
+        Returns the result — "seat 2", or "seats 1 and 3" for a shared win —
+        and names a template may use: `{score}` is the winning score and
+        `{standings}` every player's, best first.
+        """
+        flow = self._state()
+        scores = {seat: flow.calc(rule.rank, you=seat) for seat in flow.players}
+        best = (max if rule.highest else min)(scores.values())
+        winners = [seat for seat, score in scores.items() if score == best]
+        if len(winners) == 1:
+            result = f"seat {winners[0]}"
+        else:
+            result = ("seats " + ", ".join(str(w) for w in winners[:-1])
+                      + f" and {winners[-1]}")
+        order = sorted(scores, key=lambda seat: (-scores[seat] if rule.highest
+                                                 else scores[seat], seat))
+        standings = ", ".join(f"seat {seat} {_number(scores[seat])}" for seat in order)
+        return result, {"score": _number(best), "standings": standings,
+                        "winners": [int(w) for w in winners]}
 
     # ------------------------------------------------------------------
     # Helpers
@@ -1553,14 +1738,17 @@ class FlowOrchestrator:
             raise FlowError("setup has not run")
         return self.flow
 
-    def _bind(self, args: Any) -> Any:
-        """Replace `$name` with whatever a `verify` bound it to."""
+    def _bind(self, args: Any, you: int | None = None) -> Any:
+        """Replace `$name` with whatever a `verify` bound it to, and work out
+        every expression. `you` is the player an operation is acting on."""
+        if isinstance(args, Expr):
+            return self._state().calc(args, you=you)
         if isinstance(args, str) and args.startswith("$"):
             return self._state().bindings.get(args[1:])
         if isinstance(args, dict):
-            return {k: self._bind(v) for k, v in args.items()}
+            return {k: self._bind(v, you) for k, v in args.items()}
         if isinstance(args, list):
-            return [self._bind(v) for v in args]
+            return [self._bind(v, you) for v in args]
         return args
 
     def _payload(self, seat: int | None, key: str, extra: dict[str, Any]) -> dict[str, Any]:
@@ -1589,7 +1777,10 @@ class FlowOrchestrator:
         template = self.definition.text.get(key, key)
         flow = self._state()
 
-        context: dict[str, Any] = dict(flow.bindings)
+        # Table attributes first, so anything more specific overrides them:
+        # "Item {item} of {items}" is the table speaking about itself.
+        context: dict[str, Any] = dict(flow.game_attributes)
+        context.update(flow.bindings)
         for name, value in flow.bindings.items():
             subject = _seat(value)
             if subject is not None and subject in flow.player_attributes:
@@ -1610,6 +1801,13 @@ class FlowOrchestrator:
             return str(context.get(name, match.group(0)))
 
         return re.sub(r"\{(\w+)\}", fill, template)
+
+
+def _number(value: Any) -> Any:
+    """A score as a person writes it: 1200, not 1200.0."""
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return value
 
 
 def _subject_key(operation: Operation) -> str:

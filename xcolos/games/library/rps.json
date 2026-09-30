@@ -1,0 +1,558 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "rps",
+    "name": "Rock, Paper, Scissors",
+    "players": {
+      "min": 2,
+      "max": 2
+    },
+    "blurb": "Two players, twelve cards each, ten rounds. Talk, then play face down. Rock wins 1, paper 2, scissors 3; every hand is public."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          "rock",
+          "rock",
+          "rock",
+          "rock",
+          "paper",
+          "paper",
+          "paper",
+          "paper",
+          "scissors",
+          "scissors",
+          "scissors",
+          "scissors"
+        ]
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "rounds_left",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "c1",
+        "visible": "none",
+        "type": "text",
+        "values": [
+          "rock",
+          "paper",
+          "scissors"
+        ]
+      },
+      {
+        "key": "c2",
+        "visible": "none",
+        "type": "text",
+        "values": [
+          "rock",
+          "paper",
+          "scissors"
+        ]
+      },
+      {
+        "key": "cell",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "lead",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "tell",
+      "phase": "talk",
+      "label": "a new round",
+      "to": "all",
+      "text": "A new round begins. Talk first, then play a card."
+    },
+    {
+      "use": "ask",
+      "phase": "talk",
+      "label": "the opening",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 60
+      },
+      "broadcast": "others",
+      "text": "Say something to your opponent before the cards go down: a promise, a threat, a bluff, or nothing at all."
+    },
+    {
+      "use": "ask",
+      "phase": "talk",
+      "label": "the reply",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 60
+      },
+      "broadcast": "others",
+      "text": "Answer what your opponent just said, or say something new. This is the last word before the cards go down."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "seat 1 plays",
+      "to": {
+        "ids": [
+          1
+        ]
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "verify": {
+        "bind": "card1"
+      },
+      "text": "Play one card from your hand, face down. Your opponent will not see it until both cards are down. Answer with rock, paper or scissors."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "seat 2 plays",
+      "to": {
+        "ids": [
+          2
+        ]
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "verify": {
+        "bind": "card2"
+      },
+      "text": "Play one card from your hand, face down. Your opponent will not see it until both cards are down. Answer with rock, paper or scissors."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "the reveal",
+      "do": [
+        {
+          "set": {
+            "key": "c1",
+            "value": "$card1"
+          }
+        },
+        {
+          "set": {
+            "key": "c2",
+            "value": "$card2"
+          }
+        },
+        {
+          "remove": {
+            "player": 1,
+            "key": "hand",
+            "value": "$card1"
+          }
+        },
+        {
+          "remove": {
+            "player": 2,
+            "key": "hand",
+            "value": "$card2"
+          }
+        },
+        {
+          "adjust": {
+            "key": "rounds_left",
+            "value": -1
+          }
+        }
+      ],
+      "text": "Cards down. Seat 1 played {card1}. Seat 2 played {card2}."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 1 showed paper",
+      "when": {
+        "game": "c1",
+        "op": "==",
+        "value": "paper"
+      },
+      "do": [
+        {
+          "adjust": {
+            "key": "cell",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 1 showed scissors",
+      "when": {
+        "game": "c1",
+        "op": "==",
+        "value": "scissors"
+      },
+      "do": [
+        {
+          "adjust": {
+            "key": "cell",
+            "value": 2
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 2 showed paper",
+      "when": {
+        "game": "c2",
+        "op": "==",
+        "value": "paper"
+      },
+      "do": [
+        {
+          "adjust": {
+            "key": "cell",
+            "value": 3
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 2 showed scissors",
+      "when": {
+        "game": "c2",
+        "op": "==",
+        "value": "scissors"
+      },
+      "do": [
+        {
+          "adjust": {
+            "key": "cell",
+            "value": 6
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "rock ties rock",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 0
+      },
+      "do": [],
+      "text": "Both played rock. Nobody scores."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 2's paper beats rock",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 3
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": 2,
+            "key": "score",
+            "value": 2
+          }
+        },
+        {
+          "adjust": {
+            "key": "lead",
+            "value": -2
+          }
+        }
+      ],
+      "text": "Paper beats rock. Seat 2 scores 2."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 1's rock beats scissors",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 6
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": 1,
+            "key": "score",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "key": "lead",
+            "value": 1
+          }
+        }
+      ],
+      "text": "Rock beats scissors. Seat 1 scores 1."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 1's paper beats rock",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 1
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": 1,
+            "key": "score",
+            "value": 2
+          }
+        },
+        {
+          "adjust": {
+            "key": "lead",
+            "value": 2
+          }
+        }
+      ],
+      "text": "Paper beats rock. Seat 1 scores 2."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "paper ties paper",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 4
+      },
+      "do": [],
+      "text": "Both played paper. Nobody scores."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 2's scissors beats paper",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 7
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": 2,
+            "key": "score",
+            "value": 3
+          }
+        },
+        {
+          "adjust": {
+            "key": "lead",
+            "value": -3
+          }
+        }
+      ],
+      "text": "Scissors beats paper. Seat 2 scores 3."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 2's rock beats scissors",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 2
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": 2,
+            "key": "score",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "key": "lead",
+            "value": -1
+          }
+        }
+      ],
+      "text": "Rock beats scissors. Seat 2 scores 1."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "seat 1's scissors beats paper",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 5
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": 1,
+            "key": "score",
+            "value": 3
+          }
+        },
+        {
+          "adjust": {
+            "key": "lead",
+            "value": 3
+          }
+        }
+      ],
+      "text": "Scissors beats paper. Seat 1 scores 3."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "scissors ties scissors",
+      "when": {
+        "game": "cell",
+        "op": "==",
+        "value": 8
+      },
+      "do": [],
+      "text": "Both played scissors. Nobody scores."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "clear the table",
+      "do": [
+        {
+          "set": {
+            "key": "cell",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "reveal",
+      "label": "the standings",
+      "mode": "self",
+      "to": "all",
+      "text": "Where you stand:"
+    },
+    {
+      "use": "check",
+      "phase": "reveal",
+      "label": "after ten rounds",
+      "when": {
+        "game": "rounds_left",
+        "op": "==",
+        "value": 0
+      },
+      "against": [
+        "seat_1_wins",
+        "seat_2_wins",
+        "draw"
+      ]
+    }
+  ],
+  "end": {
+    "seat_1_wins": {
+      "when": {
+        "game": "lead",
+        "op": ">",
+        "value": 0
+      },
+      "result": "seat 1",
+      "reason": "seat 1 finished with more points",
+      "reveal": [
+        "hand"
+      ],
+      "text": "Seat 1 wins. {reason}."
+    },
+    "seat_2_wins": {
+      "when": {
+        "game": "lead",
+        "op": "<",
+        "value": 0
+      },
+      "result": "seat 2",
+      "reason": "seat 2 finished with more points",
+      "reveal": [
+        "hand"
+      ],
+      "text": "Seat 2 wins. {reason}."
+    },
+    "draw": {
+      "when": {
+        "game": "lead",
+        "op": "==",
+        "value": 0
+      },
+      "result": "draw",
+      "reason": "both finished level",
+      "reveal": [
+        "hand"
+      ],
+      "text": "A draw. {reason}."
+    }
+  },
+  "limits": {
+    "rounds": 10,
+    "rounds_max": 10,
+    "actions_max": 100,
+    "deadline_s": 120
+  },
+  "rules": "Two players each hold the same twelve cards: four rock, four paper and four scissors. The game lasts ten rounds, so each player keeps two cards they never play. Both hands are public: you always know exactly which cards your opponent has left, and they know yours.\n\nEach round, the players talk in turn, twice each (seat 1, seat 2, seat 1, seat 2), then each plays one card face down. The cards are revealed together. Rock beats scissors, scissors beats paper, paper beats rock, and the winner scores by the card they won with:\n\n- a win with rock: 1 point\n- a win with paper: 2 points\n- a win with scissors: 3 points\n- the same card on both sides: nobody scores\n\nA played card is gone. After ten rounds the higher score wins; equal scores are a draw. Anything said while talking is not binding."
+}

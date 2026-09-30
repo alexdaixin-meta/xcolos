@@ -252,6 +252,10 @@ class Rng:
             raise ValueError("cannot choose from an empty sequence")
         return items[self.below(len(items))]
 
+    def random(self) -> float:
+        """A float in [0, 1), from the top 53 bits of one draw."""
+        return (self._next() >> 11) / float(1 << 53)
+
     def shuffle(self, items: list[Any]) -> None:
         for i in range(len(items) - 1, 0, -1):
             j = self.below(i + 1)

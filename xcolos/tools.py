@@ -99,6 +99,10 @@ class TableTools:
         #: Called once every offered seat has been claimed. The table cannot
         #: start until the sessions that will play it are actually attached.
         self.on_ready = on_ready
+        #: What each pulling seat has already been shown for the first time,
+        #: keyed by (match, seat, message kind), so the log records a hand-over once rather
+        #: than on every poll that repeats it.
+        self._handed: set[tuple[str, int, str]] = set()
 
     # ------------------------------------------------------------------
     # Linking
@@ -296,6 +300,9 @@ class TableTools:
         over = game.status is not RunStatus.RUNNING
         first = game.seats[seat].acked_upto == 0
 
+        # Taken before the read moves it: facts at or past this were never
+        # in a response this seat received.
+        shown_upto = game.seats[seat].read_upto
         game.record_read(seat, unacked)
 
         if not (unacked or mine or over or full or first):
@@ -374,7 +381,49 @@ class TableTools:
             state["outcome"] = {"winner": game.winner, "reason": game.reason}
             state["check_back_in_seconds"] = 0
 
+        self._log_handover(seat, view, state,
+                           [f for f in unacked if f.seq >= shown_upto],
+                           parked.envelope.turn_seq if parked else None)
         return state
+
+    def _log_handover(self, seat: int, view: dict[str, Any],
+                      state: dict[str, Any], fresh: list[Any],
+                      turn: int | None) -> None:
+        """Record what this read handed the seat that it had not been handed.
+
+        A pushed seat's traffic is logged as it is sent. A pulling seat is
+        never sent anything, so without this its briefing and news reached
+        the agent and left no trace for the console to show. A turn is logged
+        as `offered` when it is written and as a QUESTION when first fetched;
+        repeats of unacknowledged news are the transport working, not new
+        traffic.
+        """
+        game = self.game
+
+        def once(kind: str, body: str, key: Any = None, **extra: Any) -> None:
+            key = (game.match_id, seat, key or kind)
+            if not body or key in self._handed:
+                return
+            self._handed.add(key)
+            game.log.record("message", "delivered", seat=seat,
+                            msg_type=kind, body=body, **extra)
+
+        if "briefing" in state:
+            once("GAME_START", state["briefing"])
+        if fresh:
+            game.log.record("message", "delivered", seat=seat,
+                            msg_type="SITUATION", body=render_facts(view, fresh),
+                            fact_seqs=[f.seq for f in fresh],
+                            items=[render_facts(view, [f]) for f in fresh])
+        if "ask" in state and turn is not None:
+            ask = state["ask"]
+            once("QUESTION", _question_text(ask), key=("QUESTION", turn),
+                 turn_seq=turn, action=ask["action"],
+                 answer_with=ask["answer_with"],
+                 legal_answers=ask["legal_answers"])
+        if "outcome" in state:
+            once("GAME_END", f"Game over. Winner: {game.winner}. "
+                             f"{game.reason or ''}".strip())
 
     def post_action(self, seat_token: str, answer: Any) -> dict[str, Any]:
         with self._lock:
@@ -521,7 +570,8 @@ Every item in `messages` says what kind it is:
 `data` for the raw values. Confirm these with `ack`.
 
 **`"kind": "action_required"`** — the game is waiting on you. Carries `action`,
-`prompt`, `answer_with`, `legal_answers` and `seconds_left`. It has no `seq`,
+`prompt`, `answer_with`, `legal_answers`, `seconds_left` and `reply_with`, the
+shape your answer takes. It has no `seq`,
 because acknowledging it would only say you received it, and a turn needs an
 answer.
 
@@ -530,7 +580,7 @@ answer.
 An answer has two halves:
 
 ```bash
-curl -sS {url} -H 'Content-Type: application/json' -d '{{"id":"{pid}","ack":17,"reply":{{"kind":"action","action":"vote","response":3,"reason":"Seat 3 answered a question nobody asked."}}}}'
+curl -sS {url} -H 'Content-Type: application/json' -d '{{"id":"{pid}","ack":17,"reply":{{"kind":"action","action":"vote","response":3,"reason":"Seat 3 answered a question nobody asked.","predict":"Seat 3 will steer the next vote onto seat 1.","adjust":"I vote first so seat 3 cannot set the agenda."}}}}'
 ```
 
 **`response`** is the move itself: a seat number when `ask.answer_with` is
@@ -541,10 +591,19 @@ When the ask carries `max_words`, keep inside it. Everyone at the table reads
 every word you say, so length is paid for once per listener. Say the thing, not
 the working out.
 
-**`reason`** is your own thinking, and it has no length limit because nobody
-else pays to read it. It is recorded so whoever is watching the match can see
-why you moved, and it is **never** shown to another player. Put the working out
-here, and keep `response` short.
+**`reason`**, **`predict`** and **`adjust`** are your own thinking. Fill in
+all three on every action:
+
+- `reason`: why you made this move, in concrete details. Name the seats,
+  numbers and facts it rests on, not a summary.
+- `predict`: your opponents' strategy. What you expect each of them to do
+  next, and what in their play tells you so.
+- `adjust`: how you adjusted your own strategy in response to that prediction.
+
+They have no length limit because nobody else pays to read them. They are
+recorded so whoever is watching the match can see how you think, and they are
+**never** shown to another player. Put the working out here, and keep
+`response` short.
 
 The shorthand `{{"ack":17,"answer":3}}` still works when you have nothing to
 add. A refused answer leaves the turn open, so read the reason and answer
@@ -592,3 +651,20 @@ def invite_text(
         seat=seat,
         poll=poll_seconds,
     )
+
+
+def _question_text(ask: dict[str, Any]) -> str:
+    """The turn as the agent read it: the prompt, then how to answer."""
+    if ask["answer_with"] == "text":
+        # The prompt already carries any word limit.
+        how = "Answer with text."
+    elif ask["answer_with"] == "number":
+        # The prompt already states the range and any word allowed instead.
+        how = ""
+    elif ask["legal_answers"]:
+        # A hand can hold the same card twice; say each choice once.
+        choices = dict.fromkeys(map(str, ask["legal_answers"]))
+        how = "Answer with one of: " + ", ".join(choices) + "."
+    else:
+        how = ""
+    return "\n".join(part for part in (ask["prompt"], how) if part)

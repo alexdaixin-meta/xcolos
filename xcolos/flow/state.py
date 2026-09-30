@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from xcolos.games.calc import Expr, Player, Scope, evaluate
 from xcolos.games.definition import (
     AttributeDef,
     Condition,
@@ -77,6 +78,11 @@ class FlowState:
         #: Facts the system decided to tell somebody, from `disclose`. Keyed by
         #: the player who learned it.
         self.disclosed: dict[int, list[dict[str, Any]]] = {p: [] for p in self.players}
+
+        #: The match's seeded generator, for `uniform` and `split` in an
+        #: expression. Set by the executor; None in a state built bare, where
+        #: an expression that draws is an error rather than an unseeded guess.
+        self.rng: Any = None
 
     # ------------------------------------------------------------------
     # Reading
@@ -161,6 +167,8 @@ class FlowState:
                 if (self.attribute(p, selector.attribute) == selector.is_)
                 != selector.negate
             ]
+        elif selector.kind == "where":
+            chosen = [p for p in self.players if self.calc(selector.test, you=p)]
         else:  # "acting" or "all"
             chosen = list(self.players)
 
@@ -173,7 +181,7 @@ class FlowState:
             return self.game_attributes.get(operand.attribute)
         return len(self.select(operand.selector, acting_only=operand.acting_only))
 
-    def holds(self, condition: Condition) -> bool:
+    def holds(self, condition: Condition, you: int | None = None) -> bool:
         """Whether an arithmetic condition is true right now.
 
         Prose never reaches here. The executor routes it to a judge, and this
@@ -184,12 +192,41 @@ class FlowState:
             raise FlowError(
                 f"prose needs a judge, not arithmetic: {condition.prose!r}"
             )
+        if condition.kind == "calc":
+            return bool(self.calc(condition.expr, you=you))
         left = self.measure(condition.left)
         right = (
             self.measure(condition.other) if condition.other is not None
             else condition.value
         )
         return _compare(left, condition.op, right)
+
+    def calc(self, expr: Expr, you: int | None = None) -> Any:
+        """Work out an expression against the table as it stands now.
+
+        `you` is the player it is being asked about, when there is one: the
+        seat being asked a question, or each player in turn for a `where`.
+        """
+        def player(seat: int | None) -> Player | None:
+            return Player(seat, self._read) if seat in self.status else None
+
+        def lookup(name: str) -> Any:
+            if name == "you":
+                if you is None:
+                    raise FlowError(f"{expr.source!r} reads `you` where there is no player")
+                return player(you)
+            if name == "players":
+                return [player(p) for p in self.players]
+            if name == "acting":
+                return [player(p) for p in self.acting()]
+            if name in ("True", "False", "None"):
+                return {"True": True, "False": False, "None": None}[name]
+            return self.game_attributes.get(name)
+
+        return evaluate(expr, Scope(lookup, self.bindings.get, player, self.rng))
+
+    def _read(self, seat: int, name: str) -> Any:
+        return self.status[seat] if name == "status" else self.attribute(seat, name)
 
     # ------------------------------------------------------------------
     # Writing

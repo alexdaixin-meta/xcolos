@@ -14,6 +14,7 @@ what each seat was told and what it said.
 from __future__ import annotations
 
 import time
+from typing import Any
 from dataclasses import dataclass
 
 from xcolos.game import Game, RunStatus
@@ -89,6 +90,13 @@ class Runner:
         self._play = None
         self._request: ActionRequest | None = None
         self._concluded = False
+        #: Called once, with this runner, when the match is over. The server
+        #: hangs the post-game review here. Whatever it does must be quick:
+        #: it runs on whichever thread made the last move.
+        self.on_conclude: Any = None
+        #: True once the match is over and `on_conclude` has returned. The game
+        #: reads as over a moment earlier, before its ending is wrapped up.
+        self.finished = False
         #: Briefings for pull seats, which are read rather than pushed.
         self.briefings: dict[int, str] = {}
 
@@ -181,6 +189,11 @@ class Runner:
         self._concluded = True
         self._farewell()
         self.result = self._result()
+        try:
+            if self.on_conclude is not None:
+                self.on_conclude(self)
+        finally:
+            self.finished = True
 
     def _is_pull(self, seat: int) -> bool:
         return getattr(self.registry.host_of.get(seat), "pull", False)
@@ -204,6 +217,7 @@ class Runner:
             seat=request.seat,
             msg_type=envelope.type.value,
             body=envelope.body,
+            turn_seq=envelope.turn_seq,
             action_schema=request.schema.id,
             legal_targets=list(request.legal_targets),
             deadline_ms=ms,
@@ -435,7 +449,13 @@ class Runner:
             prompt=request.prompt,
         )
 
-        pending = game.undelivered(request.seat)
+        # A pulling seat is never pushed, so its push cursor never moves and
+        # `undelivered` would be the whole game so far. What it will actually
+        # be shown alongside this turn is whatever it has not confirmed.
+        if self._is_pull(request.seat):
+            pending = game.unacked(request.seat)
+        else:
+            pending = game.undelivered(request.seat)
         record = MoveRecord(
             turn_seq=game.turn_seq,
             seat=request.seat,
@@ -547,6 +567,12 @@ class Runner:
 
         if schema.target == "text":
             return Action(type=schema.id, text="(no answer)")
+        if schema.target == "number":
+            # The word offered instead of a number is the one that commits a
+            # silent seat to nothing — a pass, not a bid it never chose.
+            if schema.choices:
+                return Action(type=schema.id, target=schema.choices[0])
+            return Action(type=schema.id, target=schema.minimum or 0)
         if schema.default == "random" and request.legal_targets:
             # Drawn from the seeded PRNG at a point fixed by turn order, so the
             # fallback is reproducible rather than latency-ordered.

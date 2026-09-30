@@ -40,6 +40,9 @@ const state = {
   started: false,
   snap: null,
   seatFocus: FIRST_SEAT,
+  msgSeat: null, // Messages filter; null is every seat
+  msgDetails: false, // show the transport's own traffic too
+  msgOpen: new Set(), // Messages rows expanded to their full text
 };
 
 /* ---------------------------------------------------------------- setup */
@@ -89,8 +92,10 @@ function describeGame() {
       ? "definition-driven"
       : "hardcoded Python";
   const judge = g.needs_judge ? " \u00b7 needs a model to judge its rules" : "";
-  $("game-blurb").textContent =
-    `${g.blurb} ${g.min_seats} to ${g.max_seats} seats \u00b7 ${engine}${judge}`;
+  const seats = g.min_seats === g.max_seats
+    ? `${g.min_seats} seats`
+    : `${g.min_seats} to ${g.max_seats} seats`;
+  $("game-blurb").textContent = `${g.blurb} ${seats} \u00b7 ${engine}${judge}`;
   renderSeats();
 }
 
@@ -260,6 +265,7 @@ async function startGame() {
   state.started = true;
   state.since = 0;
   state.records = [];
+  state.msgOpen.clear();
   ["view-timeline", "view-messages", "seat-world", "view-sessions",
    "view-judge"].forEach((id) => ($(id).textContent = ""));
   $("result").classList.add("hidden");
@@ -329,6 +335,7 @@ async function openTable() {
   state.operatorToken = data.operator_token || "";
   state.since = 0;
   state.records = [];
+  state.msgOpen.clear();
   ["view-timeline", "view-messages", "seat-world"].forEach((id) => ($(id).textContent = ""));
   $("result").classList.add("hidden");
   $("reset").classList.remove("hidden");
@@ -374,6 +381,8 @@ async function pump() {
     return; // nothing has begun, so there is nothing to render yet
   }
   state.started = true;
+
+  if (data.state && data.state.reviewing) setStatus("running", "writing the review…");
 
   if (data.done) {
     stopPolling();
@@ -445,6 +454,7 @@ function render() {
   else if (state.view === "messages") renderMessages();
   else if (state.view === "seats") renderSeatViews();
   else if (state.view === "judge") renderJudge();
+  else if (state.view === "review") renderReview();
   else renderSessions();
 }
 
@@ -661,6 +671,10 @@ function renderTimeline() {
       line(box, r.log_seq,
            `seat ${r.seat} did not answer in ${r.after_s}s — default applied`,
            "ev-degraded");
+    } else if (r.category === "result" && r.type === "review") {
+      line(box, r.log_seq, r.status === "ok"
+        ? `review written — scores ${r.players.map((p) => `seat ${p.seat} ${p.score}/10`).join(", ")}`
+        : `no review — ${r.error}`, "ev-process");
     } else if (r.category === "process") {
       const detail = r.type === "set_phase" ? `${r.was} → ${r.now}`
                    : r.type === "end_game" ? `${r.winner}: ${r.reason}`
@@ -694,54 +708,175 @@ function factText(r) {
   return p.rendered !== undefined ? p.rendered : JSON.stringify(p);
 }
 
-function isTraffic(r) {
-  return r.type !== "read";
+/* Messages and Seat views read the same records.
+ *
+ * Messages is the wire log: every seat, one line per hand-over, in time order.
+ * Seat view is one seat's transcript: exactly what it was handed, in full.
+ *
+ * A pushed seat's hand-overs are `to_agent`. A pulling seat is never pushed,
+ * so its hand-overs are `delivered`, logged the first time it fetched each
+ * item. The rest (a turn written but not fetched, confirmations, pushes of
+ * facts, polls) is the transport working, and stays behind a toggle.
+ */
+
+const HANDOVER = new Set(["to_agent", "delivered", "from_agent"]);
+const PLUMBING = new Set(["offered", "ack", "push", "read"]);
+
+function seatLabel(seat) {
+  const s = state.seats[seat - FIRST_SEAT];
+  return s ? `${seat} ${s.name}` : `${seat}`;
+}
+
+function clock(r) {
+  return r.ts ? new Date(r.ts).toLocaleTimeString() : "";
+}
+
+function oneLine(text) {
+  return (text || "").replace(/\s*\n\s*/g, " | ");
+}
+
+function answerText(r) {
+  const said = r.response || {};
+  // A choice arrives as a target with an empty text beside it.
+  const value = said.text ? `"${said.text}"` : said.target;
+  return `${said.type}: ${value}` + (r.rejected ? ` (refused: ${r.rejected})` : "");
+}
+
+/* One row of the wire log, or null if the record is not traffic at all. */
+function wireRow(r) {
+  if (r.category === "delivery") {
+    if (r.type === "ack") return { dir: "·", kind: "confirmed", text: `through fact ${r.acked_upto - 1}`, plumbing: true };
+    if (r.type === "push") return { dir: "·", kind: "facts", text: `${(r.fact_seqs || []).length} marked delivered`, plumbing: true };
+    if (r.type === "read") return { dir: "·", kind: "poll", text: `${(r.fact_seqs || []).length} unconfirmed facts in the reply`, plumbing: true };
+    return null;
+  }
+  if (r.category !== "message") return null;
+  switch (r.type) {
+    case "to_agent":
+      return { dir: "→", kind: r.msg_type, text: r.body, cls: "ev-msg-out" };
+    case "delivered":
+      if (r.msg_type === "SITUATION") {
+        const items = r.items || [r.body];
+        return { dir: "⇠", kind: `NEWS (${items.length})`, text: items.join("\n"), cls: "ev-msg-out" };
+      }
+      if (r.msg_type === "QUESTION") {
+        return { dir: "⇠", kind: `QUESTION [${r.action}]`, text: r.body, cls: "ev-offer" };
+      }
+      return { dir: "⇠", kind: r.msg_type, text: r.body, cls: "ev-msg-out" };
+    case "from_agent":
+      return {
+        dir: "←", kind: "answer", text: answerText(r),
+        reason: (r.response || {}).reason,
+        predict: (r.response || {}).predict,
+        adjust: (r.response || {}).adjust,
+        cls: r.rejected ? "ev-degraded" : "ev-msg-in",
+      };
+    case "offered":
+      return { dir: "·", kind: `turn written [${r.action_schema}]`, text: r.body, plumbing: true };
+    case "expired":
+      return { dir: "⏱", kind: "expired", text: `no answer after ${r.after_s}s; the default action was taken`, cls: "ev-degraded" };
+    default:
+      return { dir: "×", kind: r.type, text: r.error || "", cls: "ev-degraded" };
+  }
 }
 
 function renderMessages() {
   const box = $("view-messages");
   box.textContent = "";
-  // Under a pull model the traffic is four things, not two: a turn written
-  // into a seat's state, the runner fetching, the runner confirming what it
-  // took in, and the runner answering.
-  const rows = state.records.filter(
-    (r) => (r.category === "message" || r.category === "delivery") && isTraffic(r)
-  );
+
+  const bar = el("div", "row msg-bar");
+  const chip = (label, seat) => {
+    const b = el("button", state.msgSeat === seat ? "on" : "", label);
+    b.onclick = () => { state.msgSeat = seat; renderMessages(); };
+    bar.append(b);
+  };
+  chip("all seats", null);
+  state.seats.forEach((_, i) => chip(seatLabel(seatNo(i)), seatNo(i)));
+  const toggle = el("label", "details-toggle");
+  const box_ = el("input");
+  box_.type = "checkbox";
+  box_.checked = !!state.msgDetails;
+  box_.onchange = () => { state.msgDetails = box_.checked; renderMessages(); };
+  toggle.append(box_, " delivery details");
+  bar.append(toggle);
+  box.append(bar);
+
+  const rows = [];
+  for (const r of state.records) {
+    if (state.msgSeat !== null && r.seat !== state.msgSeat) continue;
+    const row = wireRow(r);
+    if (!row || (row.plumbing && !state.msgDetails)) continue;
+    rows.push([r, row]);
+  }
   if (!rows.length) return void box.append(el("div", "empty", "No traffic yet."));
 
-  for (const r of rows) {
-    if (r.category === "delivery") {
-      if (r.type === "ack") {
-        line(box, r.log_seq,
-             `seat ${r.seat} confirmed through ${r.acked_upto - 1}`, "ev-ack");
-      } else {
-        line(box, r.log_seq,
-             `seat ${r.seat} pushed ${(r.fact_seqs || []).length} facts`, "ev-msg-out");
-      }
-    } else if (r.type === "offered") {
-      line(box, r.log_seq,
-           `written for seat ${r.seat} [${r.action_schema}] ${(r.body || "").replace(/\n/g, " | ")}`,
-           "ev-offer");
-    } else if (r.type === "to_agent") {
-      line(box, r.log_seq,
-           `→ seat ${r.seat} [${r.msg_type}] ${(r.body || "").replace(/\n/g, " | ")}`, "ev-msg-out");
-    } else if (r.type === "from_agent") {
-      const said = r.response || {};
-      const note = r.rejected ? ` (refused: ${r.rejected})` : "";
-      const value = said.text || said.target;
-      line(box, r.log_seq, `← seat ${r.seat} ${said.type}: ${value}${note}`,
-           r.rejected ? "ev-degraded" : "ev-msg-in");
-      if (said.reason) {
-        // Private thinking. Visible here because the console is the operator's
-        // view; never sent to another seat.
-        line(box, r.log_seq, `    reason: ${said.reason}`, "ev-reason");
-      }
-    } else {
-      line(box, r.log_seq, `× seat ${r.seat} ${r.error || r.type}`, "ev-degraded");
+  for (const [r, row] of rows) {
+    const opened = state.msgOpen.has(r.log_seq);
+    const line_ = el("div", `wire ${row.cls || "ev-pull"}${opened ? " open" : ""}`);
+    const text = el("span", "t", opened ? row.text || "" : oneLine(row.text));
+    line_.append(
+      el("span", "n", `${r.log_seq}`),
+      el("span", "who", seatLabel(r.seat)),
+      el("span", "dir", row.dir),
+      el("span", "kind", row.kind),
+      text,
+    );
+    // Click for the full text; the line is only the gist.
+    line_.onclick = () => {
+      const open = line_.classList.toggle("open");
+      // Kept in state: the view is redrawn on every poll.
+      state.msgOpen[open ? "add" : "delete"](r.log_seq);
+      text.textContent = open ? row.text || "" : oneLine(row.text);
+    };
+    box.append(line_);
+    if (row.reason) {
+      // Private thinking. Visible here because the console is the operator's
+      // view; never sent to another seat.
+      line(box, r.log_seq, `    reason: ${row.reason}`, "ev-reason");
     }
+    if (row.predict) line(box, r.log_seq, `    predict: ${row.predict}`, "ev-reason");
+    if (row.adjust) line(box, r.log_seq, `    adjust: ${row.adjust}`, "ev-reason");
   }
   box.scrollTop = box.scrollHeight;
 }
+
+/* The post-game review: a model reads the whole game, every player's private
+ * reason, prediction and adjustment side by side, and grades each player 1-10.
+ * Operator only, like the rest of this console; no seat is sent it. */
+function renderReview() {
+  const box = $("view-review");
+  box.textContent = "";
+  const reviews = state.records.filter((r) => r.category === "result" && r.type === "review");
+  const r = reviews[reviews.length - 1];
+  if (!r) {
+    const text = state.snap && state.snap.reviewing
+      ? "The game is over. The review is being written…"
+      : "The review is written when the game ends.";
+    return void box.append(el("div", "empty", text));
+  }
+  if (r.status !== "ok") {
+    box.append(el("div", "empty", `No review: ${r.error}`));
+    if (r.raw) box.append(el("pre", "review-raw", r.raw));
+    return;
+  }
+  box.append(el("h3", "review-h", "The game"));
+  box.append(el("p", "review-text", r.summary));
+  for (const p of r.players) {
+    const card = el("div", "review-card");
+    const head = el("div", "review-head");
+    head.append(el("b", null, seatLabel(p.seat)), el("span", "review-score", `${p.score}/10`));
+    card.append(head, el("p", "review-text", p.review));
+    box.append(card);
+  }
+  if (r.source) box.append(el("div", "meta", `written by ${r.source}`));
+}
+
+const TRANSCRIPT_KIND = {
+  GAME_START: "game start",
+  SITUATION: "news",
+  YOUR_TURN: "your turn",
+  GAME_END: "game over",
+};
 
 function renderSeatViews() {
   const picker = $("seat-picker");
@@ -760,50 +895,95 @@ function renderSeatViews() {
   box.textContent = "";
   const me = state.seatFocus;
 
-  // Built from entitlement, not from pushed messages: a seat that pulls is
-  // never pushed anything, so the old view was empty for it.
-  const mine = state.records.filter((r) => {
-    if (r.category === "fact") return (r.entitled || []).includes(me);
-    if (r.category === "message" || r.category === "delivery") return r.seat === me && isTraffic(r);
-    return false;
-  });
-  if (!mine.length) {
-    return void box.append(el("div", "empty", "This seat has been told nothing yet."));
+  const mine = state.records.filter(
+    (r) => r.category === "message" && r.seat === me && !PLUMBING.has(r.type)
+  );
+  const pending = pendingFor(me);
+  if (!mine.length && !pending.length) {
+    return void box.append(el("div", "empty", "This seat has been handed nothing yet."));
   }
 
   box.append(
     el("div", "blurb",
-       "Everything this seat is entitled to, and nothing else. If something " +
-       "here was not meant for it, the kernel leaked.")
+       "What this seat was handed, in the order it got it, and what it answered. " +
+       "If something here was not meant for it, the kernel leaked.")
   );
 
   for (const r of mine) {
     const m = el("div", "msg");
-    if (r.category === "fact") {
-      const secret = r.audience && r.audience.kind !== "all";
-      m.append(el("div", "kind", secret ? `${r.type} · private` : r.type));
-      m.append(el("div", "body", factText(r)));
-    } else if (r.type === "offered") {
-      m.append(el("div", "kind", `your turn · ${r.action_schema}`));
-      m.append(el("div", "body", r.body));
-    } else if (r.type === "to_agent") {
-      m.append(el("div", "kind", r.msg_type));
-      m.append(el("div", "body", r.body));
+    if (r.type === "to_agent" || r.type === "delivered") {
+      const kind = r.msg_type === "QUESTION"
+        ? `your turn · ${r.action}`
+        : TRANSCRIPT_KIND[r.msg_type] || r.msg_type;
+      const head = el("div", "kind", kind);
+      head.append(el("span", "when", r.type === "delivered" ? `fetched ${clock(r)}` : clock(r)));
+      m.append(head);
+      if (r.items) {
+        const list = el("ul", "news");
+        for (const item of r.items) list.append(el("li", "", item));
+        m.append(list);
+      } else {
+        m.append(el("div", "body", r.body));
+      }
     } else if (r.type === "from_agent") {
+      m.append(el("div", "reply", `▶ answered ${answerText(r)}`));
       const said = r.response || {};
-      m.append(el("div", "reply",
-        `answered ${said.type}: ${said.text || said.target}` +
-        (r.rejected ? ` — refused: ${r.rejected}` : "")));
-      if (said.reason) m.append(el("div", "reason", `reason: ${said.reason}`));
-    } else if (r.type === "ack") {
-      m.append(el("div", "kind", "confirmed"));
-      m.append(el("div", "body", `through fact ${r.acked_upto - 1}`));
+      for (const key of ["reason", "predict", "adjust"]) {
+        if (said[key]) m.append(el("div", "reason", `${key}: ${said[key]}`));
+      }
+    } else if (r.type === "expired") {
+      m.append(el("div", "reply bad", `⏱ no answer after ${r.after_s}s; the default action was taken`));
     } else {
-      m.append(el("div", "reply", `${r.type}: ${r.error || ""}`));
+      m.append(el("div", "reply bad", `${r.type}: ${r.error || ""}`));
     }
     box.append(m);
   }
+
+  if (pending.length) {
+    const tail = el("div", "msg pending");
+    tail.append(el("div", "kind", "waiting, not fetched yet"));
+    const list = el("ul", "news");
+    for (const p of pending) list.append(el("li", "", p));
+    tail.append(list);
+    box.append(tail);
+  }
   box.scrollTop = box.scrollHeight;
+}
+
+/* What a pulling seat has been given but has not fetched: news it is entitled
+ * to and has not been handed, and a turn it has not picked up. A pushed seat
+ * is handed everything as it happens, so it never has a tail. */
+function pendingFor(seat) {
+  const handed = new Set();
+  const asked = new Set();
+  let pulls = false;
+  let lastTurn = null;
+  for (const r of state.records) {
+    if (r.category !== "message" || r.seat !== seat) continue;
+    if (r.type === "delivered") {
+      pulls = true;
+      (r.fact_seqs || []).forEach((s) => handed.add(s));
+      if (r.turn_seq !== undefined) asked.add(r.turn_seq);
+    } else if (r.type === "offered") {
+      pulls = true;
+      lastTurn = r;
+    } else if (r.type === "from_agent" || r.type === "expired") {
+      lastTurn = null;
+    }
+  }
+  if (!pulls) return [];
+
+  const out = state.records
+    .filter((r) => r.category === "fact" && (r.entitled || []).includes(seat)
+                   && !handed.has(r.fact_seq))
+    .map((r) => {
+      const p = r.payload || {};
+      return p.rendered !== undefined ? p.rendered : `${r.type} (a state update)`;
+    });
+  if (lastTurn && !asked.has(lastTurn.turn_seq)) {
+    out.push(`your turn · ${lastTurn.action_schema} (written ${clock(lastTurn)})`);
+  }
+  return out;
 }
 
 boot();

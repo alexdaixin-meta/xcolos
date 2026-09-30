@@ -47,14 +47,18 @@ from xcolos.legacy.mafia import (
     role_plan,
 )
 from xcolos.remote import ConnectorHost, RemoteAgentHost
+from xcolos import review
 from xcolos.runner import Runner
 from xcolos.tools import DEFAULT_POLL_SECONDS, PLAY_PATH, TableTools, invite_text
 
 STATIC = Path(__file__).parent / "static"
 
-#: What a table plays when a request does not say. The first game in the
-#: library rather than a name written here, so adding or removing a definition
-#: file is the whole change.
+#: What a table plays when a request does not say. Named, because "the first
+#: game in the library" silently changed the moment a file sorting before it
+#: was added. The catalogue lists it first, so the picker opens on it too.
+DEFAULT_GAME = "mafia"
+
+
 def default_game() -> str:
     return catalogue()[0]["id"]
 
@@ -95,6 +99,7 @@ def catalogue() -> list[dict[str, Any]]:
     # file is graded against, not as something to play, and putting it in the
     # picker invites a table to be opened on the implementation this milestone
     # replaced. It is still reachable by asking for its id directly.
+    games.sort(key=lambda g: g["id"] != DEFAULT_GAME)  # stable: the rest keep their order
     return games
 
 
@@ -106,12 +111,8 @@ def catalogue() -> list[dict[str, Any]]:
 NO_MODEL = "XCOLOS_NO_MODEL"
 
 
-def build_judge() -> Any:
-    """A judge, if a key is configured and models are allowed. None is fine.
-
-    A game whose rules are all arithmetic never asks, so a table must be able
-    to start with no model reachable at all.
-    """
+def build_completion() -> Any:
+    """The model, if a key is configured and models are allowed. None is fine."""
     if os.environ.get(NO_MODEL):
         return None
     try:
@@ -121,7 +122,17 @@ def build_judge() -> Any:
         backend._key()  # shape check now, rather than mid-match
     except CompletionError:
         return None
-    return ModelJudge(backend, name=backend.model)
+    return backend
+
+
+def build_judge() -> Any:
+    """A judge, if a model is reachable. None is fine.
+
+    A game whose rules are all arithmetic never asks, so a table must be able
+    to start with no model reachable at all.
+    """
+    backend = build_completion()
+    return None if backend is None else ModelJudge(backend, name=backend.model)
 
 
 def orchestrator_for(game_id: str) -> Any:
@@ -239,6 +250,8 @@ class MatchHandle:
     base_seed: int = 1
     game_no: int = 0
     history: list[dict[str, Any]] = field(default_factory=list)
+    #: The game is over and its review is still being written.
+    reviewing: bool = False
 
     @property
     def needs_judge(self) -> bool:
@@ -270,6 +283,7 @@ class MatchHandle:
             "phase": g.phase,
             "running": bool(self.thread and self.thread.is_alive()),
             "waiting": self.waiting,
+            "reviewing": self.reviewing,
             "ready": self.ready,
             "started": self.started,
             "game_no": self.game_no,
@@ -488,11 +502,47 @@ class MatchManager:
             deadline_ms=handle.config.get("deadline_ms")
             or (600_000 if has_connector else None),
         )
+        runner.on_conclude = lambda _: self._start_review(handle, game, runner)
         handle.game, handle.registry, handle.runner = game, registry, runner
+        handle.reviewing = False
         handle.thread = None
         handle.error = None
         handle.started = False
         handle.tools.retarget(game, runner, registry)
+
+    def _start_review(self, handle: MatchHandle, game: Game, runner: Runner) -> None:
+        """Have a model review the game that just ended, off the playing thread.
+
+        The last move of a pulled game arrives on that player's own request,
+        and a review takes as long as a model does, so it must not hold that
+        request open. The event stream stays not-done until it is written.
+        """
+        orchestrator = runner.orchestrator
+        flow = getattr(orchestrator, "flow", None)
+        definition = getattr(orchestrator, "definition", None)
+        completion = build_completion()
+        if completion is None:
+            # Nothing to wait for: say there is no review, now.
+            review.review(game, None)
+            return
+        handle.reviewing = True
+
+        def write() -> None:
+            try:
+                review.review(
+                    game,
+                    completion,
+                    rules=getattr(definition, "rules_text", "") or "",
+                    source=getattr(completion, "model", ""),
+                    final=flow.full_view() if flow is not None else None,
+                )
+            except Exception as error:  # a review must never take the table down
+                game.log.record("result", "review", status="failed", error=str(error))
+            finally:
+                if handle.game is game:
+                    handle.reviewing = False
+
+        threading.Thread(target=write, name=f"review-{game.match_id}", daemon=True).start()
 
     def _mark_ready(self, handle: MatchHandle) -> None:
         """Every offered seat has a session behind it. Note it and wait.
@@ -751,10 +801,13 @@ class MatchManager:
         # own calls, so judging by the thread stopped the console dead on its
         # first poll.
         over = handle.started and handle.game.status is not RunStatus.RUNNING
+        # And its ending is wrapped up: the runner has finished concluding
+        # (unless it died trying) and the review, if one is coming, is written.
+        wrapped = handle.error or handle.runner is None or handle.runner.finished
         return {
             "records": new,
             "next": since + len(new),
-            "done": bool(over),
+            "done": bool(over and wrapped and not handle.reviewing),
             "state": handle.snapshot(),
         }
 

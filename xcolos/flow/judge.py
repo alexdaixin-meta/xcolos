@@ -88,7 +88,7 @@ MESSAGE_TYPES = ("info", "action")
 
 #: Operations an `update` reply may contain. Mirrors the executor's own set, so
 #: a model cannot propose a state change the system has no code to apply.
-UPDATE_OPS = ("set", "adjust", "append", "remove", "set_status", "disclose")
+UPDATE_OPS = ("set", "adjust", "append", "remove", "set_status", "disclose", "say")
 
 
 class JudgeError(Exception):
@@ -174,7 +174,8 @@ class Output:
             ),
         }[self.kind]
         lines = ["Reply with JSON and nothing else:", "",
-                 "{" + body + ', "reason": "one short sentence"}']
+                 "{" + body + ', "reason": "the concrete details your answer rests on: '
+                 'the seats, numbers and facts, not a summary"}']
         for constraint in self.constraints():
             lines.append(constraint)
         return "\n".join(lines)

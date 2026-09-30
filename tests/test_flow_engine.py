@@ -276,6 +276,38 @@ def test_two_mafia_know_each_other_and_nobody_else_knows_anything():
         )
 
 
+def test_two_living_mafia_confer_before_the_kill_and_only_they_hear_it():
+    """The conference is gated on a count, so a lone mafia never talks to itself."""
+    raw = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
+    _, game = play_with(raw, _greedy_roster_judge(2), seats=7)
+    mafia = {i for i, s in game.seats.items() if s.role == "mafia"}
+    records = game.log.records
+
+    def moves(kind, round_):
+        return [r["seat"] for r in records if r["type"] == "move"
+                and r["round"] == round_ and r["action"]["type"] == kind]
+
+    assert sorted(moves("the_mafia_confer", 1)) == sorted(mafia)
+    first_kill = next(i for i, r in enumerate(records) if r["type"] == "move"
+                      and r["action"]["type"] == "the_kill")
+    heard = [(i, r) for i, r in enumerate(records) if r["type"] == "the_mafia_confer"]
+    assert heard and all(i < first_kill for i, _ in heard)
+    for _, r in heard:
+        assert set(r["audience"]["seats"]) <= mafia, r
+
+    # Once a mafia has died, the survivor goes straight to the kill.
+    for round_ in {r["round"] for r in records if r["type"] == "move"}:
+        if len(moves("the_kill", round_)) < 2:
+            assert not moves("the_mafia_confer", round_)
+
+
+def test_a_lone_mafia_skips_the_conference():
+    raw = json.loads((LIBRARY / "mafia.json").read_text(encoding="utf-8"))
+    _, game = play_with(raw, _greedy_roster_judge(1), seats=5)
+    assert not [r for r in game.log.records if r["type"] == "move"
+                and r["action"]["type"] == "the_mafia_confer"]
+
+
 def _flow_state_matching(game, roles):
     """A FlowState holding the roles this match dealt."""
     from xcolos.flow.state import FlowState

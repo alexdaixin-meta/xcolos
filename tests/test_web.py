@@ -183,8 +183,6 @@ def test_reference_endpoints_describe_what_the_ui_needs():
         assert {g["engine"] for g in games} == {"flow"}
         for entry in games:
             assert entry["min_seats"] <= entry["max_seats"]
-        for g in games:
-            assert g["min_seats"] < g["max_seats"]
 
         status, kinds = get(base, "/api/agent_types")
         assert status == 200

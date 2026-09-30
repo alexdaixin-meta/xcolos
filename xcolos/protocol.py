@@ -7,7 +7,7 @@ what lets a local in-process agent and a remote agent share one contract.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import Any
 
@@ -60,7 +60,7 @@ class ActionSchema:
     """The contract for one kind of action a seat may take."""
 
     id: str
-    target: str  # "text" | "seat" | "enum" | "zone_position" | "none"
+    target: str  # "text" | "seat" | "enum" | "number" | "zone_position" | "none"
     choices: tuple[Any, ...] = ()
     default: str = "pass"  # how the failure ladder fills in for a broken agent
     #: Word ceiling for a text answer. Zero means no limit.
@@ -69,6 +69,10 @@ class ActionSchema:
     #: the table. A limit declared here reaches the agent in the request, so it
     #: knows before it writes rather than after it is refused.
     max_words: int = 0
+    #: For a number: the inclusive range, either end open when None. `choices`
+    #: then holds the words accepted instead of a number, like "pass".
+    minimum: int | None = None
+    maximum: int | None = None
 
     def describe(self) -> dict[str, Any]:
         d: dict[str, Any] = {"id": self.id, "target": self.target}
@@ -76,7 +80,31 @@ class ActionSchema:
             d["choices"] = list(self.choices)
         if self.max_words:
             d["max_words"] = self.max_words
+        if self.minimum is not None:
+            d["min"] = self.minimum
+        if self.maximum is not None:
+            d["max"] = self.maximum
         return d
+
+    def range_text(self) -> str:
+        """How to answer a number, in one sentence a player can act on."""
+        if self.minimum is not None and self.maximum is not None:
+            if self.minimum > self.maximum:
+                span = ""
+            elif self.minimum == self.maximum:
+                span = f"exactly {self.minimum}"
+            else:
+                span = f"a whole number from {self.minimum} to {self.maximum}"
+        elif self.minimum is not None:
+            span = f"a whole number of at least {self.minimum}"
+        elif self.maximum is not None:
+            span = f"a whole number of at most {self.maximum}"
+        else:
+            span = "a whole number"
+        words = " or ".join(str(c) for c in self.choices)
+        if span and words:
+            return f"Answer with {span}, or {words}."
+        return f"Answer with {span or words}."
 
 
 @dataclass(frozen=True)
@@ -112,9 +140,10 @@ class Action:
     """One structured response from a seat.
 
     Two halves, and the split matters. `target` and `text` are the response
-    itself, which the game may make public. `reason` is the agent's own
-    thinking: recorded for whoever is watching the match, and never turned into
-    a fact, so no other seat can ever be told it.
+    itself, which the game may make public. `reason`, `predict` and `adjust`
+    are the agent's own thinking: why it moved, what it expects its opponents
+    to do, and how that changed its own plan. Recorded for whoever is watching
+    the match, and never turned into a fact, so no other seat can be told them.
     """
 
     type: str
@@ -122,6 +151,10 @@ class Action:
     text: str = ""
     #: Private. Logged, shown to the operator, never shared with another seat.
     reason: str = ""
+    #: Private, like `reason`: what the agent expects its opponents to do.
+    predict: str = ""
+    #: Private, like `reason`: how the agent changed its own plan in response.
+    adjust: str = ""
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -129,6 +162,8 @@ class Action:
             "target": self.target,
             "text": self.text,
             "reason": self.reason,
+            "predict": self.predict,
+            "adjust": self.adjust,
         }
 
 
@@ -165,6 +200,9 @@ def validate(action: Action, schema: ActionSchema, legal_targets: tuple[Any, ...
     if action.target is None:
         raise ActionInvalid(f"action '{schema.id}' requires a target")
 
+    if schema.target == "number":
+        return _validate_number(action, schema)
+
     if legal_targets and action.target not in legal_targets:
         raise ActionInvalid(
             f"target {action.target!r} is not among the legal targets for '{schema.id}'"
@@ -174,6 +212,45 @@ def validate(action: Action, schema: ActionSchema, legal_targets: tuple[Any, ...
         raise ActionInvalid(f"target must be one of {list(schema.choices)}")
 
     return action
+
+
+def _validate_number(action: Action, schema: ActionSchema) -> Action:
+    """A whole number in range, or one of the words allowed instead.
+
+    Returns the action with its target normalised — `"550"` and `550.0` both
+    become `550`, `"Pass"` becomes `"pass"` — so what the game stores and
+    compares is one type however the agent wrote it.
+    """
+    given = action.target
+    if isinstance(given, str):
+        word = given.strip().lower()
+        for choice in schema.choices:
+            if word == str(choice).lower():
+                return _with_target(action, choice)
+    number: int | None = None
+    if isinstance(given, bool):
+        number = None
+    elif isinstance(given, int):
+        number = given
+    elif isinstance(given, float) and given.is_integer():
+        number = int(given)
+    elif isinstance(given, str):
+        try:
+            value = float(given.strip().replace(",", ""))
+            number = int(value) if value.is_integer() else None
+        except ValueError:
+            number = None
+    if number is None:
+        raise ActionInvalid(schema.range_text())
+    if schema.minimum is not None and number < schema.minimum:
+        raise ActionInvalid(f"{number} is below {schema.minimum}. {schema.range_text()}")
+    if schema.maximum is not None and number > schema.maximum:
+        raise ActionInvalid(f"{number} is above {schema.maximum}. {schema.range_text()}")
+    return _with_target(action, number)
+
+
+def _with_target(action: Action, target: Any) -> Action:
+    return replace(action, target=target)
 
 
 @dataclass
