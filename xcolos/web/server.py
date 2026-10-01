@@ -103,6 +103,17 @@ def catalogue() -> list[dict[str, Any]]:
     return games
 
 
+#: Games that can be started but are not offered in the picker. `mafia-oracle`
+#: is Mafia with its rules as arithmetic: the reference `mafia`'s model referee
+#: is checked against, and what the offline tests play. Not a game to choose.
+UNLISTED_GAMES = {"mafia-oracle"}
+
+
+def offered() -> list[dict[str, Any]]:
+    """The games the console's picker lists."""
+    return [g for g in catalogue() if g["id"] not in UNLISTED_GAMES]
+
+
 #: Set this and no table will ever build a live judge. The test suite sets it,
 #: because a test that silently reaches a paid API is slow, flaky, and charges
 #: somebody real money for a run nobody reads. A game whose rules need a model
@@ -995,7 +1006,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._static("/".join(parts))
 
         if parts[1:] == ["games"]:
-            return self._json(catalogue())
+            return self._json(offered())
         if parts[1:] == ["agent_types"]:
             return self._json(AGENT_TYPES)
         if parts[1:] == ["matches"]:

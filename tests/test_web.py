@@ -22,6 +22,7 @@ from xcolos.web.server import (
     MatchManager,
     build_server,
     catalogue,
+    offered,
 )
 
 def declared_winners(game_id: str) -> set[str]:
@@ -176,7 +177,10 @@ def test_reference_endpoints_describe_what_the_ui_needs():
     with running_server() as base:
         status, games = get(base, "/api/games")
         assert status == 200
-        assert {g["id"] for g in games} == {g["id"] for g in catalogue()}
+        assert {g["id"] for g in games} == {g["id"] for g in offered()}
+        # The arithmetic Mafia can be played by id, but is not offered.
+        assert "mafia-oracle" not in {g["id"] for g in games}
+        assert "mafia-oracle" in {g["id"] for g in catalogue()}
         # The hardcoded implementation is not offered. It is the reference a
         # game file is graded against, not a table to open.
         assert LEGACY_GAME["id"] not in {g["id"] for g in games}
