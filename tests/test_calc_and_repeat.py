@@ -1,8 +1,8 @@
 """The generic pieces the auction needed, tested on a game that is not one.
 
 `{"calc": ...}` expressions, the `repeat` action, `each` on an `ask`, number
-answers with a worked-out range, `players` and `if` on an operation, `say`,
-ranked endings, and `{key}` in the rules. Each is written so any game can use
+answers with a worked-out range, `players` and `if` on an operation, ranked
+endings, and `{key}` in the rules. Each is written so any game can use
 it; this file uses them in a toy climbing game to keep that honest.
 """
 
@@ -10,12 +10,15 @@ from __future__ import annotations
 
 import copy
 import json
+import sys
+from pathlib import Path
 
 from xcolos.agents import BaseAgent
 from xcolos.flow import FlowOrchestrator
 from xcolos.game import Game
 from xcolos.games.calc import CalcError, Expr, Scope, evaluate, split
 from xcolos.games.definition import DefinitionError
+from xcolos.flow.judge import Reply, ScriptedJudge
 from xcolos.games.loader import load
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.identity import Player
@@ -23,6 +26,9 @@ from xcolos.log import MatchLog
 from xcolos.protocol import Action, ActionInvalid, ActionSchema, validate
 from xcolos.runner import Runner
 from xcolos.state import Rng
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from referee import referee  # noqa: E402
 
 # Every climber raises the pot by the least they may, one at a time, until it
 # reaches the top. Four climbers answer eight times each, so all four tie.
@@ -64,15 +70,14 @@ CLIMB = {
                 }
             ],
         },
-        {"use": "update", "label": "the top",
-         "do": [{"say": {"text": "The pot reached {pot}."}}]},
+        {"use": "tell", "label": "the top", "to": "all", "text": "The pot reached {pot}."},
         {"use": "check", "label": "at the top", "when": {"calc": "pot >= top"}},
     ],
     "end": {
         "most_climbs": {
             "when": {"calc": "pot >= top"},
-            "rank": {"by": "you.score", "highest": True},
-            "text": "{result} climbed most, {score} times. {standings}.",
+            "winner": "Whoever climbed most times wins; level players share.",
+            "text": "{result} climbed most. {reason}",
         }
     },
     "limits": {"rounds": 5, "rounds_max": 5, "actions_max": 500, "deadline_s": 60},
@@ -103,7 +108,7 @@ def variant(**changes):
     return raw
 
 
-def play(raw: dict, seats: int = 4, seed: int = 1):
+def play(raw: dict, seats: int = 4, seed: int = 1, judge=None):
     definition = load(json.dumps(raw), source="climb")
     game = Game("climb", definition.id, seed, MatchLog("climb"))
     registry = Registry(game.match_id)
@@ -112,8 +117,13 @@ def play(raw: dict, seats: int = 4, seed: int = 1):
     for bound in host.register():
         index = game.register_seat(bound.name, host.host_id, bound.profile)
         registry.attach(index, host, bound)
-    orchestrator = FlowOrchestrator(definition)
+    orchestrator = FlowOrchestrator(definition, judge)
     return Runner(game, orchestrator, registry).run(), game, orchestrator
+
+
+def update_does(ops: list) -> dict:
+    """CLIMB with an update step doing `ops` in place of its closing message."""
+    return variant(**{"steps__1": {"use": "update", "label": "the top", "do": ops}})
 
 
 def refused(raw: dict, *fragments: str) -> None:
@@ -196,7 +206,7 @@ def test_a_number_answer_is_checked_against_its_range_and_its_words():
 
 
 # ----------------------------------------------------------------------
-# repeat, each, say, rank, rules
+# repeat, each, tell, rank, rules
 # ----------------------------------------------------------------------
 
 
@@ -211,20 +221,45 @@ def test_repeat_runs_until_its_condition_and_each_sees_every_answer():
     assert moves == list(range(1, 33))
 
 
-def test_a_ranked_ending_shares_a_tie():
-    result, game, _ = play(CLIMB)
+def test_a_winner_ending_asks_the_referee_and_shares_a_tie():
+    judge = referee(lambda you: you["score"])
+    result, game, _ = play(CLIMB, judge=judge)
     assert result.winner == "seats 1, 2, 3 and 4"
+    [call] = judge.asked
+    assert "Whoever climbed most times wins" in call.task
+    assert call.output.kind == "players" and call.output.options == (1, 2, 3, 4)
+    assert all("score" in p["attributes"] for p in call.table["players"])
     ending = [f for f in game.facts if f.type == "game_over"][-1]
-    assert "climbed most, 8 times" in ending.payload["rendered"]
+    assert "seats 1, 2, 3 and 4 climbed most" in ending.payload["rendered"]
+    [logged] = [r for r in game.log.records if r["type"] == "judge_call"]
+    assert logged["where"]["tag"] == "winner"
 
 
-def test_a_ranked_ending_names_a_single_winner():
-    raw = variant(**{"end__most_climbs__rank__by": "you.score * 10 + you.seat"})
-    result, _, _ = play(raw)
-    assert result.winner == "seat 4"
-    raw = variant(**{"end__most_climbs__rank": {"by": "you.score * 10 + you.seat",
-                                                "highest": False}})
-    assert play(raw)[0].winner == "seat 1"
+def test_a_winner_ending_names_a_single_winner_once():
+    for answer in ([4], [4, 4]):
+        result, _, _ = play(CLIMB, judge=ScriptedJudge(lambda call: answer))
+        assert result.winner == "seat 4"
+
+
+def test_the_referees_reason_is_the_reason_the_game_gives():
+    judge = ScriptedJudge(lambda call: Reply(value=[2], reason="seat 2 climbed 9 times",
+                                             source="stub"))
+    result, game, _ = play(CLIMB, judge=judge)
+    assert (result.winner, game.reason) == ("seat 2", "seat 2 climbed 9 times")
+
+
+def test_with_no_model_the_game_still_ends_and_says_no_winner_was_decided():
+    result, game, _ = play(CLIMB)
+    assert result.status == "ended"
+    assert result.winner == "no winner decided (no model available)"
+    assert "none is configured" in game.reason
+
+
+def test_an_answer_naming_no_real_seat_decides_no_winner():
+    for answer in ([], [9], "seat 1", None):
+        result, game, _ = play(CLIMB, judge=ScriptedJudge(lambda call: answer))
+        assert result.status == "ended"
+        assert result.winner == "no winner decided (the model gave no usable answer)"
 
 
 def test_a_loop_that_never_ends_abandons_the_match():
@@ -233,12 +268,11 @@ def test_a_loop_that_never_ends_abandons_the_match():
     assert "the climb" in (result.reason or ""), result.reason
 
 
-def test_say_announces_and_operation_facts_are_named_for_their_step():
+def test_a_tell_announces_and_operation_facts_are_named_for_their_step():
     _, game, _ = play(CLIMB)
-    types = {f.type for f in game.facts}
-    assert "the_top_say" in types
-    assert "raise_each_adjust" in types
-    said = [f for f in game.facts if f.type == "the_top_say"]
+    assert "raise_each_adjust" in {f.type for f in game.facts}
+    said = [f for f in game.facts
+            if "The pot reached" in (f.payload or {}).get("rendered", "")]
     assert said and "The pot reached 32." in said[0].payload["rendered"]
 
 
@@ -281,21 +315,22 @@ def test_the_loader_refuses_what_would_fail_at_run_time():
     refused(variant(**{f"{ask}__answer__min": {"calc": "pott + 1"}}), "pott")
     refused(variant(**{f"{ask}__answer__min": {"calc": "open('x')"}}), "open")
     refused(variant(**{f"{ask}__answer": {"type": "player", "min": 1}}), "min")
-    refused(variant(**{"steps__1__do": [{"set": {"key": "pot",
-                                                 "value": {"calc": "$answer"}}}]}),
+    refused(update_does([{"set": {"key": "pot",
+                                                 "value": {"calc": "$answer"}}}]),
             "answer")
     refused(variant(**{"steps__0__until": None}), "until")
     refused(variant(**{"steps__0__max": 0}), "max")
     refused(variant(**{"steps__0__steps": [copy.deepcopy(CLIMB["steps"][0])]}),
             "repeat")
-    refused(variant(**{"steps__1__do": [{"set": {"key": "score", "value": 1,
-                                                 "player": 1, "players": "all"}}]}),
+    refused(update_does([{"set": {"key": "score", "value": 1,
+                                                 "player": 1, "players": "all"}}]),
             "players")
-    refused(variant(**{"steps__1__do": [{"say": {"text": "hi",
-                                                 "if": "the pot is large"}}]}),
-            "if")
-    refused(variant(**{"steps__1__do": [{"say": {}}]}), "say")
-    refused(variant(**{"end__most_climbs__result": "seat 1"}), "rank")
-    refused(variant(**{"steps__1__do": [{"set": {"key": "pot",
-                                                 "value": {"calc": "you.cash"}}}]}),
+    refused(update_does([{"set": {"key": "pot", "value": 1,
+                                  "if": "the pot is large"}}]), "if")
+    refused(update_does([{"say": {"text": "hi"}}]), "say")  # `tell` replaced it
+    refused(variant(**{"end__most_climbs__result": "seat 1"}), "winner")
+    refused(variant(**{"end__most_climbs__winner": " "}), "winner")
+    refused(variant(**{"end__most_climbs__rank": {"by": "you.score"}}), "rank")
+    refused(update_does([{"set": {"key": "pot",
+                                                 "value": {"calc": "you.cash"}}}]),
             "cash")

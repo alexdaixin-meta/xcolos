@@ -22,7 +22,7 @@ from xcolos.identity import AccessDenied, Player
 from xcolos.log import MatchLog
 from xcolos.legacy.mafia import MafiaOrchestrator
 from xcolos.remote import ConnectorHost
-from xcolos.runner import Runner
+from xcolos.runner import MAX_REFUSED, Runner
 from xcolos.tools import MIN_POLL_SECONDS, TableTools
 
 
@@ -364,6 +364,69 @@ def test_an_illegal_answer_leaves_the_turn_open():
         if state["your_turn"]:
             tools.post_action(token, first_legal(state))
     raise AssertionError("never reached a targeted action")
+
+
+def owed_seat_question(tools, token, limit=50):
+    """Read and play on until this seat is asked to name a seat."""
+    ack = None
+    for _ in range(limit):
+        state = tools.read_state(token, ack)
+        ack = state["ack_through"]
+        if state["your_turn"] and state["ask"]["answer_with"] == "seat":
+            return state, ack
+        if state["your_turn"]:
+            tools.post_action(token, first_legal(state))
+    raise AssertionError("never reached a targeted action")
+
+
+def test_a_refused_answer_is_shown_on_the_question_until_it_is_fixed():
+    game, runner, tools = build(11)
+    runner.start()
+    token = seat_in(tools)
+    state, ack = owed_seat_question(tools, token)
+    assert "refused" not in state["ask"], "nothing has been refused yet"
+
+    bad = tools.post_action(token, 9999)
+    assert bad["accepted"] is False and bad["tries_left"] == MAX_REFUSED - 1
+
+    again = tools.read_state(token, ack)["ask"]["refused"]
+    assert again["your_answer"] == 9999
+    assert again["why"] == bad["reason"]
+    assert again["refused_so_far"] == 1 and again["tries_left"] == MAX_REFUSED - 1
+
+    tools.post_action(token, 9999)
+    assert tools.read_state(token, ack)["ask"]["refused"]["tries_left"] == MAX_REFUSED - 2
+
+    legal = state["ask"]["legal_answers"][0]
+    assert tools.post_action(token, legal)["accepted"] is True
+
+
+def test_the_game_answers_for_a_seat_after_too_many_refusals():
+    game, runner, tools = build(11)
+    runner.start()
+    token = seat_in(tools)
+    state, ack = owed_seat_question(tools, token)
+    [owed] = runner.parked.values()  # the one pulling seat
+
+    for n in range(1, MAX_REFUSED):
+        out = tools.post_action(token, 9999)
+        assert out["accepted"] is False and out["tries_left"] == MAX_REFUSED - n
+    last = tools.post_action(token, 9999)
+    assert last["accepted"] is False
+    assert f"{MAX_REFUSED} refused answers" in last["reason"]
+    assert "answered for you" in last["reason"]
+    assert "tries_left" not in last
+
+    assert runner.parked_for(owed.request.seat) is not owed, "the game moved on"
+    assert owed.record.final_outcome == "defaulted" and owed.record.degraded
+    assert [a["outcome"] for a in owed.record.attempts] == ["invalid"] * MAX_REFUSED
+
+
+def test_the_invite_says_how_many_refusals_the_game_takes():
+    from xcolos.tools import invite_text
+
+    text = invite_text("http://x", "w1", 1, "pl_1")
+    assert "`refused`" in text and f"After {MAX_REFUSED} refused answers" in text
 
 
 def test_a_turn_that_runs_out_is_defaulted():

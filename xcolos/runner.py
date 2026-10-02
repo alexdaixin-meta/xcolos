@@ -24,7 +24,9 @@ from xcolos.orchestrators.base import ActionRequest, Orchestrator
 from xcolos.protocol import Action, ActionInvalid, Envelope, MsgType, validate
 from xcolos.render import render_briefing, render_facts, render_turn
 
-MAX_REPAIR_ATTEMPTS = 2
+#: Refused answers a seat may give to one question before the game takes the
+#: default for it. The same for every kind of seat.
+MAX_REFUSED = 5
 
 
 @dataclass
@@ -41,6 +43,8 @@ class ParkedTurn:
     record: MoveRecord
     expires_at: float
     opened_at: float
+    #: The last refused answer and why, shown on the question until it is fixed.
+    refused: dict[str, Any] | None = None
 
     @property
     def seconds_left(self) -> float:
@@ -249,8 +253,11 @@ class Runner:
         try:
             checked = validate(action, parked.request.schema, parked.request.legal_targets)
         except ActionInvalid as exc:
-            # The turn stays parked. A refusal is information, not a failure,
-            # and the caller can simply answer again.
+            # A refusal is information, not a failure: the turn stays parked
+            # and the question now says what was refused and why. Only after
+            # MAX_REFUSED of them does the game stop asking and take the
+            # default, or a client stuck on one wrong answer holds the table
+            # until the deadline.
             parked.record.attempts.append(
                 {"n": len(parked.record.attempts) + 1, "outcome": "invalid",
                  "error": str(exc)}
@@ -259,7 +266,22 @@ class Runner:
                 "message", "from_agent", seat=seat,
                 response=action.to_json(), rejected=str(exc),
             )
-            return False, str(exc)
+            count = sum(1 for a in parked.record.attempts if a["outcome"] == "invalid")
+            if count < MAX_REFUSED:
+                parked.refused = {
+                    "your_answer": action.text or action.target,
+                    "why": str(exc),
+                    "refused_so_far": count,
+                    "tries_left": MAX_REFUSED - count,
+                }
+                return False, str(exc)
+            fallback = self._default_action(parked.request, parked.record)
+            del self.parked[seat]
+            self._close_turn(parked.record, fallback)
+            self._advance(seat, fallback)
+            taken = fallback.text or fallback.target
+            return False, (f"{exc} That was {count} refused answers, so the game "
+                           f"answered for you: {taken}.")
 
         parked.record.attempts.append(
             {"n": len(parked.record.attempts) + 1, "outcome": "ok"}
@@ -509,7 +531,7 @@ class Runner:
         """
         env = envelope
 
-        for attempt in range(1, MAX_REPAIR_ATTEMPTS + 2):
+        for attempt in range(1, MAX_REFUSED + 1):
             try:
                 raw = self._send(env)
                 if raw is None:
@@ -526,7 +548,7 @@ class Runner:
                 record.attempts.append(
                     {"n": attempt, "outcome": "invalid", "error": str(exc)}
                 )
-                if attempt > MAX_REPAIR_ATTEMPTS:
+                if attempt >= MAX_REFUSED:
                     break
                 # A distinct type, not another YOUR_TURN, so neither the agent
                 # nor the log can mistake a retry for a fresh turn. The body
@@ -536,7 +558,9 @@ class Runner:
                     type=MsgType.ACTION_REJECTED,
                     match_id=env.match_id,
                     seat=env.seat,
-                    body=f"That answer was not legal: {exc}. Answer again.",
+                    body=(f"That answer was not legal: {exc}. Answer again; "
+                          f"{MAX_REFUSED - attempt} tries left before the game "
+                          f"answers for you."),
                     turn_seq=env.turn_seq,
                     schema=env.schema,
                     legal_targets=env.legal_targets,

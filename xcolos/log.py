@@ -43,6 +43,7 @@ CATEGORIES = (
     "message",  # every envelope out to a seat, every response back
     "turn",  # the move record, one per turn, end to end
     "result",  # the final summary
+    "model",  # every call the server made to a language model
 )
 
 #: Fields that differ between two identical runs and must be ignored when

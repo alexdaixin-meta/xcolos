@@ -138,8 +138,8 @@ action that does not read it is refused at load.
 | `initialize` | `updates` `requires` `llm` |
 | `sync` | `to` `mode` `fields` `text` `llm` `max_words` |
 | `tell` | `to` `kind` `about` `fields` `text` `llm` `max_words` |
-| `ask` | `to` `answer` `verify` `outcome` `broadcast` `each` `text` `llm` `max_words` `deadline_s` `on_timeout` |
-| `poll` | the same as `ask`, except `each` |
+| `ask` | `to` `answer` `verify` `outcome` `broadcast` `each` `turns` `text` `llm` `max_words` `deadline_s` `on_timeout` |
+| `poll` | the same as `ask`, except `each` and `turns` |
 | `update` | `do` `text` `llm` `max_words` |
 | `check` | `against` `llm` |
 | `repeat` | `until` `max` `steps` |
@@ -349,8 +349,36 @@ before the next player is asked:
 `$seat` is who answered and `$answer` what they said; both exist only inside
 `each`. Because the next player is asked afterwards, the step's `to` and each
 player's range are worked out again: a player `each` has just ruled out is
-skipped, and the next bidder is asked for more than the bid just made. That is
-what makes an open, ascending auction one step.
+skipped, and the next bidder is asked for more than the bid just made.
+
+### Going round the table: `turns`
+
+Without `turns`, an `ask` asks each player in `to` once, in seat order. With
+it, the step goes round and round until everyone else passes:
+
+```json
+"turns": {"pass": "pass", "max": 500}
+```
+
+- One player at a time, in seat order. Each time the step runs, the first
+  player asked is one seat further round than the last time, so in an auction
+  item 1 opens with seat 1, item 2 with seat 2, and so on. The rotation is the
+  engine's, not something the game writes.
+- Saying the `pass` word does not take a player out. They are asked again
+  when it comes round to them.
+- The step ends when every other player has passed, one after another, since
+  the last answer that was not a pass. If nobody answers anything but a pass,
+  it ends once everyone has passed. The player whose answer stands is never
+  asked to beat it.
+- `to` and each player's range are worked out again before every turn. A
+  player `to` no longer takes in is skipped and not waited on. A player with no
+  legal number counts as having passed and is not asked.
+- `max` caps the answers (default 500). Reaching it abandons the match, as a
+  `repeat` does.
+
+`pass` must be one of the words the answer accepts: in its `or` for a number,
+or its `options` for a choice. With `each` acting on every answer, this is an
+open, ascending auction in one step.
 
 ---
 
@@ -412,11 +440,13 @@ a seat number is not a sentence.
 | `remove` | `player`, `key`, `value` — from a list |
 | `set_status` | `player`, `to` |
 | `disclose` | `of`, `attribute`, `to` |
-| `say` | nothing — the announcement is the whole effect |
 
 Every one also takes `text` or `llm` to announce itself, `announce_to` for the
-audience, and `unless` to skip when a binding named nobody. `say` must have
-`text` or `llm`, because it has nothing else to do.
+audience, and `unless` to skip when a binding named nobody.
+
+There is no operation that only talks. A message on its own is a `tell` step,
+gated with `when` if it depends on the state ("nobody bid on item {item}"); a
+message about each answer is the ask's `broadcast`. One way to say a thing.
 
 Two more keys make an operation conditional or plural:
 
@@ -425,7 +455,7 @@ Two more keys make an operation conditional or plural:
   model call on each.
 - **`players`** — a selector instead of `player`. The operation runs once per
   matching player, in seat order, and inside it `you` is that player. Not with
-  `player`, and not on `disclose` or `say`.
+  `player`, and not on `disclose`.
 
 Any `value` may be `{"calc": ...}`.
 
@@ -449,7 +479,7 @@ model:
 ```
 
 Accepted wherever a value, a number answer's `min`/`max`, a condition (`when`,
-`until`, `if`), a `where` selector or a `rank` is expected.
+`until`, `if`) or a `where` selector is expected.
 
 What an expression can read:
 
@@ -596,18 +626,23 @@ name or `continue`.
 `against` is the check's input: a check after the night need not ask about an
 ending only a vote can reach.
 
-An ending names its winner with `result`, or ranks players instead:
+An ending names its winner with `result`, or says in words who wins:
 
 ```json
 "richest": {"when": {"calc": "item >= items"},
-            "rank": {"by": "you.cash + you.holdings", "highest": true},
-            "text": "{result} wins with {score}. Final wealth: {standings}."}
+            "winner": "The player with the highest final wealth, cash plus the true value of the items they won. Players level at the top share the win.",
+            "text": "The auction is over. {result} wins. {reason}"}
 ```
 
-`rank.by` is worked out for every player; the best score wins (`"highest":
-false` for the lowest) and players level on it share the win, as `seats 1 and
-3`. The wording may use `{score}`, `{standings}` and `{winners}`. Exactly one
-of `result` and `rank` is required.
+When the ending fires, a model is shown the whole table, hidden values
+included, with the rules and the `winner` sentence, and names the winning
+seats. It is one call, logged like any other referee call. Several seats share
+the win, as `seats 1 and 3`; `{reason}` is the model's own account of the
+figures it compared. The engine computes no score, so the same field ranks by
+wealth, votes, territory or anything else a game can state.
+
+With no model, or an answer naming no real seat, the game still ends, with
+`no winner decided` and why. Exactly one of `result` and `winner` is required.
 
 An unanswered ending is declined. A match that overruns hits the round cap and
 says so; a match that ended on a question nobody answered is indistinguishable
@@ -638,12 +673,14 @@ naming the key and listing what is accepted.
 - a `calc` that does not parse, calls anything not listed, or names a key no
   attribute declares
 - `$seat` or `$answer` outside an `each`, or `each` anywhere but an `ask`
+- `turns` whose `pass` word the answer does not accept, or on an `ask` with no
+  `answer`
 - `min`, `max` or `or` on an answer that is not a `number`
 - a `repeat` with no `until`, a `max` that is not a positive whole number, or
   a nested `repeat`
-- `players` together with `player`, or on `disclose` or `say`
+- `players` together with `player`, or on `disclose`
 - an `if` written as prose
-- an ending with both `result` and `rank`, or neither
+- an ending with both `result` and `winner`, or neither
 
 The third from last is the pattern: `"options": "$hand"` became five
 one-character choices, because `tuple()` of a string splits it. A loader that

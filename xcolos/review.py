@@ -31,6 +31,7 @@ import json
 import re
 from typing import Any
 
+from xcolos import calls
 from xcolos.game import Game
 
 INSTRUCTIONS = """\
@@ -220,7 +221,7 @@ def review(
     facts = record(game, final)
     system, body = prompt(facts, rules)
     try:
-        raw = completion.complete(body, system=system)
+        raw = calls.Logged(completion, game.log, "review").complete(body, system=system)
     except Exception as error:  # a review that fails must not break anything
         fields = {"status": "failed", "error": f"the reviewer could not be reached: {error}",
                   "source": source}

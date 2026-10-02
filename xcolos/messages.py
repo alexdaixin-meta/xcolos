@@ -102,6 +102,7 @@ def action_required(
     legal_answers: list[Any],
     seconds_left: float,
     max_words: int = 0,
+    refused: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """The game is waiting on this seat.
 
@@ -119,6 +120,9 @@ def action_required(
         "legal_answers": legal_answers,
         "seconds_left": seconds_left,
         **({"max_words": max_words} if max_words else {}),
+        # Your last answer to this question, why it was refused, and how many
+        # more the game will take before it answers for you.
+        **({"refused": refused} if refused else {}),
         "reply_with": REPLY_WITH,
     }
 

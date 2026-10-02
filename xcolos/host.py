@@ -87,6 +87,10 @@ class LocalAgentHost:
         #: two players would see the union of their secrets.
         self.player = player or Player.new("local operator")
 
+    @property
+    def agents(self) -> list[Agent]:
+        return list(self._agents)
+
     def register(self) -> list[SeatBinding]:
         self.reset()
         return [

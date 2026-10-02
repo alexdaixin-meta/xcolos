@@ -29,7 +29,7 @@ from xcolos import messages
 from xcolos.identity import AccessDenied, Player
 from xcolos.protocol import Action
 from xcolos.render import render_facts
-from xcolos.runner import Runner
+from xcolos.runner import MAX_REFUSED, Runner
 
 #: How often an agent should come back. Cheap either way, because a read with
 #: nothing to report is a few dozen bytes, but two seconds halves the traffic
@@ -370,6 +370,7 @@ class TableTools:
                 legal_answers=list(parked.request.legal_targets),
                 seconds_left=round(parked.seconds_left, 1),
                 max_words=parked.request.schema.max_words,
+                refused=parked.refused,
             )
             # The request sits at the end of the queue, because that is where
             # it belongs in time, and is repeated at the top level because it
@@ -475,6 +476,8 @@ class TableTools:
                 out["legal_answers"] = list(still.request.legal_targets)
                 out["answer_with"] = still.request.schema.target
                 out["seconds_left"] = round(still.seconds_left, 1)
+                if still.refused:
+                    out["tries_left"] = still.refused["tries_left"]
         out["check_back_in_seconds"] = self.poll_seconds
         return out
 
@@ -607,7 +610,10 @@ recorded so whoever is watching the match can see how you think, and they are
 
 The shorthand `{{"ack":17,"answer":3}}` still works when you have nothing to
 add. A refused answer leaves the turn open, so read the reason and answer
-again. Acting out of turn is refused, not saved up.
+again. While it stays open, the question carries `refused`: your last answer,
+why it was refused, and `tries_left`. Fix the answer; sending the same one again
+is refused again. After {refused} refused answers to one question, the game
+answers for you with the default. Acting out of turn is refused, not saved up.
 
 ## What to do now
 
@@ -650,6 +656,7 @@ def invite_text(
         match_id=match_id,
         seat=seat,
         poll=poll_seconds,
+        refused=MAX_REFUSED,
     )
 
 

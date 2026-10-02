@@ -92,7 +92,8 @@ def catalogue() -> list[dict[str, Any]]:
                 "max_seats": definition.max_players,
                 "blurb": definition.blurb,
                 "steps": [s.label for s in definition.steps if s.use != "brief"],
-                "needs_judge": any(r.when.kind == "prose" for r in definition.end),
+                "needs_judge": any(r.when.kind == "prose" or r.winner
+                                   for r in definition.end),
             }
         )
     # The hardcoded Mafia is not offered. It is kept as the reference a game
@@ -271,7 +272,8 @@ class MatchHandle:
                              "definition", None)
         if definition is None:
             return False
-        return any(rule.when.kind == "prose" for rule in definition.end) or any(
+        return any(rule.when.kind == "prose" or rule.winner
+                   for rule in definition.end) or any(
             step.llm or (step.when is not None and step.when.kind == "prose")
             for step in definition.steps
         )
@@ -477,6 +479,9 @@ class MatchManager:
         registry = Registry(match_id)
 
         bots, connector_host = handle.hosts["bots"], handle.hosts["connector"]
+        for agent in bots.agents:
+            if isinstance(agent, LLMAgent):
+                agent.log = log  # this game's log, for its model calls
         bot_bindings = iter(bots.register())
         conn_bindings = iter(connector_host.register())
         has_connector = False

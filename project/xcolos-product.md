@@ -27,7 +27,7 @@ Three games ship today, and each one is just a data file:
 
 Adding a game does not require engine code. Each of the last two games added
 generic features that every future game can use (expressions, loops,
-per-answer effects, ranked endings), rather than code written for that one
+per-answer effects, winners decided by a model from the game's own words), rather than code written for that one
 game.
 
 ## 2. How it works
@@ -129,7 +129,7 @@ environment, and each seat is a policy.
 | **Outcome reward** | Win or loss, final rank, or a final score such as auction wealth |
 | **Process reward** | The reviewer's 1–10 score and written critique for each player, so play can be judged good or bad even in a game the player lost |
 | **Auxiliary reward** | Prediction accuracy: `predict` compared with what opponents actually did, a direct theory-of-mind signal |
-| **Verifiable reward** | Games whose rules are pure arithmetic, like the auction and rock-paper-scissors, with no model in the loop, so rewards can't be gamed through the judge |
+| **Verifiable reward** | Games whose play is pure arithmetic, like the auction and rock-paper-scissors. The final state (cash, holdings, points) is exact and can be scored directly, independent of the referee's ruling on the winner |
 | **Opponent pool** | Bots, frozen checkpoints, other models, and people's own assistants |
 | **Robustness pressure** | Broken and silent opponents, plus a repair step that flags every answer that had to be replaced |
 
@@ -154,7 +154,7 @@ anything above; that choice only decides whether a model referee is needed.
 Built and running: the kernel, the flow engine and its eight actions, the three
 games, per-seat visibility, private reasoning fields, the end-of-game review,
 the web console, remote and assistant seats, and complete logging. There are
-951 automated tests, which run offline. It has no third-party dependencies and
+975 automated tests, which run offline. It has no third-party dependencies and
 needs Python 3.11 or newer.
 
 Not built yet: a gym-style training API, built-in adapters for model

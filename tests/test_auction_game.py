@@ -8,6 +8,9 @@ not against what the engine says happened.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 from xcolos.agents import RandomAgent
 from xcolos.flow import FlowOrchestrator
 from xcolos.game import Game
@@ -16,6 +19,9 @@ from xcolos.host import LocalAgentHost, Registry
 from xcolos.identity import Player
 from xcolos.log import MatchLog
 from xcolos.runner import Runner
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from referee import referee  # noqa: E402
 
 DEFINITION = available()["auction"]
 
@@ -35,7 +41,9 @@ def play(seed: int, n: int = 4):
     for bound in host.register():
         index = game.register_seat(bound.name, host.host_id, bound.profile)
         registry.attach(index, host, bound)
-    orchestrator = FlowOrchestrator(DEFINITION)
+    # The referee decides the winner by final wealth, as the file says in words.
+    orchestrator = FlowOrchestrator(
+        DEFINITION, referee(lambda you: you["cash"] + you["holdings"]))
     return Runner(game, orchestrator, registry).run(), game, orchestrator
 
 
@@ -160,3 +168,38 @@ def test_a_turn_states_the_legal_range_once():
     assert bodies
     for r in bodies:
         assert str(r).count("Answer with a whole number") == 1
+
+
+def test_bidding_goes_round_the_table_from_a_rotating_opener():
+    """Who is asked next is worked out here from the rules, not read back.
+
+    Seat order, round and round, opening one seat later with each item. A
+    pass does not take a player out. Skipped: the high bidder, and anyone who
+    cannot afford the next legal bid. An item ends once everyone else has
+    passed since the last bid.
+    """
+    step = declared("min_raise")
+    for seed, n in cases():
+        _, game, orchestrator = play(seed, n)
+        min_bids = orchestrator.flow.game_attributes["min_bids"]
+        cash = {s: declared("start_cash") for s in range(1, n + 1)}
+        seats = sorted(cash)
+
+        for item, answers in sorted(bids_by_item(game).items()):
+            high, leader, passed = 0, None, set()
+            need = lambda: max(min_bids[item - 1], high + step)  # noqa: E731
+            able = lambda: {s for s in seats if s != leader and cash[s] >= need()}  # noqa: E731
+            at = (item - 1) % n
+            for seat, bid in answers:
+                assert not able() <= passed, (seed, n, item, "asked after it was over")
+                while seats[at] not in able():
+                    at = (at + 1) % n
+                assert seat == seats[at], (seed, n, item, "expected", seats[at], "got", seat)
+                at = (at + 1) % n
+                if bid == "pass":
+                    passed.add(seat)
+                else:
+                    high, leader, passed = bid, seat, set()
+            assert able() <= passed, (seed, n, item, "stopped early")
+            if leader:
+                cash[leader] -= high

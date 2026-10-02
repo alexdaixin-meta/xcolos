@@ -84,6 +84,10 @@ class FlowState:
         #: an expression that draws is an error rather than an unseeded guess.
         self.rng: Any = None
 
+        #: How many times each `turns` step has started, by label. The next
+        #: start opens one seat further round the table.
+        self.openings: dict[str, int] = {}
+
     # ------------------------------------------------------------------
     # Reading
     # ------------------------------------------------------------------

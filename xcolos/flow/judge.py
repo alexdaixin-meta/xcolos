@@ -88,7 +88,7 @@ MESSAGE_TYPES = ("info", "action")
 
 #: Operations an `update` reply may contain. Mirrors the executor's own set, so
 #: a model cannot propose a state change the system has no code to apply.
-UPDATE_OPS = ("set", "adjust", "append", "remove", "set_status", "disclose", "say")
+UPDATE_OPS = ("set", "adjust", "append", "remove", "set_status", "disclose")
 
 
 class JudgeError(Exception):

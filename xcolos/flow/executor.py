@@ -106,7 +106,7 @@ ACTIONS = {
         "sees": "the whole table",
         "returns": "update",
         "engine_calls": "the declared operations: set, adjust, append, remove, "
-                        "set_status, disclose, say",
+                        "set_status, disclose",
     },
     "check": {
         "sees": "the whole table",
@@ -879,6 +879,13 @@ class FlowOrchestrator:
             )
 
     def _run_ask(self, game: Game, step: StepDef) -> Iterator[Any]:
+        opened = 0
+        if step.turns:
+            # Counted before anything can return early: an item nobody can
+            # bid on still moves the opener on.
+            flow = self._state()
+            opened = flow.openings.get(step.label, 0)
+            flow.openings[step.label] = opened + 1
         ask = self._resolve_ask(step)
         if not ask.seats:
             return {}
@@ -906,6 +913,9 @@ class FlowOrchestrator:
             if not ask.seats:
                 return {}
 
+        if step.turns:
+            return (yield from self._take_turns(game, step, ask, opened))
+
         if step.mode == "sequential":
             answers: dict[int, Action] = {}
             for seat in ask.seats:
@@ -929,6 +939,65 @@ class FlowOrchestrator:
         for seat in sorted(actions):
             self._echo(game, step, seat, actions[seat])
         return actions
+
+    def _take_turns(
+        self, game: Game, step: StepDef, ask: _Ask, opened: int
+    ) -> Iterator[Any]:
+        """Go round the table, one player at a time, until everyone else passes.
+
+        Seat order, starting one seat further round each time the step runs,
+        so no seat always opens. Before every turn the table is read again:
+        who `to` still takes in, and what each may answer. A player outside
+        `to` is skipped and is not waited on. A player with no legal number
+        counts as having passed and is not asked. The player whose answer
+        stands is never asked to beat it.
+        """
+        flow = self._state()
+        turns = step.turns
+        seats = sorted(flow.players)
+        start = opened % len(seats)
+        order = seats[start:] + seats[:start]
+
+        answers: dict[int, Action] = {}
+        standing: int | None = None  # whose answer was the last that was not a pass
+        passed: set[int] = set()  # who has passed since then
+        asked = 0
+        turn = 0
+        while True:
+            fresh = self._resolve_ask(step)
+            able = [s for s in fresh.seats if self._can_answer(step, s)]
+            passed |= set(fresh.seats) - set(able)
+            if set(able) - {standing} <= passed:
+                return answers
+            seat = order[turn % len(order)]
+            turn += 1
+            if seat == standing or seat not in able:
+                continue
+            if asked >= turns.max:
+                game.abandon(f"{step.label!r} took {turns.max} answers without "
+                             "everyone else passing")
+                return answers
+            ask.legal[seat] = fresh.legal[seat]
+            action = yield self._request(step, ask, seat)
+            asked += 1
+            answers[seat] = action
+            self._remember(game, step, seat, action)
+            self._echo(game, step, seat, action)
+            self._each(game, step, seat, action)
+            value = action.target if action.target is not None else action.text
+            if str(value).strip().lower() == turns.pass_word:
+                passed.add(seat)
+            else:
+                standing, passed = seat, set()
+            if game.status.value != "running":
+                return answers
+
+    def _can_answer(self, step: StepDef, seat: int) -> bool:
+        """Has this player any number they may give? Words do not count here."""
+        if step.answer.type != "number":
+            return True
+        low, high = self._bounds(step, seat)
+        return low is None or high is None or low <= high
 
     def _each(self, game: Game, step: StepDef, seat: int, action: Action) -> None:
         """Act on one answer, before the next player is asked."""
@@ -1483,13 +1552,6 @@ class FlowOrchestrator:
         getattr(self, "_op_" + operation.op)(game, args)
         self._announce_change(game, operation, args, kind)
 
-    def _op_say(self, game: Game, args: dict[str, Any]) -> None:
-        """Change nothing. The announcement is the whole of it.
-
-        For a message that belongs among the operations because it depends on
-        an `if` — "nobody bid on this one" — rather than at the end of the step.
-        """
-
     def _op_set_status(self, game: Game, args: dict[str, Any]) -> None:
         """Change a player's status, and say so if the game asked.
 
@@ -1692,42 +1754,67 @@ class FlowOrchestrator:
             for key in rule.reveal or self.definition.reveal:
                 for seat in flow.players:
                     game.seats[seat].attributes[key] = flow.attribute(seat, key)
-            result, ranked = rule.result, {}
-            if rule.rank is not None:
-                result, ranked = self._rank(rule)
-                reason = self._render(None, reason, ranked)
+            result = rule.result
+            if rule.winner:
+                result, reason = self._winner(game, rule, step)
             self._say(
                 game, list(flow.players),
                 rule.text or "game_over", rule.llm,
                 {"winner": result, "result": result,
-                 "ending": rule.name, "reason": reason, **ranked},
+                 "ending": rule.name, "reason": reason},
                 "game_over",
             )
             game.end_game(result, reason)
             return True
         return False
 
-    def _rank(self, rule: Any) -> tuple[str, dict[str, Any]]:
-        """Who the ending's score puts first. Players level on it share.
+    #: The result when nobody could say who won. The game still ends: it met
+    #: its ending, and only the ruling on the winner is missing.
+    NO_WINNER = "no winner decided"
 
-        Returns the result — "seat 2", or "seats 1 and 3" for a shared win —
-        and names a template may use: `{score}` is the winning score and
-        `{standings}` every player's, best first.
+    def _winner(self, game: Game, rule: Any, step: StepDef | None) -> tuple[str, str]:
+        """Ask the model who won, by the ending's own sentence. (result, reason).
+
+        The model sees the whole table, hidden values included, the rules, and
+        the `winner` sentence, and names one or more seats; several share the
+        win. Nothing about scoring is the engine's: the same call ranks by
+        wealth, by votes, or by anything else a game can say in words.
+
+        The result is "seat 2", or "seats 1 and 3" for a shared win, and the
+        reason is the model's own. With no model, or an answer naming no real
+        seat, the game still ends, with `NO_WINNER` and why.
         """
         flow = self._state()
-        scores = {seat: flow.calc(rule.rank, you=seat) for seat in flow.players}
-        best = (max if rule.highest else min)(scores.values())
-        winners = [seat for seat, score in scores.items() if score == best]
+        if self.judge is None:
+            return f"{self.NO_WINNER} (no model available)", (
+                "The game ended, but deciding the winner needs a model and none "
+                "is configured.")
+        call = self._call(
+            game,
+            task="\n\n".join((
+                "This game has just ended. Decide who won, by this rule, using "
+                "the final table below:",
+                rule.winner,
+                "Answer with the seat numbers of the winners. Name more than one "
+                "only if they share the win. Give the figures you compared in "
+                "your reason.",
+            )),
+            output=Output(kind="players", options=tuple(flow.players)),
+            step=step,
+            tag="winner",
+        )
+        reply = self._ask(game, call)
+        winners = sorted(set(reply.value or ()))
+        if not winners:
+            return f"{self.NO_WINNER} (the model gave no usable answer)", (
+                "The game ended, but the model did not name a winner it could "
+                f"have: {reply.reason or 'no reason given'}.")
         if len(winners) == 1:
             result = f"seat {winners[0]}"
         else:
             result = ("seats " + ", ".join(str(w) for w in winners[:-1])
                       + f" and {winners[-1]}")
-        order = sorted(scores, key=lambda seat: (-scores[seat] if rule.highest
-                                                 else scores[seat], seat))
-        standings = ", ".join(f"seat {seat} {_number(scores[seat])}" for seat in order)
-        return result, {"score": _number(best), "standings": standings,
-                        "winners": [int(w) for w in winners]}
+        return result, reply.reason or rule.reason
 
     # ------------------------------------------------------------------
     # Helpers
@@ -1801,13 +1888,6 @@ class FlowOrchestrator:
             return str(context.get(name, match.group(0)))
 
         return re.sub(r"\{(\w+)\}", fill, template)
-
-
-def _number(value: Any) -> Any:
-    """A score as a person writes it: 1200, not 1200.0."""
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    return value
 
 
 def _subject_key(operation: Operation) -> str:

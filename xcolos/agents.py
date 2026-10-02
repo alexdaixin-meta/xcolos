@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Protocol
 
+from xcolos import calls
+from xcolos.log import MatchLog
 from xcolos.protocol import RESPONSE_REQUIRED, Action, ActionSchema, Envelope, MsgType
 from xcolos.session import Session
 from xcolos.state import Rng
@@ -189,11 +191,19 @@ class LLMAgent(BaseAgent):
         self.persona = persona
         self.model = model
         self.calls = 0
+        #: Where this seat's model calls are written. Set by whoever runs the
+        #: table, once per game, because the agent outlives any one game's log.
+        self.log: MatchLog | None = None
 
     def decide(self, env: Envelope) -> Action | None:
         schema = self._schema(env)
         self.calls += 1
-        raw = self.completion(self.session.messages(), env)
+        messages = self.session.messages()
+        system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
+        talk = "\n\n".join(f"[{m['role']}]\n{m['content']}"
+                            for m in messages if m["role"] != "system")
+        raw = calls.call(self.log, f"seat {env.seat}", self.model, system, talk,
+                         lambda: self.completion(messages, env))
         return parse_action(raw, schema, env.legal_targets)
 
 

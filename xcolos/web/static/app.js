@@ -473,7 +473,8 @@ function renderJudge() {
   const box = $("view-judge");
   box.textContent = "";
 
-  const calls = state.records.filter((r) => r.type === "judge_call");
+  const calls = state.records.filter(
+    (r) => r.type === "judge_call" || r.type === "model_call");
   if (!calls.length) {
     /* Three different reasons for an empty list, and saying the wrong one is
      * worse than saying nothing. The first version asserted "this game states
@@ -487,9 +488,9 @@ function renderJudge() {
       why = "Nothing has begun. Press Play.";
     } else if (snap.needs_judge === false) {
       why =
-        `No model calls, and there will be none: ${snap.game || "this game"} ` +
-        "states every rule as arithmetic, so the system answers them itself. " +
-        "Write a rule as a sentence and it will appear here.";
+        `No model calls yet. ${snap.game || "This game"} states every rule as ` +
+        "arithmetic, so no referee is asked; the review at the end is, and " +
+        "it appears here. So would a Model seat's every turn.";
     } else {
       why =
         "No model calls yet. The first comes at the round's check step, " +
@@ -500,6 +501,10 @@ function renderJudge() {
   }
 
   for (const r of calls) {
+    if (r.type === "model_call") {
+      box.append(modelCallCard(r));
+      continue;
+    }
     const card = el("div", "call");
     const ok = r.value !== null && r.value !== undefined;
     card.append(
@@ -517,6 +522,21 @@ function renderJudge() {
     fold(card, "raw reply from the model", r.raw || "(nothing recorded)");
     box.append(card);
   }
+}
+
+/* Any model call that is not the referee's: the review, a Model seat's turn.
+ * The reply is shown raw, because what it was used for is elsewhere. */
+function modelCallCard(r) {
+  const card = el("div", "call");
+  card.append(
+    el("div", "call-head",
+      `round ${r.round} · ${r.for} · ${r.seconds}s · ${r.model || "?"}`)
+  );
+  if (r.error) card.append(el("div", "call-verdict bad", `failed — ${r.error}`));
+  fold(card, "system prompt", r.system);
+  fold(card, "user prompt", r.prompt);
+  fold(card, "raw reply from the model", r.error ? "(no reply)" : r.raw);
+  return card;
 }
 
 /* A collapsed block. Prompts run to thousands of characters, so the default is
@@ -657,6 +677,10 @@ function renderTimeline() {
              `orchestrator asks seat ${r.seat} to ${r.action_schema} (${r.reason})`,
              "ev-orch");
       }
+    } else if (r.category === "model") {
+      line(box, r.log_seq,
+           `model · ${r.for} · ${r.seconds}s` + (r.error ? ` — failed: ${r.error}` : ""),
+           "ev-orch");
     } else if (r.category === "turn") {
       const a = r.action || {};
       const value = a.text || a.target;

@@ -90,8 +90,8 @@ ACTION_KEYS = {
     "initialize": ("updates", "requires", "llm"),
     "sync": ("to", "mode", "fields", "text", "llm", "max_words"),
     "tell": ("to", "kind", "about", "fields", "text", "llm", "max_words"),
-    "ask": ("to", "answer", "verify", "outcome", "broadcast", "each", "text",
-            "llm", "max_words", "deadline_s", "on_timeout"),
+    "ask": ("to", "answer", "verify", "outcome", "broadcast", "each", "turns",
+            "text", "llm", "max_words", "deadline_s", "on_timeout"),
     "poll": ("to", "answer", "verify", "outcome", "broadcast", "text", "llm",
              "max_words", "deadline_s", "on_timeout"),
     "update": ("do", "text", "llm", "max_words"),
@@ -118,7 +118,7 @@ GAME_VISIBILITY = ("public", "none")
 
 TYPES = ("text", "number", "bool", "list")
 ANSWER_TYPES = ("text", "player", "players", "choice", "number", "none")
-OPERATIONS = ("set", "adjust", "append", "remove", "set_status", "disclose", "say")
+OPERATIONS = ("set", "adjust", "append", "remove", "set_status", "disclose")
 OPERATORS = ("==", "!=", "<", "<=", ">", ">=")
 TALLIES = ("plurality", "majority", "unanimity")
 #: What a tally yields when it settles on no one: a tie under `on_tie:
@@ -584,6 +584,37 @@ class Branch:
 
 
 @dataclass(frozen=True)
+class TurnsDef:
+    """An `ask` that goes round the table until everyone else passes.
+
+        "turns": {"pass": "pass", "max": 500}
+
+    One player at a time, in seat order, round and round. Each time the step
+    runs, the first player asked is one seat further round than the last time.
+    Saying the `pass` word does not take a player out: they are asked again
+    next time round. The step ends when every other player has passed since
+    the last answer that was not a pass, or when everyone has passed and
+    nobody has answered anything else. `max` caps the answers; reaching it
+    abandons the match, as a `repeat` does.
+    """
+
+    pass_word: str
+    max: int = 500
+
+    @staticmethod
+    def parse(raw: Any, where: str) -> "TurnsDef":
+        _require(isinstance(raw, dict), where, f"expected an object, got {raw!r}")
+        _only(raw, ("pass", "max"), where)
+        word = raw.get("pass")
+        _require(isinstance(word, str) and word.strip(), where + ".pass",
+                 "name the answer that passes, like \"pass\"")
+        cap = raw.get("max", 500)
+        _require(isinstance(cap, int) and cap > 0, where + ".max",
+                 f"expected a whole number above 0, got {cap!r}")
+        return TurnsDef(pass_word=word.strip().lower(), max=cap)
+
+
+@dataclass(frozen=True)
 class OutcomeDef:
     """What a step does with the answers it just gathered.
 
@@ -695,7 +726,7 @@ class Operation:
         if "players" in args:
             _require("player" not in args, where,
                      "give `player` for one seat or `players` for a group, not both")
-            _require(op not in ("disclose", "say"), where + ".players",
+            _require(op != "disclose", where + ".players",
                      f"{op} does not act on a player")
             args["players"] = Selector.parse(args["players"], where + ".players")
         if "if" in args:
@@ -838,6 +869,9 @@ class StepDef:
     #: which is what an auction needs — each bid moves the price the next
     #: bidder is asked to beat.
     each: Branch | None = None
+    #: For `ask`: go round the table, one player at a time, until everyone
+    #: else passes. See `TurnsDef`.
+    turns: TurnsDef | None = None
     #: For `repeat`: the steps to run again, until `until` holds, at most
     #: `max` times. Tested before every pass, so a loop whose condition is
     #: already true runs none.
@@ -964,6 +998,8 @@ class StepDef:
             ),
             text=raw.get("text"),
             each=Branch.parse(raw["each"], where + ".each") if "each" in raw else None,
+            turns=TurnsDef.parse(raw["turns"], where + ".turns")
+            if "turns" in raw else None,
             until=Condition.parse(raw["until"], where + ".until")
             if "until" in raw else None,
             max=int(raw.get("max", 0)),
@@ -1005,33 +1041,29 @@ class EndRule:
     #: announcement in the engine takes one or the other, so a game chooses
     #: per message whether it wants a fixed sentence or a written one.
     llm: str = ""
-    #: Instead of a fixed `result`: score every player with this expression,
-    #: `you` being each in turn, and the best score wins. Players level on the
-    #: best score share the win. A fixed result cannot name the winner of a
-    #: game for any number of players; this can.
-    rank: Expr | None = None
-    highest: bool = True
+    #: Instead of a fixed `result`: who wins, in the game's own words. When
+    #: the ending fires a model is shown the whole table and this sentence and
+    #: names the winning seats; players it names together share the win. Any
+    #: rule a game can state, it can rank by, without the engine knowing how.
+    winner: str = ""
 
     @staticmethod
     def parse(name: str, raw: Any, where: str) -> "EndRule":
         _require(isinstance(raw, dict), where, f"expected an ending, got {raw!r}")
-        _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "rank"),
+        _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "winner"),
               where)
         _require("when" in raw, where, "needs a `when`")
-        _require(("result" in raw) != ("rank" in raw), where,
-                 "needs a `result`, or a `rank` to work one out; not both")
-        rank = raw.get("rank")
-        if rank is not None:
-            _require(isinstance(rank, dict), where + ".rank",
-                     'is {"by": "<expression>", "highest": true}')
-            _only(rank, ("by", "highest"), where + ".rank")
-            _require("by" in rank, where + ".rank", "needs `by`, the score")
+        _require(("result" in raw) != ("winner" in raw), where,
+                 "needs a `result`, or a `winner` saying who wins; not both")
+        winner = raw.get("winner")
+        if winner is not None:
+            _require(isinstance(winner, str) and winner.strip(), where + ".winner",
+                     "is a sentence saying who wins")
         return EndRule(
             name=name,
             when=Condition.parse(raw["when"], where + ".when"),
             result=str(raw.get("result", "")),
-            rank=_expr(rank["by"], where + ".rank.by") if rank else None,
-            highest=bool(rank.get("highest", True)) if rank else True,
+            winner=str(winner or "").strip(),
             reason=str(raw.get("reason", "")),
             reveal=tuple(raw.get("reveal", ())),
             text=str(raw.get("text", "")),
@@ -1485,7 +1517,7 @@ def _check_text(d: GameDefinition) -> None:
             wording = op.args.get("text")
             if wording:
                 _wording(str(wording), text, f"{where}.{j}.text")
-            elif op.op in ("disclose", "say") and not op.args.get("llm"):
+            elif op.op == "disclose" and not op.args.get("llm"):
                 _require(False, f"{where}.{j}",
                          f"a `{op.op}` is a message, so it needs `text` giving "
                          "the words, or `llm` to have them written")
@@ -1596,12 +1628,19 @@ def _check_references(d: GameDefinition) -> None:
             for j, op in enumerate(step.each.do):
                 _check_operation(op, mine, player_keys, game_keys, status_ids,
                                  f"{where}.each.do[{j}]")
+        if step.turns:
+            answer = step.answer
+            _require(answer is not None, where + ".turns",
+                     "only an `ask` with an `answer` can go round the table")
+            words = (answer.alternatives if answer.type == "number"
+                     else tuple(answer.options) if answer.type == "choice" else ())
+            _require(step.turns.pass_word in {str(w).lower() for w in words},
+                     where + ".turns.pass",
+                     f"{step.turns.pass_word!r} is not an answer this step accepts; "
+                     "add it to the answer's `or` (or `options`)")
 
     for i, rule in enumerate(d.end):
         _check_condition(rule.when, player_keys, game_keys, f"end[{i}].when")
-        if rule.rank:
-            _check_expr(rule.rank, player_keys, game_keys, None,
-                        f"end.{rule.name}.rank.by")
     for key in d.reveal:
         _require(key in player_keys, "reveal", f"{key!r} is not a declared attribute")
 
