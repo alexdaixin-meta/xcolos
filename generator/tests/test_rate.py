@@ -116,7 +116,8 @@ def test_long_lists_go_in_batches_and_snippets_are_cut():
 
 def test_the_rubric_is_anchored_in_the_manifest():
     system = rate.system_prompt(gates.load_manifest())
-    assert "conditional_subsequence" in system and "spatial_board" in system  # the cannot list
+    assert "conditional_subsequence" in system  # the cannot list
+    assert "spatial_board" in system  # the out-of-scope list
     assert "hidden_hands" in system  # the can list
     assert "1  Not a specific playable game" in system
 

@@ -10,7 +10,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from generator import gates
+from generator import gates, rate
 from generator.cli import main
 from generator.inventory import Inventory
 from generator.schema import RecordError, from_dict
@@ -215,19 +215,19 @@ def test_gaps_are_ranked_by_games_blocked():
         "enemy on an adjacent square. Captured pieces leave the board for good, each side starts with eight pieces, "
         "and the first side to cross the whole board with a surviving piece wins the game for good.",
     ]
-    for i, need in enumerate(["real_time", "real_time", "spatial_board"]):
+    for i, need in enumerate(["real_time", "real_time", "binding_agreements"]):
         inv.add(make(id=f"g{i}", name=f"G{i}", needs=[need], rules_text=texts[i]))
-    assert inv.gaps().most_common() == [("real_time", 2), ("spatial_board", 1)]
+    assert inv.gaps().most_common() == [("real_time", 2), ("binding_agreements", 1)]
 
 
 def test_recheck_moves_a_game_when_a_gap_closes():
     inv = inventory()
-    inv.add(make(needs=["spatial_board"]))
+    inv.add(make(needs=["binding_agreements"]))
     assert inv.get("race").status == "blocked"
 
     manifest = copy.deepcopy(inv.manifest)
     manifest["version"] += 1
-    manifest["needs"]["spatial_board"]["verdict"] = "ok"
+    manifest["needs"]["binding_agreements"]["verdict"] = "ok"
     inv.manifest = manifest
     assert inv.recheck() == [("race", "blocked", "ready")]
     assert inv.get("race").checked_with == manifest["version"]
@@ -237,6 +237,44 @@ def test_lifecycle_status_is_never_changed_by_a_gate():
     inv = inventory()
     inv.save(make(status="accepted", needs=["real_time"]))
     assert inv.check("race").status == "accepted"
+
+
+# -- scope: games that are out by decision -------------------------------------
+
+
+def test_a_spatial_game_is_rejected_not_blocked():
+    rec = inventory().add(make(needs=["sequential_choice", "spatial_board"]))
+    assert rec.status == "rejected" and rec.blocked_by == []
+    assert rec.reasons[0].startswith("scope: spatial_board") and "spatial board" in rec.reasons[0]
+
+
+def test_an_excluded_game_is_not_counted_as_an_engine_gap():
+    inv = inventory()
+    inv.add(make(needs=["spatial_board", "real_time"]))
+    assert inv.get("race").status == "rejected"
+    assert inv.gaps() == {}
+
+
+def test_games_that_do_not_need_a_spatial_board_are_untouched_by_the_exclusion():
+    for needs, hidden in ((["hidden_hands", "shared_deck_draw"], ["hands"]),   # a card game
+                          (["private_values", "numeric_bids"], ["private_values"]),   # an auction
+                          (["roles_with_allies", "elimination"], ["roles"])):   # a social deduction game
+        assert status(inventory(), hidden=hidden, needs=needs) == "ready", needs
+
+
+def test_recheck_turns_games_blocked_by_a_now_excluded_need_into_rejected():
+    inv = inventory()
+    inv.manifest["needs"]["spatial_board"]["verdict"] = "blocked"
+    inv.add(make(needs=["spatial_board"]))
+    assert inv.get("race").status == "blocked"
+    inv.manifest = gates.load_manifest()  # the shipped manifest excludes it
+    assert inv.recheck() == [("race", "blocked", "rejected")]
+
+
+def test_the_rater_is_told_spatial_games_are_out():
+    system = rate.system_prompt(gates.load_manifest())
+    assert "Out of scope, never wanted: spatial_board" in system and "spatial board" in system
+    assert "spatial_board" not in system.split("The engine cannot express:")[1].split("Out of scope")[0]
 
 
 # -- verifiability and value -----------------------------------------------
@@ -360,8 +398,8 @@ def test_the_shipped_inventory_is_consistent_with_its_gates():
 def test_the_manifest_loads_and_every_verdict_is_known():
     manifest = gates.load_manifest()
     assert manifest["needs"]
-    assert {e["verdict"] for e in manifest["needs"].values()} <= {"ok", "workaround", "blocked"}
-    assert {e["basis"] for e in manifest["needs"].values()} <= {"documented", "assumed"}
+    assert {e["verdict"] for e in manifest["needs"].values()} <= {"ok", "workaround", "blocked", "excluded"}
+    assert {e["basis"] for e in manifest["needs"].values()} <= {"documented", "assumed", "decided"}
 
 
 def test_cli_add_list_and_gaps(capsys=None):

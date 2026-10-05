@@ -33,8 +33,9 @@ class Rating:
 
 
 def system_prompt(manifest: dict) -> str:
-    can = [k for k, v in manifest["needs"].items() if v["verdict"] != "blocked"]
+    can = [k for k, v in manifest["needs"].items() if v["verdict"] in ("ok", "workaround")]
     cannot = [f"{k} ({v['note']})" for k, v in manifest["needs"].items() if v["verdict"] == "blocked"]
+    out = [f"{k} ({v['note']})" for k, v in manifest["needs"].items() if v["verdict"] == "excluded"]
     return f"""You triage games for an engine that runs turn-based, text-only strategy games between language
 models, for a player count of 2 to {manifest['max_players']}, and decides the winner by arithmetic on the moves.
 The point of the games is to train strategic reasoning: hidden information, bluffing, bidding, bargaining,
@@ -47,12 +48,14 @@ For each numbered item you get a page title and the opening of its page. Rate ho
   4  Specific, playable, clearly strategic, but one thing is doubtful or needs a workaround.
   3  Playable, but little reasoning (mostly luck, trivial or solved), or good but needs something on the
      "cannot" list.
-  2  Playable but a poor fit: real-time, depends on a spatial board, or very long.
+  2  Playable but a poor fit: real-time or very long.
   1  Not a specific playable game: a concept, a list, an algorithm, a person, a company, a physical sport,
-     a video game, or something that cannot be played turn by turn as text.
+     a video game, or something that cannot be played turn by turn as text. Also 1: any game that depends
+     on a spatial board (the "out of scope" list), whatever else it offers.
 
 The engine can express: {', '.join(can)}.
 The engine cannot express: {'; '.join(cannot)}.
+Out of scope, never wanted: {'; '.join(out)}.
 
 Judge from the text you are given. If it says too little to tell, rate 3. Reply with one JSON object and
 nothing else:

@@ -40,7 +40,7 @@ SAME_TEXT = 0.85
 #: twins on a recheck cannot both call the other the original.
 ESTABLISHED = ("ready", "blocked") + LIFECYCLE
 
-_SEVERITY = {"ok": 0, "workaround": 1, "blocked": 2}
+_SEVERITY = {"ok": 0, "workaround": 1, "blocked": 2, "excluded": 3}
 
 
 def load_manifest(path: Path = MANIFEST_PATH) -> dict:
@@ -109,10 +109,15 @@ def duplication(rec: Record, others: list[Record], seen: bool) -> tuple[Verdict 
 
 
 def capability(rec: Record, manifest: dict) -> tuple[Verdict | None, list[str], list[str]]:
-    """Returns a blocked verdict if anything is, plus the blockers and workarounds."""
+    """Returns a verdict if the game is rejected or blocked, plus the blockers and workarounds."""
     blocked: list[str] = []
     workarounds: list[str] = []
     reasons: list[str] = []
+
+    # Out of scope by decision: not an engine gap, so it is dropped, not queued behind one.
+    out = [n for n in rec.needs if manifest["needs"][n]["verdict"] == "excluded"]
+    if out:
+        return Verdict("rejected", "scope", tuple(f"{n}: {manifest['needs'][n]['note']}" for n in out)), [], []
 
     if rec.players_min > manifest["max_players"]:
         blocked.append("player_count")
