@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "match_or_miss",
+    "name": "Match or Miss",
+    "players": {
+      "min": 2,
+      "max": 2
+    },
+    "blurb": "Two players choose A or B in secret; seat 1 scores when they match, seat 2 when they differ."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "rounds_left",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "last_a1",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "last_a2",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      }
+    ]
+  },
+  "rules": "Three rounds. Each round both players secretly choose A or B. If the choices match, seat 1 scores a point; if they differ, seat 2 does. The higher score wins.",
+  "setup": [
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "ask",
+      "label": "seat 1 chooses",
+      "to": {
+        "where": "you.seat == 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "A",
+          "B"
+        ]
+      },
+      "verify": {
+        "bind": "a1"
+      },
+      "text": "Choose A or B. Your opponent will not see it."
+    },
+    {
+      "use": "ask",
+      "label": "seat 2 chooses",
+      "to": {
+        "where": "you.seat == 2"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "A",
+          "B"
+        ]
+      },
+      "verify": {
+        "bind": "a2"
+      },
+      "text": "Choose A or B. Your opponent will not see it."
+    },
+    {
+      "use": "update",
+      "label": "score the round",
+      "do": [
+        {
+          "set": {
+            "key": "last_a1",
+            "value": "$a1"
+          }
+        },
+        {
+          "set": {
+            "key": "last_a2",
+            "value": "$a2"
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "score",
+            "value": {
+              "calc": "1 if $a1 == $a2 else 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "score",
+            "value": {
+              "calc": "0 if $a1 == $a2 else 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "rounds_left",
+            "value": -1
+          }
+        }
+      ],
+      "text": "Seat 1 chose {last_a1}, seat 2 chose {last_a2}."
+    },
+    {
+      "use": "check",
+      "label": "is it over",
+      "when": {
+        "calc": "rounds_left <= 0"
+      },
+      "against": [
+        "seat_1_wins",
+        "seat_2_wins",
+        "draw"
+      ]
+    }
+  ],
+  "end": {
+    "seat_1_wins": {
+      "when": {
+        "calc": "players[0].score > players[1].score"
+      },
+      "result": "seat 1",
+      "text": "Seat 1 wins."
+    },
+    "seat_2_wins": {
+      "when": {
+        "calc": "players[1].score > players[0].score"
+      },
+      "result": "seat 2",
+      "text": "Seat 2 wins."
+    },
+    "draw": {
+      "when": {
+        "calc": "players[0].score == players[1].score"
+      },
+      "result": "draw",
+      "text": "A draw."
+    }
+  }
+}

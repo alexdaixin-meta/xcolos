@@ -119,17 +119,14 @@ GAME_VISIBILITY = ("public", "none")
 TYPES = ("text", "number", "bool", "list")
 ANSWER_TYPES = ("text", "player", "players", "choice", "number", "none")
 OPERATIONS = ("set", "adjust", "append", "remove", "set_status", "disclose")
-OPERATORS = ("==", "!=", "<", "<=", ">", ">=")
 TALLIES = ("plurality", "majority", "unanimity")
 #: What a tally yields when it settles on no one: a tie under `on_tie:
 #: nobody`, a rule that needed a majority and did not get one, or a step
-#: nobody answered. Operations naming it as `unless` are skipped.
+#: nobody answered. A game guards an operation against it with
+#: `"if": {"calc": "$target != 'nobody'"}`.
 #:
-#: One constant because the word travels between the engine and the game file
-#: — `tally()` produces it, `_seat()` refuses it, and a definition writes
-#: `"unless": "nobody"` to guard against it. Written independently in each
-#: place, a typo in the file would silently disarm the guard, so the loader
-#: checks any `unless` against this.
+#: One constant because the word travels between the engine and the game file:
+#: `tally()` produces it and `_seat()` refuses it.
 NOBODY = "nobody"
 
 #: A tally that must be taken again. Distinct from NOBODY: one is a result,
@@ -269,28 +266,19 @@ class Selector:
     to exclude eliminated players.
     """
 
-    #: "acting" | "all" | "attribute" | "ids" | "where" | "others" | "ally" |
-    #: "author"
+    #: "acting" | "all" | "where" | "others" | "ally" | "author"
     #:
     #: The last three are relative to whoever the message is about — the player
     #: who just answered. They were a separate four-value enum on `broadcast`,
     #: so "who" was spelled four ways across the schema with four types. One
     #: grammar means one word and one parser.
+    #:
+    #: Anything else is a `where`: an expression asked of each player in turn,
+    #: as `you`. `{"where": "you.role == 'mafia'"}`, `{"where": "you.seat ==
+    #: $chancellor"}`, `{"where": "you.cash >= min_bid"}`. There used to be an
+    #: attribute form and a seat-list form as well; both were special cases of
+    #: this, so there is one way to say who.
     kind: str
-    attribute: str | None = None
-    is_: Any = None
-    negate: bool = False
-    ids: tuple[int, ...] = ()
-
-    #: Names an earlier step bound, as in `{"ids": ["$chancellor"]}`. Resolved
-    #: when the step runs, not when the file loads, because the seat is not
-    #: known until the question has been asked. This is what lets one step
-    #: address the player another step chose.
-    refs: tuple[str, ...] = ()
-
-    #: For `where`: an expression asked of each player in turn, as `you`.
-    #: `{"where": "you.cash >= min_bid"}` names everyone who can afford the
-    #: item — a question the one-attribute form cannot ask.
     test: Expr | None = None
 
     @property
@@ -304,93 +292,29 @@ class Selector:
             return Selector(kind="acting")
         if raw in ("all", "others", "ally", "author"):
             return Selector(kind=str(raw))
-        _require(isinstance(raw, dict), where, f"expected a selector, got {raw!r}")
-        _only(raw, ("ids", "attribute", "is", "not", "acting", "where"), where)
-        if "where" in raw:
-            _require(len(set(raw) - {"acting"}) == 1, where,
-                     "`where` is the whole test; it takes no `attribute` or `ids`")
-            return Selector(kind="where", test=_expr(raw["where"], where + ".where"))
-        if "ids" in raw:
-            ids = raw["ids"]
-            _require(isinstance(ids, list), where, "ids must be a list")
-            seats, refs = [], []
-            for entry in ids:
-                if isinstance(entry, str) and entry.startswith("$"):
-                    refs.append(entry[1:])
-                    continue
-                try:
-                    seats.append(int(entry))
-                except (TypeError, ValueError):
-                    # Reported here rather than as a bare int() traceback, which
-                    # named neither the step nor the offending entry.
-                    _require(False, where,
-                             f"ids takes seat numbers or $bindings, got {entry!r}")
-            return Selector(kind="ids", ids=tuple(seats), refs=tuple(refs))
-        _require("attribute" in raw, where, "a selector needs `attribute` or `ids`")
-        return Selector(
-            kind="attribute",
-            attribute=str(raw["attribute"]),
-            is_=raw.get("is"),
-            negate=bool(raw.get("not", False)),
-        )
+        _require(isinstance(raw, dict), where,
+                 'expected "all", "acting", "others", "ally", "author" or '
+                 f'{{"where": "<expression>"}}, got {raw!r}')
+        _only(raw, ("where",), where)
+        _require("where" in raw, where, 'needs `where`, an expression about `you`')
+        return Selector(kind="where", test=_expr(raw["where"], where + ".where"))
 
-
-@dataclass(frozen=True)
-class Operand:
-    """One side of a comparison: a count over a selector, or a table attribute.
-
-    Separate from Condition because the right-hand side of `a >= b` is a thing
-    to measure, not another question to answer.
-    """
-
-    kind: str  # "count" | "game"
-    selector: Selector | None = None
-    acting_only: bool = True
-    attribute: str | None = None
-
-    @staticmethod
-    def parse(raw: Any, where: str, *, strict: bool = True) -> "Operand":
-        """`strict=False` when reading the left side of a comparison.
-
-        A comparison keeps its left operand in the same object as its operator
-        and its right side, so that dict legitimately carries `op` and `value`
-        as well. The condition checks the whole shape; this one must not
-        object to the keys that belong to its parent.
-        """
-        _require(isinstance(raw, dict), where, f"expected an operand, got {raw!r}")
-        if strict:
-            _only(raw, ("count", "game"), where)
-        if "count" in raw:
-            inner = raw["count"]
-            _require(isinstance(inner, dict), where + ".count", "takes a selector")
-            return Operand(
-                kind="count",
-                selector=Selector.parse(inner, where + ".count"),
-                acting_only=bool(inner.get("acting", True)),
-            )
-        _require("game" in raw, where, "an operand needs `count` or `game`")
-        return Operand(kind="game", attribute=str(raw["game"]))
 
 
 @dataclass(frozen=True)
 class Condition:
     """A question about the table, asked one of two ways.
 
-    A `compare` is arithmetic: an operand against a literal or another operand.
-    The system answers it itself, the same way every time.
+    A `calc` is arithmetic, `{"calc": "item >= items"}`. The system answers it
+    itself, the same way every time.
 
-    A `prose` condition is a sentence, handed to a judge. It exists because the
-    comparison language is deliberately small and always will be, and because a
+    A `prose` condition is a sentence, handed to a judge. It exists because a
     sentence is what someone writing a new game actually has in their head.
     The cost is that the answer becomes a judgement, so anything expressible as
     arithmetic should stay arithmetic.
     """
 
-    kind: str  # "compare" | "prose" | "calc"
-    left: Operand | None = None
-    op: str = "=="
-    value: Any = None
-    other: Operand | None = None
+    kind: str  # "prose" | "calc"
     #: The sentence a judge is asked, for `kind == "prose"`.
     prose: str = ""
     #: For `kind == "calc"`: an expression, true or false.
@@ -402,24 +326,14 @@ class Condition:
             _require(raw.strip(), where, "an empty condition asks nothing")
             return Condition(kind="prose", prose=raw.strip())
         _require(isinstance(raw, dict), where, f"expected a condition, got {raw!r}")
-        _only(raw, ("prose", "count", "game", "op", "value", "other", "calc"), where)
+        _require(set(raw) in ({"calc"}, {"prose"}), where,
+                 'a condition is a sentence, {"calc": "<expression>"} or '
+                 f'{{"prose": "<sentence>"}}, got {raw!r}')
         if "calc" in raw:
-            _require(len(raw) == 1, where, "`calc` is the whole condition")
             return Condition(kind="calc", expr=_expr(raw["calc"], where + ".calc"))
-        if "prose" in raw:
-            text = str(raw["prose"]).strip()
-            _require(text, where + ".prose", "an empty condition asks nothing")
-            return Condition(kind="prose", prose=text)
-        left = Operand.parse(raw, where, strict=False)
-        op = _one_of(raw.get("op", "=="), OPERATORS, where + ".op")
-        other = Operand.parse(raw["other"], where + ".other") if "other" in raw else None
-        _require(
-            ("value" in raw) != (other is not None),
-            where,
-            "give exactly one of `value` or `other`",
-        )
-        return Condition(kind="compare", left=left, op=op,
-                         value=raw.get("value"), other=other)
+        text = str(raw["prose"]).strip()
+        _require(text, where + ".prose", "an empty condition asks nothing")
+        return Condition(kind="prose", prose=text)
 
 
 @dataclass(frozen=True)
@@ -1294,7 +1208,6 @@ def parse(raw: dict[str, Any]) -> GameDefinition:
     _check_references(definition)
     _check_text(definition)
     _check_endings(definition)
-    _check_sentinels(definition)
     _check_prompts(definition)
     _check_requires(definition)
     return definition
@@ -1409,26 +1322,6 @@ def _check_prompts(d: GameDefinition) -> None:
         )
         if step.text:
             _wording(step.text, d.text, f"{where}.text")
-
-
-def _check_sentinels(d: GameDefinition) -> None:
-    """An `unless` guard must name a value the engine can actually produce.
-
-    `"unless": "noboby"` used to load and then never match, so the operation it
-    guarded ran on a binding that named no one. The guard was written to stop
-    exactly that, and a typo turned it off in silence.
-    """
-    for where, step in _walk(d):
-        for j, op in enumerate(step.do):
-            guard = op.args.get("unless")
-            if guard is None:
-                continue
-            _require(
-                guard in (NOBODY, RERUN),
-                f"{where}.do[{j}].unless",
-                f"{guard!r} is not a value a tally can produce. "
-                f"Expected {NOBODY!r} or {RERUN!r}",
-            )
 
 
 def _check_endings(d: GameDefinition) -> None:
@@ -1565,15 +1458,6 @@ def _check_references(d: GameDefinition) -> None:
     # Setup is checked on the same terms as a round's steps: a selector naming
     # an attribute nobody declared is a typo wherever it appears.
     for where, step in _walk(d):
-        if step.to.kind == "attribute":
-            _require(step.to.attribute in player_keys, where + ".to",
-                     f"{step.to.attribute!r} is not a declared player attribute")
-        # Checked before this step's own bind is recorded: `to` is resolved
-        # before the question is asked, so a step cannot address the player its
-        # own answer is about to name.
-        for name in step.to.refs:
-            _require(name in bound, where + ".to",
-                     f"${name} is used before any step binds it")
         if step.to.relative:
             # `others`, `ally` and `author` mean nothing without a subject, and
             # only `about` supplies one. Without this they named nobody and the
@@ -1595,11 +1479,13 @@ def _check_references(d: GameDefinition) -> None:
             _require(declared.type == "list", where + ".answer.options",
                      f"{source.key!r} is declared {declared.type!r}; options "
                      f"must come from a `list` attribute")
-        if step.answer and step.answer.exclude and step.answer.exclude.kind == "attribute":
-            _require(step.answer.exclude.attribute in player_keys,
-                     where + ".answer.exclude",
-                     f"{step.answer.exclude.attribute!r} is not declared")
+        # Checked before this step's own bind is recorded: `to` is resolved
+        # before the question is asked, so a step cannot address the player its
+        # own answer is about to name.
         _check_selector(step.to, player_keys, game_keys, bound, where + ".to")
+        if step.answer and step.answer.exclude:
+            _check_selector(step.answer.exclude, player_keys, game_keys, bound,
+                            where + ".answer.exclude")
         if step.answer:
             for side, value in (("min", step.answer.minimum),
                                 ("max", step.answer.maximum)):
@@ -1609,7 +1495,6 @@ def _check_references(d: GameDefinition) -> None:
         if step.when:
             _check_condition(step.when, player_keys, game_keys, where + ".when",
                              bound)
-            _check_gate_is_not_its_own_audience(step, where)
         if step.until:
             _check_condition(step.until, player_keys, game_keys, where + ".until",
                              bound)
@@ -1671,38 +1556,6 @@ def _scaled_roster(raw: dict[str, Any], where: str) -> dict[int, dict[str, Any]]
     return out
 
 
-#: Actions that do nothing when their `to` names nobody, and so need no gate
-#: saying whether anybody is there.
-_SKIPS_WHEN_UNADDRESSED = ("ask", "poll", "tell", "sync")
-
-
-def _check_gate_is_not_its_own_audience(step: "StepDef", where: str) -> None:
-    """Refuse `when: count(X) > 0` on a step already addressed to X.
-
-    Mafia's investigation was written this way: the detective was named twice,
-    once as the audience and once as a gate asking whether that audience
-    exists. The gate could not change anything — an `ask` with nobody to ask
-    already does nothing — so it was a clause a reader has to understand and
-    then discover means nothing.
-
-    Redundant rather than wrong, which is why it survived. But two spellings of
-    one fact is exactly what drifts: change the audience, forget the gate, and
-    now the step is gated on a role it no longer addresses.
-    """
-    condition, to = step.when, step.to
-    if step.use not in _SKIPS_WHEN_UNADDRESSED or condition.kind != "compare":
-        return
-    left = condition.left
-    if not left or left.kind != "count" or left.selector != to:
-        return
-    if (condition.op, condition.value) not in ((">", 0), (">=", 1), ("!=", 0)):
-        return
-    _require(False, where + ".when",
-             f"restates `to`: a {step.use} addressed to nobody already does "
-             f"nothing, so counting that audience gates nothing. Drop the "
-             f"`when`, or gate on something `to` does not already say")
-
-
 def _check_expr(expr: Expr, player_keys, game_keys, bound, where: str) -> None:
     """Every name an expression reads must be one the game declared.
 
@@ -1725,27 +1578,13 @@ def _check_selector(selector: Selector, player_keys, game_keys, bound,
                     where: str) -> None:
     if selector.kind == "where" and selector.test is not None:
         _check_expr(selector.test, player_keys, game_keys, bound, where + ".where")
-    elif selector.kind == "attribute":
-        _require(selector.attribute in player_keys, where,
-                 f"{selector.attribute!r} is not a declared player attribute")
 
 
 def _check_condition(c: Condition, player_keys, game_keys, where: str,
                      bound=None) -> None:
     if c.kind == "prose":
         return  # nothing to check against: a judge reads it, not the loader
-    if c.kind == "calc":
-        _check_expr(c.expr, player_keys, game_keys, bound, where)
-        return
-    for side, operand in (("", c.left), (".other", c.other)):
-        if operand is None:
-            continue
-        if operand.kind == "game":
-            _require(operand.attribute in game_keys, where + side,
-                     f"{operand.attribute!r} is not a declared table attribute")
-        elif operand.selector and operand.selector.kind == "attribute":
-            _require(operand.selector.attribute in player_keys, where + side,
-                     f"{operand.selector.attribute!r} is not a declared player attribute")
+    _check_expr(c.expr, player_keys, game_keys, bound, where)
 
 
 def _check_operation(op: Operation, bound, player_keys, game_keys, status_ids,

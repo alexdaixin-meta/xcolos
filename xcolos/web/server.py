@@ -291,6 +291,7 @@ class MatchHandle:
             "status": g.status.value,
             "winner": g.winner,
             "reason": g.reason,
+            "summary": g.summary,
             "round": g.round,
             "turn": g.turn_seq,
             "phase": g.phase,

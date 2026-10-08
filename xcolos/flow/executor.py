@@ -1545,10 +1545,6 @@ class FlowOrchestrator:
         if seat is not None:
             raw["player"] = seat
         args = self._bind(raw, you=you)
-        if args.get("unless") is not None and args.get(
-            _subject_key(operation)
-        ) == args["unless"]:
-            return
         getattr(self, "_op_" + operation.op)(game, args)
         self._announce_change(game, operation, args, kind)
 
@@ -1595,7 +1591,7 @@ class FlowOrchestrator:
             game, heard,
             str(args.get("text") or ""), str(args.get("llm") or ""),
             {k: v for k, v in args.items()
-             if k not in ("text", "llm", "announce_to", "unless")}
+             if k not in ("text", "llm", "announce_to")}
             | {"player": subject, "subject": subject},
             f"{kind}_{operation.op}" if kind else operation.op,
             int(args.get("max_words", 0)),
@@ -1610,8 +1606,8 @@ class FlowOrchestrator:
         extra: dict[str, Any],
         fact_type: str,
         max_words: int = 0,
-    ) -> None:
-        """Announce something, worded by the game or by a model.
+    ) -> str:
+        """Announce something, worded by the game or by a model. Returns the words (the first listener's, when a model wrote one each).
 
         The one place an announcement is turned into words, so every site gets
         the same choice: a prompt if the game wrote one and a model is
@@ -1623,10 +1619,11 @@ class FlowOrchestrator:
         """
         flow = self._state()
         if not heard:
-            return
+            return ""
         everyone = len(heard) == len(flow.players)
 
         if llm and self.judge is not None:
+            first = ""
             for listener in heard:
                 reply = self._ask(
                     game,
@@ -1640,21 +1637,27 @@ class FlowOrchestrator:
                     ),
                 )
                 if reply.value:
+                    first = first or reply.value["text"]
                     game.emit_fact(
                         fact_type,
                         {**extra, "rendered": reply.value["text"]},
                         Audience.only(listener),
                     )
-            return
+            if first:
+                return first
+            # no model reply: the template is the fallback, as everywhere else
+            if not text:
+                return ""
 
         rendered = self._render(None, text, extra) if text else ""
         if not rendered:
-            return
+            return ""
         game.emit_fact(
             fact_type,
             {**extra, "rendered": rendered},
             Audience.all() if everyone else Audience.only(*heard),
         )
+        return rendered
 
     def _op_set(self, game: Game, args: dict[str, Any]) -> None:
         self._state().set_attribute(args.get("player"), str(args["key"]), args.get("value"))
@@ -1757,14 +1760,16 @@ class FlowOrchestrator:
             result = rule.result
             if rule.winner:
                 result, reason = self._winner(game, rule, step)
-            self._say(
+            announced = self._say(
                 game, list(flow.players),
                 rule.text or "game_over", rule.llm,
                 {"winner": result, "result": result,
                  "ending": rule.name, "reason": reason},
                 "game_over",
             )
-            game.end_game(result, reason)
+            # The console shows the ending's own announcement (final scores
+            # and all) under the winner, not just a bare name.
+            game.end_game(result, reason, summary=announced)
             return True
         return False
 
@@ -1885,9 +1890,22 @@ class FlowOrchestrator:
 
         def fill(match: re.Match[str]) -> str:
             name = match.group(1)
-            return str(context.get(name, match.group(0)))
+            if name in context:
+                return str(context[name])
+            if not name.isidentifier():
+                # `{players[0].score}`: anything that is not a bare name is
+                # an expression, worked out the way a `calc` is.
+                try:
+                    return _show(flow.calc(Expr(name), you=seat))
+                except CalcError:
+                    pass
+            return match.group(0)
 
-        return re.sub(r"\{(\w+)\}", fill, template)
+        return re.sub(r"\{([^{}]+)\}", fill, template)
+
+
+def _show(value: Any) -> str:
+    return f"{value:g}" if isinstance(value, float) else str(value)
 
 
 def _subject_key(operation: Operation) -> str:

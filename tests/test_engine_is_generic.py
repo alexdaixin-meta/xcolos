@@ -178,7 +178,7 @@ ORCHARD = {
             "label": "the tally",
             "do": [
                 {"adjust": {"player": "$picker", "key": "basket", "value": 1,
-                            "unless": "nobody"}},
+                            "if": {"calc": "$picker != 'nobody'"}}},
                 {"adjust": {"key": "fruit_left", "value": -1}},
             ],
             "text": "tally",
@@ -187,7 +187,7 @@ ORCHARD = {
     ],
     "end": {
         "trees_bare": {
-            "when": {"game": "fruit_left", "op": "<=", "value": 0},
+            "when": {"calc": "fruit_left <= 0"},
             "result": "the orchard",
             "reason": "the trees are bare",
         }
@@ -210,7 +210,7 @@ ORCHARD = {
 }
 
 
-def play(raw: dict, seed: int = 1, seats: int = 4):
+def play(raw: dict, seed: int = 1, seats: int = 4, orchestrator=None):
     definition = load(json.dumps(raw), source=raw["meta"]["id"])
     log = MatchLog("generic")
     game = Game("generic", definition.id, seed, log)
@@ -222,7 +222,8 @@ def play(raw: dict, seed: int = 1, seats: int = 4):
     for bound in host.register():
         index = game.register_seat(bound.name, host.host_id, bound.profile)
         registry.attach(index, host, bound)
-    return Runner(game, FlowOrchestrator(definition), registry).run(), game
+    orchestrator = orchestrator or FlowOrchestrator(definition)
+    return Runner(game, orchestrator, registry).run(), game
 
 
 def test_a_game_sharing_no_vocabulary_with_mafia_plays_to_its_own_ending():
@@ -372,7 +373,7 @@ CARDS = {
          "text": "A card is played."},
         {"use": "check", "label": "the last trick"},
     ],
-    "end": {"done": {"when": {"game": "played", "op": ">=", "value": 1},
+    "end": {"done": {"when": {"calc": "played >= 1"},
                      "result": "the deck", "reason": "the cards are spent"}},
     "reveal": ["hand"],
     "limits": {"rounds": 3, "rounds_max": 5, "actions_max": 50, "deadline_s": 60},
@@ -441,7 +442,7 @@ def _with_a_step_addressing_the_picker(**extra):
     """The Orchard, plus a step aimed at whoever the poll chose."""
     raw = json.loads(json.dumps(ORCHARD))
     step = {"use": "tell", "phase": "evening", "label": "the nod",
-            "to": {"ids": ["$picker"]}, "text": "nod"}
+            "to": {"where": "you.seat == $picker"}, "text": "nod"}
     step.update(extra)
     raw["steps"].insert(3, step)
     raw["text"]["nod"] = "You were pointed at, picker {you}."
@@ -498,7 +499,7 @@ def test_a_selector_naming_a_binding_no_step_makes_is_refused():
 
     raw = json.loads(json.dumps(ORCHARD))
     raw["steps"].insert(3, {"use": "tell", "label": "the nod", "text": "morning",
-                            "to": {"ids": ["$chancellor"]}})
+                            "to": {"where": "you.seat == $chancellor"}})
     try:
         load(json.dumps(raw), source="unbound")
     except DefinitionError as error:
@@ -512,7 +513,7 @@ def test_a_step_cannot_address_the_player_its_own_answer_will_name():
     from xcolos.games.definition import DefinitionError
 
     raw = json.loads(json.dumps(ORCHARD))
-    raw["steps"][2]["to"] = {"ids": ["$picker"]}  # the step that binds `picker`
+    raw["steps"][2]["to"] = {"where": "you.seat == $picker"}  # the step that binds it
     try:
         load(json.dumps(raw), source="circular")
     except DefinitionError as error:
@@ -537,69 +538,6 @@ def test_a_relative_selector_without_a_subject_is_refused_not_ignored():
         assert "about" in str(error), error
     else:
         raise AssertionError("a subject-relative selector loaded with no subject")
-
-
-def test_ids_rejects_a_word_that_is_neither_a_seat_nor_a_binding():
-    """The old failure was a bare int() traceback naming neither step nor value."""
-    from xcolos.games.definition import DefinitionError
-
-    raw = json.loads(json.dumps(ORCHARD))
-    raw["steps"][0]["to"] = {"ids": ["picker"]}  # the missing $
-    try:
-        load(json.dumps(raw), source="nodollar")
-    except DefinitionError as error:
-        assert "'picker'" in str(error) and "steps[0].to" in str(error), error
-    else:
-        raise AssertionError("ids accepted a word that names nothing")
-
-
-def test_a_gate_that_only_asks_whether_its_audience_exists_is_refused():
-    """Mafia's investigation named the detective twice: as `to`, and as a
-    `when` counting whether that audience exists.
-
-    The gate could not change anything — an `ask` addressed to nobody already
-    does nothing — so it was a clause a reader has to understand and then
-    discover means nothing. Removing it left every fact identical on four
-    seeds. Redundant rather than wrong, which is why it survived; but two
-    spellings of one fact is what drifts, and a gate on a role the step no
-    longer addresses would then be silently wrong.
-    """
-    from xcolos.games.definition import DefinitionError
-
-    for op, value in ((">", 0), (">=", 1), ("!=", 0)):
-        raw = json.loads(json.dumps(ORCHARD))
-        raw["steps"][1]["to"] = {"attribute": "ladder", "is": "tall"}
-        raw["steps"][1]["when"] = {
-            "count": {"attribute": "ladder", "is": "tall"}, "op": op,
-            "value": value,
-        }
-        try:
-            load(json.dumps(raw), source="redundant")
-        except DefinitionError as error:
-            assert "restates `to`" in str(error), error
-        else:
-            raise AssertionError(f"a gate of {op} {value} restating `to` loaded")
-
-
-def test_a_gate_that_says_something_to_does_not_is_kept():
-    """The check must not punish a real gate that happens to count players."""
-    raw = json.loads(json.dumps(ORCHARD))
-    raw["steps"][1]["to"] = {"attribute": "ladder", "is": "tall"}
-    raw["steps"][1]["when"] = {"count": {"attribute": "ladder", "is": "tall"},
-                               "op": ">", "value": 1}
-    load(json.dumps(raw), source="genuine")  # more than one is a real gate
-
-    raw["steps"][1]["when"] = {"game": "fruit_left", "op": ">", "value": 1}
-    load(json.dumps(raw), source="table")
-
-    raw["steps"][1]["when"] = "the orchard still has fruit worth picking"
-    load(json.dumps(raw), source="prose")
-
-
-def test_no_shipped_game_gates_a_step_on_its_own_audience():
-    """The loader refuses it; this proves the shipped files were cleaned."""
-    for path in sorted(Path(LIBRARY).glob("*.json")):
-        load(path.read_text(encoding="utf-8"), source=str(path))
 
 
 def test_a_misspelled_field_is_refused_rather_than_ignored():
@@ -633,16 +571,6 @@ def test_a_misspelled_field_is_refused_rather_than_ignored():
             assert "takes:" in str(error), f"{name} must say what is accepted"
         else:
             raise AssertionError(f"a misspelled {name} field was accepted")
-
-
-def test_a_comparison_may_still_hold_its_operator_beside_its_operand():
-    """The one place a structure legitimately shares a dict with its parent."""
-    condition = Condition.parse(
-        {"count": {"attribute": "faction", "is": "evil"}, "op": ">=", "value": 1},
-        "end[0].when",
-    )
-    assert condition.kind == "compare"
-    assert condition.op == ">="
 
 
 def test_every_shipped_file_survives_the_strict_loader():
@@ -707,30 +635,24 @@ def test_the_briefing_numbers_seats_the_way_the_kernel_does():
         assert FIRST_SEAT <= seat <= last, "and the seat it names is in that range"
 
 
-def test_the_no_winner_sentinel_is_one_constant_not_two_spellings():
-    """`tally()` produces it, `_seat()` refuses it, a game file may write it.
+def test_an_operation_guarded_against_nobody_is_skipped_when_a_tally_names_nobody():
+    """`tally()` produces NOBODY and `_seat()` refuses it, so a game guards an
+    operation on a binding with `if`, comparing against the same word."""
+    from xcolos.games.definition import NOBODY
 
-    Three places, so it is one name. A misspelled `unless` used to load and
-    never match, running the operation it was written to prevent. Mafia no
-    longer needs the guard — its vote names both outcomes instead — so this
-    builds a file that does use one rather than depending on a shipped game to
-    keep exercising it.
-    """
-    from xcolos.games.definition import NOBODY, DefinitionError
-
-    base = json.loads((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"))
-    guarded = json.loads(json.dumps(base))
-    step = next(s for s in guarded["steps"] if s["label"] == "the night resolves")
-    step["do"][0]["set_status"]["unless"] = NOBODY
-    load(json.dumps(guarded), source="guarded")          # the right spelling loads
-
-    step["do"][0]["set_status"]["unless"] = "noboby"
-    try:
-        load(json.dumps(guarded), source="typo")
-    except DefinitionError as error:
-        assert "noboby" in str(error) and NOBODY in str(error)
-    else:
-        raise AssertionError("a misspelled guard must not load")
+    raw = json.loads(json.dumps(ORCHARD))
+    guard = raw["steps"][3]["do"][0]["adjust"]["if"]
+    assert guard == {"calc": f"$picker != '{NOBODY}'"}
+    # Nobody can be pointed at, so the poll binds the no-winner sentinel.
+    raw["steps"][2]["answer"] = {"type": "text", "max_words": 5}
+    raw["steps"][2]["verify"] = {"tally": "unanimity", "on_tie": "nobody",
+                                 "bind": "picker"}
+    orchestrator = FlowOrchestrator(load(json.dumps(raw), source="guarded"))
+    result, _ = play(raw, orchestrator=orchestrator)
+    assert result.status == "ended", result
+    flow = orchestrator.flow
+    assert flow.game_attributes["fruit_left"] <= 0, "the unguarded operation ran"
+    assert all(flow.attribute(p, "basket") == 0 for p in flow.players)
 
 
 def test_no_step_kind_is_referenced_that_the_schema_does_not_declare():
@@ -858,4 +780,4 @@ def test_the_reference_names_the_gaps_it_cannot_do():
 
     # Bindings in `to` are the one place a reader is most likely to guess
     # wrong, so the reference has to show the shape rather than describe it.
-    assert '"$chancellor"' in doc, "the reference does not show a bound selector"
+    assert 'you.seat == $chancellor' in doc, "the reference does not show a bound selector"

@@ -1,0 +1,253 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "battle_of_wits",
+    "name": "Battle of Wits: High Affinity Duel",
+    "players": {
+      "min": 2,
+      "max": 2
+    },
+    "blurb": "12-round duel with hidden Crimson/Azure affinities; alternate Poisoner/Chooser roles and score 3 for your High side.",
+    "author": "XColos"
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "type",
+        "visible": "ally",
+        "type": "text",
+        "values": [
+          "Crimson",
+          "Azure"
+        ],
+        "initial": "Crimson"
+      }
+    ],
+    "game": [
+      {
+        "key": "num_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "high_payoff",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "low_payoff",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "type_probability",
+        "visible": "public",
+        "type": "number",
+        "initial": 0.5
+      },
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_c1",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "last_c2",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      }
+    ]
+  },
+  "rules": "12 rounds of hidden affinities ({num_rounds} rounds). Each player is secretly Crimson (High=Left) or Azure (High=Right). Odd rounds Player 1 is Poisoner and Player 2 Chooser; even rounds roles swap. Each round Poisoner secretly poisons Left or Right and Chooser secretly drinks Left or Right (simultaneous). Reveal: if choices match Poisoner scores, else Chooser scores. Points = {high_payoff} if the scoring player's High side equals the matched/drunk side, else {low_payoff}. Highest total after {num_rounds} wins; equal is a draw.",
+  "setup": [
+    {
+      "use": "update",
+      "label": "assign types",
+      "do": [
+        {
+          "set": {
+            "player": 1,
+            "key": "type",
+            "value": {
+              "calc": "'Crimson' if uniform(0,1) < type_probability else 'Azure'"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "type",
+            "value": {
+              "calc": "'Crimson' if uniform(0,1) < type_probability else 'Azure'"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "label": "next round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ],
+      "text": "Round {round} of {num_rounds} begins."
+    },
+    {
+      "use": "ask",
+      "label": "seat 1 chooses",
+      "to": {
+        "where": "you.seat == 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Left",
+          "Right"
+        ]
+      },
+      "verify": {
+        "bind": "c1"
+      },
+      "text": "Choose Left or Right. If you are Poisoner this is the poisoned goblet; if you are Chooser this is the goblet you drink. Roles: odd rounds you are Poisoner, even rounds Chooser."
+    },
+    {
+      "use": "ask",
+      "label": "seat 2 chooses",
+      "to": {
+        "where": "you.seat == 2"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Left",
+          "Right"
+        ]
+      },
+      "verify": {
+        "bind": "c2"
+      },
+      "text": "Choose Left or Right. If you are Poisoner this is the poisoned goblet; if you are Chooser this is the goblet you drink. Roles: odd rounds you are Chooser, even rounds Poisoner."
+    },
+    {
+      "use": "update",
+      "label": "score the round",
+      "do": [
+        {
+          "set": {
+            "key": "last_c1",
+            "value": "$c1"
+          }
+        },
+        {
+          "set": {
+            "key": "last_c2",
+            "value": "$c2"
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "score",
+            "value": {
+              "calc": "(high_payoff if (($c1 == 'Left' and players[0].type == 'Crimson') or ($c1 == 'Right' and players[0].type == 'Azure')) else low_payoff) if round % 2 == 1 and $c1 == $c2 else (high_payoff if (($c1 == 'Left' and players[0].type == 'Crimson') or ($c1 == 'Right' and players[0].type == 'Azure')) else low_payoff) if round % 2 == 0 and $c1 != $c2 else 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "score",
+            "value": {
+              "calc": "(high_payoff if (($c2 == 'Left' and players[1].type == 'Crimson') or ($c2 == 'Right' and players[1].type == 'Azure')) else low_payoff) if round % 2 == 0 and $c1 == $c2 else (high_payoff if (($c2 == 'Left' and players[1].type == 'Crimson') or ($c2 == 'Right' and players[1].type == 'Azure')) else low_payoff) if round % 2 == 1 and $c1 != $c2 else 0"
+            }
+          }
+        }
+      ],
+      "text": "Round {round} reveal: Seat 1 chose {last_c1}, Seat 2 chose {last_c2}."
+    },
+    {
+      "use": "tell",
+      "label": "announce result",
+      "to": "all",
+      "text": "Scores: Seat 1 {players[0].score} - Seat 2 {players[1].score} after round {round}."
+    },
+    {
+      "use": "check",
+      "label": "is it over",
+      "when": {
+        "calc": "round >= num_rounds"
+      },
+      "against": [
+        "seat_1_wins",
+        "seat_2_wins",
+        "draw"
+      ]
+    }
+  ],
+  "end": {
+    "seat_1_wins": {
+      "when": {
+        "calc": "players[0].score > players[1].score"
+      },
+      "result": "seat 1",
+      "text": "Seat 1 wins with {players[0].score} to {players[1].score}."
+    },
+    "seat_2_wins": {
+      "when": {
+        "calc": "players[1].score > players[0].score"
+      },
+      "result": "seat 2",
+      "text": "Seat 2 wins with {players[1].score} to {players[0].score}."
+    },
+    "draw": {
+      "when": {
+        "calc": "players[0].score == players[1].score"
+      },
+      "result": "draw",
+      "text": "Draw at {players[0].score} each."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 12,
+    "actions_max": 100,
+    "deadline_s": 120
+  }
+}

@@ -124,15 +124,13 @@
       "phase": "night",
       "label": "the kill",
       "to": {
-        "attribute": "role",
-        "is": "mafia"
+        "where": "you.role == 'mafia'"
       },
       "answer": {
         "type": "player",
         "exclude_self": true,
         "exclude": {
-          "attribute": "faction",
-          "is": "evil"
+          "where": "you.faction == 'evil'"
         }
       },
       "verify": {
@@ -151,8 +149,7 @@
       "phase": "night",
       "label": "the investigation",
       "to": {
-        "attribute": "role",
-        "is": "detective"
+        "where": "you.role == 'detective'"
       },
       "answer": {
         "type": "player",
@@ -180,8 +177,7 @@
             "attribute": "faction",
             "of": "$suspect",
             "to": {
-              "attribute": "role",
-              "is": "detective"
+              "where": "you.role == 'detective'"
             },
             "text": "Your investigation of seat {subject} says: {value}."
           }
@@ -277,12 +273,7 @@
   "end": {
     "town_wins": {
       "when": {
-        "count": {
-          "attribute": "faction",
-          "is": "evil"
-        },
-        "op": "==",
-        "value": 0
+        "calc": "count(p.faction == 'evil' for p in acting) == 0"
       },
       "result": "town",
       "reason": "every mafia is eliminated",
@@ -294,17 +285,7 @@
     },
     "mafia_wins": {
       "when": {
-        "count": {
-          "attribute": "faction",
-          "is": "evil"
-        },
-        "op": ">=",
-        "other": {
-          "count": {
-            "attribute": "faction",
-            "is": "good"
-          }
-        }
+        "calc": "count(p.faction == 'evil' for p in acting) >= count(p.faction == 'good' for p in acting)"
       },
       "result": "mafia",
       "reason": "the mafia equal or outnumber the town",

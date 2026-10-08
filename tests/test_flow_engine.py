@@ -60,11 +60,7 @@ def _state(rows, **overrides):
             "steps": [{"use": "check"}],
             "end": {
                 "good_wins": {
-                    "when": {
-                        "count": {"attribute": "faction", "is": "evil"},
-                        "op": "==",
-                        "value": 0,
-                    },
+                    "when": {"calc": "count(p.faction == 'evil' for p in acting) == 0"},
                     "result": "good",
                 }
             },

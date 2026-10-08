@@ -1,0 +1,460 @@
+# 09 scenarios
+
+- time: 2026-10-06T23:48:31+00:00 (179.0s)  model: rl-muse-spark-1-2-playground
+- system prompt: [system/9ecf366d-scenarios.md](system/9ecf366d-scenarios.md) (sha256 9ecf366d5e50ddb5)
+- sent sha256 f00e044fd273a566, reply sha256 0cd7f7e70d87c1dc
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Battle of Wits: High Affinity Duel",
+  "summary": "Alternating Poisoner/Chooser duel over 12 rounds where matching or mismatching Left/Right choices scores 3 on your High side or 1 on your Low side.",
+  "players": {
+    "min": 2,
+    "max": 2
+  },
+  "parameters": {
+    "num_rounds": 12,
+    "high_payoff": 3,
+    "low_payoff": 1,
+    "low_payoff_value": 1,
+    "high_payoff_value": 3,
+    "initial_score": 0,
+    "type_probability_crimson": 0.5,
+    "type_probability_azure": 0.5
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "affinity_type",
+        "type": "text",
+        "visible": "none",
+        "initial": "Crimson",
+        "meaning": "private type: Crimson (High=Left) or Azure (High=Right), assigned independently 0.5 each"
+      },
+      {
+        "key": "type_code",
+        "type": "number",
+        "visible": "none",
+        "initial": 0,
+        "meaning": "numeric encoding of affinity_type for arithmetic: 0=Crimson High Left, 1=Azure High Right"
+      },
+      {
+        "key": "total_score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "cumulative points scored across rounds"
+      },
+      {
+        "key": "current_choice",
+        "type": "text",
+        "visible": "none",
+        "initial": "",
+        "meaning": "Left or Right chosen this round; hidden until reveal"
+      }
+    ],
+    "game": [
+      {
+        "key": "round_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "current round 1 to 12"
+      },
+      {
+        "key": "poisoner_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "seat number acting as Poisoner this round (1 on odd, 2 on even)"
+      },
+      {
+        "key": "chooser_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 2,
+        "meaning": "seat number acting as Chooser this round"
+      },
+      {
+        "key": "last_poisoner_choice",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "poisoner Left/Right choice after reveal for scoring"
+      },
+      {
+        "key": "last_chooser_choice",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "chooser Left/Right choice after reveal for scoring"
+      },
+      {
+        "key": "last_poisoner_choice_code",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "numeric encoding of last_poisoner_choice: 0=Left, 1=Right, mirrored from player for arithmetic"
+      },
+      {
+        "key": "last_chooser_choice_code",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "numeric encoding of last_chooser_choice: 0=Left, 1=Right"
+      },
+      {
+        "key": "last_match",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "1 if poisoner and chooser choices matched, 0 if mismatched"
+      },
+      {
+        "key": "last_poisoner_points",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "points awarded to poisoner this round (0,1,3)"
+      },
+      {
+        "key": "last_chooser_points",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "points awarded to chooser this round (0,1,3)"
+      }
+    ]
+  },
+  "setup": [
+    "Engine assigns each player a private affinity_type independently: Crimson (High=Left) or Azure (High=Right) with probability 0.5 each; set player type_code 0 for Crimson, 1 for Azure.",
+    "Set each player's total_score to 0 and current_choice to empty.",
+    "Set game round_number to 1, poisoner_seat to 1 and chooser_seat to 2.",
+    "Sync each player privately with own affinity_type and type_code; do not reveal opponent's type."
+  ],
+  "round": [
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "announce round_number and that poisoner_seat is Poisoner and chooser_seat is Chooser (odd rounds seat 1 Poisoner, even rounds seat 2 Poisoner)"
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": [
+        "Left",
+        "Right"
+      ],
+      "effect": "simultaneously collect each player's current_choice as Left or Right: Poisoner secretly chooses poisoned goblet, Chooser secretly chooses goblet to drink; choices hidden until reveal"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "copy current_choice of poisoner_seat to game last_poisoner_choice and to last_poisoner_choice_code (Left=0 Right=1); copy current_choice of chooser_seat to game last_chooser_choice and to last_chooser_choice_code"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "set game last_match = 1 if last_poisoner_choice_code == last_chooser_choice_code else 0 using arithmetic 1 - abs(last_poisoner_choice_code - last_chooser_choice_code)"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "compute game last_poisoner_points = last_match * (1 + 2*(1 - abs(last_poisoner_choice_code - type_code of poisoner_seat))) ; 3 if match and poisoned side equals Poisoner's High side (type_code), else 1 if match on Low side, else 0"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "compute game last_chooser_points = (1 - last_match) * (1 + 2*(1 - abs(last_chooser_choice_code - type_code of chooser_seat))) ; 3 if mismatch and Chooser's chosen side equals Chooser's High side, else 1 if mismatch on Low side, else 0"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "adjust total_score of player in poisoner_seat by last_poisoner_points and total_score of player in chooser_seat by last_chooser_points"
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "reveal last_poisoner_choice and last_chooser_choice, announce whether match (Poisoner scores) or mismatch (Chooser scores) and how many points (3 High or 1 Low) were added; types remain hidden"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "increment game round_number by 1; set poisoner_seat = 2 if now even else 1, chooser_seat = 3 - poisoner_seat for next round"
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "continue if round_number <= 12, else end game after 12 rounds have been scored"
+    }
+  ],
+  "ending": {
+    "condition": "round_number > 12",
+    "results": [
+      "seat 1",
+      "seat 2",
+      "draw"
+    ],
+    "decided_by": "compare player total_score by arithmetic: highest total_score wins; if total_score seat 1 == total_score seat 2 then draw; winner decided solely by sum of round points (payoff_matrix resolved arithmetically)"
+  },
+  "choices": [
+    {
+      "what": "Encoded affinity_type as numeric type_code 0/1 and choices as 0/1",
+      "why": "Source gives types as Crimson/Azure and Left/Right text; numeric encoding needed for arithmetic payoff without lookup, mapping High side = type_code"
+    },
+    {
+      "what": "Set parameters high_payoff=3 low_payoff=1 num_rounds=12 type_probability=0.5",
+      "why": "Values are explicit in rules but must be listed as concrete numbers in parameters"
+    },
+    {
+      "what": "Mirrored player current_choice and type_code to game last_poisoner_choice_code/last_chooser_choice_code and computed match/points as game attributes",
+      "why": "Engine has no player-attribute operand for arithmetic; workaround keeps table attribute beside score for comparison"
+    },
+    {
+      "what": "Visibility of affinity_type and type_code = none, total_score = public, current_choice = none until reveal via tell",
+      "why": "Source says types stay hidden always, scores and revealed choices are announced publicly after each round"
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "Replaced conditional branching for scoring with pure arithmetic formulas using abs and multiplication",
+      "why": "Engine step list is flat (conditional_subsequence not supported); payoff_matrix workaround requires ~13 arithmetic steps - implemented as last_match*(1+2*matchHigh) and (1-last_match)*(1+2*matchHigh)"
+    },
+    {
+      "what": "Simultaneous secret choice implemented as single poll of all players instead of separate Poisoner/Chooser actions",
+      "why": "Engine supports simultaneous_choice via poll where nobody sees answer until all are in; poll with Left/Right satisfies source's simultaneous hidden choice"
+    },
+    {
+      "what": "Alternating roles derived arithmetically from round_number parity and stored in game poisoner_seat/chooser_seat",
+      "why": "Source defines odd/even role swap; flat round list can compute seat each round without conditional subsequence"
+    },
+    {
+      "what": "No board/grid representation",
+      "why": "Engine is text-only with no board, grid, map or movement; game is purely choice-reveal scoring so fits naturally"
+    }
+  ],
+  "unsupported": []
+}
+````
+
+## Reply
+
+````
+[
+  {
+    "name": "Invariant draw 12-12 with balanced Left/Right - all scoring types regardless of affinity",
+    "players": 2,
+    "seed": 1,
+    "moves": {
+      "1": [
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Right",
+        "Right",
+        "Left",
+        "Left",
+        "Right",
+        "Right",
+        "Left",
+        "Left"
+      ],
+      "2": [
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Right",
+        "Right",
+        "Left"
+      ]
+    },
+    "expect": {
+      "result": "draw",
+      "players": {
+        "1": {
+          "total_score": 12
+        },
+        "2": {
+          "total_score": 12
+        }
+      },
+      "game": {
+        "round_number": 13,
+        "poisoner_seat": 1,
+        "chooser_seat": 2,
+        "last_poisoner_choice": "Left",
+        "last_chooser_choice": "Left",
+        "last_poisoner_choice_code": 0,
+        "last_chooser_choice_code": 0,
+        "last_match": 1
+      }
+    }
+  },
+  {
+    "name": "Guaranteed seat 1 win regardless of affinity - 10 scoring rounds to 2 - ending condition",
+    "players": 2,
+    "seed": 2,
+    "moves": {
+      "1": [
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Left",
+        "Left"
+      ],
+      "2": [
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Left",
+        "Left",
+        "Left",
+        "Left"
+      ]
+    },
+    "expect": {
+      "result": "seat 1",
+      "players": {},
+      "game": {
+        "round_number": 13,
+        "poisoner_seat": 1,
+        "chooser_seat": 2,
+        "last_poisoner_choice": "Left",
+        "last_chooser_choice": "Left",
+        "last_poisoner_choice_code": 0,
+        "last_chooser_choice_code": 0,
+        "last_match": 1
+      }
+    }
+  },
+  {
+    "name": "Guaranteed seat 2 win regardless of affinity - 2 scoring rounds to 10 - ending condition",
+    "players": 2,
+    "seed": 3,
+    "moves": {
+      "1": [
+        "Right",
+        "Left",
+        "Right",
+        "Left",
+        "Right",
+        "Right",
+        "Right",
+        "Left",
+        "Right",
+        "Right",
+        "Right",
+        "Right"
+      ],
+      "2": [
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Left",
+        "Left"
+      ]
+    },
+    "expect": {
+      "result": "seat 2",
+      "players": {},
+      "game": {
+        "round_number": 13,
+        "poisoner_seat": 1,
+        "chooser_seat": 2,
+        "last_poisoner_choice": "Left",
+        "last_chooser_choice": "Right",
+        "last_poisoner_choice_code": 0,
+        "last_chooser_choice_code": 1,
+        "last_match": 0
+      }
+    }
+  },
+  {
+    "name": "All mismatches - chooser scores each round - exercises chooser high and low - ending invariant only",
+    "players": 2,
+    "seed": 4,
+    "moves": {
+      "1": [
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Left",
+        "Left",
+        "Left",
+        "Left",
+        "Right",
+        "Left",
+        "Left"
+      ],
+      "2": [
+        "Right",
+        "Right",
+        "Right",
+        "Left",
+        "Right",
+        "Right",
+        "Right",
+        "Right",
+        "Right",
+        "Left",
+        "Right",
+        "Right"
+      ]
+    },
+    "expect": {
+      "result": "draw",
+      "players": {},
+      "game": {
+        "round_number": 13,
+        "poisoner_seat": 1,
+        "chooser_seat": 2,
+        "last_poisoner_choice": "Right",
+        "last_chooser_choice": "Left",
+        "last_poisoner_choice_code": 1,
+        "last_chooser_choice_code": 0,
+        "last_match": 0
+      }
+    }
+  }
+]
+````

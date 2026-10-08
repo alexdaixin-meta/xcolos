@@ -18,7 +18,6 @@ from xcolos.games.definition import (
     AttributeDef,
     Condition,
     GameDefinition,
-    Operand,
     NOBODY,
     RERUN,
     Selector,
@@ -160,18 +159,7 @@ class FlowState:
             else:
                 chosen = [p for p in self.players if p != subject]
             return sorted(p for p in chosen if not acting_only or self.acts(p))
-        if selector.kind == "ids":
-            named = [seat_of(self.bindings.get(r)) for r in selector.refs]
-            wanted = list(selector.ids) + [s for s in named if s is not None]
-            chosen = [p for p in wanted if p in self.status]
-        elif selector.kind == "attribute":
-            chosen = [
-                p
-                for p in self.players
-                if (self.attribute(p, selector.attribute) == selector.is_)
-                != selector.negate
-            ]
-        elif selector.kind == "where":
+        if selector.kind == "where":
             chosen = [p for p in self.players if self.calc(selector.test, you=p)]
         else:  # "acting" or "all"
             chosen = list(self.players)
@@ -179,11 +167,6 @@ class FlowState:
         if selector.kind == "all":
             return sorted(chosen)
         return sorted(p for p in chosen if not acting_only or self.acts(p))
-
-    def measure(self, operand: Operand) -> Any:
-        if operand.kind == "game":
-            return self.game_attributes.get(operand.attribute)
-        return len(self.select(operand.selector, acting_only=operand.acting_only))
 
     def holds(self, condition: Condition, you: int | None = None) -> bool:
         """Whether an arithmetic condition is true right now.
@@ -196,14 +179,7 @@ class FlowState:
             raise FlowError(
                 f"prose needs a judge, not arithmetic: {condition.prose!r}"
             )
-        if condition.kind == "calc":
-            return bool(self.calc(condition.expr, you=you))
-        left = self.measure(condition.left)
-        right = (
-            self.measure(condition.other) if condition.other is not None
-            else condition.value
-        )
-        return _compare(left, condition.op, right)
+        return bool(self.calc(condition.expr, you=you))
 
     def calc(self, expr: Expr, you: int | None = None) -> Any:
         """Work out an expression against the table as it stands now.
@@ -361,22 +337,6 @@ def seat_of(value: Any) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
-
-
-def _compare(left: Any, op: str, right: Any) -> bool:
-    if op == "==":
-        return left == right
-    if op == "!=":
-        return left != right
-    if left is None or right is None:
-        return False
-    if op == "<":
-        return left < right
-    if op == "<=":
-        return left <= right
-    if op == ">":
-        return left > right
-    return left >= right
 
 
 def tally(values: list[Any], rule: str, on_tie: str, rng) -> Any:

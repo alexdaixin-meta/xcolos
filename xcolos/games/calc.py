@@ -19,7 +19,8 @@ What an expression can name:
   acting           the players who may still act
   values[3]        indexing a list
 
-Functions: sum, min, max, len, abs, round, int, any, all, sorted, and two that
+Functions: sum, min, max, len, abs, round, int, any, all, sorted, count (how
+many are true: `count(p.faction == 'evil' for p in acting)`), and two that
 draw from the match's seed so a replay deals the same numbers:
 
   uniform(lo, hi)          one number in [lo, hi)
@@ -63,6 +64,7 @@ _COMPARE: dict[type, Callable[[Any, Any], Any]] = {
 PURE: dict[str, Callable[..., Any]] = {
     "sum": sum, "min": min, "max": max, "len": len, "abs": abs,
     "round": round, "int": int, "any": any, "all": all, "sorted": sorted,
+    "count": lambda items: sum(1 for item in items if item),
 }
 SEEDED = ("uniform", "split")
 FUNCTIONS = tuple(PURE) + SEEDED

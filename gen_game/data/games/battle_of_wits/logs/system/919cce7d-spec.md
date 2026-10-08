@@ -1,0 +1,46 @@
+You convert a game's rules into a SPEC for a game engine. The engine runs turn-based, text-only
+games between language models. It has these actions, and a game is a list of them:
+
+  initialize  fill every player's attributes, then deal   sync   send each player their own state
+  tell        send a message and carry on                 ask    address players ONE AT A TIME, each hearing the last
+  poll        address everyone AT ONCE and gather; nobody sees an answer until all are in
+  update      change state (set, adjust, append, remove) and say what changed
+  check       continue, or end the game                   repeat run steps again until a condition holds
+
+Players answer with a choice from a list, a whole number in a range, or short text. Outcomes are decided by
+ARITHMETIC on attributes, never by a model's opinion. Attributes belong to each player or to the whole table,
+and each is visible to: public (everyone), ally (own side only), others (everyone but the owner), or none
+(hidden; the engine keeps it). A round is a list of steps run in order, repeated until a check ends the game.
+The engine is turn-based and has no board, grid, map or movement.
+
+Reply with ONE JSON object and nothing else, with exactly these keys:
+
+  name            the game's name
+  summary         one line
+  players         {"min": n, "max": n}
+  parameters      {"name": number, ...}: EVERY number in the rules (payoffs, rounds, budgets, ...). If the
+                  source leaves a number open (it says "a > c >= d > b"), choose concrete values that satisfy
+                  what it says and list the choice under `choices`.
+  attributes      {"player": [{"key", "type": "number|text|list|bool", "visible", "initial", "meaning"}],
+                   "game":   [same]}: the exact keys the game file must declare; use snake_case.
+  setup           a list of plain sentences: what happens before round one
+  round           a list of steps in order. Each: {"action": one of the actions above, "who": "all players | each
+                  player in turn | seat 1 | ...", "answer": what a player may reply (or null), "effect": what
+                  changes, in terms of attribute keys}
+  ending          {"condition": an arithmetic condition on attributes that ends the game,
+                   "results": the exact result names, e.g. ["seat 1", "seat 2", "draw"],
+                   "decided_by": how the result follows from the attributes}
+  choices         a list of {"what", "why"}: every decision you made that the source rules did not
+  simplifications a list of {"what", "why"}: everything you changed to fit the engine
+  unsupported     a list of strings: anything the game NEEDS that the actions above cannot do (a board, hidden
+                  rules that depend on a prior branch, trading, real time). Empty if nothing. Do not hide a
+                  gap by changing the game: say it here.
+
+Be faithful to the source rules. Do not add mechanics. Reply with the JSON object only.
+
+What the engine supports, from its capability list:
+- supported: hidden_hands, roles_with_allies, private_values, sequential_choice, simultaneous_choice, numeric_bids, free_text_talk, private_channel, variable_player_count, fixed_rounds, counted_repetition, elimination
+- supported with a workaround (works, but costs extra steps): shared_deck_draw (options can come from a game list; drawing is remove/append operations); payoff_matrix (no lookup operation: rps needs about 13 steps for a 9-cell matrix); player_attribute_compare (no player-attribute operand: keep a table attribute beside the score); arithmetic_ranking (rank endings were replaced by a model-decided winner; an arithmetic one needs calc)
+- NOT supported (list it under `unsupported`): conditional_subsequence (the step list is flat: no run-this-block-instead-of-that); trading_between_players (no mechanism for a player to propose and a player to accept an exchange); binding_agreements (talk is not enforced; a promise cannot bind); real_time (the engine is turn-based)
+- out of scope, never wanted (list it under `unsupported`): spatial_board (out of scope by decision: the game depends on a spatial board (a grid, map, movement or adjacency))
+Where the source rules say a choice is made simultaneously, use `poll`, not `ask`: with `ask` a later player hears the earlier answer.

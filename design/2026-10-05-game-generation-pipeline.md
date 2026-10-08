@@ -1,6 +1,7 @@
 # Game generation pipeline
 
-Status: proposal, 2026-10-05. Nothing here is built.
+Status: proposal, 2026-10-05. Step 1 (the inventory and crawl) is built in `gen_inventory/`;
+steps 2 to 4 are planned in `gen_game/`.
 
 The platform runs games and records every step and the outcome. The next goal
 is to produce many reasonable games for RL reasoning training, without writing
@@ -144,7 +145,7 @@ inventory, the "does not fit" and "workaround" reasons become a ranked list of
 engine gaps backed by many games. This follows the existing rule that a gap is
 closed when real games demand it; the inventory supplies the games.
 
-The generator writes only inside the current expressive subset. A failed
+The converter (`gen_game`) writes only inside the current expressive subset. A failed
 attempt that needed something the engine lacks is logged with its reason and
 does not push the engine to change by itself.
 

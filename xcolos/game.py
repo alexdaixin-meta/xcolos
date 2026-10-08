@@ -61,6 +61,7 @@ class Game:
         self.status = RunStatus.SETUP
         self.winner: str | None = None
         self.reason: str | None = None
+        self.summary: str = ""  # how the game ended, in words: final scores, what decided it
 
         # Logging. Every record carries where in the match it happened.
         self.log = log
@@ -368,10 +369,10 @@ class Game:
         self.round += 1
         self.log.record("process", "advance_round")
 
-    def end_game(self, winner: str, reason: str) -> None:
+    def end_game(self, winner: str, reason: str, summary: str = "") -> None:
         self.status = RunStatus.ENDED
-        self.winner, self.reason = winner, reason
-        self.log.record("process", "end_game", winner=winner, reason=reason)
+        self.winner, self.reason, self.summary = winner, reason, summary
+        self.log.record("process", "end_game", winner=winner, reason=reason, summary=summary)
 
     def abandon(self, reason: str) -> None:
         self.status = RunStatus.ABANDONED

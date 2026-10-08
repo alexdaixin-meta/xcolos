@@ -96,6 +96,9 @@ function describeGame() {
     ? `${g.min_seats} seats`
     : `${g.min_seats} to ${g.max_seats} seats`;
   $("game-blurb").textContent = `${g.blurb} ${seats} \u00b7 ${engine}${judge}`;
+  /* Seats chosen for the last game may not fit this one: a table of four
+   * cannot open for a two-seat game. */
+  if (!state.open && state.seats.length > g.max_seats) state.seats.length = g.max_seats;
   renderSeats();
 }
 
@@ -423,9 +426,11 @@ function showResult(snap) {
   head.append(el("b", null, snap.winner ? `${snap.winner} wins` : snap.status));
   head.append(document.createTextNode(` — ${snap.reason || ""}`));
   box.append(head);
+  /* The ending's own words: final scores and what decided it. */
+  if (snap.summary) box.append(el("div", "summary", snap.summary));
 
   const roles = snap.seats
-    .map((s) => `${s.index} ${s.name} (${s.role})`)
+    .map((s) => `${s.index} ${s.name}${s.role ? ` (${s.role})` : ""}`)
     .join("  ·  ");
   box.append(el("div", "meta", `${snap.turn} turns, ${snap.round} rounds`));
   box.append(el("div", "meta", roles));
@@ -685,7 +690,7 @@ function renderTimeline() {
       const a = r.action || {};
       const value = a.text || a.target;
       const flag = r.degraded ? "  [degraded]" : "";
-      line(box, r.log_seq, `seat ${r.seat} (${r.role}) ${a.type}: ${value}${flag}`,
+      line(box, r.log_seq, `seat ${seatLabel(r.seat)}${r.role ? ` (${r.role})` : ""} ${a.type}: ${value}${flag}`,
            r.degraded ? "ev-turn ev-degraded" : "ev-turn");
     } else if (r.category === "message" && r.type === "offered") {
       line(box, r.log_seq,

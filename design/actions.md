@@ -218,10 +218,11 @@ broadcast, `to` on an outcome branch, `announce_to` on an operation.
 | `"others"` | everybody except the player the message is about |
 | `"ally"` | that player's own side, per `allies_by` |
 | `"author"` | that player alone |
-| `{"attribute": "role", "is": "mafia"}` | whoever matches; add `"not": true` to invert |
-| `{"ids": [2, 5]}` | named seats |
-| `{"ids": ["$chancellor"]}` | whoever an earlier step bound to that name |
-| `{"where": "you.cash < min_bid"}` | whoever the expression holds for, read with `you` as each player in turn (see *Calculating*) |
+| `{"where": "you.role == 'mafia'"}` | whoever the expression holds for, read with `you` as each player in turn (see *Calculating*) |
+
+`where` is the one way to pick players by what they are: a role
+(`you.role == 'mafia'`), a seat (`you.seat in [2, 5]`), a player an earlier
+step chose (`you.seat == $chancellor`), or a figure (`you.cash < min_bid`).
 
 Every selector except `"all"` is intersected with "may act", which is why no
 game has to remember to exclude the dead.
@@ -236,7 +237,7 @@ which is how one player's choice decides who is asked next:
  "answer": {"type": "player"},
  "verify": {"tally": "plurality", "on_tie": "nobody", "bind": "chancellor"}},
 
-{"use": "ask",   "label": "the legislation", "to": {"ids": ["$chancellor"]},
+{"use": "ask",   "label": "the legislation", "to": {"where": "you.seat == $chancellor"},
  "answer": {"type": "choice", "options": ["enact", "discard"]}}
 ```
 
@@ -427,7 +428,7 @@ a seat number is not a sentence.
   {"set_status": {"player": "$target", "to": "eliminated",
                   "text": "Seat {player} did not survive the night."}},
   {"disclose": {"attribute": "faction", "of": "$suspect",
-                "to": {"attribute": "role", "is": "detective"},
+                "to": {"where": "you.role == 'detective'"},
                 "text": "Your investigation of seat {subject} says: {value}."}}
 ]}
 ```
@@ -442,7 +443,7 @@ a seat number is not a sentence.
 | `disclose` | `of`, `attribute`, `to` |
 
 Every one also takes `text` or `llm` to announce itself, `announce_to` for the
-audience, and `unless` to skip when a binding named nobody.
+audience.
 
 There is no operation that only talks. A message on its own is a `tell` step,
 gated with `when` if it depends on the state ("nobody bid on item {item}"); a
@@ -450,9 +451,10 @@ message about each answer is the ask's `broadcast`. One way to say a thing.
 
 Two more keys make an operation conditional or plural:
 
-- **`if`** — a condition, arithmetic or `{"calc": ...}`. False skips the
-  operation silently. Prose is refused: an operation runs too often to spend a
-  model call on each.
+- **`if`** — a `{"calc": ...}` condition. False skips the operation
+  silently. Prose is refused: an operation runs too often to spend a model
+  call on each. A binding a tally may leave as nobody is guarded this way:
+  `"if": {"calc": "$target != 'nobody'"}`.
 - **`players`** — a selector instead of `player`. The operation runs once per
   matching player, in seat order, and inside it `you` is that player. Not with
   `player`, and not on `disclose`.
@@ -492,7 +494,11 @@ What an expression can read:
 
 It can use arithmetic, comparisons, `and`/`or`/`not`, indexing, `x if c else
 y`, list comprehensions and these functions: `sum` `min` `max` `len` `abs`
-`round` `int` `any` `all` `sorted`, plus two seeded draws:
+`round` `int` `any` `all` `sorted` `count`, plus two seeded draws.
+`count(...)` is how many items are true, so "how many mafia are left" is
+`count(p.role == 'mafia' for p in acting)`.
+
+The seeded draws:
 
 - `uniform(lo, hi)` — a number in the range.
 - `split(total, n, lo, hi)` — `n` whole numbers, each in `[lo, hi]`, summing
@@ -513,7 +519,7 @@ runs its own `steps` in order, again and again:
 
 ```json
 {"use": "repeat", "label": "the bidding",
- "until": {"count": {"attribute": "bidding", "is": "in"}, "op": "==", "value": 0},
+ "until": {"calc": "count(p.bidding == 'in' for p in acting) == 0"},
  "max": 200,
  "steps": [ {"use": "ask", "label": "bid", ...} ]}
 ```
@@ -660,14 +666,13 @@ naming the key and listing what is accepted.
 - a step that asks with no `text` and no `llm`
 - a `tell` with an `answer`, or an `ask` without one
 - an ending with no wording
-- an `unless` naming a value no tally can produce
 - a `requires` naming an attribute the step does not write
 - a `requires` roster naming more players than the size it is declared at
-- a `when` that only asks whether its own `to` has anybody in it
 - a bare identifier in `text` that names no declared template
 - a `$name` in `to` that no earlier step binds
 - a subject-relative `to` on a step with no `about`
-- an `ids` entry that is neither a seat number nor a `$name`
+- a selector or condition in any form but the ones listed (no `attribute`,
+  `ids`, `count` or compare forms: write a `where` or a `calc`)
 - `options` that is neither a list nor a pointer into state
 - `options` drawn from an attribute that is not a `list`
 - a `calc` that does not parse, calls anything not listed, or names a key no
