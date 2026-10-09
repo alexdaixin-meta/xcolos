@@ -849,6 +849,8 @@ class FlowOrchestrator:
         # about, `others` to address everyone but them. Computing it afterwards
         # left those selectors naming nobody, silently.
         subject = self._subject_of(step)
+        if step.about and subject is None:
+            return  # about someone, and nobody was chosen: there is nothing to say (not "Seat {subject} was found dead")
         seats = flow.select(step.to, acting_only=False, subject=subject)
         if not seats:
             return
@@ -926,19 +928,42 @@ class FlowOrchestrator:
                     if seat not in fresh.seats:
                         continue
                     ask.legal[seat] = fresh.legal[seat]
-                action = yield self._request(step, ask, seat)
+                action = self._forced(game, step, ask, seat)
+                if action is None:
+                    action = yield self._request(step, ask, seat)
                 answers[seat] = action
                 self._remember(game, step, seat, action)
                 self._echo(game, step, seat, action)
                 self._each(game, step, seat, action)
             return answers
 
-        actions = yield [self._request(step, ask, seat) for seat in ask.seats]
+        actions = {}
+        for seat in ask.seats:
+            forced = self._forced(game, step, ask, seat)
+            if forced is not None:
+                actions[seat] = forced
+        asked = [seat for seat in ask.seats if seat not in actions]
+        if asked:
+            actions.update((yield [self._request(step, ask, seat) for seat in asked]))
         for seat in sorted(actions):
             self._remember(game, step, seat, actions[seat])
         for seat in sorted(actions):
             self._echo(game, step, seat, actions[seat])
         return actions
+
+    def _forced(self, game: Game, step: StepDef, ask: _Ask, seat: int) -> Action | None:
+        """The answer, when there is only one to give: a choice or a seat with a single legal option.
+
+        Asking a model "pass or pass" costs a call and tells nobody anything, so that seat is answered
+        for, and the match log says so. A number or free text is never forced: those have a range, not a list.
+        """
+        if ask.schema.target not in ("enum", "seat"):
+            return None
+        legal = ask.legal.get(seat, ())
+        if len(legal) != 1:
+            return None
+        game.log.record("process", "auto_answer", seat=seat, step=step.label, value=legal[0])
+        return Action(type=ask.schema.id, target=legal[0])
 
     def _take_turns(
         self, game: Game, step: StepDef, ask: _Ask, opened: int
@@ -1295,6 +1320,10 @@ class FlowOrchestrator:
                 reason=action.reason,
             )
         )
+        if step.store:
+            flow.set_attribute(
+                seat, step.store,
+                action.target if action.target is not None else action.text)
 
     def _echo(self, game: Game, step: StepDef, seat: int, action: Action) -> None:
         """Tell whoever the step says may learn what this player answered.
@@ -1545,7 +1574,17 @@ class FlowOrchestrator:
         if seat is not None:
             raw["player"] = seat
         args = self._bind(raw, you=you)
+        was_acting = seat is None or self._state().acts(seat)
+        if operation.op == "set_status":
+            # Already in that status: nothing changed, so nothing to do and nothing to
+            # announce. A selector like "everyone who is out" matches the already-out
+            # every time, and each would be announced as eliminated again.
+            held = _seat(args.get("player"))
+            if held is not None and self._state().status.get(held) == str(args["to"]):
+                return
         getattr(self, "_op_" + operation.op)(game, args)
+        if not was_acting:
+            return  # a group operation reaches players who are already out; nobody needs telling what it did to them
         self._announce_change(game, operation, args, kind)
 
     def _op_set_status(self, game: Game, args: dict[str, Any]) -> None:
@@ -1760,11 +1799,15 @@ class FlowOrchestrator:
             result = rule.result
             if rule.winner:
                 result, reason = self._winner(game, rule, step)
+            extra = {"winner": result, "result": result,
+                     "ending": rule.name, "reason": reason}
+            if rule.llm:
+                # A model asked how the game went has to be shown how it went.
+                extra["history"] = self._public_history(game)
             announced = self._say(
                 game, list(flow.players),
                 rule.text or "game_over", rule.llm,
-                {"winner": result, "result": result,
-                 "ending": rule.name, "reason": reason},
+                extra,
                 "game_over",
             )
             # The console shows the ending's own announcement (final scores
@@ -1772,6 +1815,29 @@ class FlowOrchestrator:
             game.end_game(result, reason, summary=announced)
             return True
         return False
+
+    HISTORY_CHARS = 12000
+
+    def _public_history(self, game: Game) -> list[str]:
+        """What the whole table was told, in order, one line each: the story of the match.
+
+        Only what every player heard, so a summary written from it leaks nothing. The oldest
+        lines go first when it is too long, because how it ended matters most.
+        """
+        lines: list[str] = []
+        for r in game.log.records:
+            if r.get("category") != "fact" or r.get("type") in ("game_over", "the_table"):
+                continue
+            if (r.get("audience") or {}).get("kind") != "all":
+                continue
+            p = r.get("payload") or {}
+            text = str(p.get("rendered") or "").strip()
+            if not text:
+                continue
+            lines.append(f"round {r.get('round')}: {text}")
+        while lines and sum(len(x) + 3 for x in lines) > self.HISTORY_CHARS:
+            lines.pop(0)
+        return lines
 
     #: The result when nobody could say who won. The game still ends: it met
     #: its ending, and only the ruling on the winner is missing.
@@ -1897,8 +1963,8 @@ class FlowOrchestrator:
                 # an expression, worked out the way a `calc` is.
                 try:
                     return _show(flow.calc(Expr(name), you=seat))
-                except CalcError:
-                    pass
+                except (CalcError, FlowError):
+                    pass  # not worked out here (no seat to read `you` from): left as written
             return match.group(0)
 
         return re.sub(r"\{([^{}]+)\}", fill, template)

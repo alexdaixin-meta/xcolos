@@ -1,0 +1,2385 @@
+[
+  {
+    "name": "Setup: every seat holds 2 hidden cards, nothing revealed, all alive (3 players)",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hidden_count": 2,
+          "revealed_cards": [],
+          "alive": true
+        },
+        "2": {
+          "hidden_count": 2,
+          "revealed_cards": [],
+          "alive": true
+        },
+        "3": {
+          "hidden_count": 2,
+          "revealed_cards": [],
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When the game is set up, the deck has 15 cards (3 each of Duke, Assassin, Captain, Ambassador, Contessa), each player has hidden_count = 2, and deck_count = 15 - 2 x player count."
+  },
+  {
+    "name": "Setup: every seat holds 2 hidden cards, nothing revealed, all alive (5 players)",
+    "rule": "R1",
+    "players": 5,
+    "seed": 2,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "2": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "3": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "4": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "5": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        }
+      }
+    },
+    "rule_text": "When the game is set up, the deck has 15 cards (3 each of Duke, Assassin, Captain, Ambassador, Contessa), each player has hidden_count = 2, and deck_count = 15 - 2 x player count."
+  },
+  {
+    "name": "Setup: seat 1 starts with 1 coin, the others with 2 (seat 1 then takes Income)",
+    "rule": "R2",
+    "players": 4,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 2
+        },
+        "2": {
+          "coins": 2
+        },
+        "3": {
+          "coins": 2
+        },
+        "4": {
+          "coins": 2
+        }
+      }
+    },
+    "rule_text": "When the game is set up, seat 1 has coins = 1 and every other seat has coins = 2."
+  },
+  {
+    "name": "Income gives exactly 1 coin and nobody loses a card",
+    "rule": "R3",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 3
+        },
+        "2": {
+          "coins": 2
+        },
+        "3": {
+          "coins": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      },
+      {
+        "seat": 2,
+        "options_include": "challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "block_duke"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 4,
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 2,
+          "hidden_count": 2
+        },
+        "3": {
+          "coins": 2,
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player takes Income unchallenged and unblocked, then their coins rise by exactly 1, and no player is offered a challenge or block."
+  },
+  {
+    "name": "Foreign Aid with nobody blocking gives 2 coins",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "foreign_aid"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 4,
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player takes Foreign Aid and nobody blocks, then their coins rise by 2."
+  },
+  {
+    "name": "Foreign Aid blocked as Duke, block accepted: no coins gained",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Captain",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "foreign_aid"
+      },
+      {
+        "seat": 2,
+        "options_include": "block_duke"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 2,
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player takes Foreign Aid and another player blocks as Duke and nobody challenges the block, then the active player's coins do not change."
+  },
+  {
+    "name": "Foreign Aid cannot be challenged: would-be challengers pass and the aid goes through",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "foreign_aid"
+      },
+      {
+        "seat": 2,
+        "options_include": "challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 4,
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "2": {
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player takes Foreign Aid, then challenge is not offered against the action."
+  },
+  {
+    "name": "Coup costs 7 and the target loses one card",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 7
+        },
+        "2": {
+          "coins": 2,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Duke"
+      },
+      {
+        "seat": 3,
+        "options_include": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0,
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 2,
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ],
+          "alive": true
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player with 7 or more coins takes Coup on a target, then their coins fall by 7 and the target loses 1 hidden card; nobody may challenge or block."
+  },
+  {
+    "name": "With 6 coins Coup is not offered, so the seat falls back to Tax",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 6
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": "tax"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 9
+        },
+        "2": {
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player has fewer than 7 coins, then Coup is not among their options."
+  },
+  {
+    "name": "With 10 coins Coup is forced even when the seat asks for Income",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 10
+        },
+        "2": {
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      },
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Duke"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 3
+        },
+        "2": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ]
+        }
+      }
+    },
+    "rule_text": "When a player starts their turn with 10 or more coins, then Coup is their only option."
+  },
+  {
+    "name": "Tax with nobody challenging gives 3 coins",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "tax"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 5,
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player takes Tax and nobody challenges, then their coins rise by 3."
+  },
+  {
+    "name": "Assassinate's 3 coins are paid even when a challenge makes it fail",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 4,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Contessa",
+            "Ambassador"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "assassinate"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": "Duke"
+      },
+      {
+        "seat": 2,
+        "options_include": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ]
+        },
+        "2": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        }
+      }
+    },
+    "rule_text": "When a player with 3 or more coins takes Assassinate, then their coins fall by 3 at once, even if the action is later blocked or fails a challenge."
+  },
+  {
+    "name": "With 2 coins Assassinate is not offered, so the seat falls back to Tax",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "assassinate"
+      },
+      {
+        "seat": 1,
+        "options_include": "tax"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 5
+        },
+        "2": {
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player has fewer than 3 coins, then Assassinate is not among their options."
+  },
+  {
+    "name": "Unblocked Assassinate costs 3 and the target loses one card",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 3,
+          "hidden_cards": [
+            "Assassin",
+            "Duke"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Captain",
+            "Duke"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "assassinate"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Captain"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0,
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ],
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When Assassinate goes ahead unblocked, then the target loses 1 hidden card."
+  },
+  {
+    "name": "Contessa block accepted: target keeps both cards, assassin gets no refund",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 3,
+          "hidden_cards": [
+            "Assassin",
+            "Duke"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Contessa",
+            "Duke"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "assassinate"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "block_contessa"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0,
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When the target of Assassinate blocks as Contessa and nobody challenges the block, then the target loses no card and the assassin's 3 coins are not refunded."
+  },
+  {
+    "name": "Steal from a target with 4 coins moves 2",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 4
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 3
+        },
+        "2": {
+          "coins": 2
+        }
+      }
+    },
+    "rule_text": "When a player Steals from a target with 2 or more coins and the action goes ahead, then the target's coins fall by 2 and the active player's coins rise by 2."
+  },
+  {
+    "name": "Steal from a target with 1 coin moves only 1",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 1
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 2
+        },
+        "2": {
+          "coins": 0
+        }
+      }
+    },
+    "rule_text": "When a player Steals from a target with 1 coin and the action goes ahead, then the target ends with 0 coins and the active player gains 1; with 0 coins, nobody's coins change."
+  },
+  {
+    "name": "Steal from a target with 0 coins moves nothing",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 0
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 0,
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When a player Steals from a target with 1 coin and the action goes ahead, then the target ends with 0 coins and the active player gains 1; with 0 coins, nobody's coins change."
+  },
+  {
+    "name": "Steal blocked as Captain, block accepted: no coins move",
+    "rule": "R17",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 4
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "block_captain"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 4,
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When the target of a Steal blocks as Captain or as Ambassador and nobody challenges the block, then no coins move."
+  },
+  {
+    "name": "Steal blocked as Ambassador, block accepted: no coins move",
+    "rule": "R17",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 4
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "block_ambassador"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 4,
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When the target of a Steal blocks as Captain or as Ambassador and nobody challenges the block, then no coins move."
+  },
+  {
+    "name": "A non-target cannot block a Steal: seat 3's block is not offered and the steal goes through",
+    "rule": "R18",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 4
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": "block_captain"
+      },
+      {
+        "seat": 3,
+        "options_include": "block_ambassador"
+      },
+      {
+        "seat": 3,
+        "options_include": "block_contessa"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 3
+        },
+        "2": {
+          "coins": 2
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player other than the target answers a Steal or Assassinate, then they are not offered block_contessa, block_captain or block_ambassador."
+  },
+  {
+    "name": "A non-target cannot block Assassinate as Contessa: the target still loses a card",
+    "rule": "R18",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 3,
+          "hidden_cards": [
+            "Assassin",
+            "Duke"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Captain",
+            "Duke"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "assassinate"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Captain"
+      },
+      {
+        "seat": 3,
+        "options_include": "block_contessa"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0
+        },
+        "2": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ]
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player other than the target answers a Steal or Assassinate, then they are not offered block_contessa, block_captain or block_ambassador."
+  },
+  {
+    "name": "Exchange draws 1 and returns 1: still 2 hidden cards, nothing revealed (which card comes back depends on chance)",
+    "rule": "R19",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "exchange"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_count": 2,
+          "revealed_cards": [],
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When a player takes Exchange and the action goes ahead, then they draw 1 card from the deck and return 1 hidden card of their choice, ending with the same hidden_count and the same deck_count."
+  },
+  {
+    "name": "The card an Exchange returns is not revealed",
+    "rule": "R20",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "exchange"
+      },
+      {
+        "seat": 1,
+        "options_include": "Duke"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "2": {
+          "revealed_cards": []
+        },
+        "3": {
+          "revealed_cards": []
+        }
+      }
+    },
+    "rule_text": "When an Exchange returns a card, then the returned card is never announced."
+  },
+  {
+    "name": "Tax challenged, Duke is held: challenger loses a card, tax still pays 3",
+    "rule": "R21",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Captain",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "tax"
+      },
+      {
+        "seat": 2,
+        "options_include": "challenge"
+      },
+      {
+        "seat": 2,
+        "options_include": "Captain"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 5,
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "2": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ]
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a challenged active player holds the claimed role, then that card goes into the deck, they draw a replacement (keeping hidden_count), the first challenger in seat order after them loses 1 hidden card, and the action continues."
+  },
+  {
+    "name": "Tax challenged, bluff (no Duke): bluffer loses a card and gains nothing",
+    "rule": "R22",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2,
+          "hidden_cards": [
+            "Captain",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Duke",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "tax"
+      },
+      {
+        "seat": 1,
+        "options_include": "Captain"
+      },
+      {
+        "seat": 2,
+        "options_include": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 2,
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ]
+        },
+        "2": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        }
+      }
+    },
+    "rule_text": "When a challenged active player does not hold the claimed role, then they lose 1 hidden card, the action has no effect, and any block is ignored."
+  },
+  {
+    "name": "Bluffed Steal is challenged: the target's block is ignored, no coins move, only the bluffer loses a card",
+    "rule": "R22",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Duke",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 4,
+          "hidden_cards": [
+            "Assassin",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_cards": [
+            "Duke",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": "Duke"
+      },
+      {
+        "seat": 2,
+        "options_include": "block_captain"
+      },
+      {
+        "seat": 3,
+        "options_include": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ]
+        },
+        "2": {
+          "coins": 4,
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When a challenged active player does not hold the claimed role, then they lose 1 hidden card, the action has no effect, and any block is ignored."
+  },
+  {
+    "name": "Several challenge a true Tax claim: only the first seat after the active seat (wrapping) loses a card",
+    "rule": "R23",
+    "players": 4,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "3": {
+          "coins": 2,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        },
+        "4": {
+          "hidden_cards": [
+            "Captain",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        },
+        "1": {
+          "hidden_cards": [
+            "Assassin",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "tax"
+      },
+      {
+        "seat": 4,
+        "options_include": "challenge"
+      },
+      {
+        "seat": 4,
+        "options_include": "Captain"
+      },
+      {
+        "seat": 1,
+        "options_include": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "3": {
+          "coins": 5,
+          "hidden_count": 2
+        },
+        "4": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ]
+        },
+        "1": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "2": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When several players challenge the action, then only the first challenger in seat order after the active player can lose a card from it."
+  },
+  {
+    "name": "Two Duke blocks: only seat 2's counts; it is a bluff, so seat 2 loses a card and the aid goes through",
+    "rule": "R24",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Captain",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Captain",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_cards": [
+            "Duke",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "foreign_aid"
+      },
+      {
+        "seat": 1,
+        "options_include": "accept",
+        "answer": "challenge"
+      },
+      {
+        "seat": 2,
+        "options_include": "block_duke"
+      },
+      {
+        "seat": 2,
+        "options_include": "Captain"
+      },
+      {
+        "seat": 3,
+        "options_include": "block_duke"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 3,
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ]
+        },
+        "3": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        }
+      }
+    },
+    "rule_text": "When several players block, then only the first blocker in seat order after the active player counts."
+  },
+  {
+    "name": "Captain block challenged and the blocker holds Captain: challenger loses a card, steal blocked",
+    "rule": "R25",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Captain",
+            "Duke"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 4,
+          "hidden_cards": [
+            "Captain",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_cards": [
+            "Duke",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "block_captain"
+      },
+      {
+        "seat": 3,
+        "options_include": "accept",
+        "answer": "challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "Duke"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 4,
+          "hidden_count": 2,
+          "revealed_cards": []
+        },
+        "3": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ]
+        }
+      }
+    },
+    "rule_text": "When a challenged blocker holds the blocking role, then that card goes into the deck, they draw a replacement, the first block challenger in seat order after the blocker loses 1 hidden card, and the action is blocked."
+  },
+  {
+    "name": "Captain block challenged and it is a bluff: blocker loses a card and the steal moves 2",
+    "rule": "R26",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Captain",
+            "Duke"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 4,
+          "hidden_cards": [
+            "Duke",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_cards": [
+            "Assassin",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "steal"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "block_captain"
+      },
+      {
+        "seat": 2,
+        "options_include": "Duke"
+      },
+      {
+        "seat": 3,
+        "options_include": "accept",
+        "answer": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 3,
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 2,
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ]
+        },
+        "3": {
+          "hidden_count": 2,
+          "revealed_cards": []
+        }
+      }
+    },
+    "rule_text": "When a challenged blocker does not hold the blocking role, then the blocker loses 1 hidden card and the action goes ahead."
+  },
+  {
+    "name": "A bluffed Contessa block is challenged: the target loses 2 and is out",
+    "rule": "R27",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 3,
+          "hidden_cards": [
+            "Assassin",
+            "Duke"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 2,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_cards": [
+            "Ambassador",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "assassinate"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "block_contessa"
+      },
+      {
+        "seat": 3,
+        "options_include": "accept",
+        "answer": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0,
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_count": 0,
+          "alive": false,
+          "coins": 0
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When the Assassinate target's Contessa block is challenged and they do not hold Contessa, then the target gets 2 pending losses and, holding 2 hidden cards, is eliminated."
+  },
+  {
+    "name": "Losing one of two cards: the player reveals the card they choose (the second one)",
+    "rule": "R28",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 7
+        },
+        "2": {
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Captain"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ],
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When a player with 2 hidden cards gets exactly 1 pending loss, then they reveal the one card they choose and keep the other hidden."
+  },
+  {
+    "name": "Coup on a player with one card left: they are out with 0 coins",
+    "rule": "R29",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 7
+        },
+        "2": {
+          "coins": 5,
+          "hidden_cards": [
+            "Duke"
+          ],
+          "revealed_cards": [
+            "Captain"
+          ],
+          "hidden_count": 1
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0
+        },
+        "2": {
+          "hidden_count": 0,
+          "alive": false,
+          "coins": 0
+        },
+        "3": {
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When a player's pending losses are equal to or more than their hidden cards, then all their hidden cards are revealed, alive becomes false, and their coins become 0."
+  },
+  {
+    "name": "A revealed card stays revealed and does not come back through an Exchange",
+    "rule": "R30",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "hidden_cards": [
+            "Duke"
+          ],
+          "revealed_cards": [
+            "Captain"
+          ],
+          "hidden_count": 1
+        }
+      },
+      "game": {
+        "active_seat": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "exchange"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Captain"
+          ],
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When a card is revealed, then it moves to revealed_cards, stays public, and never returns to the hand."
+  },
+  {
+    "name": "A loss does not carry into the next turn: the target loses 1 to Coup, then takes Income and keeps 1 card",
+    "rule": "R31",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 7
+        },
+        "2": {
+          "coins": 2,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Duke"
+      },
+      {
+        "seat": 2,
+        "options_include": "income"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0
+        },
+        "2": {
+          "coins": 3,
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ],
+          "alive": true
+        }
+      }
+    },
+    "rule_text": "When a turn ends, then every pending_loss is 0."
+  },
+  {
+    "name": "The next turn skips an eliminated seat: after seat 1, seat 3 plays (seat 2 is out)",
+    "rule": "R32",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1
+        },
+        "2": {
+          "coins": 0,
+          "hidden_cards": [],
+          "revealed_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 0,
+          "alive": false
+        },
+        "3": {
+          "coins": 2
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "living_count": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "tax"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 2
+        },
+        "2": {
+          "coins": 0,
+          "alive": false
+        },
+        "3": {
+          "coins": 5
+        }
+      }
+    },
+    "rule_text": "When a turn ends and the game goes on, then the next turn belongs to the next seat with alive = true, skipping eliminated seats."
+  },
+  {
+    "name": "A Coup target must be another living player: self and the eliminated seat are not offered, so seat 3 is hit",
+    "rule": "R33",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 7
+        },
+        "2": {
+          "coins": 0,
+          "hidden_cards": [],
+          "revealed_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 0,
+          "alive": false
+        },
+        "3": {
+          "hidden_cards": [
+            "Duke",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "living_count": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "Duke"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0,
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_count": 0,
+          "alive": false
+        },
+        "3": {
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Duke"
+          ]
+        }
+      }
+    },
+    "rule_text": "When a target is chosen, then it must be another player with alive = true."
+  },
+  {
+    "name": "Last player with hidden cards wins: seat 1 Coups the last rival",
+    "rule": "R34",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "coins": 7
+        },
+        "2": {
+          "coins": 2,
+          "hidden_cards": [
+            "Duke"
+          ],
+          "revealed_cards": [
+            "Captain"
+          ],
+          "hidden_count": 1
+        },
+        "3": {
+          "coins": 0,
+          "hidden_cards": [],
+          "revealed_cards": [
+            "Assassin",
+            "Contessa"
+          ],
+          "hidden_count": 0,
+          "alive": false
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "living_count": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "coup"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "result": "seat 1",
+      "players": {
+        "1": {
+          "alive": true
+        },
+        "2": {
+          "alive": false,
+          "hidden_count": 0,
+          "coins": 0
+        }
+      },
+      "game": {
+        "winner": "seat 1"
+      }
+    },
+    "rule_text": "When only one player has hidden_count >= 1, then the game ends and that seat wins."
+  },
+  {
+    "name": "Turn cap: after turn 40 the seat with the most hidden cards wins",
+    "rule": "R35",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Duke",
+            "Captain"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "coins": 6,
+          "hidden_cards": [
+            "Duke"
+          ],
+          "revealed_cards": [
+            "Contessa"
+          ],
+          "hidden_count": 1
+        },
+        "3": {
+          "coins": 6,
+          "hidden_cards": [
+            "Assassin"
+          ],
+          "revealed_cards": [
+            "Contessa"
+          ],
+          "hidden_count": 1
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "turn_count": 39
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      }
+    ],
+    "expect": {
+      "result": "seat 1",
+      "game": {
+        "winner": "seat 1",
+        "turn_count": 40
+      }
+    },
+    "rule_text": "When 40 turns have been played and more than one player is alive, then the seat with the most hidden cards wins; a tie goes to the most coins; a remaining tie is a draw."
+  },
+  {
+    "name": "Turn cap: tied on hidden cards, the tied seat with more coins wins",
+    "rule": "R35",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Duke"
+          ],
+          "revealed_cards": [
+            "Captain"
+          ],
+          "hidden_count": 1
+        },
+        "2": {
+          "coins": 5,
+          "hidden_cards": [
+            "Duke",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "coins": 3,
+          "hidden_cards": [
+            "Contessa",
+            "Ambassador"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "turn_count": 39
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      }
+    ],
+    "expect": {
+      "result": "seat 2",
+      "game": {
+        "winner": "seat 2"
+      }
+    },
+    "rule_text": "When 40 turns have been played and more than one player is alive, then the seat with the most hidden cards wins; a tie goes to the most coins; a remaining tie is a draw."
+  },
+  {
+    "name": "Turn cap: tied on hidden cards and coins is a draw",
+    "rule": "R35",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "coins": 1,
+          "hidden_cards": [
+            "Duke"
+          ],
+          "revealed_cards": [
+            "Captain"
+          ],
+          "hidden_count": 1
+        },
+        "2": {
+          "coins": 4,
+          "hidden_cards": [
+            "Duke",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "coins": 4,
+          "hidden_cards": [
+            "Contessa",
+            "Ambassador"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "turn_count": 39
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "income"
+      }
+    ],
+    "expect": {
+      "result": "draw",
+      "game": {
+        "winner": "draw"
+      }
+    },
+    "rule_text": "When 40 turns have been played and more than one player is alive, then the seat with the most hidden cards wins; a tie goes to the most coins; a remaining tie is a draw."
+  },
+  {
+    "name": "Reactions are a poll: both seats challenge a bluffed Tax, only the bluffer loses a card",
+    "rule": "R36",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 2,
+          "hidden_cards": [
+            "Captain",
+            "Contessa"
+          ],
+          "hidden_count": 2
+        },
+        "2": {
+          "hidden_cards": [
+            "Duke",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_cards": [
+            "Ambassador",
+            "Assassin"
+          ],
+          "hidden_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "tax"
+      },
+      {
+        "seat": 1,
+        "options_include": "Contessa"
+      },
+      {
+        "seat": 2,
+        "options_include": "challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "challenge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 2,
+          "hidden_count": 1,
+          "revealed_cards": [
+            "Contessa"
+          ]
+        },
+        "2": {
+          "hidden_count": 2
+        },
+        "3": {
+          "hidden_count": 2
+        }
+      }
+    },
+    "rule_text": "When players react to an action or a block, then they answer in a poll, and no one sees another's answer until all are in."
+  }
+]

@@ -14,6 +14,8 @@ once the dependency exists, and nothing below it changes.
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -90,9 +92,9 @@ ACTION_KEYS = {
     "initialize": ("updates", "requires", "llm"),
     "sync": ("to", "mode", "fields", "text", "llm", "max_words"),
     "tell": ("to", "kind", "about", "fields", "text", "llm", "max_words"),
-    "ask": ("to", "answer", "verify", "outcome", "broadcast", "each", "turns",
+    "ask": ("to", "answer", "verify", "outcome", "broadcast", "store", "each", "turns",
             "text", "llm", "max_words", "deadline_s", "on_timeout"),
-    "poll": ("to", "answer", "verify", "outcome", "broadcast", "text", "llm",
+    "poll": ("to", "answer", "verify", "outcome", "broadcast", "store", "text", "llm",
              "max_words", "deadline_s", "on_timeout"),
     "update": ("do", "text", "llm", "max_words"),
     "check": ("against", "llm"),
@@ -681,6 +683,11 @@ class StepDef:
     #: What the table is told about the answers this step collects. None means
     #: nothing is said, which is what a secret ballot wants.
     broadcast: BroadcastDef | None = None
+    #: A player attribute that receives each player's own answer, so a later
+    #: step can ask "who answered Challenge?" (`[p.seat for p in players if
+    #: p.said == 'Challenge']`). A tally reduces the answers to one value and
+    #: loses who gave which; this keeps them.
+    store: str = ""
     #: For `check`: which endings this step tests, by name. Empty means all of
     #: them. This is the step's input, in the same way `into` is
     #: `initialize`'s: a check after the night need not ask about an ending
@@ -883,6 +890,7 @@ class StepDef:
             broadcast=BroadcastDef.parse(raw["broadcast"], where + ".broadcast")
             if "broadcast" in raw
             else None,
+            store=str(raw.get("store", "")),
             max_words=int(raw.get("max_words", 0)),
             about=str(raw.get("about", "")),
             kind=_one_of(raw.get("kind", "message"), TELL_KINDS, where + ".kind")
@@ -1381,8 +1389,26 @@ def _check_text(d: GameDefinition) -> None:
                  "a game that can end must say how the ending is announced, "
                  "with `text.game_over` or an `llm` on each ending")
 
+    player_keys = {a.key for a in d.player_attributes}
+    table_keys = {a.key for a in d.game_attributes}
     for where, step in _walk(d):
+        if step.store:
+            _require(step.use in ("ask", "poll") and step.answer is not None, where + ".store",
+                     "`store` is for a step that asks, and keeps each player's answer")
+            _require(step.store in player_keys, where + ".store",
+                     f"{step.store!r} is not a player attribute. Declare it under attributes.player (a `text` "
+                     f"attribute for a choice or a message, `number` for a number) so it can hold each player's answer.")
         spec = step.broadcast
+        if spec and spec.text and not spec.llm and spec.text not in text:
+            # A broadcast is worded one answer at a time, as the answers come in, before any
+            # `verify` has bound anything. Only these names exist when it is written; any
+            # other `{name}` would reach the players as the literal braces.
+            known = {"seat", "you", "value"} | table_keys
+            for name in re.findall(r"\{(\w+)\}", spec.text):
+                _require(name in known, where + ".broadcast.text",
+                         f"{{{name}}} is not available in a broadcast. Use {{value}} for what the player answered "
+                         f"and {{seat}} for who answered (a binding from `verify` is not set yet when the broadcast "
+                         f"is written). Or leave `text` out: a free-text answer is then shown word for word.")
         if spec and not spec.llm:
             # A free-text answer is its own message: the player's words are
             # what the table hears, and the engine has nothing to add but who

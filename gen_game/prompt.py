@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from gen_game import complexity
+from gen_game import spec as specmod
 from gen_game.encode import MISTAKES, REFERENCES
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -56,6 +57,25 @@ def interface(spec: dict) -> str:
     return "\n".join(out)
 
 
+
+DECK_RECIPE = """## Recipe: a shared deck and hidden hands (tested on the engine)
+
+When the script has a deck and hands, both must exist as attributes, and setup must really deal. Declare the hand as a PLAYER attribute
+`{"key": "hand", "visible": "ally", "type": "list", "initial": []}` (only its owner sees it; a player attribute is never `none`) and the
+deck as a TABLE attribute `{"key": "deck", "visible": "none", "type": "list", "initial": [every card, one entry per copy]}`, plus a table text
+attribute `pick` (visible `none`, initial `""`) to hold the card just drawn. Then ONE draw, of a random card into seat N's hand, is three operations
+in an `update`'s `do` list, in this order:
+
+  {"set":    {"key": "pick", "value": {"calc": "deck[int(uniform(0, len(deck)))]"}}},
+  {"append": {"player": N, "key": "hand", "value": {"calc": "pick"}}},
+  {"remove": {"key": "deck", "value": {"calc": "pick"}}}
+
+Dealing two cards to three seats is that block repeated twice for each seat (6 draws), never a fixed list written into `initial`: the deal
+is random and different each match, and every player's hand must differ. A card coming back is `{"append": {"key": "deck", ...}}` and
+`{"remove": {"player": N, "key": "hand", ...}}`. "Has a card of role R" is `"R" in you.hand`. Use `{"if": {"calc": ...}}` on an operation to make
+it conditional. Never declare `hand` or `deck` and then leave them unchanged: the rules would then claim cards that do not exist.
+"""
+
 def build(game_id: str, plan: dict, spec: dict, guidance: str = "", agent: bool = True) -> str:
     """The prompt the coder is given, for a coding agent (`agent=True`) or a model answering in one reply.
 
@@ -85,7 +105,7 @@ def build(game_id: str, plan: dict, spec: dict, guidance: str = "", agent: bool 
 
 {MISTAKES}
 - Keep a round to at most {complexity.LIMITS['steps_per_round']} steps. Put several operations in one `update`'s `do` list, and use one `tell` for the
-  reveal. A game with more steps than that is rejected as too large, however well it plays.
+  reveal. A game with more steps than that is flagged as too large in the report, however well it plays, and `verify` tells you the count.
 
 {recipe()}
 ## Check your work
@@ -96,7 +116,13 @@ what blocks you):
     python3 -m gen_game verify {game_id} game
 
 It runs the loader, checks the outcome is arithmetic, and plays the game with random seats. It tells you the problem when it
-fails.
+fails. Then check that the game plays the RULES in the script:
+
+    python3 -m gen_game verify {game_id} rules
+
+It plays the game through independent scenarios, one per rule, and names each rule that is broken, in its own words, with what it
+expected and what the game did. Fix the game until it prints `ok` too. (If it says no scenarios have been written yet, skip it.)
+The scenarios are written by someone else from the rules alone, so the rules list is your checklist: read it, and do not guess.
 
 Do NOT read `{folder}/scenarios.json` or anything under `{folder}/history/`, and do not edit code. When you are done, write
 `{folder}/encode_notes.md`: where the rules were ambiguous or the platform could not do what they ask, and what you chose.
@@ -116,7 +142,7 @@ this result (`text` is the complete fallback; the `result` is still decided by t
 
 {MISTAKES}
 - Keep a round to at most {complexity.LIMITS['steps_per_round']} steps. Put several operations in one `update`'s `do` list, and use one `tell` for the
-  reveal. A game with more steps than that is rejected as too large, however well it plays.
+  reveal. A game with more steps than that is flagged as too large in the report, however well it plays, and `verify` tells you the count.
 
 {recipe()}
 Your file is checked by the platform's loader, a rule that the outcome is arithmetic, random play, a check that every
@@ -135,6 +161,22 @@ Players: {v['players']['min']} to {v['players']['max']}.
 {v['rules']}
 
 How the winner is decided: {v['objective']}
+
+## The game as a script
+
+This is the same game written out as a script: its state, how it starts, what happens in each step and how it ends. Convert it into the
+file step by step. Every item under STATE becomes a declared attribute (hidden ones too). Every INITIALIZATION line becomes a step in `setup`
+that really changes that state. Every EACH ROUND line becomes a step in `steps`, in this order. EVALUATION becomes the `end` rules and the check
+that fires them. Do not drop a piece of state because it looks hard: write the steps that make it work.
+
+{specmod.script(spec)}
+{DECK_RECIPE}
+## Rounds and the safety cap
+
+If the script ends when someone wins (the last player standing, a target reached) and not after a set number of rounds, do not add a fixed
+round count to the rules. The game file still has a `limits` block: set `limits.rounds` to the generous cap the script gives (the number of
+rounds it says a match may run at most) and `limits.rounds_max` to at least that. The `end` rules fire the real endings from the state; add one more
+ending that fires when the cap is reached and decides the winner as the script says, so a match that hits the cap still ends with a result.
 
 ## The interface the file must use
 

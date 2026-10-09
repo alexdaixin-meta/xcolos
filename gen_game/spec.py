@@ -59,8 +59,11 @@ Reply with ONE JSON object and nothing else, with exactly these keys:
                   what it says and list the choice under `choices`.
   attributes      {"player": [{"key", "type": "number|text|list|bool", "visible", "initial", "meaning", "observable": true|false}],
                    "game":   [same]}: use snake_case. Mark `observable: true` ONLY for what someone watching the game from outside
-                  would read: each player's score and anything the rules reveal. Counters, scratch values, codes and "whose turn
-                  it is" are `observable: false`, or better, left out: how the game keeps its own books is the coder's business.
+                  would read: each player's score and anything the rules reveal. Anything the RULES talk about (a hand of cards, a deck, a pile, a
+                  hidden type, who holds what) MUST be declared here with its visibility, even though it is not observable: a game
+                  whose rules say "deal two cards" needs a hand and a deck to deal them into and from. A player's own hidden state is
+                  `ally` (a PLAYER attribute is never `none`); a table's hidden state, such as a deck, is `none`. Only scratch
+                  counters and codes the rules never mention may be left out.
                   Tests may assert only on observable attributes, so keep them few and put the score among them.
   setup           a list of plain sentences: what happens before round one
   round           a list of steps in order. Each: {"action": one of the actions above, "who": "all players | each
@@ -69,6 +72,9 @@ Reply with ONE JSON object and nothing else, with exactly these keys:
   ending          {"condition": an arithmetic condition on attributes that ends the game,
                    "results": the exact result names, e.g. ["seat 1", "seat 2", "draw"],
                    "decided_by": how the result follows from the attributes}
+  rules           (optional but wanted) a list of {"id": "R1", "text": "..."}: EVERY rule of the game as one sentence a test can check, with its numbers: each
+                  action's cost and gain, each block, each challenge (a true claim and a bluff), each forced action, each way the game ends. Tests are written
+                  one per rule, and a failing test names the rule, so write each as "when X, then Y" with concrete values.
   choices         a list of {"what", "why"}: every decision you made that the source rules did not
   simplifications a list of {"what", "why"}: everything you changed to fit the engine
   unsupported     a list of strings: anything the game NEEDS that the actions above cannot do (a board, hidden
@@ -77,6 +83,26 @@ Reply with ONE JSON object and nothing else, with exactly these keys:
 
 Be faithful to the source rules. Do not add mechanics. Reply with the JSON object only."""
 
+
+ENGINE_OVERVIEW = """HOW XCOLOS WORKS, in plain words (design the game, then describe it, in these terms).
+A match is a table of seats. The game is a script: some SETUP steps run once, then ROUND steps run in order again and again until an ending
+is reached. State lives in attributes: a number, a text, a list or a yes/no, kept for each player or for the whole table. Each attribute has an
+owner and a visibility (public, the owner's own, everyone but the owner, or hidden from all), and a player only ever sees what they are entitled to.
+What the engine does well:
+  - Ask players questions: one player at a time (each hears the answers before), or everyone at once, with nobody seeing an answer until all are in.
+    A question takes a choice from a list, a whole number in a range, or a short free-text message. A choice can name another player.
+  - Hidden information: a secret dealt to each player at random (a type, a role, a hand), a hidden table (a deck, a discard pile), and revealing one
+    player's secret to chosen players. Randomness is seeded, so a match replays exactly.
+  - Cards and decks: a shared deck is a list on the table. DRAWING a card is picking one at random from the list, putting it in a player's hand
+    list and taking it out of the deck list; RETURNING is the reverse; shuffling is just drawing at random. Dealing N cards to everyone is N draws each.
+  - Arithmetic: counters, scores, costs, comparisons, sums over players, counting how many players did something; all decided by calculation, never by opinion.
+  - Elimination of players, a fixed number of rounds or "until a condition", and a winner or a draw picked by calculation from the final state.
+  - Talk: players write short messages, one at a time or all at once, that are shown to everyone or to some.
+  - Announcements: fixed sentences filled with the current numbers, or a short summary a model writes.
+What it cannot do: a board, grid, map or movement; real time or time pressure; a model judging the rules' outcomes (a game's outcome is calculated);
+more than the platform's size limits. A game that needs one of these is changed to avoid it, or listed under `unsupported`.
+Whatever the rules say happens must happen to a stated piece of state: if a card is dealt, say where it goes; if a card is challenged, say which list it is
+checked against; if a player is out, say which number says so."""
 
 PLAYER_COUNT_GUIDE = """PLAYER COUNT. Before anything else, decide how many players the game needs, and put it in `players`. The count in the
 source is where to start, not an answer: a source written for two players may play better with more, and the count
@@ -94,7 +120,7 @@ you set is the one the game is built and played with.
   - With three or more players, decide whether talk before the choice each round earns its place: it does when it gives players
     something to reason about AND they disagree about something, so that following a proposal could cost them; it does not when
     everyone wants the same outcome (the first speaker proposes, the rest copy) or when it only adds words. If the rules keep it,
-    build it as a simultaneous `poll` for one short text message from every player, shown to everyone with `broadcast`, and then the
+    build it as a simultaneous `poll` for one short text message from every player, shown to everyone with `broadcast` (`{"to": "all", "text": "Seat {seat} says: {value}"}`), and then the
     `poll` for the choice. Use `ask`, one player at a time, only when the rules say the order of speaking matters. Say which you chose, and
     why, in `choices`.
 Put the reasoning in `choices` (for example {"what": "3 to 5 players", "why": "..."}). Every number in the rules that
@@ -113,7 +139,7 @@ def system_with_engine_facts(manifest: dict | None = None) -> str:
             f"- NOT supported (list it under `unsupported`): {group('blocked')}\n"
             f"- out of scope, never wanted (list it under `unsupported`): {group('excluded')}\n"
             "Where the source rules say a choice is made simultaneously, use `poll`, not `ask`: with `ask` a later "
-            "player hears the earlier answer.\n\n" + PLAYER_COUNT_GUIDE)
+            "player hears the earlier answer.\n\n" + ENGINE_OVERVIEW + "\n\n" + PLAYER_COUNT_GUIDE)
 
 
 def problems(spec: dict) -> list[str]:
@@ -138,6 +164,8 @@ def problems(spec: dict) -> list[str]:
                     out.append(f"an attribute in {scope!r} has no key")
                 elif a.get("visible") not in VISIBILITY:
                     out.append(f"attribute {a['key']!r}: visible must be one of {', '.join(VISIBILITY)}")
+                elif scope == "player" and a["visible"] == "none":
+                    out.append(f"player attribute {a['key']!r}: a player's attribute is never `none`; use `ally` for the owner's own hidden state")
     if not isinstance(spec["round"], list) or not spec["round"]:
         out.append("round must be a non-empty list of steps")
     else:
@@ -147,6 +175,13 @@ def problems(spec: dict) -> list[str]:
     end = spec["ending"]
     if not (isinstance(end, dict) and end.get("condition") and isinstance(end.get("results"), list) and end["results"]):
         out.append("ending needs a condition and a non-empty list of results")
+    rules = spec.get("rules")
+    if rules is not None:
+        ids = [r.get("id") for r in rules if isinstance(r, dict)] if isinstance(rules, list) else []
+        if not (isinstance(rules, list) and all(isinstance(r, dict) and str(r.get("id", "")).strip() and str(r.get("text", "")).strip() for r in rules)):
+            out.append('rules must be a list of {"id": "R1", "text": "..."} with both filled in')
+        elif len(set(ids)) != len(ids):
+            out.append("rules: each id must be used once")
     for k in ("choices", "simplifications", "unsupported"):
         if not isinstance(spec[k], list):
             out.append(f"{k} must be a list")
@@ -198,6 +233,36 @@ def render(spec: dict) -> str:
         out += ["", f"## {title}", ""]
         items = spec[key]
         out += [f"- {i.get('what', i)}: {i.get('why', '')}" if isinstance(i, dict) else f"- {i}" for i in items] or ["- none"]
+    return "\n".join(out) + "\n"
+
+
+def script(spec: dict) -> str:
+    """The spec as a script in plain language: what the game is, what state it keeps, how it starts, what happens in each step, and how it ends.
+
+    This is what the coder converts into the game file, so every piece of state the rules need is named here, hidden ones included.
+    """
+    out = [f"GAME: {spec['name']} ({spec['players']['min']} to {spec['players']['max']} players)", "", spec["summary"], "",
+           "STATE (every item below must exist in the file):"]
+    for scope, label in (("player", "each player"), ("game", "the table")):
+        for a in spec["attributes"][scope]:
+            who = {"public": "everyone sees it", "ally": "only its owner sees it", "others": "everyone but its owner sees it",
+                   "none": "hidden from all players"}.get(a.get("visible"), a.get("visible", ""))
+            start = f", starts {a['initial']!r}" if a.get("initial") is not None else ""
+            out.append(f"  - {label}: {a['key']} ({a.get('type', 'number')}{start}); {who}. {a.get('meaning', '')}")
+    out += ["  - parameters, each kept as a table attribute: " + ", ".join(f"{k} = {v}" for k, v in spec["parameters"].items()), "",
+            "INITIALIZATION (runs once before round 1; each line is a setup step that really changes the state it names):"]
+    out += [f"  {i}. {t}" for i, t in enumerate(spec["setup"], 1)]
+    out += ["", "EACH ROUND (steps in order; the round repeats until an ending):"]
+    for i, st in enumerate(spec["round"], 1):
+        out.append(f"  {i}. [{st['action']}] {st.get('who', '')}" + (f" answers: {st['answer']}" if st.get("answer") else "") + f". What happens: {st.get('effect', '')}")
+    if spec.get("rules"):
+        out += ["", "RULES (each is tested by an independent scenario; the game must play every one exactly):"]
+        out += [f"  {r['id']}. {r['text']}" for r in spec["rules"]]
+    end = spec["ending"]
+    out += ["", "EVALUATION (how the game ends and who wins; decided by calculation):",
+            f"  - the game ends when: {end['condition']}", f"  - the result is one of: {', '.join(end['results'])}",
+            f"  - how the result is decided: {end.get('decided_by', '')}",
+            "  - the end screen states the final scores or deciding figures, and a short model-written summary of how the game went"]
     return "\n".join(out) + "\n"
 
 

@@ -124,7 +124,7 @@ def test_the_flow_designs_reviews_specs_builds_tests_and_evaluates():
     m = Models()
     out = run_flow("rps", m, inv, root, adapt=True, judge=True)
     assert out.verdict == "ready_for_review", out
-    assert calls(m) == ["adapt", "critic", "spec", "encode", "scenarios"]  # the file is written and judged on the platform first; the tests come after
+    assert calls(m) == ["adapt", "critic", "spec", "scenarios", "encode"]  # the tests are written from the spec before the file; they do not decide whether it was written
     assert "weighted" in m.prompts[2] and "Two players each hold hidden cards" not in m.prompts[2]  # the spec saw the variation
     folder = root / "rps"
     for name in ("variation.json", "VARIATION.md", "spec.json", "game.json", "scenarios.json", "report.json", "REPORT.md"):
@@ -156,13 +156,13 @@ def test_triage_knows_the_three_outcomes_and_when_to_stop():
     assert triage.problems({"decision": "shrug"})
 
 
-def test_by_default_the_coder_is_judged_only_on_whether_the_file_works_and_the_tests_come_after():
+def test_by_default_the_tests_are_written_first_and_the_coder_is_judged_only_on_whether_the_file_works():
     inv, root = world()
     m = Models(games=[wrong_game()], triages=[triage_says("fix_game", "set rounds_left to 10")])
     # a game that runs fine but does not follow the rules (three rounds, not ten): the coder's loop accepts it
     stop_early = run_flow("rps", m, inv, root)  # no design step, no triage
     assert stop_early.verdict == "needs_review"
-    assert calls(m) == ["spec", "encode", "scenarios"]  # one coder call: it was not refused for what the tests say
+    assert calls(m) == ["spec", "scenarios", "encode"]  # the tests are written first; one coder call: it was not refused for what the tests say
     assert (root / "rps" / "game.json").exists()  # the file was written and stands
     report = json.loads((root / "rps" / "report.json").read_text())
     assert report["tier0"]["passed"] and any(not o["passed"] for o in report["scenarios"])  # works on the platform; does not follow the rules
@@ -633,10 +633,10 @@ def test_every_model_call_is_recorded_with_its_prompt_reply_and_hashes():
     out = run_flow("rps", rec, inv, root, adapt=True, judge=True)
     assert out.verdict == "ready_for_review", out
     log = [json.loads(l) for l in (folder / "calls.jsonl").read_text().splitlines()]
-    assert [c["step"] for c in log] == ["design", "critic", "spec", "coder", "scenarios"]
+    assert [c["step"] for c in log] == ["design", "critic", "spec", "scenarios", "coder"]
     assert [c["n"] for c in log] == [1, 2, 3, 4, 5]
-    coder = log[3]  # the coder is now before the tests
-    page = (folder / "04-coder.md").read_text()
+    coder = log[4]  # the coder comes after the tests, which are written first
+    page = (folder / "05-coder.md").read_text()
     assert "Rock Paper Scissors, weighted" in page and coder["sent_sha256"][:16] in page and "## Reply" in page
     assert (folder / coder["system_file"]).read_text().startswith("You write game files")  # the system prompt, once
     assert coder["sent_sha256"] == calls.sha((root / "rps" / "CODER_PROMPT.md").read_text())  # the saved prompt IS the sent one
@@ -680,8 +680,8 @@ def test_verified_md_shows_the_saved_prompt_is_the_sent_one_and_reruns_the_check
     rec = calls.Recorded(Models(), root / "rps" / "logs")
     run_flow("rps", rec, inv, root, adapt=True, judge=True)
     text = verified.write(root / "rps").read_text()
-    assert "| 04 | coder |" in text and "MATCHES call 04: this is exactly what was sent" in text
-    assert "all pass" in text and "independent scenarios: 2 of 2 pass" in text and "tier 0" in text and "tier 1" in text
+    assert "| 05 | coder |" in text and "MATCHES call 05: this is exactly what was sent" in text
+    assert "all pass" in text and "independent scenarios: 2 of 2 pass" in text and "tier 0" in text and "reasoning and balance: not checked" in text
 
 
 def test_verified_md_says_so_when_the_saved_prompt_is_not_the_one_that_was_sent():
@@ -829,7 +829,13 @@ def test_the_coder_is_told_to_keep_a_round_within_the_step_limit_in_both_prompts
 
 def test_the_designer_and_critic_are_told_that_a_lottery_under_good_play_is_a_failure():
     assert "THE LOTTERY TRAP" in adaptmod.system_prompt() and "intended good strategy" in adaptmod.system_prompt()
-    assert "decided by a random draw" in critic.system_prompt() and "intended good strategy" in critic.system_prompt()
+    assert "not a trap" in adaptmod.system_prompt()  # a deal that good play can overcome is welcome
+
+
+def test_the_designer_is_told_to_keep_the_idea_and_that_rounds_need_not_be_fixed():
+    for need in ("KEEP THE IDEA", "RANDOM STARTS ARE GOOD", "ROUNDS NEED NOT BE FIXED"):
+        assert need in adaptmod.IDEA_MODE
+    assert "decided by the random draw alone" in critic.system_prompt() and "intended good strategy" in critic.system_prompt()
 
 
 def test_what_a_person_already_knows_is_wrong_goes_to_the_first_designer_call():
@@ -1203,3 +1209,18 @@ def test_the_verify_command_treats_the_specs_parameters_as_constants_exactly_as_
     assert main([*base, "verify", "rps", "game"]) == 1  # no spec: an attribute nothing updates is reported
     (folder / "spec.json").write_text(json.dumps({**SPEC, "parameters": {**SPEC["parameters"], "num_rounds": 10}}))
     assert main([*base, "verify", "rps", "game"]) == 0  # the spec says it is a parameter: it is meant to stay put
+
+
+def test_scenarios_that_cannot_be_written_before_the_build_do_not_stop_the_build():
+    class Flaky(Models):
+        failures = 2  # the first two scenario calls fail (one retry is made), then it works
+
+        def complete(self, prompt, system=""):
+            if "write test scenarios" in system and self.failures > 0:
+                self.failures -= 1
+                raise RuntimeError("The model failed to generate a response.")
+            return super().complete(prompt, system)
+
+    inv, root = world()
+    out = run_flow("rps", Flaky(), inv, root, adapt=True, judge=True)
+    assert out.verdict != "scenarios_failed", out

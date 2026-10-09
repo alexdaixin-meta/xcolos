@@ -1,17 +1,22 @@
 """Step 4: evaluate an encoded game.
 
-Tiers, cheapest first. Only the two that need no model are built.
+Tiers. The pipeline checks two things: that the game runs, and that it plays the rules the design says.
 
   Tier 0, validity. Random seats play at the smallest and largest table; every
   match must end with a result and a valid log, no seat may be left unable to
   answer, and the same seed must replay to the same log.
 
-  Tier 1, degeneracy. A game where chance alone decides, or where a policy as
+  Tier 1, rules (`scenarios.py`, not here): situations written from the design's own rules, each answered by naming
+  the option on offer, with the result and scores each must give. A rule the game plays differently fails.
+
+  Reasoning (the function below, `tier1`, kept for `--judge` and `evaluate`; NOT part of the pipeline by default).
+  A game where chance alone decides, or where a policy as
   thoughtless as "always take the last option" beats random seats nearly every
   time, is not asking the players to think. Reported as flags, not failures:
   a person decides what to do about one.
 
-The tiers that need models (a skill ladder, a reasoning check) come after these.
+Whether a game rewards reasoning is to be measured later by having real models play it. These scripted checks
+cannot say.
 """
 
 from __future__ import annotations
@@ -23,6 +28,11 @@ from xcolos.games.definition import GameDefinition
 
 DOMINANCE = 0.85
 MIN_DECIDED = 10
+
+
+def not_run() -> dict:
+    """The reasoning and balance checks, left out: the same shape, nothing flagged."""
+    return {"flags": [], "random_results": {}, "dominance": {}, "skipped": True}
 
 
 def tier0(defn: GameDefinition, seeds: range = range(1, 21)) -> dict:

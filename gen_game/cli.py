@@ -145,8 +145,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--redo", default="", help=f"steps to run again, from: {', '.join(flow.STEPS)}")
     p = sub.add_parser("verify")
     p.add_argument("id")
-    p.add_argument("what", choices=("variation", "spec", "game", "scenarios"),
-                   help="check variation.json, spec.json, game.json (loader and smoke play) or scenarios.json against the pipeline's own rules")
+    p.add_argument("what", choices=("variation", "spec", "game", "scenarios", "rules"),
+                   help="check variation.json, spec.json, game.json (loader and smoke play), scenarios.json against the pipeline's own rules, "
+                        "or play game.json through the design's rule scenarios (`rules`)")
     p = sub.add_parser("agent-command")
     p.add_argument("id")
     p.add_argument("--encoder", default="muse", help="claude[:model], muse[:model], metacode[:model] or command:...")
@@ -212,7 +213,29 @@ def main(argv: list[str] | None = None) -> int:
                 constants = set(json.loads(spec_path.read_text()).get("parameters", {})) if spec_path.exists() else set()
                 _, defn, problem = enc.check(json.loads((folder / "game.json").read_text()), args.id, constants)
                 print("ok" if defn else problem)
+                if defn:
+                    from gen_game import complexity, lint
+
+                    for finding in lint.trace_lint(defn, seeds=range(1, 3))["findings"][:6]:
+                        print(f"note: {finding}")
+
+                    steps = complexity.measure(defn)["steps_per_round"]
+                    if steps > complexity.LIMITS["steps_per_round"]:
+                        print(f"note: the round has {steps} steps, over the guideline of {complexity.LIMITS['steps_per_round']}; "
+                              "the report will flag it. Merge steps that always run together, or give a step a `when`.")
                 return 0 if defn else 1
+            if args.what == "rules":
+                from xcolos.games.loader import load_file
+
+                if not (folder / "scenarios.json").exists():
+                    print("no rule scenarios have been written yet; nothing to check")
+                    return 0
+                items = json.loads((folder / "scenarios.json").read_text())
+                results = scenarios.run_all(load_file(folder / "game.json"), items)
+                bad = [o for o in results if not o.passed]
+                print(f"ok: the game plays all {len(results)} rule scenarios" if not bad else
+                      f"{len(bad)} of {len(results)} rule scenarios fail:\n" + "\n".join(f"- {o.name}: " + "; ".join(o.failures[:5]) for o in bad))
+                return 0 if not bad else 1
             found = scenarios.problems(json.loads((folder / "scenarios.json").read_text()))
             print("ok" if not found else "; ".join(found))
             return 0 if not found else 1

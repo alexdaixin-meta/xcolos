@@ -413,8 +413,11 @@ def test_a_player_holding_nothing_is_not_asked():
 
     asked = {r["seat"] for r in game.log.records
              if r["type"] == "action_request"}
-    assert len(asked) == 2, (
-        f"three players, one holding nothing, but {len(asked)} were asked"
+    answered_for = {r["seat"] for r in game.log.records if r["type"] == "auto_answer"}
+    # Hands of two, one and none: the empty hand is not a question; the hand of one is a
+    # question with a single answer, so it is answered for, not asked.
+    assert len(asked) == 1 and len(answered_for) == 1 and not asked & answered_for, (
+        f"three players, hands of two, one and none: asked {asked}, answered for {answered_for}"
     )
 
 

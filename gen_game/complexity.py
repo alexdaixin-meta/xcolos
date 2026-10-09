@@ -18,12 +18,12 @@ from xcolos.games.definition import GameDefinition
 
 #: What the designer reports about its variation, and the most each may be.
 LIMITS = {
-    "steps_per_round": 12,        # actions in one round: asks, polls, tells, updates, checks
+    "steps_per_round": 20,        # actions in one round: asks, polls, tells, updates, checks. A guideline, flagged in the report, not refused: a faithful card game needs more than a toy
     "choice_steps_per_round": 4,  # places a player must answer in one round
     "attributes": 20,             # player attributes plus table attributes
     "hidden_elements": 3,         # private types, hidden states and private signals, counted separately
     "random_draws_per_round": 1,  # chance events in one round (a deal, a state, a signal)
-    "rounds": 15,
+    "rounds": 40,                 # a cap, not a promise: a game may run until someone wins
 }
 KEYS = tuple(LIMITS)
 

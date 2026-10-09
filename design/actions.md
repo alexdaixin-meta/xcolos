@@ -138,7 +138,7 @@ action that does not read it is refused at load.
 | `initialize` | `updates` `requires` `llm` |
 | `sync` | `to` `mode` `fields` `text` `llm` `max_words` |
 | `tell` | `to` `kind` `about` `fields` `text` `llm` `max_words` |
-| `ask` | `to` `answer` `verify` `outcome` `broadcast` `each` `turns` `text` `llm` `max_words` `deadline_s` `on_timeout` |
+| `ask` | `to` `answer` `verify` `outcome` `broadcast` `store` `each` `turns` `text` `llm` `max_words` `deadline_s` `on_timeout` |
 | `poll` | the same as `ask`, except `each` and `turns` |
 | `update` | `do` `text` `llm` `max_words` |
 | `check` | `against` `llm` |
@@ -418,6 +418,30 @@ With no wording and a free-text answer, the answer *is* the message and is
 reproduced word for word. A broadcast that rewords a player is the referee
 speaking for them. Anything other than free text needs `text` or `llm`, because
 a seat number is not a sentence.
+
+A broadcast is written one answer at a time, as the answers come in, before any
+`verify` has bound a name. So its `text` may use only `{value}` (what that
+player answered), `{seat}` (who answered) and table attributes. A `{name}` bound
+by `verify` is not set yet and would reach the players as literal braces, so the
+loader refuses it. Talk that everyone hears, each player writing at the same
+moment:
+
+```json
+{"use": "poll", "label": "talk", "to": "acting",
+ "answer": {"type": "text", "max_words": 30},
+ "broadcast": {"to": "all", "text": "Seat {seat} says: {value}"},
+ "text": "Say one thing to the table."}
+```
+
+### Keeping who said what: `store`
+
+A `verify` tally reduces the answers to one value and loses who gave which. When
+a later step needs to know *who* answered a certain way (who challenged, who
+raised a hand), give the step `"store": "said"`, naming a player attribute
+(declared under `attributes.player`, `text` for a choice or a message). Each
+player's own answer is written to it, and a calc can read them all:
+`count(p.said == 'Challenge' for p in players)`, or the first challenger,
+`min([p.seat for p in players if p.said == 'Challenge'])`.
 
 ---
 

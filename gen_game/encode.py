@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Protocol
 
 from gen_game import harness
+from gen_game import lint as tracelint  # `lint` here is the known-mistakes check
 from gen_game.repair import refused
 from gen_inventory.crawl import first_json
 from xcolos.games.definition import Condition, DefinitionError, GameDefinition
@@ -49,6 +50,22 @@ MISTAKES = """- Mistakes the loader has refused before, so avoid them:
   * Do not write a `deal` block unless it has the `into` it requires. Set starting values with `initial` on
     attributes, or with `set` operations in `setup`, instead.
   * Every key must be one the reference lists for that action; a misspelled or invented key is refused.
+  * TALK that everyone hears is a `poll` with a free-text answer and `"broadcast": {"to": "all", "text": "Seat {seat} says: {value}"}`
+    (or `"broadcast": "all"` with no `text`, which shows each message word for word). A broadcast may use ONLY `{value}` (what that
+    player answered), `{seat}` (who) and table attributes: a name bound by `verify` is not set yet, so `{talk_msg}` reaches players as
+    the literal braces, and the loader refuses it.
+  * WHO answered what (who challenged, who blocked, who raised a hand) is `"store": "attr"` on the `poll` or `ask`, naming a PLAYER
+    attribute declared under `attributes.player` (a `text` attribute for a choice). Each player's own answer is written to it and a calc reads
+    them all: `count(p.said == 'Challenge' for p in players)`, `min([p.seat for p in players if p.said == 'Challenge'])`. A `verify`
+    tally gives ONE winning value and loses who gave which: one "Challenge" against three "Pass" tallies to "Pass". Never write a seat
+    number into a calc by guessing (`2 if active_seat == 1 else 1`); read it from a stored answer. Reset the stored attribute with a `set`
+    to `""` (`players: "all"`) before each poll, so last round's answers do not count.
+  * A QUESTION WITH ONE POSSIBLE ANSWER IS NEVER WORTH ASKING ("pass" and nothing else): the engine answers it itself, but write the step so
+    it is not asked at all, and never announce a seat's answer when the seat was not asked (eliminated players).
+  * ASK ONLY WHAT IS NEEDED. Put a `when` on a question that applies only sometimes: a target is asked only for the actions that take one
+    (`"when": {"calc": "chosen_action in ['Steal', 'Assassinate', 'Coup']"}`), a block only when something can be blocked.
+  * A counter must not go below what the rules allow. Guard every payment and loss with an `if` (`"if": {"calc": "you.coins >= cost"}`,
+    or check it before the action is allowed), and treat an action the player cannot afford as the cheapest legal one, as the rules say.
   * An answer to an `ask` or a `poll` exists ONLY if the step binds it with `verify: {"bind": "name"}`; a later `update`
     stores it with `"value": "$name"` (see the `rps` example, `card1`). A step that asks and binds nothing throws the
     answers away, and every score that depends on them stays at its starting value.
@@ -323,9 +340,13 @@ def check(text_or_obj, game_id: str, constants: set[str] = frozenset(), tests: l
     b = harness.play(defn, harness.random_agents(defn.min_players, 1), 1)
     if a.comparable_log() != b.comparable_log():
         return obj, None, "playing the same seed twice gave different logs: something in the game is not deterministic (a clock, an unseeded draw)"
+    literal = [f for f in tracelint.scan(a.game.log.records) if f.startswith("placeholder:")]
+    if literal:
+        return obj, None, "players are sent text with a `{name}` that was never filled in: " + " | ".join(literal[:3])
     if (dead := dead_attributes(defn, set(constants))):
         return obj, None, ("it plays, but part of it does nothing: " + explain_dead(dead, obj) +
-                           ". Declare only attributes the game uses, and make sure each one is set by a step that actually runs.")
+                           ". Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: "
+                           "write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.")
     if tests:
         from gen_game import scenarios
 

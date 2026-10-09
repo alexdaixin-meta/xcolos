@@ -77,8 +77,8 @@ more players, so one rival's gain is not another's loss; a pot that only builds 
 best action differs by who you are.
 
 THE LOTTERY TRAP. Check the outcome when everyone plays the intended good strategy, not only the thoughtless ones. If the
-winner is then decided by a random draw (who was dealt the better hidden type, who drew the better card), reasoning does
-not decide the game. Make a hidden type matter for WHAT to do, not for who ends ahead: give types that are worth the same
+winner is then decided by the random draw alone (who was dealt the better hidden type, who drew the better card), reasoning does
+not decide the game. A random deal that only changes what players know or can do, and that good play can overcome, is not a trap: keep it. Make a hidden type matter for WHAT to do, not for who ends ahead: give types that are worth the same
 in total, or compare players on something both can reach, or let play after the draw correct for it.
 
 MODEL. If your game is a repeated game in which, every round, all players choose AT THE SAME MOMENT from the same list of
@@ -206,7 +206,7 @@ everyone, and only then do they choose. Do not have players speak one after anot
 the point (say why), because the later speakers just copy the first. Write it in the rules ("each round, everyone writes one message at the
 same time; all are shown; then everyone chooses at the same time")."""
 
-ENDGAME_UNRAVELING = """ENDGAME UNRAVELING. In a repeated game of fixed length whose winner is the HIGHEST TOTAL, the safe option wins a close finish: once anyone
+ENDGAME_UNRAVELING = """ENDGAME UNRAVELING (this is about games of fixed length decided by a total, not about games that end by elimination or a goal the idea already has: keep those endings). In a repeated game of fixed length whose winner is the HIGHEST TOTAL, the safe option wins a close finish: once anyone
 defects, trust cannot be rebuilt, safe play is best for everyone, and the last rounds are all safe play. This happens with three or more players
 too. If the game is about sustaining cooperation or trust, give it a TARGET to reach (everyone whose total reaches N wins, N out of reach of
 safe play alone) or another winner rule where cooperation can still pay after a betrayal. Check that after one defection a player still has a
@@ -219,6 +219,27 @@ you are to DESIGN the game from it: its rules, its player count, its numbers and
 player count. Work out the smallest table where the idea's point really happens (coordination needs at least three
 players, hidden roles need a minority to hide in) and state it in `variation.players`. In `expected_effect`, say why that
 is the minimum and the strategy a thoughtful player uses that a thoughtless one does not.
+
+KEEP THE IDEA. The game you design must still be that game. Its core mechanisms are what the idea is: the hidden hands and the deck they
+come from, the roles and what each can do, the claims and challenges, the elimination, the way the original ends. KEEP THEM. Do not make
+the game simpler just because simpler is easier: a deck of cards stays a deck dealt to hands, two cards stay two cards, last player standing
+stays last player standing, a sequence of turns stays a sequence. You may adapt the numbers, the player count and the details,
+and add what makes it play better (talk, for one). You may cut or reshape a mechanism ONLY when the platform truly cannot express it, and then
+you must say which platform limit forces it (check HOW XCOLOS WORKS and the restrictions: dealing from a deck into hidden hands, drawing,
+returning cards, elimination, one-at-a-time turns and simultaneous choices are all supported). "Too many steps" is not a reason to drop a core
+mechanism: put several operations in one step, use `when` so a step runs only when it applies, and cut the rarest detail first.
+In `keeps`, list every core mechanism you kept. In `changes`, each cut or reshaping names the platform limit that forced it.
+
+ROUNDS NEED NOT BE FIXED. Do not give the game a fixed number of rounds just to make it finite. If the idea ends when someone wins (the last
+player standing, a target reached, a goal met), let it run until then, and say so in the rules. Because a match must still stop, state
+a generous safety cap on rounds (report it as `complexity.rounds`, at most the limit given) and say who wins if the cap is reached (for example
+the player with the most of what the game counts). Use a fixed number of rounds only when the idea itself is a set number of rounds.
+
+RANDOM STARTS ARE GOOD. Different random deals, hands and hidden roles are welcome: they give every match a different shape and are
+usually the heart of the game, so do not remove them for being random. Only avoid a game where the DEAL ALONE decides who wins when
+everyone plays well. A good player should beat a poor one from any deal: let the deal decide what you can do and what you know, and let
+the choices (what to claim, whom to challenge, when to hold back) decide who wins.
+
 Never recommend dropping: whatever the idea, design the best playable game you can from it and set `recommendation.decision` to "adapt"."""
 
 

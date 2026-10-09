@@ -203,7 +203,7 @@ def test_the_flow_converts_a_game_and_leaves_every_artifact():
     assert out.verdict == "ready_for_review", out
     for name in ("spec.json", "SPEC.md", "game.json", "scenarios.json", "report.json", "REPORT.md"):
         assert (root / "rps" / name).exists(), name
-    assert m.calls == ["spec", "encode", "scenarios"]
+    assert m.calls == ["spec", "scenarios", "encode"]
     rec = inv.get("rps")
     assert rec.status == "evaluated" and rec.port.endswith("game.json")
     assert "# rps: ready for review" in (root / "rps" / "REPORT.md").read_text()
@@ -413,7 +413,7 @@ def test_complexity_limits_measure_what_the_designer_reports_and_what_was_built(
     assert any("steps_per_round" in p and "over the limit" in p for p in complexity.over({**PLAN["complexity"], "steps_per_round": 99}))
     m = complexity.measure(RPS)
     assert m["steps_per_round"] == 22 and m["choice_steps_per_round"] == 4
-    assert complexity.describe_limits().startswith("steps_per_round at most 12")
+    assert complexity.describe_limits().startswith(f"steps_per_round at most {complexity.LIMITS['steps_per_round']}")
 
 
 def test_a_designer_that_gives_nothing_usable_stops_the_flow():

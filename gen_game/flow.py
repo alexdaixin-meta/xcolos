@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Callable
 
 from gen_game import adapt as adaptmod
-from gen_game import complexity, critic, evaluate, modelcheck, prompt as promptmod, scenarios, triage
+from gen_game import complexity, critic, evaluate, lint, modelcheck, prompt as promptmod, scenarios, triage
 from gen_game import spec as specmod
 from gen_game.agent import CompletionEncoder
 from gen_inventory.inventory import Inventory
@@ -92,6 +92,11 @@ def conformance(spec: dict, defn) -> list[str]:
         flags.append("the spec has a simultaneous choice (poll) but the game file has none: players may answer after seeing others")
     for k in sorted(want - have - {"poll"}):
         flags.append(f"the spec uses `{k}` but the game file does not")
+    declared = {a.key for a in defn.player_attributes} | {a.key for a in defn.game_attributes}
+    for scope in ("player", "game"):
+        for a in spec["attributes"][scope]:
+            if a["key"] not in declared:
+                flags.append(f"the spec declares {scope} attribute `{a['key']}` but the game file does not: a piece of state the rules need is missing")
     return flags
 
 
@@ -104,7 +109,8 @@ def complexity_flags(report: dict) -> list[str]:
 def design_flags(report: dict) -> list[str]:
     """What the evaluation found that better rules could fix: a thoughtless policy that wins, chance that
     decides everything, or a built game larger than the limits."""
-    return [f for f in report["tier1"]["flags"] if not any(i in f for i in IGNORED_FLAGS)] + complexity_flags(report)
+    return ([f for f in report["tier1"]["flags"] if not any(i in f for i in IGNORED_FLAGS)] + complexity_flags(report)
+            + list((report.get("lint") or {}).get("findings", [])))
 
 
 def syntax_only(attempts: list[str]) -> bool:
@@ -254,7 +260,7 @@ def _design(completion, rec, feedback: str, folder: Path, log, tried: list[str],
     return None, _drop(inv, rec, folder, kind, why, plan, tried)
 
 
-def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo: set[str], guidance: str, log, fidelity_in_loop: bool = False):
+def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo: set[str], guidance: str, log, fidelity_in_loop: bool = False, judge: bool = False):
     """Build the game file, write independent scenarios, run them, and evaluate.
 
     Returns (outcome, evidence, report). An `outcome` is a stop that is nobody's design problem (the
@@ -272,16 +278,21 @@ def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo
         if "scenarios" in redo or not paths["scenarios.json"].exists():
             log("step C: writing independent scenarios from the spec")
             found, error = scenarios.write_scenarios(completion, spec)
+            if found is None and "model call failed" in error:  # a service that failed to answer: ask once more
+                found, error = scenarios.write_scenarios(completion, spec)
             if found is None:
                 return None, Outcome(game_id, "scenarios_failed", f"no usable scenarios: {error}")
             _write(paths["scenarios.json"], json.dumps(found, indent=2) + "\n")
         return json.loads(paths["scenarios.json"].read_text()), None
 
-    items = None
-    if fidelity_in_loop:
-        items, stop = ensure_scenarios()
-        if stop is not None:
-            return stop, None, None
+    # The scenarios are written BEFORE the file, from the spec alone. The coder is judged only on whether the file works; the scenarios
+    # are advisory while it builds (an agent can run `verify <id> rules`, and with `fidelity_in_loop` a model-coder's repair loop
+    # includes them), and decide nothing about whether the file was written.
+    items, stop = ensure_scenarios()
+    if stop is not None:
+        # They are advisory while building, so a model service that fails once does not stop the build: build the file now and try again after.
+        log("the scenarios could not be written yet; building the file first and trying again after")
+        items = None
 
     if "encode" in redo or guidance or not paths["game.json"].exists():
         log("step C: building the game file")
@@ -311,12 +322,15 @@ def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo
         if stop is not None:
             return stop, None, None
     outcomes = scenarios.run_all(defn, items)
+    untested = scenarios.coverage(spec, items)
 
     log("step D: evaluating")
-    t0, t1 = evaluate.tier0(defn), evaluate.tier1(defn)
+    t0 = evaluate.tier0(defn)
+    traced = lint.trace_lint(defn)
+    t1 = evaluate.tier1(defn) if judge else evaluate.not_run()  # reasoning and balance are not the pipeline's question
     report = {
-        "game": game_id, "attempts": attempts, "conformance": conformance(spec, defn),
-        "scenarios": [dataclasses.asdict(o) for o in outcomes], "tier0": t0, "tier1": t1,
+        "game": game_id, "attempts": attempts, "conformance": conformance(spec, defn) + [f"rule {r} has no scenario: nothing checks it" for r in untested],
+        "scenarios": [dataclasses.asdict(o) for o in outcomes], "tier0": t0, "tier1": t1, "lint": traced,
         "spec_choices": spec["choices"], "simplifications": spec["simplifications"],
         "complexity_measured": complexity.measure(defn),
     }
@@ -409,7 +423,7 @@ def convert(
         else:
             guidance = ""
             for fix_no in range(FIX_ROUNDS + 1):
-                stop, evidence, report = _build_and_test(game_id, completion, encoder, spec, plan, folder, redo_set, guidance, log, fidelity_in_loop)
+                stop, evidence, report = _build_and_test(game_id, completion, encoder, spec, plan, folder, redo_set, guidance, log, fidelity_in_loop, judge)
                 redo_set -= {"encode", "scenarios", "evaluate"}
                 if stop is not None:
                     return stop
@@ -501,7 +515,7 @@ def render_report(r: dict) -> str:
         rep = cx.get("reported") or {}
         out += ["## Complexity", ""] + [
             f"- {k}: designed {rep.get(k, '?')}, built {cx['measured'].get(k, '-')}, limit {complexity.LIMITS[k]}" for k in complexity.KEYS] + [""]
-    out += ["## Fidelity to the rules (independent tests written from the spec alone; they do not decide whether the file works)", ""]
+    out += ["## Fidelity to the rules (tier 1: independent tests written from the spec alone; they do not decide whether the file works)", ""]
     for o in r["scenarios"]:
         out.append(f"- {'pass' if o['passed'] else 'FAIL'}: {o['name']}" + ("" if o["passed"] else " | " + "; ".join(o["failures"])))
     out += ["", "## Does the file follow the spec's shape? (flags for a person)", ""]
@@ -510,11 +524,20 @@ def render_report(r: dict) -> str:
     out += ["", "## Works on the platform (tier 0: it loads, ends, replays identically, and every attribute it declares is updated)", "", f"- {'passed' if t0['passed'] else 'FAILED'}: {t0['metrics']['matches']} random matches at tables {t0['metrics']['tables']}, "
             f"results {t0['metrics']['results']}, {t0['metrics']['turns_min']}-{t0['metrics']['turns_max']} turns"]
     out += [f"- {p}" for p in t0["problems"]]
-    out += ["", "## Balance (tier 1, informational: a thoughtless policy that always wins, or luck deciding everything)", ""]
-    out += [f"- {f}" for f in t1["flags"]] or ["- no flags"]
-    out += [f"- random seats: {t1['random_results']}"]
-    for k, v in t1["dominance"].items():
-        out.append(f"- always `{k}`: won {v['win']}, lost {v['loss']}, drew {v['draw']}")
+    lint_r = r.get("lint") or {}
+    if lint_r:
+        m = lint_r["metrics"]
+        out += ["", "## Play-trace checks (random matches: text that was never filled in, empty or repeated announcements, one-option questions)", ""]
+        out += [f"- {f}" for f in lint_r["findings"]] or ["- clean"]
+        out += [f"- cost of a match: {m['decisions_per_match']} decisions, prompts of {m['prompt_chars_avg']} characters on average (longest {m['prompt_chars_max']})"]
+    if t1.get("skipped"):
+        out += ["", "## Reasoning and balance (not checked here: real models will play it later)", "", "- not run"]
+    else:
+        out += ["", "## Balance (informational: a thoughtless policy that always wins, or luck deciding everything)", ""]
+        out += [f"- {f}" for f in t1["flags"]] or ["- no flags"]
+        out += [f"- random seats: {t1['random_results']}"]
+        for k, v in t1["dominance"].items():
+            out.append(f"- always `{k}`: won {v['win']}, lost {v['loss']}, drew {v['draw']}")
     if r.get("triage"):
         out += ["", "## Triage (whose problem each failure was)", ""]
         out += [f"- round {d['round']}: {d['decision']}: {d['reason']}" for d in r["triage"]]
