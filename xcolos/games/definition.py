@@ -1046,6 +1046,7 @@ class GameDefinition:
     name: str
     min_players: int
     max_players: int
+    suggested_players: int
     statuses: tuple[StatusDef, ...]
     player_attributes: tuple[AttributeDef, ...]
     game_attributes: tuple[AttributeDef, ...]
@@ -1064,6 +1065,8 @@ class GameDefinition:
     deal: DealDef | None = None
     reveal: tuple[str, ...] = ()
     limits: Limits = field(default_factory=Limits)
+    #: Can be started by id but is not offered in the console's picker (a fixture, a reference game).
+    unlisted: bool = False
     text: dict[str, str] = field(default_factory=dict)
     rules: str = ""
     #: One line for a menu. Declared, not derived: slicing the first sentence
@@ -1127,6 +1130,9 @@ def parse(raw: dict[str, Any]) -> GameDefinition:
     players = meta.get("players") or {}
     lo, hi = int(players.get("min", 2)), int(players.get("max", 12))
     _require(lo <= hi, "meta.players", f"min {lo} is above max {hi}")
+    #: The table size the game plays best at, set by whoever designed it. Optional; without it the minimum is the suggestion.
+    suggested = int(players.get("suggested", lo))
+    _require(lo <= suggested <= hi, "meta.players.suggested", f"{suggested} is outside {lo} to {hi}")
 
     statuses = tuple(
         StatusDef(
@@ -1192,6 +1198,8 @@ def parse(raw: dict[str, Any]) -> GameDefinition:
         blurb=str(meta.get("blurb", "")),
         min_players=lo,
         max_players=hi,
+        suggested_players=suggested,
+        unlisted=bool(meta.get("unlisted", False)),
         statuses=statuses,
         player_attributes=player_attrs,
         game_attributes=game_attrs,

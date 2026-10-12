@@ -37,6 +37,7 @@ from xcolos.games.definition import (
     StepDef,
 )
 from xcolos.game import Game
+from xcolos.log import MoveRecord
 from xcolos.orchestrators.base import ActionRequest, GameBrief
 from xcolos.protocol import Action, ActionSchema
 from xcolos.state import Audience
@@ -658,6 +659,7 @@ class FlowOrchestrator:
         step: StepDef | None = None,
         tag: str = "",
         seat: int | None = None,
+        public: bool = False,
     ) -> Call:
         """Assemble one call. The only place a call is built.
 
@@ -678,7 +680,7 @@ class FlowOrchestrator:
             task=task,
             output=output,
             rules=self.definition.rules_text,
-            table=flow.view(seat) if seat is not None else flow.full_view(),
+            table=flow.public_view() if public else (flow.view(seat) if seat is not None else flow.full_view()),
             where=Where(
                 round=game.round,
                 phase=game.phase,
@@ -963,7 +965,13 @@ class FlowOrchestrator:
         if len(legal) != 1:
             return None
         game.log.record("process", "auto_answer", seat=seat, step=step.label, value=legal[0])
-        return Action(type=ask.schema.id, target=legal[0])
+        action = Action(type=ask.schema.id, target=legal[0])
+        # It is still a move in the match: whoever reads the moves (a replay, the console, a test) sees every decision, marked automatic.
+        game.log.record("turn", "move", **MoveRecord(
+            turn_seq=game.turn_seq, seat=seat, role=game.seats[seat].role, delta_fact_seqs=[], action_schema=ask.schema.id,
+            legal_targets=list(legal), reason=f"auto:{step.use}:{step.label}", final_outcome="auto", action=action.to_json(),
+            rng_state_after=game.rng.digest()).to_fields())
+        return action
 
     def _take_turns(
         self, game: Game, step: StepDef, ask: _Ask, opened: int
@@ -1222,7 +1230,12 @@ class FlowOrchestrator:
         flow = self._state()
         held = (flow.game_attributes.get(source.key) if source.scope == "game"
                 else flow.attribute(seat, source.key))
-        return tuple(held) if isinstance(held, list) else ()
+        if not isinstance(held, list):
+            return ()
+        try:
+            return tuple(dict.fromkeys(held))  # two of the same card are one choice, not two
+        except TypeError:  # items that cannot be compared are offered as they are
+            return tuple(held)
 
     def _request(self, step: StepDef, ask: _Ask, seat: int) -> ActionRequest:
         schema = ask.schema
@@ -1636,6 +1649,18 @@ class FlowOrchestrator:
             int(args.get("max_words", 0)),
         )
 
+    _NOT_PROSE = {"true", "false", "none", "null", "nil", "na", "undefined"}
+
+    @classmethod
+    def _prose(cls, text: Any) -> str:
+        """A model's announcement, if it is one. Empty, or a bare true/false/none, is a refusal or a verdict where words were wanted."""
+        if not isinstance(text, str):
+            return ""
+        stripped = text.strip()
+        if not stripped or re.sub(r"[\W_]+", "", stripped).lower() in cls._NOT_PROSE:
+            return ""
+        return stripped
+
     def _say(
         self,
         game: Game,
@@ -1645,58 +1670,70 @@ class FlowOrchestrator:
         extra: dict[str, Any],
         fact_type: str,
         max_words: int = 0,
+        once: bool = False,
     ) -> str:
         """Announce something, worded by the game or by a model. Returns the words (the first listener's, when a model wrote one each).
 
         The one place an announcement is turned into words, so every site gets
         the same choice: a prompt if the game wrote one and a model is
-        reachable, its template otherwise. Three announcements used to be
-        template-only for no reason other than the order they were written in.
+        reachable, its template otherwise. A model's reply that is not prose
+        (empty, or a bare `false`) is not announced: the template is, since the
+        game wrote it to be complete.
 
         A model-written announcement is composed per listener, on that
-        listener's own view, like every other player-facing call.
+        listener's own view, like every other player-facing call. With `once`,
+        and the whole table listening, it is composed one time from the PUBLIC
+        view and told to everyone: the same account for all, from what nobody
+        was kept from.
         """
         flow = self._state()
         if not heard:
             return ""
         everyone = len(heard) == len(flow.players)
+        fallback = self._render(None, text, extra) if text else ""
 
         if llm and self.judge is not None:
+            task = f"{llm}\n\nWhat happened: " + json.dumps(extra, sort_keys=True, default=str)
+            if once and everyone:
+                reply = self._ask(game, self._call(game, task=task, output=Output(kind="message", max_words=max_words),
+                                                   tag=f"announce:{fact_type}", public=True))
+                words = (self._prose(reply.value.get("text")) if reply.value else "") or fallback
+                if words:
+                    game.emit_fact(fact_type, {**extra, "rendered": words}, Audience.all())
+                return words
             first = ""
+            unwritten: list[int] = []
             for listener in heard:
                 reply = self._ask(
                     game,
                     self._call(
                         game,
-                        task=f"{llm}\n\nWhat happened: "
-                             + json.dumps(extra, sort_keys=True, default=str),
+                        task=task,
                         output=Output(kind="message", max_words=max_words),
                         tag=f"announce:{fact_type}:seat{listener}",
                         seat=listener,
                     ),
                 )
-                if reply.value:
-                    first = first or reply.value["text"]
-                    game.emit_fact(
-                        fact_type,
-                        {**extra, "rendered": reply.value["text"]},
-                        Audience.only(listener),
-                    )
-            if first:
-                return first
-            # no model reply: the template is the fallback, as everywhere else
-            if not text:
-                return ""
+                words = self._prose(reply.value["text"]) if reply.value else ""
+                if words:
+                    first = first or words
+                    game.emit_fact(fact_type, {**extra, "rendered": words}, Audience.only(listener))
+                else:
+                    unwritten.append(listener)
+            if unwritten and fallback:  # no usable reply for these listeners: the game's own words
+                first = first or fallback
+                game.emit_fact(fact_type, {**extra, "rendered": fallback},
+                               Audience.all() if len(unwritten) == len(flow.players) else Audience.only(*unwritten))
+            return first
 
-        rendered = self._render(None, text, extra) if text else ""
-        if not rendered:
+        if not fallback:
             return ""
         game.emit_fact(
             fact_type,
-            {**extra, "rendered": rendered},
+            {**extra, "rendered": fallback},
             Audience.all() if everyone else Audience.only(*heard),
         )
-        return rendered
+        return fallback
 
     def _op_set(self, game: Game, args: dict[str, Any]) -> None:
         self._state().set_attribute(args.get("player"), str(args["key"]), args.get("value"))
@@ -1806,9 +1843,10 @@ class FlowOrchestrator:
                 extra["history"] = self._public_history(game)
             announced = self._say(
                 game, list(flow.players),
-                rule.text or "game_over", rule.llm,
+                rule.text or "game_over", (rule.llm + self.SUMMARY_RULES) if rule.llm else "",
                 extra,
                 "game_over",
+                once=True,
             )
             # The console shows the ending's own announcement (final scores
             # and all) under the winner, not just a bare name.
@@ -1817,6 +1855,13 @@ class FlowOrchestrator:
         return False
 
     HISTORY_CHARS = 12000
+
+    #: Said to the model that writes an ending's summary, after the game's own prompt. A summary is read as the record of the match.
+    SUMMARY_RULES = (
+        "\n\nRules for this summary: use ONLY the events listed in `history`, in the order they happened; name the round for the turning point; "
+        "say which player did what and who lost what, exactly as the history says; do not merge two events, do not guess a reason the history does not give, "
+        "and leave a detail out if you are unsure of it. State who won. Keep it to four sentences or fewer."
+    )
 
     def _public_history(self, game: Game) -> list[str]:
         """What the whole table was told, in order, one line each: the story of the match.

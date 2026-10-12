@@ -1,22 +1,38 @@
 # Coup (XColos): encoding notes
 
-`verify coup game` and `verify coup rules` both print ok (43 of 43 scenarios). Random 3, 4 and 5 player matches all end. A round is 20 steps, counting the steps inside the `repeat` blocks.
+## Rules text
+- `rules` follows the design's own wording, step by step. As the last attempt's guidance asked, the Coup and Assassinate lines read "(only if you have 7 or more)" and "(only if you have 3 or more)".
+- Two sentences were added for R49/R50. Step 4 now says a failed challenge costs the challenger a card and the action still goes ahead (so a target who challenges a true Assassinate still loses a card). A paragraph after step 5 says shown cards go to the bottom of the deck, the replacement is drawn first from the top, and the deck is shuffled once at the end of the turn.
 
-## What the platform could not do directly, and what I chose
+## Offers
+- `action_offer` is a player list attribute built at the start of the turn from the player's coins:
+  - `['coup']` only, if `coins >= forced_coup_threshold`;
+  - otherwise income, foreign_aid, tax, steal and exchange, plus coup if `coins >= coup_cost` and assassinate if `coins >= assassinate_cost`.
+  - No literal numbers are used. A forced Coup has one option, so the engine answers it automatically and logs it as a move.
+- `target_offer` (a hidden table list) holds the living seats other than the active seat.
+- `reaction_offer` is a player list built after the action is known. It offers pass/block_duke for foreign_aid and pass/challenge otherwise. Only the target gets block_contessa (against assassinate) or block_captain/block_ambassador (against steal).
+- No answer is ever refused after it is given.
 
-- **Illegal answers are offered, then refused and re-asked.** The rule scenarios expect options such as `coup` (under 7 coins), `challenge` (against Income or Foreign Aid), a block by a non-target, and a self or eliminated seat as a target to be put to the seat. The game then has to refuse them. So:
-  - The action and the target are each asked inside a `repeat`. An illegal action is re-asked from the legal list.
-  - An illegal target is dropped from the offer and the seat is asked again.
-  - The reaction poll is a `repeat` too. A player whose answer is not allowed is re-asked, with that answer removed from their offer, until it is valid.
-  - Everyone except the target of a Coup, Assassinate or Steal is offered every reaction. The target sees only the options that are legal for them. This was needed so that a scripted card name could not match a block option at the target's reveal question.
-  - Net effect: the action is always legal. Coup is compulsory at 10 or more coins. A reply that is not allowed cannot affect the game.
-- **The reaction poll runs for every action**, including Income and Coup. Illegal answers are refused as above, so those turns resolve with no challenge or block. Reactions are announced after all answers are in.
-- **Exchange**: the script draws first and returns afterwards, and the draw is a random card, not the top card. `hidden_count` stays 2 during the exchange while the list holds 3 cards. The return is chosen in the same poll as the reveal.
-- **Reveal and return share one poll** (stored in `reveal_choice`) to stay within 20 steps. The resolve step copies `reveal_choice` into `return_choice` for the player who owes an Exchange return. A player cannot both lose a card and owe a return in the same turn: a failed challenge cancels the Exchange, and an Exchange cannot be blocked.
-- **Shuffling is implicit**: a card returned to the deck is a list entry, and every draw takes a random card. The script's "shuffle if a card was put into the deck" has no separate step.
-- **Challenge resolution order** follows the script: the proven card goes to the deck first, then a random draw, which may be the same card. The block challenge does its pending-loss and status work before it moves cards.
-- **Seat order uses a modulo trick** (`((seat - from) % players) * 10 + seat`), which holds for up to 9 seats. The next active seat is picked among players with `alive = true` and is advanced in the resolve update, before the end check, since nothing reads it after a win.
-- **Winner**: the resolve update computes `top_score` (hidden cards x 100000 + coins, among players with a hidden card), `top_count`, `leader` and `winner`. A tie on that score is a draw, which matches "most hidden cards, then most coins, then draw". Winner text is `seat N` or `draw`. The five seat endings and `draw` fire from `check`, with `living_count == 1 or turn_count >= turn_cap`. `limits.rounds` is 40 and `rounds_max` is 60, so the turn cap always ends the game first.
-- **Parameters** are game attributes. `deck_size`, `copies_per_role`, `exchange_draw`, and the Exchange return count are declared but only partly used. The deck list, the single Exchange draw and `exchange_return` are written out, because the calc language has no way to build a list from a count.
-- Setup deals 2 cards to each seat with explicit draw blocks per seat (up to 5), gated on the player count.
-- Free talk is not offered, per the rules.
+## Deck: "top" and "bottom" (R46, R47, R49)
+- The deck is a list. Drawing takes a random card from the part of the deck not put back this turn. A shuffled deck makes that the same as taking the top card.
+- Cards put in this turn are appended at the end (the bottom) and counted in a hidden `bottom_n`. Draws skip those cards unless nothing else is left.
+- `bottom_n` resets to 0 in Resolve, which stands for the end-of-turn shuffle.
+- On a proven claim or block, the replacement is drawn first and only then is the shown card moved to the deck. So the replacement can never be the shown card.
+
+## Card choice (step 7): one poll, not two
+- The script says a player who both loses a card and owes an Exchange return answers twice. That cannot happen in this game:
+  - only the active player can owe a return;
+  - the active player only takes a pending loss when their claim is falsely made, which cancels the Exchange;
+  - Exchange cannot be blocked, so there is no block challenge to lose either.
+- So one poll asks each eligible player for one hidden card, stored in `card_choice`. Resolve copies it into `reveal_choice` (pending_loss = 1 and hidden_count = 2) or `return_choice` (must_return = 1).
+- This kept the round at exactly 20 steps.
+
+## Other choices
+- Step 3 ("send each player their hidden_cards") and the setup deal message are per-reader `tell`s (`{hidden_cards}`), not `sync`s. A `sync` also printed the public table fields that are empty early in the turn (action, claimed_role, block_role, winner). The verifier flagged them, and the interface requires them to stay public.
+- Script steps 10 and 11 (find the challenger/blocker, resolve the action challenge) are one `update`.
+- A scratch flag `claim_true` records whether the claim being challenged was true. It is used for the action challenge and again, recomputed, for a challenged block. It has to be computed before the shown card leaves the hand.
+- `winner` is set in the Resolve update, because a `check` cannot set attributes. The cap tiebreak uses a hidden `top_key = hidden_count * 1000 + coins` over living seats; more than one seat at the top is a draw.
+- An eliminated player gets the platform status `out` as well as `alive = false`, `coins = 0` and `hidden_count = 0`.
+- Ask prompts are rendered without the asking seat, so they cannot use `{you.…}`. The card-choice prompt therefore explains both uses (reveal or return) in one text.
+
+Nothing the rules require was left out.

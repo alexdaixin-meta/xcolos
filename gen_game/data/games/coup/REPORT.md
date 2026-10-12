@@ -19,64 +19,84 @@ Objective: The last player with at least one hidden card wins. If 40 turns pass 
 
 - steps_per_round: designed 15, built 20, limit 20
 - choice_steps_per_round: designed 4, built 5, limit 4
-- attributes: designed 18, built 57, limit 20
-- hidden_elements: designed 2, built 11, limit 3
+- attributes: designed 18, built 51, limit 20
+- hidden_elements: designed 2, built 14, limit 3
 - random_draws_per_round: designed 1, built -, limit 1
 - rounds: designed 40, built -, limit 40
 
 ## Fidelity to the rules (tier 1: independent tests written from the spec alone; they do not decide whether the file works)
 
-- pass: Setup: every seat holds 2 hidden cards, nothing revealed, all alive (3 players)
-- pass: Setup: every seat holds 2 hidden cards, nothing revealed, all alive (5 players)
-- pass: Setup: seat 1 starts with 1 coin, the others with 2 (seat 1 then takes Income)
-- pass: Income gives exactly 1 coin and nobody loses a card
-- pass: Foreign Aid with nobody blocking gives 2 coins
-- pass: Foreign Aid blocked as Duke, block accepted: no coins gained
-- pass: Foreign Aid cannot be challenged: would-be challengers pass and the aid goes through
-- pass: Coup costs 7 and the target loses one card
-- pass: With 6 coins Coup is not offered, so the seat falls back to Tax
-- pass: With 10 coins Coup is forced even when the seat asks for Income
-- pass: Tax with nobody challenging gives 3 coins
-- pass: Assassinate's 3 coins are paid even when a challenge makes it fail
-- pass: With 2 coins Assassinate is not offered, so the seat falls back to Tax
-- pass: Unblocked Assassinate costs 3 and the target loses one card
-- pass: Contessa block accepted: target keeps both cards, assassin gets no refund
+- pass: Setup: every seat holds 2 hidden cards and the deck holds 15 - 2x3 = 9 (checked after one Income, which moves no card)
+- pass: Setup with 5 players: deck holds 5 (checked after one Income)
+- pass: Setup: seat 1 starts with 1 coin (2 after one Income), the other seats with 2
+- pass: Income gives exactly 1 coin and nobody can challenge or block it
+- pass: Foreign Aid nobody blocks gives 2 coins
+- pass: Foreign Aid blocked as Duke, nobody challenges: no coins
+- pass: Foreign Aid cannot be challenged
+- pass: Coup costs 7, target loses one card, no challenge or block
+- pass: With 6 coins Coup is not offered
+- pass: At 10 coins Coup is the only option
+- pass: Tax nobody challenges gives 3 coins
+- pass: Assassinate pays 3 even when it fails a challenge
+- pass: Assassinate pays 3 even when blocked
+- pass: With 2 coins Assassinate is not offered
+- pass: Unblocked Assassinate: target loses one card
+- pass: Contessa block unchallenged: target keeps cards, no refund
 - pass: Steal from a target with 4 coins moves 2
-- pass: Steal from a target with 1 coin moves only 1
+- pass: Steal from a target with 1 coin moves 1
 - pass: Steal from a target with 0 coins moves nothing
-- pass: Steal blocked as Captain, block accepted: no coins move
-- pass: Steal blocked as Ambassador, block accepted: no coins move
-- pass: A non-target cannot block a Steal: seat 3's block is not offered and the steal goes through
-- pass: A non-target cannot block Assassinate as Contessa: the target still loses a card
-- pass: Exchange draws 1 and returns 1: still 2 hidden cards, nothing revealed (which card comes back depends on chance)
-- pass: The card an Exchange returns is not revealed
-- pass: Tax challenged, Duke is held: challenger loses a card, tax still pays 3
-- pass: Tax challenged, bluff (no Duke): bluffer loses a card and gains nothing
-- pass: Bluffed Steal is challenged: the target's block is ignored, no coins move, only the bluffer loses a card
-- pass: Several challenge a true Tax claim: only the first seat after the active seat (wrapping) loses a card
-- pass: Two Duke blocks: only seat 2's counts; it is a bluff, so seat 2 loses a card and the aid goes through
-- pass: Captain block challenged and the blocker holds Captain: challenger loses a card, steal blocked
-- pass: Captain block challenged and it is a bluff: blocker loses a card and the steal moves 2
-- pass: A bluffed Contessa block is challenged: the target loses 2 and is out
-- pass: Losing one of two cards: the player reveals the card they choose (the second one)
-- pass: Coup on a player with one card left: they are out with 0 coins
-- pass: A revealed card stays revealed and does not come back through an Exchange
-- pass: A loss does not carry into the next turn: the target loses 1 to Coup, then takes Income and keeps 1 card
-- pass: The next turn skips an eliminated seat: after seat 1, seat 3 plays (seat 2 is out)
-- pass: A Coup target must be another living player: self and the eliminated seat are not offered, so seat 3 is hit
-- pass: Last player with hidden cards wins: seat 1 Coups the last rival
-- pass: Turn cap: after turn 40 the seat with the most hidden cards wins
-- pass: Turn cap: tied on hidden cards, the tied seat with more coins wins
-- pass: Turn cap: tied on hidden cards and coins is a draw
-- pass: Reactions are a poll: both seats challenge a bluffed Tax, only the bluffer loses a card
+- pass: Steal blocked as Captain, unchallenged: no coins move
+- pass: Steal blocked as Ambassador, unchallenged: no coins move
+- pass: Only the Steal target is offered the Captain/Ambassador blocks
+- pass: Only the Assassinate target is offered the Contessa block
+- pass: Exchange keeps hidden_count and deck size
+- pass: Exchange return is not revealed
+- pass: Challenged true Tax: challenger loses a card, Tax still pays
+- pass: Challenged bluff Tax: bluffer loses a card, no coins
+- pass: Challenged bluff Steal: no coins move and the block is ignored
+- pass: Two challengers of a true Tax: only the first after the active seat loses
+- pass: Two Duke blockers: only the first counts (its true Duke beats the block challenge)
+- pass: Challenged true Captain block: block challenger loses, Steal blocked
+- pass: Challenged false Duke block: blocker loses, Foreign Aid pays
+- pass: False Contessa block challenged: target takes 2 losses and is eliminated
+- pass: One loss from two cards: the player reveals the card they choose
+- pass: Loss on the last card: all revealed, out, coins 0
+- pass: A revealed card stays revealed on the next turn
+- pass: A loss does not carry into the next turn
+- pass: Next turn skips an eliminated seat
+- pass: Coup target must be a living other seat; the chosen seat takes the hit
+- pass: Last opponent loses their last card: seat 1 wins
+- pass: Turn 40 ends the game: most hidden cards wins
+- pass: Reactions are polled: both challengers are offered challenge, first one loses
+- pass: Steal target choice offers only other living seats
+- pass: Exchange reactions: only pass and challenge, no blocks
+- pass: Tax reactions: no blocks offered
+- pass: Foreign Aid reactions: pass and block_duke only
+- pass: Assassinate reactions: target may block as Contessa, others only pass/challenge
+- pass: Steal reactions: target may block as Captain/Ambassador, others only pass/challenge
+- pass: Exchange with 4 players: deck stays at 15 - 8 = 7 and hand stays at 2
+- pass: Eliminated seat: alive false, no cards, no coins, and skipped and never polled next turn
+- pass: 4 players, seats 3 and 4 already out: seat 2 coups seat 1's last card and wins
+- pass: Turn 40, two seats tie on hidden cards: the one with more coins wins
+- pass: Turn 40, tied on hidden cards and coins: draw
+- pass: Challenged true Steal: claimant keeps 2 hidden cards and the deck keeps 9 (the drawn card is chance, not asserted)
+- pass: Challenged true Contessa block: blocker keeps 2 hidden cards, deck keeps 9, block challenger loses (drawn card is chance)
+- pass: Three seats challenge a true Duke block: only the first after the blocker loses
+- pass: Challenged true Exchange: proven card goes back, Exchange still runs, counts unchanged (which cards are drawn is chance)
+- pass: Target challenges a true Assassinate: loses one card to the challenge and one to the action, so is eliminated
 
 ## Does the file follow the spec's shape? (flags for a person)
 
-- the spec uses `tell` but the game file does not
+- the spec uses `sync` but the game file does not
 
 ## Works on the platform (tier 0: it loads, ends, replays identically, and every attribute it declares is updated)
 
-- passed: 40 random matches at tables [3, 5], results {'seat 3': 11, 'seat 2': 9, 'seat 1': 12, 'seat 4': 3, 'seat 5': 5}, 31-171 turns
+- passed: 40 random matches at tables [3, 5], results {'seat 1': 7, 'seat 3': 13, 'seat 2': 10, 'seat 4': 5, 'seat 5': 5}, 17-66 turns
+
+## Play-trace checks (random matches: text that was never filled in, empty or repeated announcements, one-option questions)
+
+- clean
+- cost of a match: 46.2 decisions, prompts of 513 characters on average (longest 627)
 
 ## Reasoning and balance (not checked here: real models will play it later)
 
@@ -84,7 +104,7 @@ Objective: The last player with at least one hidden card wins. If 40 turns pass 
 
 ## Triage (whose problem each failure was)
 
-- round 1: fix_game: The tests are correct, but the game file does not use the interface names. It writes `hand_count` and `revealed` where the interface requires `hidden_count` and `revealed_cards`, so the tests read None. It also gives seat 1 the same 2 starting coins as everyone else, so Income takes seat 1 to 3 coins instead of 2.
+- round 1: fix_game: The game already allows Coup at 7 or more coins and Assassinate at 3 or more. The only problem is that the rules text in `meta.rules` copies the phrase 'only if you have 7' (and 'only if you have 3'), which a player can read as 'exactly'. The coder can fix this by editing `meta.rules`; the logic and the design don't need to change.
 
 ## Choices the rules did not make
 
@@ -96,6 +116,7 @@ Objective: The last player with at least one hidden card wins. If 40 turns pass 
 - Each player is offered only the reactions they may legally make: The source limits Challenge to claimed roles, Duke blocks to Foreign Aid, and Contessa, Captain and Ambassador blocks to the target. Offering only legal options enforces this.
 - A turn is one round: Seat order with skipping is kept by active_seat, so the turn cap of 40 counts directly as turn_count.
 - A player who both loses a card and owes an Exchange return answers both in the card-choice poll: The source does not say how the two choices combine. In practice this is rare, because the active player in an Exchange only takes a pending loss when the Exchange failed.
+- A card put into the deck goes to the bottom of the deck until the end-of-turn shuffle: The design says the revealed or returned card is 'put into the deck' and that the deck is shuffled at the end of the turn, but not where it goes in between. Without a position, a same-turn Exchange could draw straight back the card just proven, which makes the replacement meaningless. A play review found the gap (round 4).
 
 ## Simplifications
 

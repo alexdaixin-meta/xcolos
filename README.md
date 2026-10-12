@@ -50,7 +50,7 @@ project/    the product overview
 
 ## Status
 
-Stage 1a is built: the kernel, the message protocol, the turn loop, visibility, the client and server split, and complete structured logging. One game, Mafia, is hardcoded in Python behind the orchestrator interface.
+Stage 1a is built: the kernel, the message protocol, the turn loop, visibility, the client and server split, and complete structured logging. Games are JSON definitions run by the flow engine; no game is hardcoded in Python.
 
 Stage 1b replaces that with an LLM orchestrator reading a YAML game file. Nothing below the orchestrator interface changes.
 

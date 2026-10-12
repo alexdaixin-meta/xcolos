@@ -11,15 +11,17 @@ from xcolos.agents import ScriptedAgent
 from xcolos.game import Game
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.log import MatchLog, validate_log
-from xcolos.legacy.mafia import MafiaOrchestrator
+from xcolos.flow import FlowOrchestrator
+from xcolos.games import available
 from xcolos.runner import MatchResult, Runner
 from xcolos.transcript import seat_transcript, summarize, timeline
 
 SEAT_NAMES = ["Ada", "Blaise", "Curie", "Dirac", "Euler", "Fermi", "Gauss"]
-SEATS = 5
+#: What `xcolos` plays when no game is named: small, needs no model, and ends.
+DEFAULT_GAME = "rps"
 
 
-def build_match(seed: int, out_dir: Path | None = None, agent_factory=None):
+def build_match(seed: int, out_dir: Path | None = None, agent_factory=None, game_id: str = DEFAULT_GAME, seats: int | None = None):
     """Wire up one match, including the client registration handshake.
 
     The client offers the seats it owns. The server assigns the indices and
@@ -28,29 +30,35 @@ def build_match(seed: int, out_dir: Path | None = None, agent_factory=None):
     """
     agent_factory = agent_factory or (lambda i, name: ScriptedAgent(name=name))
 
+    definition = available().get(game_id)
+    if definition is None:
+        raise ValueError(f"unknown game {game_id!r}; the library has: {', '.join(sorted(available()))}")
+    count = seats or definition.suggested_players
+
     match_id = f"m_{seed:08d}"
     path = out_dir / f"{match_id}.jsonl" if out_dir else None
     log = MatchLog(match_id, path)
-    game = Game(match_id=match_id, game_id=MafiaOrchestrator.game_id, seed=seed, log=log)
+    game = Game(match_id=match_id, game_id=definition.id, seed=seed, log=log)
 
     host = LocalAgentHost(
-        [agent_factory(i, name) for i, name in enumerate(SEAT_NAMES[:SEATS])]
+        [agent_factory(i, name) for i, name in enumerate(SEAT_NAMES[:count])]
     )
     registry = Registry(match_id)
     for binding in host.register():
         index = game.register_seat(binding.name, host.host_id, binding.profile)
         registry.attach(index, host, binding)
 
-    return game, MafiaOrchestrator(), registry, host
+    return game, FlowOrchestrator(definition), registry, host
 
 
-def run_match(seed: int, out_dir: Path | None = None) -> tuple[MatchResult, Game]:
-    game, orchestrator, registry, _host = build_match(seed, out_dir)
+def run_match(seed: int, out_dir: Path | None = None, game_id: str = DEFAULT_GAME) -> tuple[MatchResult, Game]:
+    game, orchestrator, registry, _host = build_match(seed, out_dir, game_id=game_id)
     return Runner(game, orchestrator, registry).run(), game
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="xcolos", description="Run XColos matches.")
+    parser.add_argument("--game", default=DEFAULT_GAME, help="which game of the library to play (scripted seats, at its suggested size)")
     parser.add_argument("--seed", type=int, default=1, help="starting seed")
     parser.add_argument("--matches", type=int, default=1, help="how many to run")
     parser.add_argument("--out", type=Path, default=None, help="directory for match logs")
@@ -72,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
     problems_found = 0
 
     for i in range(args.matches):
-        result, game = run_match(args.seed + i, args.out)
+        result, game = run_match(args.seed + i, args.out, args.game)
         winners[result.winner or result.status] += 1
         records = game.log.records
 

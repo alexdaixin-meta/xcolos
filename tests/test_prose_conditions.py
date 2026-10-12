@@ -11,6 +11,12 @@ prose ending can be graded against a rule that cannot be wrong, so the question
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from oracle_game import ORACLE_PATH  # noqa: E402
+
 import json
 from pathlib import Path
 
@@ -38,7 +44,7 @@ from xcolos.runner import Runner
 
 NAMES = ["Ada", "Blaise", "Curie", "Dirac", "Euler", "Fermi", "Gauss"]
 
-MAFIA_RAW = json.loads((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"))
+MAFIA_RAW = json.loads(ORACLE_PATH.read_text(encoding="utf-8"))
 
 #: The two endings, said in English instead of arithmetic.
 PROSE_ENDINGS = [

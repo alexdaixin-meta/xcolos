@@ -1224,3 +1224,19 @@ def test_scenarios_that_cannot_be_written_before_the_build_do_not_stop_the_build
     inv, root = world()
     out = run_flow("rps", Flaky(), inv, root, adapt=True, judge=True)
     assert out.verdict != "scenarios_failed", out
+
+
+def test_a_redesign_rebuilds_everything_below_the_design_so_nothing_stale_is_left():
+    inv, root = world()
+    m = Models()
+    run_flow("rps", m, inv, root, adapt=True)
+    first = list(m.calls)
+    assert first == ["adapt", "spec", "scenarios", "encode"]
+    folder = root / "rps"
+    before = {n: (folder / n).read_text() for n in ("variation.json", "spec.json", "game.json", "scenarios.json")}
+    m.calls.clear()
+    m.prompts.clear()
+    run_flow("rps", m, inv, root, adapt=True, redo=("adapt",), design_feedback="THE DESIGN AS IT STANDS\n... a finding the play showed ...")
+    assert m.calls == ["adapt", "spec", "scenarios", "encode"]   # the design, then the spec, the scenarios and the game, each written again
+    assert "a finding the play showed" in m.prompts[0]           # the designer was given the feedback
+    assert all((folder / n).exists() for n in before)

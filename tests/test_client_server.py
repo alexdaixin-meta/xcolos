@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 
 from xcolos.agents import ScriptedAgent
-from xcolos.cli import SEATS, build_match
+from matches import GAME_ID, SEATS, build_match, orchestrator
 from xcolos.host import HostUnavailable, LocalAgentHost, Registry, SeatBinding
 from xcolos.runner import Runner
 from xcolos.state import FIRST_SEAT
@@ -68,13 +68,12 @@ def test_a_host_cannot_answer_for_a_seat_it_does_not_own():
 
 def make_split_match(seed: int):
     """Two clients, as in an online match: seats 0-1 on one, 2-4 on the other."""
-    from xcolos.cli import SEAT_NAMES
+    from matches import SEAT_NAMES
     from xcolos.game import Game
     from xcolos.log import MatchLog
-    from xcolos.legacy.mafia import MafiaOrchestrator
 
     log = MatchLog(f"m_split_{seed}")
-    game = Game(f"m_split_{seed}", MafiaOrchestrator.game_id, seed, log)
+    game = Game(f"m_split_{seed}", GAME_ID, seed, log)
 
     a = LocalAgentHost([ScriptedAgent(name=n) for n in SEAT_NAMES[:2]])
     b = LocalAgentHost([ScriptedAgent(name=n) for n in SEAT_NAMES[2:5]])
@@ -85,7 +84,7 @@ def make_split_match(seed: int):
         for binding in host.register():
             index = game.register_seat(binding.name, host.host_id, binding.profile)
             registry.attach(index, host, binding)
-    return game, MafiaOrchestrator(), registry, (a, b)
+    return game, orchestrator(), registry, (a, b)
 
 
 @pytest.mark.parametrize("seed", range(1, 11))

@@ -19,20 +19,12 @@ from xcolos.state import FIRST_SEAT, Fact
 def _one(view: dict[str, Any], fact: Fact) -> str:
     p = fact.payload
     t = fact.type
-    me = view["you"]["index"]
 
-    # A definition-driven game renders from its own declared templates and
-    # carries the result on the fact, so the kernel needs no game knowledge.
+    # A definition-driven game renders from its own declared templates and carries the result on the fact, so the kernel needs no game
+    # knowledge. A fact without one is shown as its type and payload.
     if "rendered" in p:
         return str(p["rendered"])
-
-    # No game knowledge. A definition-driven game renders from its own
-    # declared templates and puts the result on the fact, which the branch
-    # above returns. The hardcoded Mafia is the only thing that still arrives
-    # here without one, and its wording now lives with it.
-    from xcolos.legacy.render import legacy_text
-
-    return legacy_text(view, fact) or f"{t}: {p}"
+    return f"{t}: {p}"
 
 
 def render_facts(view: dict[str, Any], facts: list[Fact]) -> str:
@@ -90,6 +82,8 @@ def _answer_hint(schema: ActionSchema) -> str:
     if schema.target == "seat":
         return "answer with one seat number, from the list you are given"
     if schema.target == "enum":
+        if not schema.choices:  # the options come from the table when it is asked, so there is no list to print yet
+            return "answer with one of the options you are given"
         return f"answer with one of: {', '.join(str(c) for c in schema.choices)}"
     if schema.target == "none":
         return "answer to confirm"

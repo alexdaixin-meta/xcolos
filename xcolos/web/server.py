@@ -37,15 +37,8 @@ from xcolos.protocol import Action
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.log import MatchLog
 from xcolos.flow import FlowOrchestrator, ModelJudge
-from xcolos.flow.backends import CompletionError, MuseCompletion, read_key
+from xcolos.flow.backends import MUSE_FALLBACKS, CompletionError, MuseCompletion, muse_first_choice, read_key
 from xcolos.games import available
-from xcolos.legacy import mafia as legacy_mafia
-from xcolos.legacy.mafia import (
-    MAX_SEATS,
-    MIN_SEATS,
-    MafiaOrchestrator,
-    role_plan,
-)
 from xcolos.remote import ConnectorHost, RemoteAgentHost
 from xcolos import review
 from xcolos.runner import Runner
@@ -62,21 +55,8 @@ DEFAULT_GAME = "mafia"
 def default_game() -> str:
     return catalogue()[0]["id"]
 
-#: The hardcoded Python Mafia from Milestone 1. Kept as the reference: it is
-#: what the definition-driven engine is graded against, so deleting it would
-#: remove the only thing that can say whether a game file is right.
-LEGACY_GAME = {
-    "id": legacy_mafia.LEGACY_ID,
-    "name": legacy_mafia.NAME,
-    "engine": "legacy",
-    "min_seats": MIN_SEATS,
-    "max_seats": MAX_SEATS,
-    "blurb": legacy_mafia.BLURB,
-}
-
-
 def catalogue() -> list[dict[str, Any]]:
-    """Every game that can be started: the library, plus the legacy reference.
+    """Every game that can be started: the library, and any extra directory of definitions.
 
     Read on each request rather than cached at import, so editing a definition
     and reloading the page is the whole development loop.
@@ -90,29 +70,21 @@ def catalogue() -> list[dict[str, Any]]:
                 "engine": "flow",
                 "min_seats": definition.min_players,
                 "max_seats": definition.max_players,
+                "suggested_seats": definition.suggested_players,
                 "blurb": definition.blurb,
+                "unlisted": definition.unlisted,
                 "steps": [s.label for s in definition.steps if s.use != "brief"],
                 "needs_judge": any(r.when.kind == "prose" or r.winner
                                    for r in definition.end),
             }
         )
-    # The hardcoded Mafia is not offered. It is kept as the reference a game
-    # file is graded against, not as something to play, and putting it in the
-    # picker invites a table to be opened on the implementation this milestone
-    # replaced. It is still reachable by asking for its id directly.
     games.sort(key=lambda g: g["id"] != DEFAULT_GAME)  # stable: the rest keep their order
     return games
 
 
-#: Games that can be started but are not offered in the picker. `mafia-oracle`
-#: is Mafia with its rules as arithmetic: the reference `mafia`'s model referee
-#: is checked against, and what the offline tests play. Not a game to choose.
-UNLISTED_GAMES = {"mafia-oracle"}
-
-
 def offered() -> list[dict[str, Any]]:
     """The games the console's picker lists."""
-    return [g for g in catalogue() if g["id"] not in UNLISTED_GAMES]
+    return [g for g in catalogue() if not g["unlisted"]]
 
 
 #: Set this and no table will ever build a live judge. The test suite sets it,
@@ -130,7 +102,7 @@ def build_completion() -> Any:
     try:
         if not read_key():
             return None
-        backend = MuseCompletion()
+        backend = MuseCompletion(model=muse_first_choice(), fallbacks=MUSE_FALLBACKS)
         backend._key()  # shape check now, rather than mid-match
     except CompletionError:
         return None
@@ -148,9 +120,7 @@ def build_judge() -> Any:
 
 
 def orchestrator_for(game_id: str) -> Any:
-    """The orchestrator a game id names. The only place the two engines meet."""
-    if game_id == LEGACY_GAME["id"]:
-        return MafiaOrchestrator()
+    """The orchestrator a game id names."""
     definition = available().get(game_id)
     if definition is None:
         raise ValueError(f"unknown game '{game_id}'")
@@ -180,7 +150,7 @@ AGENT_TYPES = [
     {
         "id": "llm",
         "label": "Model",
-        "blurb": "Prompted from its own session. Uses the offline stub until a provider is wired in.",
+        "blurb": "Prompted from its own session. Give it a `model` (claude, muse, anthropic) to put a real model in the seat; without one it uses the offline stub.",
     },
     {
         "id": "remote",
@@ -195,7 +165,7 @@ AGENT_TYPES = [
 ]
 
 
-def make_agent(kind: str, name: str, seed: int, index: int, persona: str = ""):
+def make_agent(kind: str, name: str, seed: int, index: int, persona: str = "", model: str = ""):
     """Build one agent. Each gets its own session when the server binds its seat."""
     # Seeded from the match and the seat, never from the kernel's generator, so
     # agents are reproducible without perturbing the game's own draws.
@@ -207,6 +177,12 @@ def make_agent(kind: str, name: str, seed: int, index: int, persona: str = ""):
     if kind == "silent":
         return SilentAgent(name=name)
     if kind == "llm":
+        if model:
+            # A real model in the seat, by spec: claude, muse, anthropic, command:... A long game outgrows the default budget.
+            from xcolos.seat_models import SEAT_SYSTEM, seat_completion
+
+            return LLMAgent(name=name, completion=seat_completion(model), persona=persona, model=model,
+                            system=SEAT_SYSTEM, token_budget=60000)
         return LLMAgent(
             name=name,
             completion=offline_model(own_seed),
@@ -399,6 +375,7 @@ class MatchManager:
                     seed,
                     i,
                     seats[i].get("persona", ""),
+                    seats[i].get("model", ""),
                 )
                 for i in local_indices
             ],

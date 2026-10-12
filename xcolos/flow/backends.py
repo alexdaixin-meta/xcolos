@@ -272,6 +272,16 @@ MUSE_MODELS_ENDPOINT = "https://api.meta.ai/v1/models"
 #: it. Run `MuseCompletion().models()` to see what a key actually holds.
 MUSE_MODEL = "rl-muse-spark-1-1-playground"
 
+#: The newest Muse model, and the others to fall back to when it is overloaded. Latency and load move from day to day (1-1 returned
+#: 503 on every call on the day 1-3 answered in three seconds), so the server's judge prefers the newest and walks down this list instead
+#: of trusting one id. `XCOLOS_MUSE_MODEL` names a different first choice.
+MUSE_LATEST = "rl-muse-spark-1-3-sglang-playground"
+MUSE_FALLBACKS = ("rl-muse-spark-1-2-playground", "rl-muse-spark-1-1-playground")
+
+
+def muse_first_choice() -> str:
+    return os.environ.get("XCOLOS_MUSE_MODEL", "").strip() or MUSE_LATEST
+
 #: The server rejects anything else with a 400, including "none".
 MUSE_EFFORTS = ("minimal", "low", "medium", "high")
 
@@ -338,8 +348,11 @@ class MuseCompletion:
         retries: int = MUSE_RETRIES,
         api_key_file: str | None = None,
         opener: Any = None,
+        fallbacks: tuple[str, ...] = (),
     ) -> None:
         self.model = model
+        #: Other models to try, in order, when this one is still shedding load after its own retries.
+        self.fallbacks = tuple(fallbacks)
         self.endpoint = endpoint
         self.max_output_tokens = max_output_tokens
         if reasoning_effort and reasoning_effort not in MUSE_EFFORTS:
@@ -408,7 +421,20 @@ class MuseCompletion:
         )
 
     def complete(self, prompt: str, system: str = "") -> str:
-        data = self._post(json.dumps(self.body(prompt, system)).encode("utf-8"))
+        try:
+            data = self._post(json.dumps(self.body(prompt, system)).encode("utf-8"))
+        except CompletionError as error:
+            if not self.fallbacks or not any(x in str(error) for x in ("503", "overloaded", "429")):
+                raise
+            data = None
+            for other in self.fallbacks:
+                try:
+                    data = self._with_model(other)._post(json.dumps(self._with_model(other).body(prompt, system)).encode("utf-8"))
+                    break
+                except CompletionError as again:
+                    error = again
+            if data is None:
+                raise error from None
         text = extract_output_text(data)
         if not text.strip():
             # The failure mode the runbook warns about: a budget sized for the
@@ -421,6 +447,14 @@ class MuseCompletion:
                 f"consumed by reasoning; raise it."
             )
         return text
+
+    def _with_model(self, model: str) -> "MuseCompletion":
+        """The same backend asking for another model, without fallbacks of its own."""
+        import copy
+
+        other = copy.copy(self)
+        other.model, other.fallbacks = model, ()
+        return other
 
     def _post(self, payload: bytes) -> dict[str, Any]:
         """One request, retried while the backend is shedding load."""

@@ -155,3 +155,139 @@ def test_a_tell_about_a_subject_nobody_was_chosen_for_says_nothing_instead_of_li
     played = harness.play(load(json.dumps(raw)), harness.random_agents(3, 1), 1)
     told = [r for r in played.game.log.records if r.get("category") == "fact" and "found dead" in str(r["payload"].get("rendered"))]
     assert told == [], [t["payload"] for t in told]
+
+
+def test_a_model_seat_gets_its_session_the_rules_and_the_question_and_its_reply_is_the_move():
+    from xcolos.seat_models import SEAT_SYSTEM, seat_completion
+    from xcolos.agents import LLMAgent
+
+    seen = []
+
+    class Echo:  # stands in for a provider: prompt in, one legal answer out
+        def complete(self, prompt, system=""):
+            seen.append((system, prompt))
+            return "Pass"
+
+    import xcolos.seat_models as sm
+    original = sm.from_spec
+    sm.from_spec = lambda spec: Echo()
+    try:
+        completion = seat_completion("command:ignored")
+    finally:
+        sm.from_spec = original
+    raw = json.loads(toy())
+    raw["steps"][1]["answer"]["options"] = ["Challenge", "Pass"]
+    agents = [LLMAgent(f"M{i}", completion, system=SEAT_SYSTEM) for i in range(3)]
+    played = harness.play(load(json.dumps(raw)), agents, 1)
+    assert played.result.status == "ended" and seen
+    system, prompt = seen[0]
+    assert system.startswith("You are one player in a game") and "[user]" in prompt  # the seat's own session, flattened
+    assert all(a.calls > 0 for a in agents)
+
+
+def test_two_of_the_same_card_in_a_hand_are_one_choice_and_a_hand_of_identical_cards_is_not_asked():
+    raw = json.loads(toy())
+    raw["attributes"]["player"].append({"key": "hand", "visible": "ally", "type": "list", "initial": ["Duke", "Duke"]})
+    raw["steps"] = [
+        {"use": "ask", "label": "which to show", "to": "acting", "text": "Choose a card to show.",
+         "answer": {"type": "choice", "options": {"attribute": "hand"}}, "store": "said"},
+        {"use": "check", "label": "the end", "when": {"calc": "True"}},
+    ]
+    played = harness.play(load(json.dumps(raw)), harness.random_agents(3, 1), 1)
+    asked = [r for r in played.game.log.records if r.get("type") == "action_request"]
+    auto = [r for r in played.game.log.records if r.get("type") == "auto_answer"]
+    assert asked == [] and len(auto) == 3 and all(a["value"] == "Duke" for a in auto)
+    assert all(played.attribute(s, "said") == "Duke" for s in (1, 2, 3))  # the forced answer is still an answer
+
+
+def test_a_seat_that_starts_a_scenario_already_out_is_given_its_platform_status_and_is_not_asked():
+    raw = json.loads(toy())
+    raw["statuses"] = [{"id": "playing", "acts": True, "initial": True}, {"id": "out", "acts": False}]
+    played = harness.play(load(json.dumps(raw)), harness.random_agents(3, 1), 1, given={"status": {"2": "out"}})
+    asked = {r["seat"] for r in played.game.log.records if r.get("type") == "action_request"}
+    assert 2 not in asked and asked == {1, 3}, asked
+
+
+def test_an_ending_summary_is_asked_to_stay_within_the_history_and_to_say_who_won():
+    from xcolos.flow import FlowOrchestrator
+
+    raw = json.loads(toy())
+    raw["end"]["done"]["llm"] = "Summarize how the game went."
+    seen = []
+    original = FlowOrchestrator._say
+
+    def spy(self, game, heard, text, llm, extra, fact_type, max_words=0, once=False):
+        if fact_type == "game_over":
+            seen.append((llm, extra))
+        return original(self, game, heard, text, llm, extra, fact_type, max_words, once)
+
+    FlowOrchestrator._say = spy
+    try:
+        harness.play(load(json.dumps(raw)), harness.random_agents(3, 1), 1)
+    finally:
+        FlowOrchestrator._say = original
+    llm, extra = seen[0]
+    assert llm.startswith("Summarize how the game went.") and "use ONLY the events listed in `history`" in llm and "State who won" in llm
+    assert isinstance(extra["history"], list) and extra["history"]
+
+
+def test_a_game_can_name_the_table_size_it_plays_best_at_and_it_must_lie_inside_its_range():
+    from xcolos.games.definition import DefinitionError
+
+    raw = json.loads(toy())
+    raw["meta"]["players"] = {"min": 3, "max": 5, "suggested": 4}
+    assert load(json.dumps(raw)).suggested_players == 4
+    raw["meta"]["players"] = {"min": 3, "max": 5}
+    assert load(json.dumps(raw)).suggested_players == 3  # not said: the minimum
+    raw["meta"]["players"] = {"min": 3, "max": 5, "suggested": 7}
+    try:
+        load(json.dumps(raw))
+    except DefinitionError as exc:
+        assert "suggested" in str(exc)
+    else:
+        raise AssertionError("a suggestion outside the range must be refused")
+
+
+def test_the_console_catalogue_carries_the_suggested_table_size():
+    from xcolos.web.server import catalogue
+
+    for g in catalogue():
+        assert g["min_seats"] <= g["suggested_seats"] <= g["max_seats"], g
+
+
+def _ending_with_a_model(reply_text):
+    from xcolos.flow.judge import ScriptedJudge
+
+    raw = json.loads(toy())
+    raw["steps"] = [{"use": "check", "label": "the end", "when": {"calc": "True"}}]
+    raw["end"] = {"done": {"when": {"calc": "True"}, "result": "draw", "text": "The game is over and nobody won.", "llm": "Tell how the game went."}}
+    judge = ScriptedJudge(lambda call: {"type": "info", "text": reply_text})
+    played = harness.play(load(json.dumps(raw)), harness.random_agents(3, 1), 1, judge=judge)
+    told = [(r["payload"]["rendered"], r.get("audience", {}).get("kind")) for r in played.game.log.records
+            if r.get("category") == "fact" and r.get("type") == "game_over"]
+    return judge, told
+
+
+def test_a_models_ending_that_is_not_prose_is_never_announced_the_games_own_text_is():
+    for bad in ("false", "True", "None", "  ", "null."):
+        judge, told = _ending_with_a_model(bad)
+        assert told == [("The game is over and nobody won.", "all")], (bad, told)
+
+
+def test_a_public_ending_is_written_once_from_the_public_view_and_told_to_everyone():
+    judge, told = _ending_with_a_model("Seat 1 opened, seat 2 replied, and it ended level.")
+    assert len(judge.asked) == 1  # not one call, and one account, for each seat
+    assert told == [("Seat 1 opened, seat 2 replied, and it ended level.", "all")]
+    table = judge.asked[0].table
+    assert "you" not in table and all(set(p["attributes"]) <= {"said"} for p in table["players"])  # only what is public
+
+
+def test_an_announcement_that_is_not_an_ending_is_still_written_for_each_listener_separately():
+    from xcolos.flow.judge import ScriptedJudge
+
+    raw = json.loads(toy())
+    raw["steps"] = [{"use": "update", "label": "the news", "text": "Something happened.", "llm": "Say what happened.", "do": [{"set": {"key": "n", "value": 1}}]},
+                    {"use": "check", "label": "the end", "when": {"calc": "True"}}]
+    judge = ScriptedJudge(lambda call: {"type": "info", "text": f"for seat {call.where.tag[-1]}"})
+    harness.play(load(json.dumps(raw)), harness.random_agents(3, 1), 1, judge=judge)
+    assert len(judge.asked) == 3

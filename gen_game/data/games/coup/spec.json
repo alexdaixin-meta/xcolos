@@ -3,7 +3,8 @@
   "summary": "Each player holds two hidden role cards. On your turn you take an action, and some actions require claiming a role you may not hold. Other players can challenge or block. Lose both cards and you are out; the last player holding a hidden card wins.",
   "players": {
     "min": 3,
-    "max": 5
+    "max": 5,
+    "suggested": 4
   },
   "parameters": {
     "deck_size": 15,
@@ -289,7 +290,7 @@
       "action": "ask",
       "who": "the player at active_seat, when action is coup, assassinate or steal",
       "answer": "The seat of any other player with alive = true.",
-      "effect": "target = the chosen seat."
+      "effect": "target = the chosen seat, which must be a seat with alive = true and seat != active_seat; self-target is not allowed"
     },
     {
       "action": "update",
@@ -301,13 +302,13 @@
       "action": "tell",
       "who": "all players",
       "answer": null,
-      "effect": "Announce the active seat's action, claimed_role and target."
+      "effect": "Announce the active seat's action. Announce claimed_role only when it is set (tax, assassinate, steal, exchange). Announce target only when target > 0 (coup, assassinate, steal). Income and foreign_aid name neither a claimed role nor a target."
     },
     {
       "action": "poll",
       "who": "every living player except the active player, when action is foreign_aid, tax, assassinate, steal or exchange",
       "answer": "pass; challenge (only if claimed_role is set); block_duke (anyone, only against foreign_aid); block_contessa (only the target, only against assassinate); block_captain or block_ambassador (only the target, only against steal).",
-      "effect": "Each answering player's reaction = the answer."
+      "effect": "Each living player except the active player is polled with options filtered by action and seat: tax/exchange -> pass/challenge only; foreign_aid -> pass/block_duke only (no challenge); assassinate -> target pass/challenge/block_contessa, others pass/challenge only; steal -> target pass/challenge/block_captain/block_ambassador, others pass/challenge only; income/coup -> no poll; each answering player's reaction = the answer"
     },
     {
       "action": "tell",
@@ -325,7 +326,7 @@
       "action": "update",
       "who": "engine, when challenger > 0",
       "answer": null,
-      "effect": "Action challenge. If claimed_role is in the active player's hidden_cards: remove one claimed_role card from the active player's hidden_cards and append it to deck, then draw one card at random from deck into the active player's hidden_cards; challenger's pending_loss += 1. Otherwise: active player's pending_loss += 1, action_status = failed, blocker = 0."
+      "effect": "Action challenge. If claimed_role is in the active player's hidden_cards: first draw one card at random from deck into the active player's hidden_cards, then remove one claimed_role card from the active player's hidden_cards and append it to deck (so hidden_count and deck_count are unchanged); challenger's pending_loss += 1; action_status stays going. Otherwise: active player's pending_loss += 1 and action_status = failed, so the action has no effect and any block is ignored."
     },
     {
       "action": "tell",
@@ -349,13 +350,13 @@
       "action": "update",
       "who": "engine, when action_status = going and blocker > 0",
       "answer": null,
-      "effect": "block_challenger = the first seat in seat order after blocker with block_response = challenge, 0 if none. If block_challenger = 0: action_status = blocked. Otherwise, if block_role is in the blocker's hidden_cards: move that card from the blocker's hidden_cards to deck, draw one card at random from deck into the blocker's hidden_cards, block_challenger's pending_loss += 1, action_status = blocked. Otherwise: blocker's pending_loss += 1 and the action goes ahead (action_status stays going)."
+      "effect": "block_challenger = the first seat in seat order after blocker with block_response = challenge, 0 if none. If block_challenger = 0: action_status = blocked. Otherwise, if block_role is in the blocker's hidden_cards: first draw one card at random from deck into the blocker's hidden_cards, then move one block_role card from the blocker's hidden_cards to deck (so hidden_count and deck_count are unchanged); block_challenger's pending_loss += 1; action_status = blocked. Otherwise: blocker's pending_loss += 1 and action_status stays going, so the action goes ahead."
     },
     {
       "action": "update",
       "who": "engine, when action_status = going",
       "answer": null,
-      "effect": "Effect. income: active coins += 1. foreign_aid: active coins += 2. tax: active coins += 3. steal: stolen = the smaller of 2 and the target's coins, target coins -= stolen, active coins += stolen. coup or assassinate: target pending_loss += 1. exchange: draw one card at random from deck into the active player's hidden_cards and set the active player's must_return = 1."
+      "effect": "Effect. income: active coins += 1. foreign_aid: active coins += 2. tax: active coins += 3. steal: stolen = the smaller of 2 and target's coins, target coins -= stolen, active coins += stolen. coup or assassinate: target pending_loss += 1. exchange: draw one card at random from deck into the active player's hidden_cards (deck_count -=1, hidden_count +=1, must_return =1) and then the return in step 18 restores deck_count and hidden_count so deck_count is unchanged from before the draw; no other counters change"
     },
     {
       "action": "poll",
@@ -379,7 +380,7 @@
       "action": "check",
       "who": "engine",
       "answer": null,
-      "effect": "End the game if living_count = 1 or turn_count >= 40, otherwise continue."
+      "effect": "If living_count = 1: winner = the seat of the only player with alive = true, every seat with alive = false has lost, and the game ends. Otherwise, if turn_count >= 40: winner = the living seat with the highest hidden_count, then the most coins; if still tied, winner = draw; every other seat has lost, and the game ends. Otherwise continue."
     },
     {
       "action": "update",
@@ -544,6 +545,62 @@
     {
       "id": "R36",
       "text": "When players react to an action or a block, then they answer in a poll, and no one sees another's answer until all are in."
+    },
+    {
+      "id": "R37",
+      "text": "When a player chooses a target for coup, assassinate or steal, then the only seats offered are those with alive = true and seat != active_seat, and the active seat is never offered as a target."
+    },
+    {
+      "id": "R38",
+      "text": "When reactions to the action are polled and action is tax or exchange, then every living player except the active player is offered only pass and challenge (challenge only if claimed_role is set) and no block_duke, block_contessa, block_captain or block_ambassador is offered to any seat."
+    },
+    {
+      "id": "R39",
+      "text": "When reactions to the action are polled and action is foreign_aid, then every living player except the active player is offered only pass and block_duke, challenge is not offered and block_contessa, block_captain and block_ambassador are not offered."
+    },
+    {
+      "id": "R40",
+      "text": "When reactions to the action are polled and action is assassinate, then the target is offered pass, challenge and block_contessa and every other living player except the active player and the target is offered only pass and challenge and is not offered any block."
+    },
+    {
+      "id": "R41",
+      "text": "When reactions to the action are polled and action is steal, then the target is offered pass, challenge, block_captain and block_ambassador and every other living player except the active player and the target is offered only pass and challenge and is not offered any block."
+    },
+    {
+      "id": "R42",
+      "text": "When Exchange goes ahead and the active player draws 1 card from deck and returns 1 card to deck, then deck_count before the draw and after the return are equal and hidden_count is unchanged."
+    },
+    {
+      "id": "R43",
+      "text": "When a player's pending losses are equal to or more than their hidden cards (R29), then in that same turn's Resolve step alive = false, hidden_count = 0, coins = 0 and living_count falls by exactly 1; that seat is eliminated for the rest of the game, is never polled or asked again, and is reported as eliminated, not active, at the end of the game."
+    },
+    {
+      "id": "R44",
+      "text": "When the game ends because living_count = 1, then winner = the seat number of the only player with alive = true. That seat is the single winner and every seat with alive = false has lost. Example: with 4 players, if seats 1, 3 and 4 are eliminated, then winner = 2 and seats 1, 3 and 4 have lost."
+    },
+    {
+      "id": "R45",
+      "text": "When the game ends because turn_count >= 40 and living_count > 1, then winner = the seat with alive = true and the highest hidden_count. A tie goes to the tied seat with the most coins. If seats are still tied, winner = draw and no seat wins. Every seat that is not the winner has lost."
+    },
+    {
+      "id": "R46",
+      "text": "When a challenged active player holds the claimed role, then the order is fixed: first they draw 1 replacement card at random from deck into hidden_cards, and only after that is the claimed_role card moved from their hidden_cards to deck. hidden_count is unchanged, deck_count is the same before and after, and the replacement draw can never be the card that was just shown."
+    },
+    {
+      "id": "R47",
+      "text": "When a challenged blocker holds block_role, then the order is fixed: first they draw 1 replacement card at random from deck into hidden_cards, and only after that is the block_role card moved from their hidden_cards to deck. hidden_count is unchanged, deck_count is the same before and after, and the replacement draw can never be the card that was just shown."
+    },
+    {
+      "id": "R48",
+      "text": "When several players answer challenge to a block, then block_challenger = the first seat in seat order after blocker whose block_response = challenge. Only that seat can take a pending loss from the block challenge. Every other block challenger's pending_loss is unchanged by it."
+    },
+    {
+      "id": "R49",
+      "text": "When a card is put into the deck during a turn (the revealed card of a proven claim or block, or the card an Exchange returns), then it is placed at the BOTTOM of the deck, the next draw in that turn takes the TOP card, and the deck is shuffled once at the end of the turn; so a card cannot be drawn back in the turn it was put in unless the deck has no other card."
+    },
+    {
+      "id": "R50",
+      "text": "The rules text players read says that when a challenge to an action fails, the challenger loses a card AND the action still goes ahead (so a target who challenges a true Assassinate still loses a card to it), and it describes a proven claim in the order draw the replacement, put the shown card into the deck, shuffle at the end of the turn."
     }
   ],
   "choices": [
@@ -578,6 +635,14 @@
     {
       "what": "A player who both loses a card and owes an Exchange return answers both in the card-choice poll",
       "why": "The source does not say how the two choices combine. In practice this is rare, because the active player in an Exchange only takes a pending loss when the Exchange failed."
+    },
+    {
+      "what": "A card put into the deck goes to the bottom of the deck until the end-of-turn shuffle",
+      "why": "The design says the revealed or returned card is 'put into the deck' and that the deck is shuffled at the end of the turn, but not where it goes in between. Without a position, a same-turn Exchange could draw straight back the card just proven, which makes the replacement meaningless. A play review found the gap (round 4)."
+    },
+    {
+      "what": "Suggested table size 4 (minimum 3, maximum 5)",
+      "why": "Three is the least where a bluff has two independent observers and a target who is not the actor; with four, one seat can be targeted while two others weigh a challenge or a block, so challenges and blocks are real decisions every turn, and a match still ends in a reasonable number of turns. Five seats make each turn longer and one player's choice matter less. The console fills a table to four and real-model tests play at four."
     }
   ],
   "simplifications": [
@@ -598,5 +663,32 @@
       "why": "Taking options from a list is the engine's workaround for choosing from a hand."
     }
   ],
-  "unsupported": []
+  "unsupported": [],
+  "offers": [
+    {
+      "question": "One choice of action: income, foreign_aid, coup (only if coins >= 7), tax, assassinate (only if coins >= 3), steal or exchange. If coins >= 10 at the start of the turn, the only option is coup.",
+      "who": "the player at active_seat",
+      "options": "if coins >= 10 at start of turn: only coup; otherwise: income, foreign_aid, tax, steal and exchange always offered; coup offered only if coins >= 7; assassinate offered only if coins >= 3"
+    },
+    {
+      "question": "The seat of any other player with alive = true.",
+      "who": "the player at active_seat, when action is coup, assassinate or steal",
+      "options": "every seat with alive = true except active_seat; active_seat is never offered; a seat with alive = false is never offered"
+    },
+    {
+      "question": "reactions to the action: pass; challenge; block",
+      "who": "every living player except the active player, when action is foreign_aid, tax, assassinate, steal or exchange (no poll for income or coup)",
+      "options": "if action is tax or exchange: every polled seat: pass, challenge; no block offered. If action is foreign_aid: every polled seat: pass, block_duke; no challenge and no other block. If action is assassinate: the target: pass, challenge, block_contessa; every other polled seat: pass, challenge only. If action is steal: the target: pass, challenge, block_captain, block_ambassador; every other polled seat: pass, challenge only"
+    },
+    {
+      "question": "accept or challenge",
+      "who": "every living player except the blocker, when action_status = going and blocker > 0",
+      "options": "accept, challenge for every polled seat (this includes the active player); the blocker is never polled; a seat with alive = false is never polled"
+    },
+    {
+      "question": "One card from the player's own hidden_cards. A player who both loses a card and owes an Exchange return answers twice: the card to reveal and the card to return.",
+      "who": "every player with alive = true and ((pending_loss = 1 and hidden_count = 2) or must_return = 1)",
+      "options": "if pending_loss = 1 and hidden_count = 2: any card in that player's hidden_cards as reveal_choice; if must_return = 1: any card in that player's hidden_cards as return_choice; if both hold: one reveal_choice and one return_choice, each from that player's hidden_cards; a player with pending_loss >= hidden_count is not asked to reveal, because all their cards are revealed"
+    }
+  ]
 }

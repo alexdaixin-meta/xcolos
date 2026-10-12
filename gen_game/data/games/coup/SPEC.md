@@ -2,7 +2,7 @@
 
 Each player holds two hidden role cards. On your turn you take an action, and some actions require claiming a role you may not hold. Other players can challenge or block. Lose both cards and you are out; the last player holding a hidden card wins.
 
-Players: 3 to 5
+Players: 3 to 5, best with 4
 
 ## Parameters
 
@@ -29,22 +29,22 @@ Players: 3 to 5
 2. **tell** (all players): Announce each player's coins, revealed_cards and hidden_count, plus deck_count and active_seat.
 3. **sync** (all players): Send each player their own hidden_cards.
 4. **ask** (the player at active_seat): action = the answer; claimed_role = Duke for tax, Assassin for assassinate, Captain for steal, Ambassador for exchange, empty otherwise.
-5. **ask** (the player at active_seat, when action is coup, assassinate or steal): target = the chosen seat.
+5. **ask** (the player at active_seat, when action is coup, assassinate or steal): target = the chosen seat, which must be a seat with alive = true and seat != active_seat; self-target is not allowed
 6. **update** (engine): Pay costs now, with no refund later: if action = coup, active coins -= 7; if action = assassinate, active coins -= 3.
-7. **tell** (all players): Announce the active seat's action, claimed_role and target.
-8. **poll** (every living player except the active player, when action is foreign_aid, tax, assassinate, steal or exchange): Each answering player's reaction = the answer.
+7. **tell** (all players): Announce the active seat's action. Announce claimed_role only when it is set (tax, assassinate, steal, exchange). Announce target only when target > 0 (coup, assassinate, steal). Income and foreign_aid name neither a claimed role nor a target.
+8. **poll** (every living player except the active player, when action is foreign_aid, tax, assassinate, steal or exchange): Each living player except the active player is polled with options filtered by action and seat: tax/exchange -> pass/challenge only; foreign_aid -> pass/block_duke only (no challenge); assassinate -> target pass/challenge/block_contessa, others pass/challenge only; steal -> target pass/challenge/block_captain/block_ambassador, others pass/challenge only; income/coup -> no poll; each answering player's reaction = the answer
 9. **tell** (all players): Announce every player's reaction.
 10. **update** (engine): challenger = the first seat in seat order after active_seat with reaction = challenge, 0 if none. blocker = the first seat after active_seat whose reaction starts with block_, 0 if none. block_role = that block's role.
-11. **update** (engine, when challenger > 0): Action challenge. If claimed_role is in the active player's hidden_cards: remove one claimed_role card from the active player's hidden_cards and append it to deck, then draw one card at random from deck into the active player's hidden_cards; challenger's pending_loss += 1. Otherwise: active player's pending_loss += 1, action_status = failed, blocker = 0.
+11. **update** (engine, when challenger > 0): Action challenge. If claimed_role is in the active player's hidden_cards: first draw one card at random from deck into the active player's hidden_cards, then remove one claimed_role card from the active player's hidden_cards and append it to deck (so hidden_count and deck_count are unchanged); challenger's pending_loss += 1; action_status stays going. Otherwise: active player's pending_loss += 1 and action_status = failed, so the action has no effect and any block is ignored.
 12. **tell** (all players, when challenger > 0): Announce whether the challenged claim was true and who takes the pending loss. The card the active player draws is not named.
 13. **poll** (every living player except the blocker, when action_status = going and blocker > 0): Each answering player's block_response = the answer.
 14. **tell** (all players, when action_status = going and blocker > 0): Announce every player's block_response.
-15. **update** (engine, when action_status = going and blocker > 0): block_challenger = the first seat in seat order after blocker with block_response = challenge, 0 if none. If block_challenger = 0: action_status = blocked. Otherwise, if block_role is in the blocker's hidden_cards: move that card from the blocker's hidden_cards to deck, draw one card at random from deck into the blocker's hidden_cards, block_challenger's pending_loss += 1, action_status = blocked. Otherwise: blocker's pending_loss += 1 and the action goes ahead (action_status stays going).
-16. **update** (engine, when action_status = going): Effect. income: active coins += 1. foreign_aid: active coins += 2. tax: active coins += 3. steal: stolen = the smaller of 2 and the target's coins, target coins -= stolen, active coins += stolen. coup or assassinate: target pending_loss += 1. exchange: draw one card at random from deck into the active player's hidden_cards and set the active player's must_return = 1.
+15. **update** (engine, when action_status = going and blocker > 0): block_challenger = the first seat in seat order after blocker with block_response = challenge, 0 if none. If block_challenger = 0: action_status = blocked. Otherwise, if block_role is in the blocker's hidden_cards: first draw one card at random from deck into the blocker's hidden_cards, then move one block_role card from the blocker's hidden_cards to deck (so hidden_count and deck_count are unchanged); block_challenger's pending_loss += 1; action_status = blocked. Otherwise: blocker's pending_loss += 1 and action_status stays going, so the action goes ahead.
+16. **update** (engine, when action_status = going): Effect. income: active coins += 1. foreign_aid: active coins += 2. tax: active coins += 3. steal: stolen = the smaller of 2 and target's coins, target coins -= stolen, active coins += stolen. coup or assassinate: target pending_loss += 1. exchange: draw one card at random from deck into the active player's hidden_cards (deck_count -=1, hidden_count +=1, must_return =1) and then the return in step 18 restores deck_count and hidden_count so deck_count is unchanged from before the draw; no other counters change
 17. **poll** (every player with (pending_loss = 1 and hidden_count = 2) or must_return = 1): reveal_choice = the card to reveal; return_choice = the card to return to the deck.
 18. **update** (engine): Resolve. A player with pending_loss = 1 and hidden_count = 2 moves reveal_choice from hidden_cards to revealed_cards. A player with must_return = 1 moves return_choice from hidden_cards to deck. Any player with pending_loss >= hidden_count and pending_loss > 0 moves all of hidden_cards to revealed_cards, alive = false, coins = 0. Then hidden_count = length of hidden_cards for every player, deck_count = length of deck, living_count = number of players with alive = true. Every pending_loss and must_return goes back to 0.
 19. **tell** (all players): Announce every card revealed this turn and every player eliminated. Returned cards are never named.
-20. **check** (engine): End the game if living_count = 1 or turn_count >= 40, otherwise continue.
+20. **check** (engine): If living_count = 1: winner = the seat of the only player with alive = true, every seat with alive = false has lost, and the game ends. Otherwise, if turn_count >= 40: winner = the living seat with the highest hidden_count, then the most coins; if still tied, winner = draw; every other seat has lost, and the game ends. Otherwise continue.
 21. **update** (engine): active_seat = the next seat after active_seat in seat order, wrapping around and skipping players with alive = false.
 
 ## Ending
@@ -63,6 +63,8 @@ Players: 3 to 5
 - Each player is offered only the reactions they may legally make: The source limits Challenge to claimed roles, Duke blocks to Foreign Aid, and Contessa, Captain and Ambassador blocks to the target. Offering only legal options enforces this.
 - A turn is one round: Seat order with skipping is kept by active_seat, so the turn cap of 40 counts directly as turn_count.
 - A player who both loses a card and owes an Exchange return answers both in the card-choice poll: The source does not say how the two choices combine. In practice this is rare, because the active player in an Exchange only takes a pending loss when the Exchange failed.
+- A card put into the deck goes to the bottom of the deck until the end-of-turn shuffle: The design says the revealed or returned card is 'put into the deck' and that the deck is shuffled at the end of the turn, but not where it goes in between. Without a position, a same-turn Exchange could draw straight back the card just proven, which makes the replacement meaningless. A play review found the gap (round 4).
+- Suggested table size 4 (minimum 3, maximum 5): Three is the least where a bluff has two independent observers and a target who is not the actor; with four, one seat can be targeted while two others weigh a challenge or a block, so challenges and blocks are real decisions every turn, and a match still ends in a reasonable number of turns. Five seats make each turn longer and one player's choice matter less. The console fills a table to four and real-model tests play at four.
 
 ## Simplifications
 

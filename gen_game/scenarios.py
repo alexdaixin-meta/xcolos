@@ -63,10 +63,23 @@ long calculations go wrong). Start the match in the situation the rule needs, an
    "expect": {"players": {"1": {"coins": 0}, "2": {"influence_remaining": 1}}}}
 
 `given` overwrites attributes after the game has set itself up: any player attribute and any table attribute the spec lists, hidden ones
-included (a hand, a deck, whose turn it is). `rounds` is how many rounds to play before stopping (one pass through the spec's round steps;
+included (a hand, a deck, whose turn it is). A seat that is already OUT of the game needs its platform status too: `"status": {"2": "out"}` in `given`,
+next to its attributes (the status id the spec names for an eliminated player). `rounds` is how many rounds to play before stopping (one pass through the spec's round steps;
 with it you assert the state at that point and `expect.result` is optional). Use `given` and `rounds: 1` for each rule's cost, gain,
 block, challenge, bluff and forced action. Use a whole match (no `rounds`, so a `result`) only for an ending, from a `given` that is one move
 from the end.
+
+Besides values, `expect` can say what status the PLATFORM holds for a seat (`"status": {"1": "out"}`: the status ids the spec names, as
+set when a player is eliminated or similar), how many items a list holds (any list attribute, hidden ones included) and what a seat was or was not offered:
+
+   "expect": {"lens": {"game": {"deck": 9}, "players": {"1": {"hand": 2}}},
+              "offered": [{"seat": 2, "option": "block"}],
+              "not_offered": [{"seat": 1, "option": "block"}]}
+
+`lens` checks counts you can work out from the rules (the deck after a deal, a hand's size); `offered` / `not_offered` check the options a seat was put in
+any question during the scenario (a question with one option is answered for the seat and still counts as offered). Use `rounds: 0` to look at the state
+right after the game has set itself up, with no turn played and so no question asked (give it no `rules`): that is where "each seat holds 2 cards and the deck holds the rest" is checked. Write a
+`not_offered` for each restriction the spec states (only the target may block, nobody may target itself, an unaffordable action is not offered).
 
 ASSERT ONLY ON WHAT AN OUTSIDE OBSERVER SEES: the result, and the attributes the message lists as observable. Never assert on
 counters, scratch values, codes or whose turn it is: the coder keeps those however it likes, and a test that depends on them
@@ -106,8 +119,12 @@ def problems(items, observable: dict | None = None, rule_ids: set[str] | None = 
                 out.append(f"scenario {i}: moves needs one entry per seat, keyed '1' to '{s['players']}'")
         if isinstance(s.get("expect"), dict) and "result" not in s["expect"] and s.get("rounds") is None:
             out.append(f"scenario {i}: expect needs a 'result' (or set `rounds`, to stop after that many rounds and look at the state)")
-        if s.get("rounds") is not None and not (isinstance(s["rounds"], int) and s["rounds"] >= 1):
-            out.append(f"scenario {i}: rounds is a whole number, 1 or more")
+        if s.get("rounds") is not None and not (isinstance(s["rounds"], int) and s["rounds"] >= 0):
+            out.append(f"scenario {i}: rounds is a whole number, 0 or more (0 looks at the state right after setup)")
+        for form in ("offered", "not_offered"):
+            items = (s.get("expect") or {}).get(form) if isinstance(s.get("expect"), dict) else None
+            if items is not None and not (isinstance(items, list) and all(isinstance(x, dict) and "seat" in x and "option" in x for x in items)):
+                out.append(f"scenario {i}: expect.{form} is a list of {{\"seat\": n, \"option\": ...}}")
         if s.get("given") is not None and attribute_keys is not None:
             g = s["given"]
             for seat, vals in (g.get("players") or {}).items():
@@ -208,6 +225,34 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
         got = p.game_attribute(key)
         if got != want:
             fails.append(f"game {key}: expected {want!r}, got {got!r}")
+    lens = exp.get("lens") or {}
+    for seat, attrs in (lens.get("players") or {}).items():
+        for key, want in attrs.items():
+            got = p.attribute(int(seat), key)
+            got = len(got) if isinstance(got, (list, tuple)) else got
+            if got != want:
+                fails.append(f"seat {seat} {key}: expected {want} items, got {got}")
+    for key, want in (lens.get("game") or {}).items():
+        got = p.game_attribute(key)
+        got = len(got) if isinstance(got, (list, tuple)) else got
+        if got != want:
+            fails.append(f"game {key}: expected {want} items, got {got}")
+    for seat, want in (exp.get("status") or {}).items():
+        got = p.orchestrator.flow.status.get(int(seat))
+        if got != want:
+            fails.append(f"seat {seat} platform status: expected {want!r}, got {got!r}")
+    shown: dict[int, set] = {}
+    for r in p.game.log.records:
+        if r.get("category") == "orchestrator" and r.get("type") == "action_request" and isinstance(r.get("legal_targets"), list):
+            shown.setdefault(r.get("seat"), set()).update(map(str, r["legal_targets"]))
+        elif r.get("type") == "auto_answer":
+            shown.setdefault(r.get("seat"), set()).add(str(r.get("value")))
+    for x in exp.get("offered") or []:
+        if str(x["option"]) not in shown.get(int(x["seat"]), set()):
+            fails.append(f"seat {x['seat']} was never offered {x['option']!r}, but should have been")
+    for x in exp.get("not_offered") or []:
+        if str(x["option"]) in shown.get(int(x["seat"]), set()):
+            fails.append(f"seat {x['seat']} was offered {x['option']!r}, but must not be")
     trace = ""
     if fails:
         moves = [f"r{r.get('round')} seat {r['seat']}: {r['action'].get('target')!r}" for r in p.game.log.records if r.get("type") == "move" and r["action"].get("target") is not None]
@@ -217,7 +262,8 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
                  f"{' ...' if len(writes) > 14 else ''}. Final: players {json.dumps(final, default=str)[:420]}; table {json.dumps(flow.game_attributes, default=str)[:420]}")
     for a in agents:
         if isinstance(a, harness.RuleAgent):
-            fails += a.unused()
+            if s.get("rounds") != 0:  # at rounds 0 nothing is asked, so no rule can be used and none is required to be
+                fails += a.unused()
             continue
         if a.overrun:
             fails.append(f"{a.name} was asked {len(a.overrun)} more question(s) than scripted (first: {a.overrun[0]})")

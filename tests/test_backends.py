@@ -641,3 +641,67 @@ def test_a_key_that_is_not_a_key_is_named_before_the_call():
 def test_a_real_looking_key_passes_the_shape_check():
     for good in ("LLM|1234567890|aBcDeFgHiJkLmNoPqRsTuVwXyZ0", "LLM|1|a-b_c"):
         assert MuseCompletion(api_key=good)._key() == good
+
+
+class ModelByModelOpener:
+    """Overloaded for the models named in `down`; answers for any other, and remembers which model each request asked for."""
+
+    def __init__(self, down):
+        self.down, self.asked = set(down), []
+
+    def urlopen(self, request, timeout=None):
+        import io
+        import urllib.error
+
+        model = json.loads(request.data)["model"]
+        self.asked.append(model)
+        if model in self.down:
+            raise urllib.error.HTTPError("u", 503, "Service Unavailable", {}, io.BytesIO(b'{"error":{"code":"service_overloaded"}}'))
+        return FakeResponse(message(f"answered by {model}"))
+
+
+def test_an_overloaded_model_falls_back_to_the_next_one_and_a_healthy_one_is_not_left():
+    opener = ModelByModelOpener(down={"newest"})
+    backend = MuseCompletion(model="newest", api_key=FAKE_KEY, opener=opener, retries=1, fallbacks=("older", "oldest"))
+    backend_sleep_free(backend)
+    assert backend.complete("x") == "answered by older"
+    assert opener.asked == ["newest", "newest", "older"]  # its own retry first, then the next model, and no further
+    healthy = ModelByModelOpener(down=set())
+    assert MuseCompletion(model="newest", api_key=FAKE_KEY, opener=healthy, fallbacks=("older",)).complete("x") == "answered by newest"
+    assert healthy.asked == ["newest"]
+
+
+def test_when_every_model_is_overloaded_the_last_error_is_reported_and_without_fallbacks_nothing_changes():
+    all_down = ModelByModelOpener(down={"a", "b"})
+    backend = MuseCompletion(model="a", api_key=FAKE_KEY, opener=all_down, retries=0, fallbacks=("b",))
+    backend_sleep_free(backend)
+    try:
+        backend.complete("x")
+    except CompletionError as error:
+        assert "503" in str(error)
+    else:
+        raise AssertionError("it must report the failure")
+    assert all_down.asked == ["a", "b"]
+    plain = ModelByModelOpener(down={"a"})
+    solo = MuseCompletion(model="a", api_key=FAKE_KEY, opener=plain, retries=0)
+    backend_sleep_free(solo)
+    try:
+        solo.complete("x")
+    except CompletionError:
+        pass
+    assert plain.asked == ["a"]
+
+
+def test_the_servers_first_choice_is_the_newest_model_unless_the_environment_names_another():
+    import os
+    from xcolos.flow.backends import MUSE_FALLBACKS, MUSE_LATEST, muse_first_choice
+
+    saved = os.environ.pop("XCOLOS_MUSE_MODEL", None)
+    try:
+        assert muse_first_choice() == MUSE_LATEST and MUSE_LATEST not in MUSE_FALLBACKS
+        os.environ["XCOLOS_MUSE_MODEL"] = "something-else"
+        assert muse_first_choice() == "something-else"
+    finally:
+        os.environ.pop("XCOLOS_MUSE_MODEL", None)
+        if saved is not None:
+            os.environ["XCOLOS_MUSE_MODEL"] = saved

@@ -6,8 +6,10 @@ for the faults that cost model calls, clutter prompts or send players garbage:
 
   placeholder  a message that still has `{name}` in it: the engine could not fill it in
   empty        an announcement that says nothing ("Seat 4 answers: .")
+  blank        state printed to players with empty fields ("block_role , blocker 0"): internal bookkeeping left public
   repeated     the same announcement, to the same people, twice in one round
   one option   a question with a single possible answer, which only costs a call
+  refused      an option that was offered, taken, and then taken back: the seat is asked again without it
 
 `scan` is the pure part (records in, findings out), so it can be tested on its own.
 """
@@ -22,6 +24,7 @@ from gen_game import harness
 from xcolos.games.definition import GameDefinition
 
 PLACEHOLDER = re.compile(r"\{[A-Za-z_][\w.\[\]]*\}")
+BLANK = re.compile(r"\b[a-z][a-z_]{2,} (?=[,.])")  # `block_role ,` : a state field printed with nothing after it
 EMPTY = re.compile(r"(?:[:=]\s*[.,;]|\bNone|\bnull)\s*$")  # "answers: ." and "None", not a heading that ends in a colon
 #: Facts that carry state dumps or per-listener text, where two equal lines are not a repeat.
 NOT_A_REPEAT = ("the_table", "game_over")
@@ -53,6 +56,9 @@ def scan(records: list[dict], number_steps: frozenset = frozenset()) -> list[str
             if m := PLACEHOLDER.search(line):
                 found.append(f"placeholder: players are shown the literal {m.group(0)} (in `{kind}`: {line.strip()[:90]!r}); "
                              "use only names the step can fill in (see the broadcast rule: {value} and {seat})")
+            if kind not in ("prompt", "the_table") and (b := BLANK.findall(line)) and len(b) >= 2:
+                found.append(f"blank: the state shown to players has empty fields ({', '.join(x.strip() for x in b[:4])}) in `{kind}`; hide bookkeeping attributes "
+                             "(`none` on the table, `ally` on a player) so only what a player can use is printed")
             if EMPTY.search(line.strip()) and kind not in ("prompt", "the_table"):
                 found.append(f"empty: an announcement says nothing (in `{kind}`: {line.strip()[:90]!r}); "
                              "skip the announcement when there is nothing to say, or give it an `if`")
@@ -61,11 +67,51 @@ def scan(records: list[dict], number_steps: frozenset = frozenset()) -> list[str
     for (rnd, kind, audience, text), n in seen.items():
         if n > 1:
             found.append(f"repeated: the same announcement was made {n} times in round {rnd} (`{kind}`: {text[:90]!r})")
+    found += _refusals(records, number_steps)
     for r in records:
         if r.get("category") == "orchestrator" and r.get("type") == "action_request":
             legal = r.get("legal_targets")
             if isinstance(legal, list) and len(legal) == 1 and r.get("action_schema") not in number_steps:
                 found.append(f"one option: `{r.get('action_schema')}` offered a single option {legal[0]!r}; it only costs a call")
+    return found
+
+
+def scan_bodies(bodies: list[tuple[str, str]]) -> list[str]:
+    """The same checks on the text each seat was sent (the rules brief, the state, the question), which is not a logged fact."""
+    found: list[str] = []
+    for kind, text in bodies:
+        for line in str(text).splitlines():
+            if m := PLACEHOLDER.search(line):
+                found.append(f"placeholder: a player is shown the literal {m.group(0)} (in a `{kind}` message: {line.strip()[:90]!r}); use only names the step can fill in")
+            if len(blanks := BLANK.findall(line)) >= 2:
+                found.append(f"blank: the state a player is shown has empty fields ({', '.join(x.strip() for x in blanks[:4])}); hide bookkeeping attributes "
+                             "(`none` on the table, `ally` on a player) so only what a player can use is printed")
+    return list(dict.fromkeys(found))
+
+
+def _refusals(records: list[dict], number_steps: frozenset) -> list[str]:
+    """A seat offered a list, answering from it, then asked the same question again with that answer gone.
+
+    That is a game that offered an option and then refused it: the first offer was broader than the rules allow, and
+    a check afterwards took the choice back. The outcome can still be right, which is why outcome tests never see it.
+    The fix is in the offer: give each seat only the options it may use.
+    """
+    found: list[str] = []
+    last: dict[tuple, dict] = {}
+    for r in records:
+        key = (r.get("seat"), r.get("action_schema"), r.get("round"))
+        if r.get("category") == "orchestrator" and r.get("type") == "action_request":
+            if r.get("action_schema") in number_steps or not isinstance(r.get("legal_targets"), list):
+                continue
+            before = last.get(key)
+            legal = r["legal_targets"]
+            if before and "answer" in before and before["answer"] not in legal and set(legal) < set(before["legal"]):
+                found.append(f"refused: seat {r.get('seat')} was offered {before['answer']!r} in `{r.get('action_schema')}`, picked it, and was asked again "
+                             f"without it (round {r.get('round')}): the first offer held an option that was not allowed. Offer each seat only what it may do, "
+                             "from its own state, instead of refusing afterwards")
+            last[key] = {"legal": legal}
+        elif r.get("category") == "turn" and r.get("type") == "move" and key in last and "answer" not in last[key]:
+            last[key]["answer"] = (r.get("action") or {}).get("target")
     return found
 
 
@@ -77,7 +123,10 @@ def trace_lint(defn: GameDefinition, seeds: range = range(1, 4)) -> dict:
     for n in sorted({defn.min_players, defn.max_players}):
         for seed in seeds:
             try:
-                played = harness.play(defn, harness.random_agents(n, seed), seed)
+                agents = harness.listening_agents(n, seed)
+                played = harness.play(defn, agents, seed)
+                for f in scan_bodies([b for a in agents for b in a.bodies]):
+                    findings[f] += 1
             except Exception:  # noqa: BLE001 - a crash is tier 0's to report
                 continue
             matches += 1

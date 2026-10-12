@@ -14,7 +14,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fixtures import *  # noqa: E402,F401,F403 - the shared scripted models and fixtures
-from fixtures import (ALWAYS_ROCK, LIBRARY, PLAN, RPS, RPS_TEXT, SEAT1_WINS, SPEC, Models, record, run_flow, world)  # noqa: E402
+from fixtures import (ALWAYS_ROCK, ALWAYS_ROCK_MOVES, LIBRARY, PLAN, RPS, RPS_TEXT, SEAT1_WINS, SPEC, Models, record, run_flow, world)  # noqa: E402
 
 from gen_game import adapt as adaptmod  # noqa: E402
 from gen_game import complexity  # noqa: E402
@@ -155,9 +155,10 @@ def test_a_correct_game_passes_and_a_wrong_expectation_names_the_difference():
 
 
 def test_scripting_too_many_or_too_few_moves_is_reported_as_that():
-    few = {**ALWAYS_ROCK, "moves": {"1": ["rock"], "2": ["rock"]}}
+    few = {**ALWAYS_ROCK_MOVES, "moves": {"1": ["rock"], "2": ["rock"]}}
     assert any("more question" in f for f in scenarios.run_scenario(RPS, few).failures)
-    many = {**ALWAYS_ROCK, "moves": {"1": ALWAYS_ROCK["moves"]["1"] + ["rock"] * 3, "2": ALWAYS_ROCK["moves"]["2"]}}
+    many = {**ALWAYS_ROCK_MOVES, "moves": {"1": ALWAYS_ROCK_MOVES["moves"]["1"] + ["rock"] * 3, "2": ALWAYS_ROCK_MOVES["moves"]["2"]}}
+    assert scenarios.run_scenario(RPS, ALWAYS_ROCK_MOVES).passed  # the older positional form still runs
     assert any("asked only" in f for f in scenarios.run_scenario(RPS, many).failures)
 
 
@@ -473,7 +474,7 @@ def test_cli_verify_checks_a_variation_and_a_spec_too():
 
 def test_muse_defaults_to_the_model_that_stays_up_and_a_named_model_wins():
     from gen_game import cli
-    assert cli.MUSE_MODEL == "rl-muse-spark-1-2-playground"
+    assert cli.MUSE_MODEL == "rl-muse-spark-1-3-sglang-playground"
     try:
         built = cli.completion_for("muse", "medium")
         named = cli.completion_for("muse:some-other-model", "low")

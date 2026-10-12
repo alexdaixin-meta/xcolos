@@ -53,7 +53,7 @@ Reply with ONE JSON object and nothing else, with exactly these keys:
 
   name            the game's name
   summary         one line
-  players         {"min": n, "max": n}: chosen by the PLAYER COUNT rule below, not copied from the source
+  players         {"min": n, "max": n, "suggested": n}: chosen by the PLAYER COUNT rule below, not copied from the source; `suggested` is the size it plays best at
   parameters      {"name": number, ...}: EVERY number in the rules (payoffs, rounds, budgets, ...). If the
                   source leaves a number open (it says "a > c >= d > b"), choose concrete values that satisfy
                   what it says and list the choice under `choices`.
@@ -75,6 +75,9 @@ Reply with ONE JSON object and nothing else, with exactly these keys:
   rules           (optional but wanted) a list of {"id": "R1", "text": "..."}: EVERY rule of the game as one sentence a test can check, with its numbers: each
                   action's cost and gain, each block, each challenge (a true claim and a bluff), each forced action, each way the game ends. Tests are written
                   one per rule, and a failing test names the rule, so write each as "when X, then Y" with concrete values.
+  offers          (optional but wanted) a list of {"question": the round step or question, "who": which seats are asked, "options": exactly what each seat may be offered,
+                  in each situation}: for EVERY question, the options by case, such as "the target of an assassination: pass, challenge, block as Contessa; any other
+                  seat: pass, challenge", or "a target: every living seat except the one acting". A seat is never offered what it may not do.
   choices         a list of {"what", "why"}: every decision you made that the source rules did not
   simplifications a list of {"what", "why"}: everything you changed to fit the engine
   unsupported     a list of strings: anything the game NEEDS that the actions above cannot do (a board, hidden
@@ -112,6 +115,9 @@ you set is the one the game is built and played with.
     group: with two players there is nothing to coordinate, only one other to guess, so a coordination game wants
     at least 3, and a threshold ("enough of us must commit") wants a threshold that is neither everyone nor one.
     A hidden-role game needs enough seats for a minority to hide in; an auction needs rivals to bid against.
+  - If the source names a suggested table size (the designer already chose it), keep it as `suggested` and give its reason.
+  - Otherwise set `suggested` to the size it plays best at: enough players for the point of the game to work with room to spare, few enough that a turn is short and
+    each choice still matters. Real models are tested at that size.
   - Say in one line why the minimum is that number, and why the maximum is not larger (a table so big that one
     player's choice no longer matters, or a conversation too long to follow).
   - Then think as a PLAYER at that table: what is the strategy? What does a thoughtful player do that a thoughtless one
@@ -149,7 +155,9 @@ def problems(spec: dict) -> list[str]:
         return out
     pl = spec["players"]
     if not (isinstance(pl, dict) and isinstance(pl.get("min"), int) and isinstance(pl.get("max"), int) and 1 <= pl["min"] <= pl["max"]):
-        out.append("players must be {\"min\": n, \"max\": n} with 1 <= min <= max")
+        out.append("players must be {\"min\": n, \"max\": n, \"suggested\": n} with 1 <= min <= max")
+    elif "suggested" in pl and not (isinstance(pl["suggested"], int) and pl["min"] <= pl["suggested"] <= pl["max"]):
+        out.append(f"players.suggested must be a whole number from {pl['min']} to {pl['max']}")
     if not isinstance(spec["parameters"], dict) or not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in spec["parameters"].values()):
         out.append("parameters must map each name to a number")
     attrs = spec["attributes"]
@@ -182,6 +190,9 @@ def problems(spec: dict) -> list[str]:
             out.append('rules must be a list of {"id": "R1", "text": "..."} with both filled in')
         elif len(set(ids)) != len(ids):
             out.append("rules: each id must be used once")
+    offers = spec.get("offers")
+    if offers is not None and not (isinstance(offers, list) and all(isinstance(o, dict) and all(str(o.get(k, "")).strip() for k in ("question", "who", "options")) for o in offers)):
+        out.append('offers must be a list of {"question", "who", "options"} with all three filled in')
     for k in ("choices", "simplifications", "unsupported"):
         if not isinstance(spec[k], list):
             out.append(f"{k} must be a list")
@@ -198,9 +209,11 @@ def write_spec(completion: Completion, record: dict, repairs: int = 2) -> tuple[
     A reply that is not a valid spec goes back with the reasons, up to `repairs`
     times. The error is empty when a spec came back.
     """
+    chosen = record.get("players_suggested")
     prompt = (f"Game: {record['name']}\n"
-              f"Players in the source: {record['players_min']} to {record['players_max']}\n\n"
-              f"Rules, as filed in the inventory:\n{record['rules_text']}")
+              f"Players in the source: {record['players_min']} to {record['players_max']}\n"
+              + (f"Suggested table size, chosen by the designer of these rules (keep it): {chosen}\n" if chosen else "")
+              + f"\nRules, as filed in the inventory:\n{record['rules_text']}")
     base, error, reply = prompt, "", ""
     system = system_with_engine_facts()
     for _ in range(repairs + 1):
@@ -222,7 +235,7 @@ def write_spec(completion: Completion, record: dict, repairs: int = 2) -> tuple[
 def render(spec: dict) -> str:
     """The spec as a page a person can review."""
     out = [f"# {spec['name']}", "", spec["summary"], "",
-           f"Players: {spec['players']['min']} to {spec['players']['max']}", "", "## Parameters", ""]
+           f"Players: {spec['players']['min']} to {spec['players']['max']}, best with {spec['players'].get('suggested', spec['players']['min'])}", "", "## Parameters", ""]
     out += [f"- `{k}` = {v}" for k, v in spec["parameters"].items()]
     out += ["", "## Round", ""]
     out += [f"{i}. **{s['action']}** ({s.get('who', '')}): {s.get('effect', '')}" for i, s in enumerate(spec["round"], 1)]
@@ -241,7 +254,7 @@ def script(spec: dict) -> str:
 
     This is what the coder converts into the game file, so every piece of state the rules need is named here, hidden ones included.
     """
-    out = [f"GAME: {spec['name']} ({spec['players']['min']} to {spec['players']['max']} players)", "", spec["summary"], "",
+    out = [f"GAME: {spec['name']} ({spec['players']['min']} to {spec['players']['max']} players, best with {spec['players'].get('suggested', spec['players']['min'])})", "", spec["summary"], "",
            "STATE (every item below must exist in the file):"]
     for scope, label in (("player", "each player"), ("game", "the table")):
         for a in spec["attributes"][scope]:
@@ -258,6 +271,9 @@ def script(spec: dict) -> str:
     if spec.get("rules"):
         out += ["", "RULES (each is tested by an independent scenario; the game must play every one exactly):"]
         out += [f"  {r['id']}. {r['text']}" for r in spec["rules"]]
+    if spec.get("offers"):
+        out += ["", "OFFERS (what each seat is offered when it is asked; a seat is never offered what it may not do, and nothing is refused afterwards):"]
+        out += [f"  - {o['question']} | asked: {o['who']} | options: {o['options']}" for o in spec["offers"]]
     end = spec["ending"]
     out += ["", "EVALUATION (how the game ends and who wins; decided by calculation):",
             f"  - the game ends when: {end['condition']}", f"  - the result is one of: {', '.join(end['results'])}",

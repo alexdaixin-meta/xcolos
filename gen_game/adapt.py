@@ -117,7 +117,7 @@ Reply with ONE JSON object and nothing else, with exactly these keys:
   changes           a list of {{"what", "why", "fixes"}}: "fixes" names a problem from `problems`
   keeps             a list of strings: what you preserved of the original game's identity
   recommendation    {{"decision": "adapt" or "drop", "kind": "none", "too_simple" or "too_complex", "reason": ...}}
-  variation         (omit when dropping) {{"name", "summary", "players": {{"min": n, "max": n}}, "rules": the complete
+  variation         (omit when dropping) {{"name", "summary", "players": {{"min": n, "max": n, "suggested": n}}, "rules": the complete
                      rules, "objective": exactly how the winner (or a draw) is decided, "expected_effect": what you
                      expect the changes to do to how it is played}}
   model             (omit when dropping) the model above, or null
@@ -170,7 +170,9 @@ def problems(plan: dict) -> list[str]:
             out.append(f"variation.{k} is empty")
     pl = v.get("players")
     if not (isinstance(pl, dict) and isinstance(pl.get("min"), int) and isinstance(pl.get("max"), int) and 1 <= pl["min"] <= pl["max"]):
-        out.append("variation.players must be {\"min\": n, \"max\": n}")
+        out.append("variation.players must be {\"min\": n, \"max\": n, \"suggested\": n}")
+    elif "suggested" in pl and not (isinstance(pl["suggested"], int) and pl["min"] <= pl["suggested"] <= pl["max"]):
+        out.append(f"variation.players.suggested must be a whole number from {pl['min']} to {pl['max']}")
     if len(str(v.get("rules", "")).split()) < 40:
         out.append("variation.rules is too short to build from; write the complete rules")
     out += [f"simplify: {m}" for m in complexity.problems(plan.get("complexity"))]
@@ -217,8 +219,10 @@ IDEA_MODE = """
 THIS ENTRY IS A GAME IDEA, NOT FINISHED RULES. Whatever it says about players, payoffs or rounds is a sketch from the source, and
 you are to DESIGN the game from it: its rules, its player count, its numbers and its winner rule. Do not copy the sketch's
 player count. Work out the smallest table where the idea's point really happens (coordination needs at least three
-players, hidden roles need a minority to hide in) and state it in `variation.players`. In `expected_effect`, say why that
-is the minimum and the strategy a thoughtful player uses that a thoughtless one does not.
+players, hidden roles need a minority to hide in) and state it in `variation.players` as `min`. Also give `max` and `suggested`:
+`suggested` is the table size the game plays BEST at (not the smallest and not the largest): enough players for the idea to work with room to
+spare, few enough that a turn is short and each choice still matters. It is the size the game is tested and recommended at. In `expected_effect`,
+say why `min` is the minimum, why `suggested` is the best size, and the strategy a thoughtful player uses that a thoughtless one does not.
 
 KEEP THE IDEA. The game you design must still be that game. Its core mechanisms are what the idea is: the hidden hands and the deck they
 come from, the roles and what each can do, the claims and challenges, the elimination, the way the original ends. KEEP THEM. Do not make
@@ -283,6 +287,7 @@ def source_record(plan: dict) -> dict:
     """The variation as the 'source game' the spec step builds from."""
     v = plan["variation"]
     return {"name": v["name"], "players_min": v["players"]["min"], "players_max": v["players"]["max"],
+            "players_suggested": v["players"].get("suggested", v["players"]["min"]),
             "rules_text": f"{v['rules']}\n\nHow the winner is decided: {v['objective']}"}
 
 
@@ -293,7 +298,7 @@ def render(plan: dict) -> str:
         out += [f"- **{r['criterion']}**: {r['verdict']}. {r['evidence']}" for r in plan["review"]]
         return "\n".join(out + ["", "## Problems", ""] + [f"- {p}" for p in plan["problems"]] + [""])
     v = plan["variation"]
-    out = [f"# Variation: {v['name']}", "", v["summary"], "", f"Players: {v['players']['min']} to {v['players']['max']}", "",
+    out = [f"# Variation: {v['name']}", "", v["summary"], "", f"Players: {v['players']['min']} to {v['players']['max']}, best with {v['players'].get('suggested', v['players']['min'])}", "",
            "## Review of the original", "", plan["original_summary"], ""]
     out += [f"- **{r['criterion']}**: {r['verdict']}. {r['evidence']}" for r in plan["review"]]
     out += ["", "## Problems", ""] + [f"- {p}" for p in plan["problems"]] or ["- none"]

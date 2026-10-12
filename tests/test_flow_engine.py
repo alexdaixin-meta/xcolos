@@ -7,6 +7,12 @@ deserves a test that fails loudly rather than a comment.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from oracle_game import ORACLE_PATH  # noqa: E402
+
 import json
 
 from xcolos.agents import ScriptedAgent
@@ -369,7 +375,7 @@ def test_nobody_is_ever_told_another_seats_role_before_it_is_revealed():
 
 def composed_mafia(label: str = "the debate") -> dict:
     """The shipped Mafia, with one step's messages written by a model."""
-    raw = json.loads((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"))
+    raw = json.loads(ORACLE_PATH.read_text(encoding="utf-8"))
     for step in raw["steps"]:
         if step.get("label") == label:
             step["llm"] = "Tell this player the floor is theirs."
@@ -503,7 +509,7 @@ def test_an_unusable_dispatch_falls_back_to_asking_everyone():
 
 def test_composition_is_off_unless_the_step_asks_for_it():
     judge = ScriptedJudge(lambda c: None)
-    play_with(json.loads((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8")), judge)
+    play_with(json.loads(ORACLE_PATH.read_text(encoding="utf-8")), judge)
     assert not any(c.output.kind == "dispatch" for c in judge.asked), (
         "a template is free; a call has to be asked for"
     )
@@ -666,7 +672,7 @@ def test_a_vote_names_both_outcomes_so_a_tie_cannot_be_forgotten():
     nothing and announced nothing. The table watched a vote happen and was
     told absolutely nothing. Naming both branches makes that unwriteable.
     """
-    raw = json.loads((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"))
+    raw = json.loads(ORACLE_PATH.read_text(encoding="utf-8"))
     vote = next(s for s in raw["steps"] if s["label"] == "the vote")
     assert set(vote["outcome"]) == {"chosen", "none"}, "both outcomes named"
     assert not any(s["label"] == "the verdict" for s in raw["steps"]), (

@@ -50,3 +50,22 @@ def test_the_shipped_games_have_no_unfilled_placeholders_in_random_play():
         result = lint.trace_lint(load_file(LIBRARY / f"{name}.json"), seeds=range(1, 3))
         assert not [f for f in result["findings"] if f.startswith("placeholder:")], (name, result["findings"])
         assert result["metrics"]["matches"] > 0 and result["metrics"]["prompt_chars_max"] > 0
+
+
+def test_the_text_a_seat_is_sent_is_checked_too_not_only_the_logged_facts():
+    clutter = ("Your state: you are seat 1. coins 1. action , action_status going, block_role , blocker 0, claimed_role , winner . "
+               "Seat {subject} was found dead.")
+    found = lint.scan_bodies([("YOUR_TURN", clutter)])
+    assert any(f.startswith("blank:") and "action" in f for f in found)
+    assert any(f.startswith("placeholder:") and "{subject}" in f for f in found)
+    assert lint.scan_bodies([("YOUR_TURN", "You are seat 1. coins 2, hidden_cards ['Duke']. Choose one action: income, tax.")]) == []
+
+
+def test_a_clean_game_has_no_blank_or_unfilled_text_in_what_its_seats_are_sent():
+    from gen_game import harness
+
+    for name in ("rps", "battle_of_wits", "assurance_game"):
+        agents = harness.listening_agents(2 if name != "assurance_game" else 3, 1)
+        harness.play(load_file(LIBRARY / f"{name}.json"), agents, 1)
+        bodies = [b for a in agents for b in a.bodies]
+        assert bodies and lint.scan_bodies(bodies) == [], (name, lint.scan_bodies(bodies)[:1])

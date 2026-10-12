@@ -5,10 +5,9 @@ from __future__ import annotations
 import pytest
 
 from xcolos.agents import BrokenAgent, ScriptedAgent, SilentAgent
-from xcolos.cli import SEAT_NAMES, build_match, run_match
+from matches import SEAT_NAMES, build_match, run_match
 from xcolos.game import Game
 from xcolos.log import MatchLog
-from xcolos.legacy.mafia import MafiaOrchestrator
 from xcolos.protocol import DirectiveRejected
 from xcolos.runner import Runner
 from xcolos.state import Rng
@@ -135,7 +134,7 @@ def test_every_match_terminates_with_a_winner(seed):
     game, orch, registry = build(seed)
     result = Runner(game, orch, registry).run()
     assert result.status == "ended"
-    assert result.winner in {"good", "evil"}
+    assert result.winner in {"town", "mafia"}
 
 
 @pytest.mark.parametrize("mode", ["bad_type", "bad_target", "silent"])

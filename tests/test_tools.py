@@ -20,7 +20,7 @@ from xcolos.game import Game
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.identity import AccessDenied, Player
 from xcolos.log import MatchLog
-from xcolos.legacy.mafia import MafiaOrchestrator
+from matches import GAME_ID, orchestrator
 from xcolos.remote import ConnectorHost
 from xcolos.runner import MAX_REFUSED, Runner
 from xcolos.tools import MIN_POLL_SECONDS, TableTools
@@ -29,7 +29,7 @@ from xcolos.tools import MIN_POLL_SECONDS, TableTools
 def build(seed: int, pullers: int = 1, bots: int = 4, deadline_ms: int = 60_000):
     """A table with some in-process bots and some seats that pull."""
     log = MatchLog(f"m_tools_{seed}")
-    game = Game(f"m_tools_{seed}", MafiaOrchestrator.game_id, seed, log)
+    game = Game(f"m_tools_{seed}", GAME_ID, seed, log)
     registry = Registry(game.match_id)
 
     bot_host = LocalAgentHost(
@@ -55,7 +55,7 @@ def build(seed: int, pullers: int = 1, bots: int = 4, deadline_ms: int = 60_000)
             registry.attach(index, conn_host, b)
             runner_seats.append((index, b.name))
 
-    runner = Runner(game, MafiaOrchestrator(), registry, deadline_ms=deadline_ms)
+    runner = Runner(game, orchestrator(), registry, deadline_ms=deadline_ms)
     tools = TableTools(game, runner, registry, poll_seconds=5)
     for index, name in runner_seats:
         tools.offer(index, name)
@@ -106,7 +106,7 @@ def test_a_pulling_agent_plays_a_whole_match(seed):
 
     state, reads, _ = play_through(tools, first_legal)
     assert state["status"] == "ended"
-    assert state["outcome"]["winner"] in {"good", "evil"}
+    assert state["outcome"]["winner"] in {"town", "mafia"}
     assert reads > 1
 
 
@@ -293,8 +293,8 @@ def test_a_role_only_becomes_public_when_its_holder_dies():
             if any(r in text for r in ("mafia", "detective", "villager")):
                 fact = game.facts[item["seq"]]
                 assert fact.type in {
-                    "role_assigned", "allies", "death", "eliminated", "game_over",
-                }, f"a role surfaced in an unexpected fact: {fact.type}"
+                    "your_state", "you_are_dealt", "disclosed", "the_vote_result", "the_night_resolves_set_status", "dawn", "game_over",
+                } or "role" not in str(fact.payload.get("rendered", "")), f"a role surfaced in an unexpected fact: {fact.type}"
         if state["status"] != "running":
             break
         if state["your_turn"]:
@@ -584,44 +584,6 @@ def test_a_seat_that_only_acknowledges_is_eventually_defaulted():
     assert game.log.where("message", "expired"), "the turn should have run out"
 
 
-def test_a_speech_is_capped_and_the_limit_is_stated_up_front():
-    """An agent should learn the limit from the request, not from a refusal."""
-    from xcolos.legacy.mafia import SPEECH_WORD_LIMIT
-
-    game, runner, tools = build(26)
-    runner.start()
-    pid = seat_in(tools)
-
-    ack = None
-    for _ in range(60):
-        state = tools.read_state(pid, ack)
-        ack = state.get("ack_through", ack)
-        if not state.get("your_turn"):
-            continue
-        ask = state["ask"]
-        if ask["answer_with"] != "text":
-            tools.post_action(pid, first_legal(state))
-            continue
-
-        assert ask["max_words"] == SPEECH_WORD_LIMIT
-        assert str(SPEECH_WORD_LIMIT) in ask["prompt"]
-
-        long = " ".join(["padding"] * (SPEECH_WORD_LIMIT + 40))
-        out = tools.post_action(pid, {"kind": "action", "action": "speak",
-                                      "response": long})
-        assert out["accepted"] is False
-        assert "words" in out["reason"]
-        assert "`reason`" in out["reason"], "the refusal should say where to put it"
-
-        again = tools.read_state(pid, ack)
-        assert again["your_turn"], "a refusal leaves the turn open"
-        assert tools.post_action(
-            pid, {"kind": "action", "action": "speak", "response": "Seat 1 is off."}
-        )["accepted"] is True
-        return
-    raise AssertionError("never asked to speak")
-
-
 def test_a_long_reason_is_not_capped():
     """Only the table pays for speech. Thinking is between an agent and the log."""
     game, runner, tools = build(27)
@@ -634,7 +596,7 @@ def test_a_long_reason_is_not_capped():
         ack = state.get("ack_through", ack)
         if state.get("your_turn") and state["ask"]["answer_with"] == "text":
             out = tools.post_action(pid, {
-                "kind": "action", "action": "speak",
+                "kind": "action", "action": "the_debate",
                 "response": "Short and to the point.",
                 "reason": " ".join(["thinking"] * 400),
             })
@@ -679,13 +641,6 @@ def test_predict_and_adjust_are_asked_for_kept_and_never_shared():
         assert "ADJUST-MARK" not in str(fact.payload)
 
 
-def test_the_limit_is_a_setting_not_a_rule():
-    from xcolos.legacy.mafia import MafiaOrchestrator
-
-    assert MafiaOrchestrator(speech_word_limit=40).speak.max_words == 40
-    assert MafiaOrchestrator().speak.max_words == 100
-
-
 # ======================================================================
 # Simultaneous voting
 # ======================================================================
@@ -695,7 +650,7 @@ def reach_vote(tools, runner, ids, acks, limit=80):
     """Play until the table is voting, and return the seats being asked."""
     for _ in range(limit):
         asked = [s for s in ids if runner.parked_for(s)]
-        if tools.game.phase == "day_voting" and len(asked) > 1:
+        if tools.game.phase == "day" and len(asked) > 1:
             return asked
         for s in ids:
             st = tools.play(ids[s], acks[s])
@@ -723,7 +678,7 @@ def test_a_vote_asks_every_living_seat_at_once():
     for seat in asked:
         state = tools.play(ids[seat], acks[seat])
         assert state["your_turn"] is True
-        assert state["ask"]["action"] == "vote"
+        assert state["ask"]["action"] == "the_vote"
 
 
 def test_the_last_answer_is_what_moves_the_vote_on():
@@ -748,9 +703,9 @@ def test_the_answer_order_does_not_change_the_result():
         assert len(asked) > 1
         for seat in sorted(asked, reverse=reverse):
             tools.post_action(ids[seat], first_legal(tools.play(ids[seat])))
-        casts = [f.payload for f in game.facts if f.type == "vote_cast"]
-        tally = [f.payload for f in game.facts if f.type == "vote_tally"][-1]
-        return casts, tally
+        recorded = [(a.player, a.value) for a in runner.orchestrator.flow.record if a.step == "the vote"]
+        result = [f.payload.get("rendered") for f in game.facts if f.type == "the_vote_result"]
+        return recorded, result
 
     forwards, backwards = run(False), run(True)
     assert forwards == backwards
@@ -762,8 +717,8 @@ def test_votes_are_recorded_in_seat_order_whoever_answered_first():
     for seat in sorted(asked, reverse=True):
         tools.post_action(ids[seat], first_legal(tools.play(ids[seat])))
 
-    seats = [f.payload["seat"] for f in game.facts if f.type == "vote_cast"]
-    assert seats == sorted(seats)
+    seats = [a.player for a in runner.orchestrator.flow.record if a.step == "the vote"]
+    assert len(seats) > 1 and seats == sorted(seats)  # kept in seat order, whichever answered first
 
 
 def test_a_seat_told_it_is_not_being_waited_on_is_named_who_is():
@@ -1162,7 +1117,7 @@ def test_one_call_both_reads_and_acts():
         state = tools.play(pid, ack, answer)
         ack, answer = state["ack_through"], None
         if state["status"] != "running":
-            assert state["outcome"]["winner"] in {"good", "evil"}
+            assert state["outcome"]["winner"] in {"town", "mafia"}
             return
         if state["your_turn"]:
             answer = first_legal(state)

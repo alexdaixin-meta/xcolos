@@ -93,6 +93,37 @@ def test_given_must_name_attributes_the_spec_lists_and_rounds_must_be_a_whole_nu
     keys = {"player": ["coins"], "game": ["deck"]}
     ok = {"name": "x", "players": 2, "rounds": 1, "given": {"players": {"1": {"coins": 7}}}, "rules": [{"seat": 1, "options_include": "a"}], "expect": {}}
     assert scenarios.problems([ok], attribute_keys=keys) == []
-    bad = {**ok, "given": {"players": {"1": {"gold": 7}}}, "rounds": 0}
+    bad = {**ok, "given": {"players": {"1": {"gold": 7}}}, "rounds": -1}
     found = " ".join(scenarios.problems([bad], attribute_keys=keys))
     assert "`gold` is not in the spec" in found and "rounds is a whole number" in found
+
+
+def test_a_scenario_can_check_how_many_items_a_list_holds_right_after_setup():
+    # rps deals a twelve-card hand to each seat
+    ok = {"name": "the deal", "players": 2, "rounds": 0, "rules": [], "expect": {"lens": {"players": {"1": {"hand": 12}}}}}
+    assert scenarios.run_scenario(RPS, ok).passed
+    wrong = {**ok, "expect": {"lens": {"players": {"1": {"hand": 9}}}}}
+    out = scenarios.run_scenario(RPS, wrong)
+    assert not out.passed and "expected 9 items, got 12" in " ".join(out.failures)
+
+
+def test_a_scenario_can_say_what_a_seat_was_and_was_not_offered():
+    base = {"name": "offers", "players": 2, "rounds": 1, "rules": [{"seat": 1, "options_include": "rock"}],
+            "expect": {"offered": [{"seat": 1, "option": "paper"}], "not_offered": [{"seat": 1, "option": "lizard"}]}}
+    assert scenarios.run_scenario(RPS, base).passed
+    bad = {**base, "expect": {"not_offered": [{"seat": 1, "option": "paper"}]}}
+    assert any("was offered 'paper', but must not be" in f for f in scenarios.run_scenario(RPS, bad).failures)
+    assert any("never offered" in f for f in scenarios.run_scenario(RPS, {**base, "expect": {"offered": [{"seat": 1, "option": "lizard"}]}}).failures)
+
+
+def test_a_rule_in_a_scenario_that_stops_after_setup_is_not_reported_unused_because_nothing_is_asked():
+    s = {"name": "the deal", "players": 2, "rounds": 0, "rules": [{"seat": 1, "options_include": "rock"}], "expect": {"lens": {"players": {"1": {"hand": 12}}}}}
+    out = scenarios.run_scenario(RPS, s)
+    assert out.passed, out.failures
+
+
+def test_a_scenario_can_check_the_status_the_platform_holds_for_a_seat():
+    ok = {"name": "status", "players": 2, "rounds": 0, "rules": [], "expect": {"status": {"1": "playing"}}}
+    assert scenarios.run_scenario(RPS, ok).passed
+    bad = scenarios.run_scenario(RPS, {**ok, "expect": {"status": {"1": "out"}}})
+    assert not bad.passed and "platform status: expected 'out', got 'playing'" in " ".join(bad.failures)

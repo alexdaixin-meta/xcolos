@@ -47,7 +47,7 @@ def write(folder: Path) -> Path:
         out.append(f"- `game.json`: sha256 {calls.sha(game_path.read_text())[:16]}")
         spec = json.loads((folder / "spec.json").read_text()) if (folder / "spec.json").exists() else {}
         tests = json.loads((folder / "scenarios.json").read_text()) if (folder / "scenarios.json").exists() else None
-        obj, defn, problem = enc.check(game_path.read_text(), folder.name, set(spec.get("parameters", {})), tests)
+        obj, defn, problem = enc.check(game_path.read_text(), folder.name, set(spec.get("parameters", {})), tests, spec.get("players"))
         out.append(f"- the flow's own checks, run again now (loader, arithmetic outcome, random play, every attribute updated, the independent tests): "
                    + ("**all pass**" if defn else f"**FAIL: {problem[:400]}**"))
         if defn:

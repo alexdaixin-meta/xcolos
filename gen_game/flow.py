@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Callable
 
 from gen_game import adapt as adaptmod
-from gen_game import complexity, critic, evaluate, lint, modelcheck, prompt as promptmod, scenarios, triage
+from gen_game import brief as briefmod, complexity, critic, evaluate, lint, modelcheck, prompt as promptmod, scenarios, triage
 from gen_game import spec as specmod
 from gen_game.agent import CompletionEncoder
 from gen_inventory.inventory import Inventory
@@ -92,6 +92,10 @@ def conformance(spec: dict, defn) -> list[str]:
         flags.append("the spec has a simultaneous choice (poll) but the game file has none: players may answer after seeing others")
     for k in sorted(want - have - {"poll"}):
         flags.append(f"the spec uses `{k}` but the game file does not")
+    wording = " ".join([r["text"] for r in spec.get("rules") or []] + [spec["ending"].get("condition", ""), spec["ending"].get("decided_by", "")]).lower()
+    if "eliminat" in wording and not any(not getattr(st, "acts", True) for st in defn.statuses):
+        flags.append("the spec has players being eliminated but the game file has no status for a player who is out (one with `acts: false`, set with `set_status`): "
+                     "the platform and the console keep showing eliminated players as still playing")
     declared = {a.key for a in defn.player_attributes} | {a.key for a in defn.game_attributes}
     for scope in ("player", "game"):
         for a in spec["attributes"][scope]:
@@ -260,7 +264,7 @@ def _design(completion, rec, feedback: str, folder: Path, log, tried: list[str],
     return None, _drop(inv, rec, folder, kind, why, plan, tried)
 
 
-def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo: set[str], guidance: str, log, fidelity_in_loop: bool = False, judge: bool = False):
+def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo: set[str], guidance: str, log, fidelity_in_loop: bool = False, judge: bool = False, check_brief: bool = False):
     """Build the game file, write independent scenarios, run them, and evaluate.
 
     Returns (outcome, evidence, report). An `outcome` is a stop that is nobody's design problem (the
@@ -314,9 +318,11 @@ def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo
                                   (f"\nThe coder's notes:\n{built.notes[:800]}" if built.notes else "")), None
         _write(paths["game.json"], json.dumps(built.game, indent=2) + "\n")
     game = json.loads(paths["game.json"].read_text())
-    _, defn, problem = enc.check(game, game_id, set(spec.get("parameters", {})))
+    _, defn, problem = enc.check(game, game_id, set(spec.get("parameters", {})), players=spec.get("players"))
     if defn is None:
         return None, Evidence("build", problem), None
+    if game != json.loads(paths["game.json"].read_text()):  # the check wrote in what the spec owns (the table size): keep the file the same
+        _write(paths["game.json"], json.dumps(game, indent=2) + "\n")
     if items is None:
         items, stop = ensure_scenarios()
         if stop is not None:
@@ -334,6 +340,14 @@ def _build_and_test(game_id, completion, encoder, spec, plan, folder: Path, redo
         "spec_choices": spec["choices"], "simplifications": spec["simplifications"],
         "complexity_measured": complexity.measure(defn),
     }
+    gaps: list[dict] = []
+    if check_brief and all(o.passed for o in outcomes) and t0["passed"]:
+        log("step D: checking that the rules text says what the rules say")
+        gaps, _ = briefmod.check_brief(completion, spec, defn.rules_text)
+    report["brief_gaps"] = gaps
+    if gaps:
+        return None, Evidence("behavior", "the game plays the rules, but the rules text the players read leaves out or misstates some of them. Players decide on what "
+                              "this text says, so say each of these in `meta.rules`, in the design's wording:\n" + briefmod.as_text(gaps)), report
     if not (all(o.passed for o in outcomes) and t0["passed"]):
         tests = f"\nTHE TESTS (written from the rules alone; judge whether they are right):\n{json.dumps(items, indent=1)[:2600]}"
         return None, Evidence("behavior", "the game was built and works on the platform, but it does not behave as the independent tests say the rules require:\n"
@@ -356,6 +370,7 @@ def convert(
     encoder=None,
     design_feedback: str = "",
     fidelity_in_loop: bool = False,
+    check_brief: bool = False,
 ) -> Outcome:
     rec = inv.get(game_id)
     folder = root / game_id
@@ -423,7 +438,7 @@ def convert(
         else:
             guidance = ""
             for fix_no in range(FIX_ROUNDS + 1):
-                stop, evidence, report = _build_and_test(game_id, completion, encoder, spec, plan, folder, redo_set, guidance, log, fidelity_in_loop, judge)
+                stop, evidence, report = _build_and_test(game_id, completion, encoder, spec, plan, folder, redo_set, guidance, log, fidelity_in_loop, judge, check_brief)
                 redo_set -= {"encode", "scenarios", "evaluate"}
                 if stop is not None:
                     return stop

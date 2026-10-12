@@ -6,6 +6,12 @@ create a match, poll its log, read the outcome.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import oracle_game  # noqa: E402,F401 - the arithmetic Mafia fixture
+
 import json
 import threading
 import time
@@ -18,7 +24,6 @@ import pytest
 from xcolos.web.server import (
     AGENT_TYPES,
     default_game,
-    LEGACY_GAME,
     MatchManager,
     build_server,
     catalogue,
@@ -181,9 +186,6 @@ def test_reference_endpoints_describe_what_the_ui_needs():
         # The arithmetic Mafia can be played by id, but is not offered.
         assert "mafia-oracle" not in {g["id"] for g in games}
         assert "mafia-oracle" in {g["id"] for g in catalogue()}
-        # The hardcoded implementation is not offered. It is the reference a
-        # game file is graded against, not a table to open.
-        assert LEGACY_GAME["id"] not in {g["id"] for g in games}
         assert {g["engine"] for g in games} == {"flow"}
         for entry in games:
             assert entry["min_seats"] <= entry["max_seats"]

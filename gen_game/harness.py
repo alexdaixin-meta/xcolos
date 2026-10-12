@@ -177,6 +177,22 @@ class Played:
         return [{k: v for k, v in r.items() if k not in VOLATILE_FIELDS} for r in self.game.log.records]
 
 
+class ListenAgent(RandomAgent):
+    """A random seat that keeps every message the server sent it: the text a player is actually shown, state dump and all."""
+
+    def __init__(self, *a, **k) -> None:
+        super().__init__(*a, **k)
+        self.bodies: list[tuple[str, str]] = []
+
+    def handle(self, env):
+        self.bodies.append((env.type.value, env.body))
+        return super().handle(env)
+
+
+def listening_agents(n: int, seed: int) -> list[ListenAgent]:
+    return [ListenAgent(name=NAMES[i], seed=seed * 10 + i) for i in range(n)]
+
+
 def random_agents(n: int, seed: int) -> list[BaseAgent]:
     return [RandomAgent(name=NAMES[i], seed=seed * 10 + i) for i in range(n)]
 
@@ -188,8 +204,8 @@ class _GivenOrchestrator(FlowOrchestrator):
     starts at the situation that rule needs, instead of playing twenty turns to reach it.
     """
 
-    def __init__(self, definition: GameDefinition, given: dict) -> None:
-        super().__init__(definition)
+    def __init__(self, definition: GameDefinition, given: dict, judge=None) -> None:
+        super().__init__(definition, judge)
         self.given = given
 
     def setup(self, game: Game) -> None:
@@ -199,9 +215,13 @@ class _GivenOrchestrator(FlowOrchestrator):
                 self.flow.set_attribute(int(seat), key, value)
         for key, value in (self.given.get("game") or {}).items():
             self.flow.set_attribute(None, key, value)
+        for seat, status in (self.given.get("status") or {}).items():  # a seat that starts the scenario already out of the game
+            self.flow.set_status(int(seat), str(status))
+            if not self.flow.acts(int(seat)) and game.seats[int(seat)].alive:
+                game.eliminate(int(seat))
 
 
-def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: dict | None = None, rounds: int | None = None) -> Played:
+def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: dict | None = None, rounds: int | None = None, judge=None) -> Played:
     """One match to the end. Seat `i + 1` is `agents[i]`.
 
     `given` starts it from a stated situation, and `rounds` stops it after that many rounds (the match is then abandoned, which is
@@ -218,7 +238,7 @@ def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: 
     for bound in host.register():
         index = game.register_seat(bound.name, host.host_id, bound.profile)
         registry.attach(index, host, bound)
-    orchestrator = _GivenOrchestrator(definition, given) if given else FlowOrchestrator(definition)
+    orchestrator = _GivenOrchestrator(definition, given, judge) if given else FlowOrchestrator(definition, judge)
     result = Runner(game, orchestrator, registry).run()
     return Played(result, game, orchestrator, agents)
 
