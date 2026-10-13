@@ -149,6 +149,13 @@ def loop_command(args) -> int:
     def confirm(path: str, finding: dict):
         return playreview.confirm(reviewer, playreview.load_sim(Path(path)), finding, json.loads((folder / "spec.json").read_text()))
 
+    def judge(paths: list[str], reviews: list[dict], findings: list[dict]):
+        design = json.loads((folder / "variation.json").read_text())
+        out = playreview.judge(reviewer, [playreview.load_sim(Path(p)) for p in paths], reviews, findings, inv.get(args.id).rules_text, design)
+        if out is not None:
+            (folder / "sim" / f"judge-{state['pass']}.json").write_text(json.dumps(out, indent=1))
+        return out
+
     def prepare_redesign(findings: list[dict]):
         """The design is revised first, from the idea, the design as it stands and the findings; the spec, scenarios and game are then rebuilt from it."""
         state["feedback"], keep = revisemod.prepare_redesign(folder, findings, state["pass"])
@@ -171,7 +178,7 @@ def loop_command(args) -> int:
         if not (folder / "game.json").exists():
             raise SystemExit("no game file was produced, so there is nothing to play: see the generation log above")
     install()
-    result = loopmod.run_loop(loopmod.Hooks(play, review, confirm, prepare_redesign, regenerate, append("LOOP_LOG.md"), append("ESCALATIONS.md"), say), args.max_iterations)
+    result = loopmod.run_loop(loopmod.Hooks(play, review, confirm, prepare_redesign, regenerate, append("LOOP_LOG.md"), append("ESCALATIONS.md"), say, judge), args.max_iterations)
     say(f"\nloop {result.status} after {result.iterations} iteration(s); log {folder / 'LOOP_LOG.md'}")
     if result.escalated:
         say(f"needs your review: {folder / 'ESCALATIONS.md'}")

@@ -251,6 +251,50 @@ Do not give the finding the benefit of the doubt: if the evidence does not show 
 Reply with ONE JSON object and nothing else:  {"confirmed": true or false, "evidence": "one or two sentences: what in the transcript shows it, or what refutes it"}"""
 
 
+JUDGE_SYSTEM = """You make the final call on a generated game after it was played by real models, from the reviews of those plays. You are given the game's IDEA, its DESIGN,
+and for each play: who was seated, the result and the end announcement the players were shown, the measured facts, and the reviewer's verdict, summary and findings
+(each finding already has an id, a severity, how many plays it appeared in, and, for critical and major ones, whether a verifier confirmed it).
+
+Answer three questions:
+  1. Is each result reasonable? Is the winner (or draw) what the rules give for what happened? And does the end state make sense: the end announcement must say the
+     result, true and complete (the winner or the draw and the final figures that decided it, every seat that has a figure) and ONLY the result: it must not retell or explain
+     how the game went. (Do not judge balance or how well the models played; judge whether the outcome and what players were told are correct and plausible.)
+  2. Is the game that was played the game that was designed, and the game of the IDEA? Do the plays show the design's rules working?
+  3. Does it need another iteration (the design, spec and game file are rebuilt from the findings), or is it good enough?
+
+Iterate when anything is wrong or misleading about the rules, the offers, the result or what players are told about it, or when the game is not the designed one: even a
+minor display finding qualifies if players read something false or incomplete about the outcome, or if it shows in every play. Call it good enough only when what is left
+is cosmetic and harms nothing a player reads or decides. A confirmed critical or major finding always means iterate. Findings about the platform ("infra") are not yours to fix.
+Do not ask for a fix you cannot tie to a finding id.
+
+Reply with ONE JSON object and nothing else:
+  {"result_reasonable": true or false, "result_notes": "one or two sentences", "aligned": true or false, "alignment_notes": "one or two sentences",
+   "decision": "iterate" or "good_enough", "fix": ["I1.2", ...] (the finding ids that must be fixed; empty when good enough), "reason": "two sentences"}"""
+
+
+def judge(completion: Completion, sims: list[dict], reviews: list[dict], findings: list[dict], idea: str, design: dict) -> dict | None:
+    """The model's overall call after the plays: reasonable results? aligned to the design? iterate or good enough. None when it cannot answer."""
+    plays = []
+    for n, (sim, review) in enumerate(zip(sims, reviews), 1):
+        snap = sim.get("snapshot") or {}
+        st = stats(sim)
+        plays.append({"play": n, "players": sim.get("players"), "winner": snap.get("winner"), "rounds": snap.get("round"),
+                      "end_announcement": snap.get("summary"), "measured": {k: st[k] for k in ("decisions", "degraded_turns", "model_errors", "trace_lint")},
+                      "reviewer_verdict": review.get("verdict"), "reviewer_summary": review.get("summary"), "idea_alignment": review.get("idea_alignment")})
+    listed = [{k: f.get(k) for k in ("id", "category", "severity", "where", "observed", "expected", "confirmed", "why")} | {"plays_seen_in": len(f.get("plays") or [])}
+              for f in findings]
+    prompt = (f"IDEA:\n{idea}\n\nDESIGN:\n{json.dumps(design.get('variation', design), indent=1)[:9000]}\n\n"
+              f"PLAYS:\n{json.dumps(plays, indent=1)}\n\nFINDINGS (merged across plays):\n{json.dumps(listed, indent=1)}")
+    try:
+        reply = first_json(completion.complete(prompt, system=JUDGE_SYSTEM))
+    except Exception:  # noqa: BLE001 - a judge that cannot answer leaves the severity rules to decide
+        return None
+    if not isinstance(reply, dict) or reply.get("decision") not in ("iterate", "good_enough"):
+        return None
+    reply["fix"] = [str(x) for x in reply.get("fix") or [] if isinstance(x, (str, int))]
+    return reply
+
+
 def rounds_named(where: str) -> list[int]:
     """The round numbers a finding's `where` names: "round 8, seat 1", "rounds 3, 4 and 10", "rounds 17-21"."""
     import re

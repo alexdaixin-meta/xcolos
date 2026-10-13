@@ -43,3 +43,18 @@ A finding drives a fix only if a program confirms it (a scenario, a probe or a l
 - A confirmed fix returns as a numbered rule in the rewritten design, and so as a scenario. Wording or display fixes leave no regression test (accepted).
 - A cap on model calls and time per iteration.
 - Each iteration appends to `LOOP_LOG.md`: finding, severity, confirmed or not, fixed, carried (minor) or escalated.
+
+## The judge (added 2026-10-12, built)
+
+Severity rules alone let a game through that a person would not call good: the Agram loop ended "clean" while the end screen left a seat out of the
+final tally in every play (a minor display finding). So after the plays, the reviews and the verifier, a model makes the overall call
+(`playreview.judge`, `Hooks.judge`, saved as `sim/judge-N.json` and written to `LOOP_LOG.md`). It is shown the idea, the design, each play's result and end
+announcement, the measured facts, the reviewer's verdicts and the merged findings (with severity, plays seen in, confirmed or not), and answers:
+
+1. Is each result reasonable, and does the end state make sense: the announcement says the true, complete result (winner or draw, the deciding figures, every seat) and only the result, no retelling of the game? (Not balance, not how well models played.)
+2. Is the game played the game designed, and the game of the idea?
+3. `iterate` or `good_enough`, with the finding ids that must be fixed.
+
+How its call is used: a confirmed critical or major finding always iterates, whatever the judge says. The judge may add minor findings to the pass (a minor that
+misleads players about the result, or that shows in every play); only finding ids that exist count. Infra findings still stop the loop and the judge is not asked.
+If the judge cannot answer, the severity rules decide as before. "Good enough" ends the loop with the remaining minors carried.

@@ -17,8 +17,8 @@ def finding(category="game_file", severity="major", expected="the deck holds nin
 class World:
     """Plays that return scripted reviews, one list of findings per iteration."""
 
-    def __init__(self, per_iteration, confirms=True):
-        self.per_iteration, self.confirms = list(per_iteration), confirms
+    def __init__(self, per_iteration, confirms=True, rebuilt="ready"):
+        self.per_iteration, self.confirms, self.rebuilt = list(per_iteration), confirms, rebuilt
         self.calls, self.log_text, self.escalations, self.revised, self.iteration = [], [], [], [], 0
 
     def hooks(self):
@@ -42,7 +42,7 @@ class World:
 
         def regenerate():
             self.calls.append("regenerate")
-            return "ready"
+            return self.rebuilt
 
         return loop.Hooks(simulate, review, confirm, revise, regenerate, self.log_text.append, self.escalations.append, say=lambda m: None)
 
@@ -93,3 +93,66 @@ def test_findings_about_the_players_own_play_are_ignored_and_the_same_finding_in
     both = [finding(), finding()]
     merged = loop._merge([{**f, "plays": [p]} for f, p in zip(both, ("a", "b"))])
     assert len(merged) == 1 and merged[0]["plays"] == ["a", "b"]
+
+
+def judged(world, answer):
+    hooks = world.hooks()
+    hooks.judge = lambda plays, reviews, findings: answer(plays, reviews, findings)
+    return hooks
+
+
+def test_the_judge_can_ask_for_a_pass_over_a_minor_finding_and_that_finding_is_fixed():
+    w = World([[finding(severity="minor", expected="the end screen lists every seat")], []])
+    seen = {}
+
+    def answer(plays, reviews, findings):
+        seen.setdefault("ids", [f["id"] for f in findings])
+        seen.setdefault("reviews", len(reviews))  # one review for each play of the pass
+        return {"decision": "iterate" if w.iteration == 1 else "good_enough", "fix": ["I1.1"] if w.iteration == 1 else [], "reason": "players read a wrong tally",
+                "result_reasonable": True, "aligned": True}
+
+    res = loop.run_loop(judged(w, answer), max_iterations=3)
+    assert seen == {"ids": ["I1.1"], "reviews": 2}
+    assert res.status == "clean" and res.iterations == 2
+    assert w.revised and w.revised[0][0]["by_judge"] is True
+    assert "regenerate" in w.calls
+    assert any("Judge:" in t and "iterate" in t for t in w.log_text)
+
+
+def test_a_judge_that_says_good_enough_ends_the_loop_with_the_minor_findings_carried():
+    w = World([[finding(severity="minor")]])
+    res = loop.run_loop(judged(w, lambda *a: {"decision": "good_enough", "fix": [], "reason": "cosmetic", "result_reasonable": True, "aligned": True}), 3)
+    assert res.status == "clean" and res.iterations == 1 and len(res.carried) == 1 and "regenerate" not in w.calls
+    assert res.judgement["decision"] == "good_enough"
+
+
+def test_a_judge_cannot_wave_away_a_confirmed_major_finding():
+    w = World([[finding(severity="major")], []])
+    res = loop.run_loop(judged(w, lambda *a: {"decision": "good_enough", "fix": [], "reason": "fine"}), 3)
+    assert "regenerate" in w.calls and res.iterations == 2
+
+
+def test_a_judge_that_cannot_answer_leaves_the_severity_rules_to_decide():
+    w = World([[finding(severity="minor")]])
+    res = loop.run_loop(judged(w, lambda *a: None), 3)
+    assert res.status == "clean" and "regenerate" not in w.calls
+
+
+def test_the_judge_is_not_asked_when_there_is_an_infra_finding_and_cannot_clear_it():
+    w = World([[finding(category="infra", severity="minor")]])
+    asked = []
+    res = loop.run_loop(judged(w, lambda *a: asked.append(1)), 3)
+    assert res.status == "escalated" and not asked
+
+
+def test_the_judge_may_only_pick_findings_that_exist():
+    w = World([[finding(severity="minor")]])
+    res = loop.run_loop(judged(w, lambda *a: {"decision": "iterate", "fix": ["I9.9"], "reason": "x"}), 3)
+    assert res.status == "clean" and "regenerate" not in w.calls
+
+
+def test_a_rebuild_that_did_not_produce_a_checked_game_stops_the_loop_instead_of_playing_it():
+    w = World([[finding()], []], rebuilt="scenarios_failed")
+    res = loop.run_loop(w.hooks(), 3)
+    assert res.status == "escalated" and res.iterations == 1 and w.calls.count("simulate") == 1
+    assert w.escalations and "scenarios_failed" in w.escalations[0]

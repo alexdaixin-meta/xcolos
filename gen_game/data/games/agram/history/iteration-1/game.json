@@ -1,0 +1,1011 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "agram",
+    "name": "Agram Match",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "6-hand trick game where only trick 6 of each 6-card hand scores 1 point; most hand wins after 6 hands wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "match_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "played",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "AH",
+          "10H",
+          "9H",
+          "8H",
+          "7H",
+          "6H",
+          "5H",
+          "4H",
+          "3H",
+          "AD",
+          "10D",
+          "9D",
+          "8D",
+          "7D",
+          "6D",
+          "5D",
+          "4D",
+          "3D",
+          "AC",
+          "10C",
+          "9C",
+          "8C",
+          "7C",
+          "6C",
+          "5C",
+          "4C",
+          "3C",
+          "10S",
+          "9S",
+          "8S",
+          "7S",
+          "6S",
+          "5S",
+          "4S",
+          "3S"
+        ]
+      },
+      {
+        "key": "stub",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "discard_pile",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "dealer_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "hand_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "trick_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "lead_suit",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "trick_cards",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "trick_winner",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "deal_count",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tricks_played",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "best_power",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "standard_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 52
+      },
+      {
+        "key": "removed_face_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "removed_deuces",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "removed_ace_of_spades",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "remaining_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 35
+      },
+      {
+        "key": "num_hands",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "deal_batches",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "deal_batch_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "tricks_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "scoring_trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "hand_win_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      }
+    ]
+  },
+  "rules": "Agram Match is for 3 to 4 players. The deck is a standard {standard_cards}-card deck minus all kings, queens and jacks ({removed_face_cards} cards), all deuces ({removed_deuces} cards) and the ace of spades ({removed_ace_of_spades} card), leaving {remaining_cards} cards. Ranks high to low: hearts, diamonds, clubs: A-10-9-8-7-6-5-4-3; spades: 10-9-8-7-6-5-4-3 with 10 highest. Suits are not ranked; only the led suit matters. Cards are written rank then suit, e.g. 10H, AC, 3S.\n\nThe match is {num_hands} hands. Each hand: the {remaining_cards} cards are shuffled; the starting dealer is chosen at random for hand 1, then the dealer rotates clockwise each hand. The dealer deals {cards_per_player} cards to each player in {deal_batches} rounds of {deal_batch_size} cards each, clockwise from left of the dealer. The remaining cards form a face-down stub that is never viewed and takes no part.\n\nTricks: {tricks_per_hand} tricks per hand. The player left of the dealer leads trick 1 by playing any card face up. Clockwise, each other player in turn must play a card of the led suit if they hold any; if they hold none they may play any card, but an off-suit card cannot win the trick. Highest rank of the led suit wins the trick. The trick winner leads any card to the next trick. Cards are removed after each trick; hands shrink from 6 to 0. Illegal play (not following when able) is not allowed: you are only ever offered your legal cards.\n\nHand scoring: the winner of trick {scoring_trick} wins the hand outright and scores {hand_win_points} final point; all other players score 0 for the hand. Tricks 1-5 score nothing except determining who leads next. Then the cards are redealt for the next hand by the next dealer.\n\nAll card plays are shown to all players as played; hands are otherwise hidden. There is no discussion.\n\nAfter {num_hands} hands, the player with the most final points (hand wins, 0-6) wins the match. If two or more players tie for most, the result is a draw among all players. There is no other scoring.",
+  "setup": [
+    {
+      "use": "update",
+      "label": "build the deck",
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": [
+              "AH",
+              "10H",
+              "9H",
+              "8H",
+              "7H",
+              "6H",
+              "5H",
+              "4H",
+              "3H",
+              "AD",
+              "10D",
+              "9D",
+              "8D",
+              "7D",
+              "6D",
+              "5D",
+              "4D",
+              "3D",
+              "AC",
+              "10C",
+              "9C",
+              "8C",
+              "7C",
+              "6C",
+              "5C",
+              "4C",
+              "3C",
+              "10S",
+              "9S",
+              "8S",
+              "7S",
+              "6S",
+              "5S",
+              "4S",
+              "3S"
+            ]
+          }
+        }
+      ],
+      "text": "The {remaining_cards}-card deck is built: hearts, diamonds and clubs A-10-9-8-7-6-5-4-3 and spades 10-9-8-7-6-5-4-3."
+    },
+    {
+      "use": "update",
+      "label": "clear the table",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "match_points",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "discard_pile",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "stub",
+            "value": []
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "choose the first dealer",
+      "do": [
+        {
+          "set": {
+            "key": "hand_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "dealer_seat",
+            "value": {
+              "calc": "min(len(players), int(uniform(0, len(players))) + 1)"
+            }
+          }
+        }
+      ],
+      "text": "Seat {dealer_seat} is chosen at random to deal hand 1."
+    },
+    {
+      "use": "tell",
+      "label": "no discussion",
+      "to": "all",
+      "text": "Hands stay hidden and there is no discussion: read the plays, the discards and who follows suit."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "the hand is prepared",
+      "when": {
+        "calc": "tricks_played == 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "deck + stub + discard_pile"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "stub",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "discard_pile",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "trick_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "lead_suit",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "deal_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "tricks_played",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "trick_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "trick_winner",
+            "value": {
+              "calc": "dealer_seat % len(players) + 1"
+            }
+          }
+        }
+      ],
+      "text": "Hand {hand_number}: the 35 cards are shuffled and seat {dealer_seat} deals."
+    },
+    {
+      "use": "repeat",
+      "label": "the deal",
+      "when": {
+        "calc": "tricks_played == 0"
+      },
+      "until": {
+        "calc": "deal_count >= cards_per_player * len(players)"
+      },
+      "max": 40,
+      "steps": [
+        {
+          "use": "update",
+          "phase": "deal",
+          "label": "one card is dealt",
+          "do": [
+            {
+              "set": {
+                "key": "pick",
+                "value": {
+                  "calc": "deck[int(uniform(0, len(deck)))]"
+                }
+              }
+            },
+            {
+              "append": {
+                "player": {
+                  "calc": "(dealer_seat + (deal_count % (deal_batch_size * len(players))) // deal_batch_size) % len(players) + 1"
+                },
+                "key": "hand",
+                "value": {
+                  "calc": "pick"
+                }
+              }
+            },
+            {
+              "remove": {
+                "key": "deck",
+                "value": {
+                  "calc": "pick"
+                }
+              }
+            },
+            {
+              "adjust": {
+                "key": "deal_count",
+                "value": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "the stub is set aside",
+      "when": {
+        "calc": "tricks_played == 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "stub",
+            "value": {
+              "calc": "deck"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck",
+            "value": []
+          }
+        }
+      ],
+      "text": "Each player has 6 cards, dealt in two rounds of 3 clockwise from the dealer's left. The other cards form a face-down stub that nobody sees and that takes no part."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your hand",
+      "when": {
+        "calc": "tricks_played == 0"
+      },
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand"
+      ],
+      "text": "Your hand for this deal:"
+    },
+    {
+      "use": "tell",
+      "phase": "deal",
+      "label": "the hand begins",
+      "when": {
+        "calc": "tricks_played == 0"
+      },
+      "to": "all",
+      "text": "Hand {hand_number} of {num_hands}. Seat {dealer_seat} dealt. Seat {trick_winner}, left of the dealer, leads trick 1."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "a trick begins",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "played",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "lead_suit",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "trick_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "you.hand"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "player 1 of the trick plays",
+      "to": {
+        "where": "you.seat == (trick_winner - 1 + 0) % len(players) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "player": "$seat",
+              "key": "played",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "lead_suit",
+              "value": {
+                "calc": "$answer[-1]"
+              },
+              "if": {
+                "calc": "lead_suit == ''"
+              }
+            }
+          },
+          {
+            "set": {
+              "players": "all",
+              "key": "offer",
+              "value": {
+                "calc": "you.hand if lead_suit == '' else ([c for c in you.hand if c[-1] == lead_suit] if any(c[-1] == lead_suit for c in you.hand) else you.hand)"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} plays {value}."
+      },
+      "text": "Trick {trick_number} of hand {hand_number}. You lead: play any card from your hand face up. Only the winner of trick 6 scores a point for the hand."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "player 2 of the trick plays",
+      "to": {
+        "where": "you.seat == (trick_winner - 1 + 1) % len(players) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "player": "$seat",
+              "key": "played",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "lead_suit",
+              "value": {
+                "calc": "$answer[-1]"
+              },
+              "if": {
+                "calc": "lead_suit == ''"
+              }
+            }
+          },
+          {
+            "set": {
+              "players": "all",
+              "key": "offer",
+              "value": {
+                "calc": "you.hand if lead_suit == '' else ([c for c in you.hand if c[-1] == lead_suit] if any(c[-1] == lead_suit for c in you.hand) else you.hand)"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} plays {value}."
+      },
+      "text": "Trick {trick_number} of hand {hand_number}. Led suit: {lead_suit}. Cards on the trick so far: {trick_cards}. You are offered only legal cards: cards of the led suit if you hold any, otherwise any card (an off-suit card cannot win the trick). Only the winner of trick 6 scores a point for the hand."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "player 3 of the trick plays",
+      "to": {
+        "where": "you.seat == (trick_winner - 1 + 2) % len(players) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "player": "$seat",
+              "key": "played",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "lead_suit",
+              "value": {
+                "calc": "$answer[-1]"
+              },
+              "if": {
+                "calc": "lead_suit == ''"
+              }
+            }
+          },
+          {
+            "set": {
+              "players": "all",
+              "key": "offer",
+              "value": {
+                "calc": "you.hand if lead_suit == '' else ([c for c in you.hand if c[-1] == lead_suit] if any(c[-1] == lead_suit for c in you.hand) else you.hand)"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} plays {value}."
+      },
+      "text": "Trick {trick_number} of hand {hand_number}. Led suit: {lead_suit}. Cards on the trick so far: {trick_cards}. You are offered only legal cards: cards of the led suit if you hold any, otherwise any card (an off-suit card cannot win the trick). Only the winner of trick 6 scores a point for the hand."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "player 4 of the trick plays",
+      "to": {
+        "where": "len(players) > 3 and you.seat == (trick_winner - 1 + 3) % len(players) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "player": "$seat",
+              "key": "played",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "lead_suit",
+              "value": {
+                "calc": "$answer[-1]"
+              },
+              "if": {
+                "calc": "lead_suit == ''"
+              }
+            }
+          },
+          {
+            "set": {
+              "players": "all",
+              "key": "offer",
+              "value": {
+                "calc": "you.hand if lead_suit == '' else ([c for c in you.hand if c[-1] == lead_suit] if any(c[-1] == lead_suit for c in you.hand) else you.hand)"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} plays {value}."
+      },
+      "text": "Trick {trick_number} of hand {hand_number}. Led suit: {lead_suit}. Cards on the trick so far: {trick_cards}. You are offered only legal cards: cards of the led suit if you hold any, otherwise any card (an off-suit card cannot win the trick). Only the winner of trick 6 scores a point for the hand."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "the trick is decided",
+      "do": [
+        {
+          "set": {
+            "key": "best_power",
+            "value": {
+              "calc": "max([(14 if p.played[0] == 'A' else (10 if p.played[0] == '1' else int(p.played[0]))) for p in players if p.played != '' and p.played[-1] == lead_suit])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "trick_winner",
+            "value": {
+              "calc": "min([p.seat for p in players if p.played != '' and p.played[-1] == lead_suit and (14 if p.played[0] == 'A' else (10 if p.played[0] == '1' else int(p.played[0]))) == best_power])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "discard_pile",
+            "value": {
+              "calc": "discard_pile + trick_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "trick_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "lead_suit",
+            "value": ""
+          }
+        },
+        {
+          "adjust": {
+            "key": "tricks_played",
+            "value": 1
+          }
+        }
+      ],
+      "text": "Seat {trick_winner} wins trick {trick_number} with the highest card of the led suit."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "the next trick",
+      "when": {
+        "calc": "trick_number < tricks_per_hand"
+      },
+      "do": [
+        {
+          "adjust": {
+            "key": "trick_number",
+            "value": 1
+          }
+        }
+      ],
+      "text": "Seat {trick_winner} leads trick {trick_number}."
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "the hand is scored",
+      "when": {
+        "calc": "tricks_played >= tricks_per_hand"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner"
+            },
+            "key": "match_points",
+            "value": {
+              "calc": "hand_win_points"
+            }
+          }
+        }
+      ],
+      "text": "Seat {trick_winner} won trick {scoring_trick} and wins hand {hand_number}, scoring {hand_win_points} point; everyone else scores 0 for the hand."
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "the deal passes on",
+      "when": {
+        "calc": "tricks_played >= tricks_per_hand"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "dealer_seat",
+            "value": {
+              "calc": "dealer_seat % len(players) + 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "hand_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "trick_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "tricks_played",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "score",
+      "label": "the standings",
+      "when": {
+        "calc": "tricks_played >= tricks_per_hand"
+      },
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "match_points"
+      ],
+      "text": "Your hands won so far:"
+    },
+    {
+      "use": "check",
+      "phase": "score",
+      "label": "after six hands",
+      "when": {
+        "calc": "hand_number > num_hands"
+      },
+      "against": [
+        "seat_1_wins",
+        "seat_2_wins",
+        "seat_3_wins",
+        "seat_4_wins",
+        "draw"
+      ]
+    }
+  ],
+  "end": {
+    "seat_1_wins": {
+      "when": {
+        "calc": "players[0].match_points > max([p.match_points for p in players if p.seat != 1])"
+      },
+      "result": "seat 1",
+      "text": "Seat 1 wins the match with {players[0].match_points} hands won. Final hands won: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}."
+    },
+    "seat_2_wins": {
+      "when": {
+        "calc": "players[1].match_points > max([p.match_points for p in players if p.seat != 2])"
+      },
+      "result": "seat 2",
+      "text": "Seat 2 wins the match with {players[1].match_points} hands won. Final hands won: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}."
+    },
+    "seat_3_wins": {
+      "when": {
+        "calc": "players[2].match_points > max([p.match_points for p in players if p.seat != 3])"
+      },
+      "result": "seat 3",
+      "text": "Seat 3 wins the match with {players[2].match_points} hands won. Final hands won: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}."
+    },
+    "seat_4_wins": {
+      "when": {
+        "calc": "len(players) > 3 and players[3].match_points > max([p.match_points for p in players if p.seat != 4])"
+      },
+      "result": "seat 4",
+      "text": "Seat 4 wins the match with {players[3].match_points} hands won."
+    },
+    "draw": {
+      "when": {
+        "calc": "count(p.match_points == max([q.match_points for q in players]) for p in players) >= 2"
+      },
+      "result": "draw",
+      "text": "A draw: two or more players tie for the most hands won. Final hands won: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}."
+    }
+  },
+  "limits": {
+    "rounds": 36,
+    "rounds_max": 40,
+    "actions_max": 400,
+    "deadline_s": 120
+  }
+}

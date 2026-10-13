@@ -20,6 +20,7 @@ from typing import Callable
 
 LOOPABLE = ("game_file", "design", "prompt")  # the generator can fix these
 SEVERE = ("critical", "major")
+REBUILT = ("ready_for_review", "needs_review", "ready")  # verdicts of a rebuild that produced a checked game
 
 
 def same(a: dict, b: dict) -> bool:
@@ -39,6 +40,8 @@ class Hooks:
     log: Callable[[str], None]                             # appended to LOOP_LOG.md
     escalate: Callable[[str], None]                        # appended to ESCALATIONS.md
     say: Callable[[str], None] = print
+    #: (plays, reviews, findings) -> the model's overall call: {"decision": "iterate"|"good_enough", "fix": [finding ids], "result_reasonable", "aligned", "reason"}, or None when it could not answer
+    judge: Callable[[list[str], list[dict], list[dict]], dict | None] | None = None
 
 
 @dataclass
@@ -49,6 +52,7 @@ class Result:
     carried: list[dict] = field(default_factory=list)      # minor, not fixed
     unconfirmed: list[dict] = field(default_factory=list)  # critical or major that nothing confirmed: for a person
     escalated: list[dict] = field(default_factory=list)
+    judgement: dict | None = None                          # the last overall call by the judge
     rules_never_seen: list[str] = field(default_factory=list)
 
 
@@ -80,9 +84,11 @@ def run_loop(h: Hooks, max_iterations: int = 3) -> Result:
         h.say(f"iteration {it}: playing")
         plays = h.simulate()
         found: list[dict] = []
+        reviews: list[dict] = []
         never: set[str] | None = None
         for n, play in enumerate(plays):
             review = h.review(play)
+            reviews.append(review)
             for f in review.get("findings") or []:
                 found.append({**f, "plays": [play], "play": n})
             not_seen = set(review.get("rules_not_seen") or [])
@@ -105,11 +111,32 @@ def run_loop(h: Hooks, max_iterations: int = 3) -> Result:
         minors = [f for f in loopable if f["severity"] not in SEVERE]
         res.carried, res.unconfirmed = minors, unconfirmed
 
+        # After the plays and the checks, a model reads the whole picture and says whether the results are reasonable, whether the game is the
+        # one that was designed, and whether it needs another pass or is good enough. It may ask for more fixes (a minor that misleads players, or
+        # recurs in every play); it can never wave away a confirmed critical or major finding, and it never touches infra.
+        judgement = h.judge(plays, reviews, findings) if h.judge and not infra else None
+        res.judgement = judgement
+        by_judge: list[dict] = []
+        if judgement and judgement.get("decision") == "iterate":
+            wanted = set(judgement.get("fix") or [])
+            by_judge = [f for f in minors if f.get("id") in wanted]
+            for f in by_judge:
+                f["by_judge"] = True
+            triggers = triggers + by_judge
+            minors = [f for f in minors if f not in by_judge]
+            res.carried = minors
+
+        verdict_text = ""
+        if judgement:
+            verdict_text = (f"\n\n**Judge:** {judgement.get('decision')}; result reasonable: {judgement.get('result_reasonable')}; aligned to the design: "
+                            f"{judgement.get('aligned')}. {judgement.get('reason', '')}"
+                            + (f" Asked for: {', '.join(sorted(set(judgement.get('fix') or [])))}." if judgement.get("fix") else ""))
         h.log(f"## Iteration {it}\n\nplays: {', '.join(plays)}\n\n"
               + "\n".join(["**Confirmed critical/major (fixed this pass):**"] + [_line(f) for f in triggers] if triggers else ["No confirmed critical or major findings."])
               + ("\n\n**Refuted by the verifier (not acted on):**\n" + "\n".join(_line(f) for f in refuted) if refuted else "")
               + ("\n\n**Unconfirmed critical/major (for a person):**\n" + "\n".join(_line(f) for f in unconfirmed) if unconfirmed else "")
               + ("\n\n**Minor (carried, never start a pass alone):**\n" + "\n".join(_line(f) for f in minors) if minors else "")
+              + verdict_text
               + ("\n\n**Infra (stops the loop):**\n" + "\n".join(_line(f) for f in infra) if infra else "")
               + (f"\n\n{len(players)} finding(s) about the players' own play were ignored." if players else "")
               + (f"\n\nRules no play exercised: {', '.join(res.rules_never_seen)}" if res.rules_never_seen else "") + "\n")
@@ -133,7 +160,7 @@ def run_loop(h: Hooks, max_iterations: int = 3) -> Result:
 
         if not triggers:
             res.status = "clean"
-            h.say(f"clean after {it} iteration(s): no confirmed critical or major finding" + (f"; {len(minors)} minor finding(s) carried" if minors else ""))
+            h.say(f"clean after {it} iteration(s): " + ("the judge found it good enough" if judgement else "no confirmed critical or major finding") + (f"; {len(minors)} minor finding(s) carried" if minors else ""))
             return res
         if it == max_iterations:
             h.escalate(f"## Out of passes after {it}\n\nStill confirmed critical or major:\n" + "\n".join(_line(f) for f in triggers) + "\n")
@@ -149,6 +176,13 @@ def run_loop(h: Hooks, max_iterations: int = 3) -> Result:
             return res
         verdict = h.regenerate()
         h.log(f"Spec revised ({notes}); regenerated: {verdict}\n")
+        if verdict not in REBUILT:  # a game that did not come out of the rebuild whole is not played as if it had
+            h.escalate(f"## Iteration {it}: the rebuilt game is not usable ({verdict}), the loop stopped\n\n"
+                       "The generator was run again from the revised design and ended with this verdict instead of a checked game, so nothing was played. "
+                       "See the generation log, then decide whether to rerun the rebuild.\n")
+            res.escalated, res.status = triggers, "escalated"
+            h.say(f"stopped: the rebuild ended {verdict}, not a checked game (ESCALATIONS.md)")
+            return res
         fixed += triggers
         res.fixed = list(fixed)
     return res
