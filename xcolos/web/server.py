@@ -17,6 +17,7 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -318,7 +319,9 @@ class MatchHandle:
 class MatchManager:
     """Creates, runs and serves matches. Server side, in process."""
 
-    def __init__(self) -> None:
+    def __init__(self, log_dir: Path | None = None) -> None:
+        #: Where each game's log is written as it is played. None keeps logs in memory only.
+        self.log_dir = log_dir
         self._matches: dict[str, MatchHandle] = {}
         self._hosts: dict[str, PacedHost] = {}
         self._counter = 0
@@ -399,7 +402,7 @@ class MatchManager:
             },
             waiting=bool(remote_indices or connector_indices),
             seat_specs=[
-                {"name": sp.get("name") or f"Seat {i}", "kind": kind_of[i]}
+                {"name": sp.get("name") or f"Seat {i}", "kind": kind_of[i], "model": self._model_of(kind_of[i], sp)}
                 for i, sp in enumerate(seats)
             ],
             hosts={"bots": bots, "connector": connector_host},
@@ -447,7 +450,9 @@ class MatchManager:
             else f"{handle.match_id}-g{handle.game_no}"
         )
 
-        log = MatchLog(match_id)
+        if handle.game is not None:
+            handle.game.log.close()  # the previous game on this table is done
+        log = MatchLog(match_id, self.log_dir / f"{match_id}.jsonl" if self.log_dir else None)
         game = Game(
             match_id=match_id,
             game_id=handle.config.get("game") or default_game(),
@@ -489,6 +494,10 @@ class MatchManager:
                 index = game.register_seat(spec["name"], bots.host_id, binding.profile)
                 registry.attach(index, bots, binding)
 
+        # Who is behind each seat, in the log: a model seat names its model.
+        for index, spec in zip(game.seats, handle.seat_specs):
+            log.record("setup", "seat_model", seat=index, name=spec["name"], kind=spec["kind"], model=spec["model"])
+
         runner = Runner(
             game,
             orchestrator_for(handle.config.get("game") or default_game()),
@@ -504,6 +513,42 @@ class MatchManager:
         handle.started = False
         handle.tools.retarget(game, runner, registry)
 
+    @staticmethod
+    def _model_of(kind: str, spec: dict[str, Any]) -> str | None:
+        """The model behind a seat, or None for a person or a plain bot."""
+        if kind == "llm":
+            return spec.get("model") or "offline-stub"
+        return None
+
+    def _write_summary(self, handle: MatchHandle, game: Game) -> None:
+        """Beside a game's log, a small index of it: who played, who won, how it was reviewed."""
+        if self.log_dir is None or game.log.path is None:
+            return
+        reviews = game.log.where("result", "review")
+        seats = {r["seat"]: r for r in game.log.where("setup", "seat_model")}
+        summary = {
+            "match_id": game.match_id,
+            "table": handle.match_id,
+            "game": game.game_id,
+            "seed": game.seed,
+            "status": game.status.value,
+            "started": game.log.records[0]["ts"],
+            "ended": game.log.records[-1]["ts"],
+            "rounds": game.round,
+            "winner": game.winner,
+            "reason": game.reason,
+            "announcement": game.summary,
+            "seats": [
+                {"seat": i, "name": s.name, "status": s.status.value, "kind": seats.get(i, {}).get("kind"),
+                 "model": seats.get(i, {}).get("model")}
+                for i, s in game.seats.items()
+            ],
+            "review": reviews[-1].get("status", "written") if reviews else "none",
+            "log": game.log.path.name,
+        }
+        path = game.log.path.with_suffix(".summary.json")
+        path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+
     def _start_review(self, handle: MatchHandle, game: Game, runner: Runner) -> None:
         """Have a model review the game that just ended, off the playing thread.
 
@@ -518,6 +563,7 @@ class MatchManager:
         if completion is None:
             # Nothing to wait for: say there is no review, now.
             review.review(game, None)
+            self._write_summary(handle, game)
             return
         handle.reviewing = True
 
@@ -535,6 +581,7 @@ class MatchManager:
             finally:
                 if handle.game is game:
                     handle.reviewing = False
+                self._write_summary(handle, game)  # after the review, so it says how that went
 
         threading.Thread(target=write, name=f"review-{game.match_id}", daemon=True).start()
 
@@ -1111,14 +1158,18 @@ class Handler(BaseHTTPRequestHandler):
         self._json({"error": "not found"}, 404)
 
 
-def build_server(port: int = 8000, manager: MatchManager | None = None):
-    handler = type("BoundHandler", (Handler,), {"manager": manager or MatchManager()})
+def build_server(port: int = 8000, manager: MatchManager | None = None, log_dir: Path | None = None):
+    handler = type("BoundHandler", (Handler,), {"manager": manager or MatchManager(log_dir)})
     return ThreadingHTTPServer(("127.0.0.1", port), handler)
 
 
-def serve(port: int = 8000) -> None:
-    httpd = build_server(port)
+def serve(port: int = 8000, log_dir: Path | None = None) -> None:
+    if log_dir is not None:
+        # One folder per server start: table ids restart at w0001 each time.
+        log_dir = log_dir / datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    httpd = build_server(port, log_dir=log_dir)
     print(f"XColos console on http://127.0.0.1:{port}")
+    print(f"Game logs: {log_dir}" if log_dir else "Game logs: off (memory only)")
     print("Ctrl-C to stop.")
     try:
         httpd.serve_forever()
@@ -1133,4 +1184,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     ap = argparse.ArgumentParser(prog="xcolos.web")
     ap.add_argument("--port", type=int, default=8000)
-    serve(ap.parse_args().port)
+    ap.add_argument("--log-dir", type=Path, default=Path("runs/web"), help="where game logs are written (a folder per start)")
+    ap.add_argument("--no-log", action="store_true", help="keep game logs in memory only")
+    args = ap.parse_args()
+    serve(args.port, None if args.no_log else args.log_dir)
