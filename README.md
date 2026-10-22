@@ -41,17 +41,56 @@ python3 run_tests.py
 xcolos/
   kernel:   state.py, game.py, protocol.py, render.py
   client:   host.py, agents.py
-  game:     orchestrators/
+  game:     orchestrators/, flow/ (the flow engine that runs game files)
+  games:    games/library/ (one JSON file per game)
   record:   log.py, transcript.py
   surfaces: cli.py, web/
-design/     design documents and reviews
-project/    the product overview
+gen_inventory/  find candidate games and keep an inventory of them
+gen_game/       turn an inventory game into a game file, and test it
+design/         design documents and reviews
+project/        the product overview
 ```
+
+## Games are data
+
+No game is hard-coded in Python. Each game is a JSON file in `xcolos/games/library/`, run by the flow
+engine: `assurance_game`, `auction`, `battle_of_wits`, `mafia`, `mafia_oracle` and `rps` on this branch.
+A game file declares its `attributes`, `deal`, `setup`, `steps`, `end`, `reveal` and `limits`. Every
+attribute says who may see it:
+
+```json
+"attributes": {
+  "player": [
+    {"key": "role",    "visible": "ally",   "type": "text", "values": ["mafia", "detective", "villager"]},
+    {"key": "faction", "visible": "ally",   "type": "text", "values": ["good", "evil"]}
+  ]
+}
+```
+
+`visible` is `public`, `ally` or `none`; `type` is `number`, `list`, `bool` or `text`. The kernel uses it
+to decide what each seat is shown.
+
+## Generating games
+
+Two tools beside the platform produce new games. Nothing in `xcolos/` imports them.
+
+- `gen_inventory/` finds candidate games from curated sources, rates each one's fit with what the
+  engine can express, extracts its rules into a fixed vocabulary and runs gates. Anything a game needs
+  that the engine lacks is recorded, which is how missing engine features are found. See
+  `gen_inventory/README.md`.
+- `gen_game/` turns an inventory game into a game file. A designer model works out the rules and a
+  separate critic must find them balanced, playable and rewarding reasoning over luck. A coder writes
+  the game file, an independent model writes scenario tests from the spec, and automatic checks test
+  that the game is valid, ends, replays the same from the same seed, is not always won by a thoughtless
+  policy and is not decided by chance. Failures are triaged back to the coder, back to the designer, or
+  recorded as engine work. See `gen_game/README.md`.
+
+A generated game stays in `gen_game/data/` until a person copies it into `xcolos/games/library/`.
 
 ## Status
 
-Stage 1a is built: the kernel, the message protocol, the turn loop, visibility, the client and server split, and complete structured logging. One game, Mafia, is hardcoded in Python behind the orchestrator interface.
-
-Stage 1b replaces that with an LLM orchestrator reading a YAML game file. Nothing below the orchestrator interface changes.
+Built: the kernel, the message protocol, the turn loop, visibility, the client and server split,
+complete structured logging, the flow engine that runs games from JSON files, the game library above,
+and the generation tools.
 
 See `design/` for the current design and the review that shaped it.
