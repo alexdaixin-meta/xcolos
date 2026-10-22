@@ -11,6 +11,12 @@ that secretly depends on a role called "mafia" cannot survive that.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from oracle_game import ORACLE_PATH  # noqa: E402
+
 import ast
 import json
 import re
@@ -297,7 +303,7 @@ def test_the_oracle_deals_the_roster_the_model_game_requires():
     simply have been different games above six players.
     """
     model = load((LIBRARY / "mafia.json").read_text(encoding="utf-8"), source="m")
-    oracle = load((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"),
+    oracle = load(ORACLE_PATH.read_text(encoding="utf-8"),
                   source="o")
     init = next(s for s in model.setup if s.use == "initialize")
 
@@ -318,7 +324,7 @@ def test_the_oracle_deals_the_roster_the_model_game_requires():
 def test_the_oracle_never_deals_a_game_that_is_already_over():
     """The fallback is what a rejected roster falls back to, so it has to be
     a roster nothing would reject."""
-    oracle = load((LIBRARY / "mafia_oracle.json").read_text(encoding="utf-8"),
+    oracle = load(ORACLE_PATH.read_text(encoding="utf-8"),
                   source="o")
     for n in range(oracle.min_players, oracle.max_players + 1):
         dealt = oracle.deal.plan(n)
@@ -413,8 +419,11 @@ def test_a_player_holding_nothing_is_not_asked():
 
     asked = {r["seat"] for r in game.log.records
              if r["type"] == "action_request"}
-    assert len(asked) == 2, (
-        f"three players, one holding nothing, but {len(asked)} were asked"
+    answered_for = {r["seat"] for r in game.log.records if r["type"] == "auto_answer"}
+    # Hands of two, one and none: the empty hand is not a question; the hand of one is a
+    # question with a single answer, so it is answered for, not asked.
+    assert len(asked) == 1 and len(answered_for) == 1 and not asked & answered_for, (
+        f"three players, hands of two, one and none: asked {asked}, answered for {answered_for}"
     )
 
 

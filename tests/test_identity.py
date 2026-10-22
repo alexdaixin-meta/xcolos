@@ -16,12 +16,11 @@ from contextlib import contextmanager
 import pytest
 
 from xcolos.agents import ScriptedAgent
-from xcolos.cli import SEAT_NAMES, build_match
+from matches import GAME_ID, SEAT_NAMES, build_match, orchestrator
 from xcolos.game import Game
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.identity import OPERATOR, AccessDenied, Ownership, Player
 from xcolos.log import MatchLog
-from xcolos.legacy.mafia import MafiaOrchestrator
 from xcolos.runner import Runner
 from xcolos.web.server import MatchManager, build_server
 
@@ -29,7 +28,7 @@ from xcolos.web.server import MatchManager, build_server
 def two_player_match(seed: int = 3):
     """Two clients, two principals: seats 1-2 and seats 3-5."""
     log = MatchLog(f"m_two_{seed}")
-    game = Game(f"m_two_{seed}", MafiaOrchestrator.game_id, seed, log)
+    game = Game(f"m_two_{seed}", GAME_ID, seed, log)
 
     alice = Player(player_id="p_alice", display_name="Alice")
     bob = Player(player_id="p_bob", display_name="Bob")
@@ -42,7 +41,7 @@ def two_player_match(seed: int = 3):
         for binding in host.register():
             index = game.register_seat(binding.name, host.host_id, binding.profile)
             registry.attach(index, host, binding)
-    return game, MafiaOrchestrator(), registry, alice, bob
+    return game, orchestrator(), registry, alice, bob
 
 
 # ======================================================================

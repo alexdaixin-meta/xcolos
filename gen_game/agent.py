@@ -38,7 +38,7 @@ ROOT = Path(__file__).resolve().parent.parent
 #: permitted` and need `--dangerously-disable-osx-sandbox`. That is a security decision, so it is never added here:
 #: put it in a `command:` agent yourself if you want it. None of these commands has been run by the author.
 AGENT_COMMANDS = {
-    "claude": ["claude", "-p", "--permission-mode", "acceptEdits", "--allowedTools", "Read", "Write", "Edit", "Bash"],
+    "claude": ["claude", "-p", "--bare", "--permission-mode", "acceptEdits", "--allowedTools", "Read", "Write", "Edit", "Bash"],
     "muse": ["muse", "exec", "--yolo", "--workspace", "{workspace}", "--max-model-steps", "80", "--prompt-file", "{prompt_file}"],
     "metacode": ["metacode", "run", "--format", "text", "--yolo", "--dir", "{workspace}"],
 }
@@ -158,5 +158,5 @@ class AgentEncoder:
         if not path.exists():
             return Built(None, None, ["the coding agent finished without writing game.json"], notes)
         # the agent's own word that it passed counts for nothing: check the file here
-        obj, defn, problem = enc.check(path.read_text(), game_id, set(spec.get("parameters", {})))
+        obj, defn, problem = enc.check(path.read_text(), game_id, set(spec.get("parameters", {})), players=spec.get("players"))
         return Built(obj, defn, [problem], notes)

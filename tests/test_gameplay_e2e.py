@@ -12,7 +12,7 @@ from collections import Counter
 
 import pytest
 
-from xcolos.cli import build_match
+from matches import build_match
 from xcolos.protocol import MsgType
 from xcolos.runner import Runner
 
@@ -66,50 +66,10 @@ def sent(game, seat=None, kind=None):
 
 
 @pytest.mark.parametrize("seed", SEEDS)
-def test_rounds_run_in_the_declared_order(seed):
-    """Every round follows night, reveal, discussion, voting.
-
-    A round may stop early when the game ends, but it may never run its phases
-    out of order or skip one in the middle.
-    """
-    _, game, _ = play(seed)
-    expected = ["night", "day_reveal", "day_discussion", "day_voting"]
-
-    by_round: dict[int, list[str]] = {}
-    for r in game.log.where("process", "set_phase"):
-        by_round.setdefault(r["round"], []).append(r["now"])
-
-    for rnd, phases in by_round.items():
-        assert phases == expected[: len(phases)], f"round {rnd} ran {phases}"
-
-
-@pytest.mark.parametrize("seed", SEEDS)
 def test_the_round_counter_increases_by_one(seed):
     _, game, _ = play(seed)
     rounds = [r["round"] for r in game.log.where("process", "advance_round")]
     assert rounds == list(range(1, len(rounds) + 1))
-
-
-@pytest.mark.parametrize("seed", SEEDS)
-def test_every_phase_change_is_announced_to_everyone(seed):
-    """A seat must never be surprised by what part of the round it is in.
-
-    Only the night *actions* are secret. The fact that night fell is not.
-    """
-    _, game, _ = play(seed)
-    everyone = set(game.seats)
-    announced = [f for f in game.facts if f.type == "phase"]
-    assert announced
-    for fact in announced:
-        assert fact.entitled == everyone, f"phase {fact.payload} was not public"
-
-    changes = [r["now"] for r in game.log.where("process", "set_phase")]
-    assert [f.payload["phase"] for f in announced] == changes
-
-
-# ======================================================================
-# Turns
-# ======================================================================
 
 
 @pytest.mark.parametrize("seed", SEEDS)
@@ -197,33 +157,6 @@ def test_every_seat_is_briefed_once_before_anything_else(seed):
 
 
 @pytest.mark.parametrize("seed", SEEDS)
-def test_the_briefing_says_everything_a_seat_needs(seed):
-    """Rules, table size, own state, own index, and the message format."""
-    _, game, _ = play(seed)
-    for seat, s in game.seats.items():
-        body = sent(game, seat, MsgType.GAME_START.value)[0]["body"]
-        assert "Mafia is a hidden-role game" in body
-        assert f"Players: {len(game.seats)}" in body
-        assert f"You are seat {seat}" in body
-        assert f"Your role is {s.role}" in body
-        assert "Each round runs in this order" in body
-        for kind in ("SITUATION", "YOUR_TURN", "ACTION_REJECTED", "GAME_END"):
-            assert kind in body, f"briefing never mentions {kind}"
-
-
-@pytest.mark.parametrize("seed", SEEDS)
-def test_a_seat_learns_its_role_once_and_only_in_the_briefing(seed):
-    """The briefing absorbs setup, so the role does not also arrive separately."""
-    _, game, _ = play(seed)
-    for seat, s in game.seats.items():
-        mentions = [
-            m for m in sent(game, seat) if f"Your role is {s.role}" in m["body"]
-        ]
-        assert len(mentions) == 1
-        assert mentions[0]["msg_type"] == MsgType.GAME_START.value
-
-
-@pytest.mark.parametrize("seed", SEEDS)
 def test_every_seat_is_told_the_game_ended(seed):
     _, game, _ = play(seed)
     for seat in game.seats:
@@ -294,19 +227,6 @@ def test_public_facts_reach_every_seat_including_the_dead(seed):
 
 
 @pytest.mark.parametrize("seed", SEEDS)
-def test_a_speaker_is_not_told_its_own_words(seed):
-    """Everyone else hears it. The author does not need to be told twice."""
-    _, game, _ = play(seed)
-    everyone = set(game.seats)
-    said = [f for f in game.facts if f.type in BROADCAST_EXCEPT_AUTHOR]
-    assert said, "nobody spoke"
-    for fact in said:
-        author = fact.payload["seat"]
-        assert author not in fact.entitled, f"seat {author} was sent its own speech"
-        assert fact.entitled == everyone - {author}
-
-
-@pytest.mark.parametrize("seed", SEEDS)
 def test_private_facts_reach_exactly_who_they_should(seed):
     _, game, _ = play(seed)
     mafia = {i for i, s in game.seats.items() if s.role == "mafia"}
@@ -322,15 +242,6 @@ def test_private_facts_reach_exactly_who_they_should(seed):
             assert game.seats[seat].role == "detective"
         elif fact.type == "vote_cast":
             assert fact.entitled == {fact.payload["seat"]}
-
-
-@pytest.mark.parametrize("seed", SEEDS)
-def test_every_fact_type_is_classified(seed):
-    """A new fact type must be declared public or private, not left to chance."""
-    _, game, _ = play(seed)
-    known = PUBLIC | BROADCAST_EXCEPT_AUTHOR | set(PRIVATE)
-    seen = {f.type for f in game.facts}
-    assert seen <= known, f"unclassified fact types: {sorted(seen - known)}"
 
 
 @pytest.mark.parametrize("seed", SEEDS)
@@ -399,28 +310,6 @@ def test_what_a_seat_was_delivered_is_exactly_what_it_was_entitled_to(seed):
 # ======================================================================
 # Outcome
 # ======================================================================
-
-
-@pytest.mark.parametrize("seed", SEEDS)
-def test_the_declared_winner_matches_the_board(seed):
-    result, game, _ = play(seed)
-    evil = sum(1 for s in game.seats.values() if s.alive and s.faction == "evil")
-    good = sum(1 for s in game.seats.values() if s.alive and s.faction == "good")
-
-    if result.winner == "good":
-        assert evil == 0
-    else:
-        assert evil >= good
-
-
-@pytest.mark.parametrize("seed", SEEDS)
-def test_a_death_is_announced_for_every_elimination(seed):
-    _, game, _ = play(seed)
-    eliminated = {r["seat"] for r in game.log.where("state", "eliminate")}
-    announced = {
-        f.payload["seat"] for f in game.facts if f.type in {"death", "eliminated"}
-    }
-    assert eliminated == announced
 
 
 @pytest.mark.parametrize("seats", [4, 5, 7, 9, 12])

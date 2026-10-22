@@ -17,6 +17,7 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -37,15 +38,8 @@ from xcolos.protocol import Action
 from xcolos.host import LocalAgentHost, Registry
 from xcolos.log import MatchLog
 from xcolos.flow import FlowOrchestrator, ModelJudge
-from xcolos.flow.backends import CompletionError, MuseCompletion, read_key
+from xcolos.flow.backends import MUSE_FALLBACKS, CompletionError, MuseCompletion, muse_first_choice, read_key
 from xcolos.games import available
-from xcolos.legacy import mafia as legacy_mafia
-from xcolos.legacy.mafia import (
-    MAX_SEATS,
-    MIN_SEATS,
-    MafiaOrchestrator,
-    role_plan,
-)
 from xcolos.remote import ConnectorHost, RemoteAgentHost
 from xcolos import review
 from xcolos.runner import Runner
@@ -62,21 +56,8 @@ DEFAULT_GAME = "mafia"
 def default_game() -> str:
     return catalogue()[0]["id"]
 
-#: The hardcoded Python Mafia from Milestone 1. Kept as the reference: it is
-#: what the definition-driven engine is graded against, so deleting it would
-#: remove the only thing that can say whether a game file is right.
-LEGACY_GAME = {
-    "id": legacy_mafia.LEGACY_ID,
-    "name": legacy_mafia.NAME,
-    "engine": "legacy",
-    "min_seats": MIN_SEATS,
-    "max_seats": MAX_SEATS,
-    "blurb": legacy_mafia.BLURB,
-}
-
-
 def catalogue() -> list[dict[str, Any]]:
-    """Every game that can be started: the library, plus the legacy reference.
+    """Every game that can be started: the library, and any extra directory of definitions.
 
     Read on each request rather than cached at import, so editing a definition
     and reloading the page is the whole development loop.
@@ -90,29 +71,21 @@ def catalogue() -> list[dict[str, Any]]:
                 "engine": "flow",
                 "min_seats": definition.min_players,
                 "max_seats": definition.max_players,
+                "suggested_seats": definition.suggested_players,
                 "blurb": definition.blurb,
+                "unlisted": definition.unlisted,
                 "steps": [s.label for s in definition.steps if s.use != "brief"],
                 "needs_judge": any(r.when.kind == "prose" or r.winner
                                    for r in definition.end),
             }
         )
-    # The hardcoded Mafia is not offered. It is kept as the reference a game
-    # file is graded against, not as something to play, and putting it in the
-    # picker invites a table to be opened on the implementation this milestone
-    # replaced. It is still reachable by asking for its id directly.
     games.sort(key=lambda g: g["id"] != DEFAULT_GAME)  # stable: the rest keep their order
     return games
 
 
-#: Games that can be started but are not offered in the picker. `mafia-oracle`
-#: is Mafia with its rules as arithmetic: the reference `mafia`'s model referee
-#: is checked against, and what the offline tests play. Not a game to choose.
-UNLISTED_GAMES = {"mafia-oracle"}
-
-
 def offered() -> list[dict[str, Any]]:
     """The games the console's picker lists."""
-    return [g for g in catalogue() if g["id"] not in UNLISTED_GAMES]
+    return [g for g in catalogue() if not g["unlisted"]]
 
 
 #: Set this and no table will ever build a live judge. The test suite sets it,
@@ -130,7 +103,7 @@ def build_completion() -> Any:
     try:
         if not read_key():
             return None
-        backend = MuseCompletion()
+        backend = MuseCompletion(model=muse_first_choice(), fallbacks=MUSE_FALLBACKS)
         backend._key()  # shape check now, rather than mid-match
     except CompletionError:
         return None
@@ -148,9 +121,7 @@ def build_judge() -> Any:
 
 
 def orchestrator_for(game_id: str) -> Any:
-    """The orchestrator a game id names. The only place the two engines meet."""
-    if game_id == LEGACY_GAME["id"]:
-        return MafiaOrchestrator()
+    """The orchestrator a game id names."""
     definition = available().get(game_id)
     if definition is None:
         raise ValueError(f"unknown game '{game_id}'")
@@ -180,7 +151,7 @@ AGENT_TYPES = [
     {
         "id": "llm",
         "label": "Model",
-        "blurb": "Prompted from its own session. Uses the offline stub until a provider is wired in.",
+        "blurb": "Prompted from its own session. Give it a `model` (claude, muse, anthropic) to put a real model in the seat; without one it uses the offline stub.",
     },
     {
         "id": "remote",
@@ -195,7 +166,7 @@ AGENT_TYPES = [
 ]
 
 
-def make_agent(kind: str, name: str, seed: int, index: int, persona: str = ""):
+def make_agent(kind: str, name: str, seed: int, index: int, persona: str = "", model: str = ""):
     """Build one agent. Each gets its own session when the server binds its seat."""
     # Seeded from the match and the seat, never from the kernel's generator, so
     # agents are reproducible without perturbing the game's own draws.
@@ -207,6 +178,12 @@ def make_agent(kind: str, name: str, seed: int, index: int, persona: str = ""):
     if kind == "silent":
         return SilentAgent(name=name)
     if kind == "llm":
+        if model:
+            # A real model in the seat, by spec: claude, muse, anthropic, command:... A long game outgrows the default budget.
+            from xcolos.seat_models import SEAT_SYSTEM, seat_completion
+
+            return LLMAgent(name=name, completion=seat_completion(model), persona=persona, model=model,
+                            system=SEAT_SYSTEM, token_budget=60000)
         return LLMAgent(
             name=name,
             completion=offline_model(own_seed),
@@ -342,7 +319,9 @@ class MatchHandle:
 class MatchManager:
     """Creates, runs and serves matches. Server side, in process."""
 
-    def __init__(self) -> None:
+    def __init__(self, log_dir: Path | None = None) -> None:
+        #: Where each game's log is written as it is played. None keeps logs in memory only.
+        self.log_dir = log_dir
         self._matches: dict[str, MatchHandle] = {}
         self._hosts: dict[str, PacedHost] = {}
         self._counter = 0
@@ -399,6 +378,7 @@ class MatchManager:
                     seed,
                     i,
                     seats[i].get("persona", ""),
+                    seats[i].get("model", ""),
                 )
                 for i in local_indices
             ],
@@ -422,7 +402,7 @@ class MatchManager:
             },
             waiting=bool(remote_indices or connector_indices),
             seat_specs=[
-                {"name": sp.get("name") or f"Seat {i}", "kind": kind_of[i]}
+                {"name": sp.get("name") or f"Seat {i}", "kind": kind_of[i], "model": self._model_of(kind_of[i], sp)}
                 for i, sp in enumerate(seats)
             ],
             hosts={"bots": bots, "connector": connector_host},
@@ -470,7 +450,9 @@ class MatchManager:
             else f"{handle.match_id}-g{handle.game_no}"
         )
 
-        log = MatchLog(match_id)
+        if handle.game is not None:
+            handle.game.log.close()  # the previous game on this table is done
+        log = MatchLog(match_id, self.log_dir / f"{match_id}.jsonl" if self.log_dir else None)
         game = Game(
             match_id=match_id,
             game_id=handle.config.get("game") or default_game(),
@@ -512,6 +494,10 @@ class MatchManager:
                 index = game.register_seat(spec["name"], bots.host_id, binding.profile)
                 registry.attach(index, bots, binding)
 
+        # Who is behind each seat, in the log: a model seat names its model.
+        for index, spec in zip(game.seats, handle.seat_specs):
+            log.record("setup", "seat_model", seat=index, name=spec["name"], kind=spec["kind"], model=spec["model"])
+
         runner = Runner(
             game,
             orchestrator_for(handle.config.get("game") or default_game()),
@@ -527,6 +513,42 @@ class MatchManager:
         handle.started = False
         handle.tools.retarget(game, runner, registry)
 
+    @staticmethod
+    def _model_of(kind: str, spec: dict[str, Any]) -> str | None:
+        """The model behind a seat, or None for a person or a plain bot."""
+        if kind == "llm":
+            return spec.get("model") or "offline-stub"
+        return None
+
+    def _write_summary(self, handle: MatchHandle, game: Game) -> None:
+        """Beside a game's log, a small index of it: who played, who won, how it was reviewed."""
+        if self.log_dir is None or game.log.path is None:
+            return
+        reviews = game.log.where("result", "review")
+        seats = {r["seat"]: r for r in game.log.where("setup", "seat_model")}
+        summary = {
+            "match_id": game.match_id,
+            "table": handle.match_id,
+            "game": game.game_id,
+            "seed": game.seed,
+            "status": game.status.value,
+            "started": game.log.records[0]["ts"],
+            "ended": game.log.records[-1]["ts"],
+            "rounds": game.round,
+            "winner": game.winner,
+            "reason": game.reason,
+            "announcement": game.summary,
+            "seats": [
+                {"seat": i, "name": s.name, "status": s.status.value, "kind": seats.get(i, {}).get("kind"),
+                 "model": seats.get(i, {}).get("model")}
+                for i, s in game.seats.items()
+            ],
+            "review": reviews[-1].get("status", "written") if reviews else "none",
+            "log": game.log.path.name,
+        }
+        path = game.log.path.with_suffix(".summary.json")
+        path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+
     def _start_review(self, handle: MatchHandle, game: Game, runner: Runner) -> None:
         """Have a model review the game that just ended, off the playing thread.
 
@@ -541,6 +563,7 @@ class MatchManager:
         if completion is None:
             # Nothing to wait for: say there is no review, now.
             review.review(game, None)
+            self._write_summary(handle, game)
             return
         handle.reviewing = True
 
@@ -558,6 +581,7 @@ class MatchManager:
             finally:
                 if handle.game is game:
                     handle.reviewing = False
+                self._write_summary(handle, game)  # after the review, so it says how that went
 
         threading.Thread(target=write, name=f"review-{game.match_id}", daemon=True).start()
 
@@ -1134,14 +1158,18 @@ class Handler(BaseHTTPRequestHandler):
         self._json({"error": "not found"}, 404)
 
 
-def build_server(port: int = 8000, manager: MatchManager | None = None):
-    handler = type("BoundHandler", (Handler,), {"manager": manager or MatchManager()})
+def build_server(port: int = 8000, manager: MatchManager | None = None, log_dir: Path | None = None):
+    handler = type("BoundHandler", (Handler,), {"manager": manager or MatchManager(log_dir)})
     return ThreadingHTTPServer(("127.0.0.1", port), handler)
 
 
-def serve(port: int = 8000) -> None:
-    httpd = build_server(port)
+def serve(port: int = 8000, log_dir: Path | None = None) -> None:
+    if log_dir is not None:
+        # One folder per server start: table ids restart at w0001 each time.
+        log_dir = log_dir / datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    httpd = build_server(port, log_dir=log_dir)
     print(f"XColos console on http://127.0.0.1:{port}")
+    print(f"Game logs: {log_dir}" if log_dir else "Game logs: off (memory only)")
     print("Ctrl-C to stop.")
     try:
         httpd.serve_forever()
@@ -1156,4 +1184,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     ap = argparse.ArgumentParser(prog="xcolos.web")
     ap.add_argument("--port", type=int, default=8000)
-    serve(ap.parse_args().port)
+    ap.add_argument("--log-dir", type=Path, default=Path("runs/web"), help="where game logs are written (a folder per start)")
+    ap.add_argument("--no-log", action="store_true", help="keep game logs in memory only")
+    args = ap.parse_args()
+    serve(args.port, None if args.no_log else args.log_dir)

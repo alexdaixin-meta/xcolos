@@ -95,7 +95,8 @@ function describeGame() {
   const seats = g.min_seats === g.max_seats
     ? `${g.min_seats} seats`
     : `${g.min_seats} to ${g.max_seats} seats`;
-  $("game-blurb").textContent = `${g.blurb} ${seats} \u00b7 ${engine}${judge}`;
+  const best = g.suggested_seats && g.suggested_seats > g.min_seats ? ` (best with ${g.suggested_seats})` : "";
+  $("game-blurb").textContent = `${g.blurb} ${seats}${best} \u00b7 ${engine}${judge}`;
   /* Seats chosen for the last game may not fit this one: a table of four
    * cannot open for a two-seat game. */
   if (!state.open && state.seats.length > g.max_seats) state.seats.length = g.max_seats;
@@ -117,7 +118,7 @@ function addSeat(kind = "connector") {
 function fillWithBots() {
   for (const s of state.seats) if (s.kind === "connector") s.kind = "random";
   const g = currentGame();
-  while (state.seats.length < g.min_seats) addSeat("random");
+  while (state.seats.length < (g.suggested_seats || g.min_seats)) addSeat("random");
   renderSeats();
 }
 

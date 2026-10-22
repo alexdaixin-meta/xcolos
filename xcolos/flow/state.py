@@ -301,6 +301,34 @@ class FlowState:
         }
 
 
+    def public_view(self) -> dict[str, Any]:
+        """What anyone watching the table may see: public attributes only, no seat's own view and nothing disclosed to some.
+
+        For a call whose answer is forwarded to everybody at once: the reply can then carry nothing a seat was not entitled to.
+        """
+        definition = self.definition
+        return {
+            "players": [
+                {
+                    "id": p,
+                    "status": self.status[p],
+                    "attributes": {
+                        a.key: self.attribute(p, a.key)
+                        for a in definition.player_attributes
+                        if a.visible == "public"
+                    },
+                }
+                for p in self.players
+            ],
+            "table": {
+                a.key: self.game_attributes.get(a.key)
+                for a in definition.game_attributes
+                if a.visible == "public"
+            },
+            "acting": self.acting(),
+            "learned": [],
+        }
+
     def full_view(self) -> dict[str, Any]:
         """The whole table, hiding nothing. Only ever given to a judge.
 

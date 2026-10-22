@@ -33,11 +33,18 @@ SPEC = {
     "ending": {"condition": "rounds_left == 0", "results": ["seat 1", "seat 2", "draw"], "decided_by": "higher score"},
     "choices": [{"what": "twelve cards each", "why": "so ten rounds fit"}], "simplifications": [], "unsupported": [],
 }
+# Seats name the cards they play, not the position of the question: a hand of one kind of card is answered by the engine, so a script that
+# counted questions would drift. Rules are used in order; the last ones are "all" because the engine may answer for the seat.
 ALWAYS_ROCK = {"name": "everyone plays the same cards", "players": 2, "seed": 1,
-               "moves": {"1": ["rock"] * 4 + ["paper"] * 4 + ["scissors"] * 2, "2": ["rock"] * 4 + ["paper"] * 4 + ["scissors"] * 2},
+               "rules": [{"seat": seat, "options_include": card, "times": n}
+                         for seat in (1, 2) for card, n in (("rock", 4), ("paper", 4), ("scissors", "all"))],
                "expect": {"result": "draw", "players": {"1": {"score": 0}, "2": {"score": 0}}, "game": {"rounds_left": 0}}}
+#: The older, positional form: every question the game asks, in order (the last two rounds hold one kind of card, so are not asked).
+ALWAYS_ROCK_MOVES = {**{k: v for k, v in ALWAYS_ROCK.items() if k != "rules"},
+                     "moves": {"1": ["rock"] * 4 + ["paper"] * 4, "2": ["rock"] * 4 + ["paper"] * 4}}
 SEAT1_WINS = {"name": "seat 1 plays scissors against paper", "players": 2, "seed": 1,
-              "moves": {"1": ["scissors"] * 4 + ["rock"] * 4 + ["paper"] * 2, "2": ["paper"] * 4 + ["scissors"] * 4 + ["rock"] * 2},
+              "rules": [{"seat": 1, "options_include": "scissors", "times": 4}, {"seat": 1, "options_include": "rock", "times": 4}, {"seat": 1, "options_include": "paper", "times": "all"},
+                        {"seat": 2, "options_include": "paper", "times": 4}, {"seat": 2, "options_include": "scissors", "times": 4}, {"seat": 2, "options_include": "rock", "times": "all"}],
               "expect": {"result": "seat 1", "players": {"1": {"score": 4 * 3 + 4 * 1 + 2 * 2}, "2": {"score": 0}}, "game": {"rounds_left": 0}}}
 
 

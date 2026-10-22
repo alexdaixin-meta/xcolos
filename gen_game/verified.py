@@ -47,17 +47,15 @@ def write(folder: Path) -> Path:
         out.append(f"- `game.json`: sha256 {calls.sha(game_path.read_text())[:16]}")
         spec = json.loads((folder / "spec.json").read_text()) if (folder / "spec.json").exists() else {}
         tests = json.loads((folder / "scenarios.json").read_text()) if (folder / "scenarios.json").exists() else None
-        obj, defn, problem = enc.check(game_path.read_text(), folder.name, set(spec.get("parameters", {})), tests)
+        obj, defn, problem = enc.check(game_path.read_text(), folder.name, set(spec.get("parameters", {})), tests, spec.get("players"))
         out.append(f"- the flow's own checks, run again now (loader, arithmetic outcome, random play, every attribute updated, the independent tests): "
                    + ("**all pass**" if defn else f"**FAIL: {problem[:400]}**"))
         if defn:
             results = scenarios.run_all(defn, tests or [])
             out.append(f"- independent scenarios: {sum(o.passed for o in results)} of {len(results)} pass")
-            t0, t1 = evaluate.tier0(defn), evaluate.tier1(defn)
+            t0 = evaluate.tier0(defn)
             out.append(f"- tier 0 (valid, ends, replays identically): {'passed' if t0['passed'] else 'FAILED'}; results over {t0['metrics']['matches']} random matches: {t0['metrics']['results']}")
-            out.append("- tier 1 (thoughtless policies, luck): " + ("no flags" if not t1["flags"] else "; ".join(t1["flags"])))
-            for k, v in t1["dominance"].items():
-                out.append(f"  - always `{k}`: won {v['win']}, lost {v['loss']}, drew {v['draw']}")
+            out.append("- reasoning and balance: not checked here (real models will play it later)")
         out.append("")
     (folder / "VERIFIED.md").write_text("\n".join(out) + "\n")
     return folder / "VERIFIED.md"

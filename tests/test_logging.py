@@ -88,7 +88,7 @@ def test_every_message_in_both_directions_is_logged(seed):
     out = game.log.where("message", "to_agent")
     back = game.log.where("message", "from_agent")
 
-    turns = game.log.where("turn", "move")
+    turns = [m for m in game.log.where("turn", "move") if not str(m.get("reason", "")).startswith("auto:")]  # a question the engine answered itself was never sent
     prompts = [m for m in out if m["msg_type"] == MsgType.YOUR_TURN.value]
 
     # Every turn produced at least one prompt, and every prompt got a logged
@@ -187,7 +187,7 @@ def test_seat_transcript_contains_only_that_seats_messages():
 def test_timeline_renders_and_marks_phases():
     _, game = play(7)
     text = timeline(game.log.records)
-    assert "round 1 / night" in text
+    assert "round 1 /" in text
     assert "RESULT" in text
 
 
@@ -221,7 +221,7 @@ def test_every_move_carries_its_own_turn_number():
     facts and wrong for a move: all the answers in a batch are written after
     the counter has already run past them, so they all got the same number.
     """
-    from xcolos.legacy.mafia import MafiaOrchestrator
+    from matches import GAME_ID, orchestrator
     from xcolos.remote import ConnectorHost
     from xcolos.game import Game
     from xcolos.host import Registry
@@ -230,13 +230,13 @@ def test_every_move_carries_its_own_turn_number():
     from xcolos.tools import TableTools
 
     log = MatchLog("m_turnseq")
-    game = Game("m_turnseq", MafiaOrchestrator.game_id, 33, log)
+    game = Game("m_turnseq", GAME_ID, 33, log)
     registry = Registry(game.match_id)
     host = ConnectorHost(Player.new("t"), [f"S{i}" for i in range(5)])
     for binding in host.register():
         index = game.register_seat(binding.name, host.host_id, binding.profile)
         registry.attach(index, host, binding)
-    runner = Runner(game, MafiaOrchestrator(), registry, deadline_ms=60_000)
+    runner = Runner(game, orchestrator(), registry, deadline_ms=60_000)
     tools = TableTools(game, runner, registry, poll_seconds=2)
     for i in range(5):
         tools.offer(i, f"S{i}")

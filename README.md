@@ -1,6 +1,6 @@
 # xcolos
 
-The AI Colosseum. A runtime for hidden-role social deduction games played by LLM agents.
+The AI Colosseum. A runtime for multi-player games of hidden information, played by LLM agents.
 
 ## Layers
 
@@ -10,7 +10,27 @@ The AI Colosseum. A runtime for hidden-role social deduction games played by LLM
 | **Orchestrator** | Game-aware. Decides what happens next. Never touches an agent, never writes state directly |
 | **Client** | Hosts the agents that occupy seats. Relays messages. Decides nothing |
 
-There is no broadcast channel. The orchestrator emits facts with an explicit audience, and the kernel pushes each entitled seat its own view. A seat cannot receive something that was never selected for it.
+There is no broadcast channel. The orchestrator emits facts with an explicit audience, and the kernel
+pushes each entitled seat its own view. A seat cannot receive something that was never selected for it.
+
+## Games are data
+
+A game is a JSON file, not Python. Each one declares its state in an `attributes` block, where every
+field carries a visibility and a type:
+
+```json
+{"key": "coins",        "visible": "public", "type": "number", "initial": 2}
+{"key": "hidden_cards", "visible": "ally",   "type": "list",   "initial": []}
+{"key": "deck",         "visible": "none",   "type": "list",   "initial": [...]}
+```
+
+`visible` is one of `public`, `ally` or `none`, and the kernel enforces it. Because visibility is a
+kernel concept rather than a per-game convention, "which facts are hidden from seat N" is an engine
+query that works the same way for every game.
+
+The library holds seven games: `coup`, `mafia`, `auction`, `agram`, `assurance_game`,
+`battle_of_wits` and `rps`. The agent's playing guide is identical for all of them — the server
+sends each game's rules at the start of play, so nothing in the client names a game.
 
 ## Running it
 
@@ -33,7 +53,23 @@ python3 -m xcolos.cli --seed 7 --seat 3
 python3 run_tests.py
 ```
 
-`run_tests.py` prefers real pytest and falls back to a small shim in `tests/`, because no package index is reachable from this machine.
+`run_tests.py` prefers real pytest and falls back to a small shim in `tests/`, because no package
+index is reachable from this machine.
+
+## Generating games
+
+`gen_inventory/` crawls curated sources and rates each candidate against what the engine can express,
+then gates the survivors. Anything a game needs that the engine lacks is recorded, which is how
+missing engine features get found.
+
+`gen_game/` takes a candidate through design, spec, build and evaluation: a designer model works the
+idea into concrete rules, an independent critic must find them balanced and playable, a coder writes
+the game file against a spec, a separate model writes scenario tests from the spec alone, and the
+pipeline re-checks the file rather than trusting the coder. Tier 0 asks whether the game is valid,
+terminates, and replays identically from the same seed. Tier 1 asks whether a thoughtless strategy
+loses sometimes, whether chance decides too much, and whether the game stays inside the engine's
+complexity limits. Every failure is triaged into one of three outcomes: fix the file, revise the
+rules, or log a platform limit as engine work.
 
 ## Layout
 
@@ -41,56 +77,20 @@ python3 run_tests.py
 xcolos/
   kernel:   state.py, game.py, protocol.py, render.py
   client:   host.py, agents.py
-  game:     orchestrators/, flow/ (the flow engine that runs game files)
-  games:    games/library/ (one JSON file per game)
+  game:     orchestrators/
   record:   log.py, transcript.py
   surfaces: cli.py, web/
-gen_inventory/  find candidate games and keep an inventory of them
-gen_game/       turn an inventory game into a game file, and test it
-design/         design documents and reviews
-project/        the product overview
+
+gen_inventory/   candidate discovery and gating
+gen_game/        design -> spec -> build -> evaluate
+design/          design documents and reviews
+project/         the product overview
 ```
-
-## Games are data
-
-No game is hard-coded in Python. Each game is a JSON file in `xcolos/games/library/`, run by the flow
-engine: `assurance_game`, `auction`, `battle_of_wits`, `mafia`, `mafia_oracle` and `rps` on this branch.
-A game file declares its `attributes`, `deal`, `setup`, `steps`, `end`, `reveal` and `limits`. Every
-attribute says who may see it:
-
-```json
-"attributes": {
-  "player": [
-    {"key": "role",    "visible": "ally",   "type": "text", "values": ["mafia", "detective", "villager"]},
-    {"key": "faction", "visible": "ally",   "type": "text", "values": ["good", "evil"]}
-  ]
-}
-```
-
-`visible` is `public`, `ally` or `none`; `type` is `number`, `list`, `bool` or `text`. The kernel uses it
-to decide what each seat is shown.
-
-## Generating games
-
-Two tools beside the platform produce new games. Nothing in `xcolos/` imports them.
-
-- `gen_inventory/` finds candidate games from curated sources, rates each one's fit with what the
-  engine can express, extracts its rules into a fixed vocabulary and runs gates. Anything a game needs
-  that the engine lacks is recorded, which is how missing engine features are found. See
-  `gen_inventory/README.md`.
-- `gen_game/` turns an inventory game into a game file. A designer model works out the rules and a
-  separate critic must find them balanced, playable and rewarding reasoning over luck. A coder writes
-  the game file, an independent model writes scenario tests from the spec, and automatic checks test
-  that the game is valid, ends, replays the same from the same seed, is not always won by a thoughtless
-  policy and is not decided by chance. Failures are triaged back to the coder, back to the designer, or
-  recorded as engine work. See `gen_game/README.md`.
-
-A generated game stays in `gen_game/data/` until a person copies it into `xcolos/games/library/`.
 
 ## Status
 
-Built: the kernel, the message protocol, the turn loop, visibility, the client and server split,
-complete structured logging, the flow engine that runs games from JSON files, the game library above,
-and the generation tools.
+The kernel, message protocol, turn loop, visibility model, client/server split and structured logging
+are built. Games are JSON files run by the flow engine; no game is hard-coded in Python. Seven
+games are in the library and the generation pipeline has produced game files of its own.
 
 See `design/` for the current design and the review that shaped it.

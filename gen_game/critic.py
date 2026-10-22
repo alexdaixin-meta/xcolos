@@ -64,7 +64,7 @@ SHOW YOUR WORK as evidence:
   reasoning_over_luck
     What decides who wins: inference, planning and opponent modelling, or the random draw? Estimate how much of
     the result is chance. Also work out the outcome when every player follows the intended good strategy: if the winner is
-    then decided by a random draw (a hidden type, a deal), it fails. If a player who reasons well is not clearly favoured over one who does not, or if chance
+    then decided by the random draw alone (a hidden type, a deal), it fails; a random deal that good play can overcome is fine and adds variety. If a player who reasons well is not clearly favoured over one who does not, or if chance
     alone often decides the winner, it fails. Is there something to infer (hidden information, an opponent's type or
     likely move) and a way to act on it?
 

@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Protocol
 
 from gen_game import harness
+from gen_game import lint as tracelint  # `lint` here is the known-mistakes check
 from gen_game.repair import refused
 from gen_inventory.crawl import first_json
 from xcolos.games.definition import Condition, DefinitionError, GameDefinition
@@ -49,6 +50,33 @@ MISTAKES = """- Mistakes the loader has refused before, so avoid them:
   * Do not write a `deal` block unless it has the `into` it requires. Set starting values with `initial` on
     attributes, or with `set` operations in `setup`, instead.
   * Every key must be one the reference lists for that action; a misspelled or invented key is refused.
+  * TALK that everyone hears is a `poll` with a free-text answer and `"broadcast": {"to": "all", "text": "Seat {seat} says: {value}"}`
+    (or `"broadcast": "all"` with no `text`, which shows each message word for word). A broadcast may use ONLY `{value}` (what that
+    player answered), `{seat}` (who) and table attributes: a name bound by `verify` is not set yet, so `{talk_msg}` reaches players as
+    the literal braces, and the loader refuses it.
+  * WHO answered what (who challenged, who blocked, who raised a hand) is `"store": "attr"` on the `poll` or `ask`, naming a PLAYER
+    attribute declared under `attributes.player` (a `text` attribute for a choice). Each player's own answer is written to it and a calc reads
+    them all: `count(p.said == 'Challenge' for p in players)`, `min([p.seat for p in players if p.said == 'Challenge'])`. A `verify`
+    tally gives ONE winning value and loses who gave which: one "Challenge" against three "Pass" tallies to "Pass". Never write a seat
+    number into a calc by guessing (`2 if active_seat == 1 else 1`); read it from a stored answer. Reset the stored attribute with a `set`
+    to `""` (`players: "all"`) before each poll, so last round's answers do not count.
+  * `meta.players` carries `min`, `max` and `suggested`, exactly as the task gives them: the console fills a table to the suggested size and the real-model tests play at it.
+  * THE RULES TEXT SAYS BOTH OUTCOMES. For every decision point (a challenge, a block, a claim, a cost), say what happens when it is true AND when it is false,
+    and whether the action still goes ahead; a player decides on this text and nothing else, and a check compares it with each numbered rule.
+  * THE RULES TEXT PLAYERS READ IS THE DESIGN'S. `meta.rules` (the brief) says each mechanic in the design's own words and in its order: how a challenge is resolved,
+    what a block costs, who counts when several answer. Do not paraphrase a mechanic: a reordered sentence is a different rule.
+  * BOOKKEEPING IS HIDDEN. An attribute that only the game's own steps read (a scratch value, a counter, a copy of an option list, who is blocking) is declared
+    hidden (`none` on the table, `ally` on a player), not `public`: every public attribute is printed into every player's prompt on every turn.
+  * THE DEAL REMOVES WHAT IT DEALS. Every card put into a hand is taken out of the deck in the same step (see the deck recipe); after setup, deck plus hands holds
+    exactly the cards the rules start with, and no card appears more often than the rules say.
+  * OFFER ONLY WHAT A SEAT MAY DO. Build each seat's option list from its own state (see the offer pattern) and never refuse an answer afterwards
+    and ask again: an option that is offered, taken and then taken back fails the pipeline's check.
+  * A QUESTION WITH ONE POSSIBLE ANSWER IS NEVER WORTH ASKING ("pass" and nothing else): the engine answers it itself, but write the step so
+    it is not asked at all, and never announce a seat's answer when the seat was not asked (eliminated players).
+  * ASK ONLY WHAT IS NEEDED. Put a `when` on a question that applies only sometimes: a target is asked only for the actions that take one
+    (`"when": {"calc": "chosen_action in ['Steal', 'Assassinate', 'Coup']"}`), a block only when something can be blocked.
+  * A counter must not go below what the rules allow. Guard every payment and loss with an `if` (`"if": {"calc": "you.coins >= cost"}`,
+    or check it before the action is allowed), and treat an action the player cannot afford as the cheapest legal one, as the rules say.
   * An answer to an `ask` or a `poll` exists ONLY if the step binds it with `verify: {"bind": "name"}`; a later `update`
     stores it with `"value": "$name"` (see the `rps` example, `card1`). A step that asks and binds nothing throws the
     answers away, and every score that depends on them stays at its starting value.
@@ -72,13 +100,11 @@ Rules for this task:
   as an attribute with its value, never as a number buried in a step, so a number is written once.
 - The outcome must follow from arithmetic. Every ending's `when` is a {{"calc": ...}} condition and its
   `result` is one of the spec's result names exactly. Do not use `winner` or prose conditions, and no step uses
-  `llm`: every step uses `text`. An ENDING is the one place `llm` belongs (see ENDING STATEMENT below).
-- ENDING STATEMENT. The end screen must say more than who won. Every ending's `text` states the final figures that
+  `llm` anywhere, endings included: every step and every ending uses `text`.
+- ENDING STATEMENT. The end screen announces the result only: who won (or a draw) and the final figures that
   decided it, written with placeholders over the final state, such as "Seat 1 wins. Final scores: Seat 1
-  {{players[0].score}}, Seat 2 {{players[1].score}}, Seat 3 {{players[2].score}}; target {{target}}." Also give each ending
-  an `llm` that asks a model for a short summary of how the game went and why that result came out (what each player did,
-  the turning point), `text` stays as the fallback and must be complete on its own. The model only words the
-  announcement; the `result` is still decided by the calc.
+  {{players[0].score}}, Seat 2 {{players[1].score}}, Seat 3 {{players[2].score}}; target {{target}}." One or two lines.
+  Do not retell the game or explain the process (no turning points, no what-each-player-did).
 - meta.id and meta.name come from the spec; give `meta.blurb` one line and write `rules` as the rules a
   player reads, using {{key}} for public attributes.
 - Do what the spec says, in its order. Do not add mechanics.
@@ -258,8 +284,8 @@ def model_use(defn: GameDefinition) -> list[str]:
             found.append(f"ending {rule.name!r} has a prose condition; write it as a calc")
         if rule.winner:
             found.append(f"ending {rule.name!r} uses `winner`; use `result` with a calc condition")
-        if rule.llm and not rule.text:
-            found.append(f"ending {rule.name!r} uses `llm` with no `text`; the `text` (final scores and the deciding figures) is the fallback and is required")
+        if rule.llm:
+            found.append(f"ending {rule.name!r} uses `llm`; the ending only announces the result, so use `text` (winner and final figures)")
 
     def walk(steps, where):
         for s in steps:
@@ -288,7 +314,8 @@ class Encoded:
         return self.definition is not None
 
 
-def check(text_or_obj, game_id: str, constants: set[str] = frozenset(), tests: list[dict] | None = None) -> tuple[dict | None, GameDefinition | None, str]:
+def check(text_or_obj, game_id: str, constants: set[str] = frozenset(), tests: list[dict] | None = None,
+          players: dict | None = None) -> tuple[dict | None, GameDefinition | None, str]:
     """Load and vet one reply. Returns (game, definition, problem); problem is '' if it passed.
 
     `constants` are the spec's parameter keys, which are meant never to change. `tests` are independent
@@ -307,6 +334,8 @@ def check(text_or_obj, game_id: str, constants: set[str] = frozenset(), tests: l
                 raise ValueError(f"the JSON did not parse. {hint or 'No JSON object was found in the reply.'} "
                                  "A closing } or ] is usually missing or extra there; count the brackets of what you wrote.") from None
         obj.setdefault("meta", {})["id"] = game_id  # the id is the inventory's, not the model's
+        if players:  # so is the table size: min, max and suggested are the spec's decision, written here and never left to the coder
+            obj["meta"]["players"] = {k: players[k] for k in ("min", "max", "suggested") if k in players}
         if (mistakes := lint(obj)):
             return None, None, "known mistakes, all of them: " + " | ".join(mistakes)
         defn = load(json.dumps(obj), source=game_id)
@@ -323,9 +352,30 @@ def check(text_or_obj, game_id: str, constants: set[str] = frozenset(), tests: l
     b = harness.play(defn, harness.random_agents(defn.min_players, 1), 1)
     if a.comparable_log() != b.comparable_log():
         return obj, None, "playing the same seed twice gave different logs: something in the game is not deterministic (a clock, an unseeded draw)"
+    found = tracelint.scan(a.game.log.records)
+    literal = [f for f in found if f.startswith("placeholder:")]
+    if literal:
+        return obj, None, "players are sent text with a `{name}` that was never filled in: " + " | ".join(literal[:3])
+    from gen_game import harness as _h
+
+    heard = _h.listening_agents(defn.min_players, 1)
+    _h.play(defn, heard, 1)
+    found = found + tracelint.scan_bodies([b for a in heard for b in a.bodies])
+    literal = [f for f in found if f.startswith("placeholder:")]
+    if literal:
+        return obj, None, "players are sent text with a `{name}` that was never filled in: " + " | ".join(literal[:3])
+    blank = [f for f in found if f.startswith("blank:")]
+    if blank:
+        return obj, None, "the state shown to players is full of empty internal fields (see the bookkeeping rule): " + blank[0]
+    for n in sorted({defn.min_players, defn.max_players}):
+        for seed in (1, 2, 3):  # a refusal only shows when a random seat happens to pick the wrong option
+            refused = [f for f in tracelint.scan(harness.play(defn, harness.random_agents(n, seed), seed).game.log.records) if f.startswith("refused:")]
+            if refused:
+                return obj, None, "an option is offered and then refused (see the offer-only-what-is-allowed pattern): " + " | ".join(refused[:2])
     if (dead := dead_attributes(defn, set(constants))):
         return obj, None, ("it plays, but part of it does nothing: " + explain_dead(dead, obj) +
-                           ". Declare only attributes the game uses, and make sure each one is set by a step that actually runs.")
+                           ". Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: "
+                           "write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.")
     if tests:
         from gen_game import scenarios
 
@@ -370,7 +420,7 @@ def encode(completion: Completion, spec: dict, game_id: str, repairs: int = 4, o
             continue
         outages = 0
         attempt += 1
-        obj, defn, problem = check(reply, game_id, set(spec.get("parameters", {})), tests)
+        obj, defn, problem = check(reply, game_id, set(spec.get("parameters", {})), tests, spec.get("players"))
         out.attempts.append(problem)
         if not problem:
             out.game, out.definition = obj, defn

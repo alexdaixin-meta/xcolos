@@ -1,0 +1,344 @@
+{
+  "name": "Agram Match",
+  "summary": "6-hand trick game where only trick 6 of each 6-card hand scores 1 point; most hand wins after 6 hands wins.",
+  "players": {
+    "min": 3,
+    "max": 4,
+    "suggested": 4
+  },
+  "parameters": {
+    "standard_cards": 52,
+    "removed_face_cards": 12,
+    "removed_deuces": 4,
+    "removed_ace_of_spades": 1,
+    "remaining_cards": 35,
+    "num_hands": 6,
+    "cards_per_player": 6,
+    "deal_batches": 2,
+    "deal_batch_size": 3,
+    "tricks_per_hand": 6,
+    "scoring_trick": 6,
+    "hand_win_points": 1
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "hidden 6 cards dealt this hand, shrinking to 0",
+        "observable": false
+      },
+      {
+        "key": "match_points",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "hands won 0-6, 1 per trick-6 win",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "type": "list",
+        "visible": "none",
+        "initial": [
+          "AH",
+          "10H",
+          "9H",
+          "8H",
+          "7H",
+          "6H",
+          "5H",
+          "4H",
+          "3H",
+          "AD",
+          "10D",
+          "9D",
+          "8D",
+          "7D",
+          "6D",
+          "5D",
+          "4D",
+          "3D",
+          "AC",
+          "10C",
+          "9C",
+          "8C",
+          "7C",
+          "6C",
+          "5C",
+          "4C",
+          "3C",
+          "10S",
+          "9S",
+          "8S",
+          "7S",
+          "6S",
+          "5S",
+          "4S",
+          "3S"
+        ],
+        "meaning": "35-card stock to deal from",
+        "observable": false
+      },
+      {
+        "key": "stub",
+        "type": "list",
+        "visible": "none",
+        "initial": [],
+        "meaning": "undealt remainder never viewed and takes no part",
+        "observable": false
+      },
+      {
+        "key": "discard_pile",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "cards removed after each trick",
+        "observable": false
+      },
+      {
+        "key": "dealer_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "current hand dealer, random hand 1 then clockwise",
+        "observable": false
+      },
+      {
+        "key": "hand_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "current hand 1-6",
+        "observable": false
+      },
+      {
+        "key": "trick_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "current trick 1-6 within hand",
+        "observable": false
+      },
+      {
+        "key": "lead_suit",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "suit led this trick",
+        "observable": false
+      },
+      {
+        "key": "trick_cards",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "cards played face-up this trick in seat order",
+        "observable": false
+      },
+      {
+        "key": "trick_winner",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "winner of last trick and leader of next trick",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Build the 35-card deck: hearts diamonds clubs A-10-9-8-7-6-5-4-3 plus spades 10-9-8-7-6-5-4-3 with no kings queens jacks deuces and no ace of spades.",
+    "Set every player's match_points to 0 and hand to empty and discard_pile and stub to empty.",
+    "Set hand_number to 1 and choose dealer_seat at random for hand 1.",
+    "Hands stay hidden and no discussion messages are used."
+  ],
+  "round": [
+    {
+      "action": "initialize",
+      "who": "all players",
+      "answer": null,
+      "effect": "reset deck to 35 cards, clear hand stub discard_pile trick_cards, deal 6 cards to each hand from deck in two batches of 3 clockwise from left of dealer_seat, remainder to stub, set trick_number to 1 and trick_winner to left of dealer_seat"
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "send each player their own hand"
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "announce hand_number dealer_seat and trick leader"
+    },
+    {
+      "action": "ask",
+      "who": "each player in turn",
+      "answer": {
+        "type": "choice",
+        "from": "hand",
+        "restricted_to": "legal cards only: leader any card in hand, follower holding led suit only cards of lead_suit, follower void any card"
+      },
+      "effect": "play one card from hand to trick_cards, set lead_suit from first card, remove card from hand"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "rank trick_cards by rank of lead_suit only, highest wins, off-suit cannot win, set trick_winner, move trick_cards to discard_pile, clear trick_cards and lead_suit, increment trick_number unless it was 6"
+    },
+    {
+      "action": "repeat",
+      "who": "all players",
+      "answer": null,
+      "effect": "repeat play-card and resolve-trick steps until trick_number equals 6 completed tricks"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "add hand_win_points 1 to match_points of trick_winner of trick 6, others add 0"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "rotate dealer_seat clockwise by 1 and increment hand_number by 1 and reset trick_number to 1 for next hand"
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "continue if hand_number <= num_hands 6, else end match"
+    }
+  ],
+  "ending": {
+    "condition": "hand_number > 6",
+    "results": [
+      "seat 1",
+      "seat 2",
+      "seat 3",
+      "seat 4",
+      "draw"
+    ],
+    "decided_by": "seat with highest match_points wins; if two or more tie for most then draw"
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "When the deck is built, then it has 35 cards: hearts diamonds clubs A-10-9-8-7-6-5-4-3 and spades 10-9-8-7-6-5-4-3 with no kings queens jacks, no deuces, and no ace of spades."
+    },
+    {
+      "id": "R2",
+      "text": "When a card is ranked, then hearts diamonds clubs rank A above 10 above 9 above 8 above 7 above 6 above 5 above 4 above 3, and spades rank 10 above 9 above 8 above 7 above 6 above 5 above 4 above 3."
+    },
+    {
+      "id": "R3",
+      "text": "When a trick is won, then suits are not ranked and only the led suit matters."
+    },
+    {
+      "id": "R4",
+      "text": "When the match is played, then it has 6 hands."
+    },
+    {
+      "id": "R5",
+      "text": "When hand 1 starts, then dealer_seat is chosen at random, and when each later hand starts, then dealer_seat rotates clockwise by 1."
+    },
+    {
+      "id": "R6",
+      "text": "When a hand is dealt, then each player receives 6 cards in two batches of 3 clockwise from left of dealer, and remaining cards form a face-down stub that is never viewed and takes no part."
+    },
+    {
+      "id": "R7",
+      "text": "When a hand is played, then it has 6 tricks and hands shrink from 6 to 0 as cards are removed after each trick."
+    },
+    {
+      "id": "R8",
+      "text": "When trick 1 starts, then the player left of dealer leads any card face up."
+    },
+    {
+      "id": "R9",
+      "text": "When a follower holds any card of the led suit, then they must play a card of the led suit, and when they hold none, then they may play any card."
+    },
+    {
+      "id": "R10",
+      "text": "When a trick is decided, then the highest rank of the led suit wins and an off-suit card cannot win."
+    },
+    {
+      "id": "R11",
+      "text": "When a trick ends, then the trick winner leads any card to the next trick."
+    },
+    {
+      "id": "R12",
+      "text": "When tricks 1-5 end, then they score nothing except determining who leads next."
+    },
+    {
+      "id": "R13",
+      "text": "When trick 6 ends, then its winner wins the hand outright and scores 1 final point and all other players score 0 for the hand."
+    },
+    {
+      "id": "R14",
+      "text": "When a card is played, then it is shown to all players, and when a hand is held, then it is otherwise hidden and no discussion messages are used."
+    },
+    {
+      "id": "R15",
+      "text": "When a player chooses a card, then only legal cards are offered so not following when able is not allowed."
+    },
+    {
+      "id": "R16",
+      "text": "When 6 hands are complete, then the player with the most final points wins, and when two or more tie for most, then the result is a draw among all players."
+    }
+  ],
+  "offers": [
+    {
+      "question": "play a card",
+      "who": "each player in turn in clockwise order from trick leader",
+      "options": "leader: any card in hand; follower holding led suit: only cards of lead_suit in hand; follower void in led suit: any card in hand; off-suit and illegal follow options are never offered"
+    }
+  ],
+  "choices": [
+    {
+      "what": "3 to 5? no: 3 to 4 players with suggested 4",
+      "why": "source says 3 to 4 and designer fixes suggested 4; minimum 3 because with 2 there is no multi-way trick race or void signalling and trick-6 timing is trivial; maximum 4 because a larger table makes one trick-6 win too diluted and turns too long to read discards"
+    },
+    {
+      "what": "thoughtful play at 4: save a high card of a suit others are void in for trick 6, read follow/void signals, lead suits to exhaust rivals",
+      "why": "only trick 6 scores so trick 1-5 are about gaining lead and gathering information while preserving a trick-6 winner"
+    },
+    {
+      "what": "no talk poll; card plays only",
+      "why": "source bans discussion so hands stay hidden; simultaneous poll talk would add noise and leak hands, so only sequential play asks are used"
+    },
+    {
+      "what": "card codes like AH 10S and arithmetic rank values for trick compare",
+      "why": "engine has no card type so text codes plus arithmetic on led-suit ranks decide trick_winner, never model opinion"
+    },
+    {
+      "what": "all numbers fixed as filed; no open payoff to choose",
+      "why": "source gives every count so parameters copy them directly"
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "shuffle and two rounds of 3 via random draws with remove from deck and append to hand, remainder to stub",
+      "why": "engine has no physical shuffle; shared_deck_draw workaround uses list operations"
+    },
+    {
+      "what": "trick winner computed by arithmetic rank compare on trick_cards of lead_suit in an update step",
+      "why": "engine decides outcomes by arithmetic, not by opinion"
+    },
+    {
+      "what": "trick loop and hand loop via repeat plus check on trick_number and hand_number with dealer rotation update",
+      "why": "step list is flat so counted repetition replaces manual redeal flow"
+    },
+    {
+      "what": "stub enforced by none visibility and never referenced after deal; discard_pile holds removed cards",
+      "why": "engine needs stated state for dealt and removed cards"
+    }
+  ],
+  "unsupported": []
+}

@@ -1,0 +1,92 @@
+{
+ "verdict": "gaps",
+ "summary": "Every state change in this 7-turn, 4-player match follows the DESIGN and SPEC. I recomputed coins, hidden counts and the deck count of 7 each turn, and checked challenge priority, block priority, costs paid with no refund, the double elimination in turn 6 and the win. The gaps are all low severity: the closing summary told to the table gets several facts wrong, the rules brief describes the challenge reshuffle in a different order from the DESIGN, the state lines players see are cluttered raw dumps with empty fields, and the DESIGN does not say where a proven card goes in the deck before an Exchange draw.",
+ "findings": [
+  {
+   "id": "F1",
+   "where": "end of game, the ending told to all seats",
+   "observed": "The summary says seat 1 lost Ambassador 'after seat 3's failed challenge'. It also says seats 2 and 4 both lost Assassin while challenging seat 3's turn-3 Tax, and that seat 4's Exchange made seat 2 lose 'another' influence.",
+   "expected": "Seat 1 lost Ambassador because its own challenge of seat 2's Captain block failed (turn 1). In turn 3 only seat 4 lost a card, because it was the first challenger after seat 3 (DESIGN step 4, SPEC R23). Seat 2 lost its first card, Assassin, in turn 4. The announced ending should match the transcript.",
+   "category": "engine",
+   "severity": "low",
+   "fix": "Build the ending summary from the logged events (who lost which card and why), or check the model-written summary against the event log before announcing it."
+  },
+  {
+   "id": "F2",
+   "where": "rules brief (GAME_START), challenge paragraph",
+   "observed": "The brief says a proven claimer 'reveals it, shuffles it into the deck and draws a replacement'.",
+   "expected": "The DESIGN says the claimer first takes the top card as a replacement, then puts the revealed card into the deck, and the deck is shuffled once at the end of the turn. The brief also never says that when a block is challenged, only the first challenger after the blocker counts (DESIGN step 5).",
+   "category": "prompt",
+   "severity": "low",
+   "fix": "Reword: 'reveals it, draws a replacement from the top of the deck, then puts the revealed card into the deck (the deck is shuffled at the end of the turn)'. Add: 'if several challenge a block, only the first after the blocker counts'."
+  },
+  {
+   "id": "F3",
+   "where": "every turn, the 'You start with' and 'Your hidden cards' lines (e.g. turn 1 and turn 4, seat 1)",
+   "observed": "Each question includes a raw state dump with empty fields ('action ,', 'block_role ,', 'claimed_role ,', 'winner .') and constants (copies_per_role 3, deck_size 15, exchange_draw 1, ...). The 'Your hidden cards' line repeats the whole dump instead of just the cards.",
+   "expected": "PROMPT: give each player their own state and the public state clearly, without empty or repeated fields. Nothing hidden leaked: each seat saw only its own hidden_cards.",
+   "category": "prompt",
+   "severity": "low",
+   "fix": "Make 'Your hidden cards' show only the seat's hidden cards and coins. Leave out empty per-turn fields and fixed constants (or show the constants once in the brief)."
+  },
+  {
+   "id": "F4",
+   "where": "round 4, seat 4",
+   "observed": "Seat 4 (1 hidden card, Ambassador) proved Ambassador, put it into the deck and drew a replacement. The Exchange then drew 1 more card. The return options were ['Ambassador', 'Captain'], so a card that was just returned may have been drawn straight back. The transcript cannot tell this apart from the third Ambassador being on top.",
+   "expected": "The DESIGN says the revealed card is 'put into the deck', but not where (top, bottom, set aside). Because returned cards are shuffled in only at the end of the turn, an Exchange in the same turn can draw back the card just proven, which makes the replacement meaningless.",
+   "category": "design",
+   "severity": "low",
+   "fix": "State in the DESIGN, and put in the game file, that proven or returned cards go to the bottom of the deck (or are set aside) until the end-of-turn shuffle. Then a same-turn Exchange draw cannot take one back."
+  }
+ ],
+ "rules_seen": [
+  "R1",
+  "R2",
+  "R3",
+  "R8",
+  "R10",
+  "R11",
+  "R12",
+  "R14",
+  "R18",
+  "R19",
+  "R20",
+  "R21",
+  "R23",
+  "R25",
+  "R28",
+  "R29",
+  "R30",
+  "R31",
+  "R32",
+  "R33",
+  "R34",
+  "R36",
+  "R37",
+  "R38",
+  "R40",
+  "R41",
+  "R42",
+  "R43",
+  "R44"
+ ],
+ "rules_not_seen": [
+  "R4",
+  "R5",
+  "R6",
+  "R7",
+  "R9",
+  "R13",
+  "R15",
+  "R16",
+  "R17",
+  "R22",
+  "R24",
+  "R26",
+  "R27",
+  "R35",
+  "R39",
+  "R45"
+ ],
+ "idea_alignment": "This is still the Coup in the IDEA: bluffed role claims, challenges, blocks and counterclaims, losing influence, elimination, last player standing. The only changes seen are ones the DESIGN lists with reasons (simultaneous reaction polls, seat-order priority, the 1-draw Exchange, 1 starting coin for the first player, losses resolved at end of turn)."
+}

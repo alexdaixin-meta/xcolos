@@ -147,6 +147,10 @@ class MatchLog:
             # human scanning the file needs first.
             self._handle.write(encoded + "\n")
             self._handle.flush()
+        elif self.path is not None:
+            # Closed when the match concluded, yet something is still to be said (the post-game review): append, don't lose it.
+            with self.path.open("a", encoding="utf-8") as fh:
+                fh.write(encoded + "\n")
         return rec
 
     def close(self) -> None:

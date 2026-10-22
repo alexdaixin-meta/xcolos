@@ -1,0 +1,53 @@
+{
+ "verdict": "gaps",
+ "summary": "I recomputed all 36 tricks and every one follows the rules: the cards offered were legal, the follow-suit rule held, off-suit cards never won, the trick winner led next, the dealer rotated 3\u21924\u21921\u21922\u21923\u21924, and the trick-6 winner scored. Hand wins were seat 1: 1, seat 2: 1, seat 3: 2, seat 4: 2, so declaring a draw was correct. The final announcement leaves out seat 4, who tied for most, and the players were never shown the standings during the match.",
+ "findings": [
+  {
+   "id": "F1",
+   "where": "round 36, ending announcement",
+   "observed": "'A draw: two or more players tie for the most hands won. Final hands won: seat 1 1, seat 2 1, seat 3 2.' Seat 4 is missing, though it won hands 3 and 6 and has 2 points, tied with seat 3.",
+   "expected": "Final hands won: seat 1 1, seat 2 1, seat 3 2, seat 4 2. Seat 4 is one of the players tied for most (SPEC R13, R16).",
+   "category": "game_file",
+   "severity": "major",
+   "fix": "Fix the ending summary so it lists every seat's match_points. Check whether the loop or template drops the last seat. If the summary is built by the engine's generic end-summary code, fix it there."
+  },
+  {
+   "id": "F2",
+   "where": "between hands (rounds 6/7, 12/13, 18/19, 24/25, 30/31)",
+   "observed": "The round order the players were shown includes 'the standings', but no standings message appears in the transcript. The private 'Your hand' state line has no match_points either. Players can only rebuild the score from the hand-result announcements.",
+   "expected": "match_points is listed as public state, and the round order promises a standings step, so the running score should be announced after each hand (PROMPT, state list).",
+   "category": "game_file",
+   "severity": "minor",
+   "fix": "Make the standings phase announce every seat's match_points after each hand, or add match_points to the per-hand state line."
+  },
+  {
+   "id": "F3",
+   "where": "every hand, 'Your hand for this deal' messages",
+   "observed": "The hand message dumps raw state: the build constants cards_per_player, deal_batch_size, deal_batches, standard_cards, removed_face_cards, removed_deuces, removed_ace_of_spades and remaining_cards 35; an empty 'lead_suit ,'; and 'trick_winner 4' before any trick has been played (a stale or default value). It also repeats 'You are seat N' and adds 'still playing' / 'Living seats' lines that mean nothing in this game.",
+   "expected": "Show only the player's hand and the state that bears on play (hand number, dealer, who leads, standings) (PROMPT clarity).",
+   "category": "prompt",
+   "severity": "minor",
+   "fix": "Hide the build constants and empty or default fields from the per-player state line. Reset trick_winner or hide it until a trick has been decided. Drop the living-seats line for games with no elimination."
+  }
+ ],
+ "rules_seen": [
+  "R1",
+  "R2",
+  "R3",
+  "R4",
+  "R5",
+  "R6",
+  "R7",
+  "R8",
+  "R9",
+  "R10",
+  "R11",
+  "R12",
+  "R13",
+  "R14",
+  "R15",
+  "R16"
+ ],
+ "rules_not_seen": [],
+ "idea_alignment": "It is still the IDEA's game: a trimmed 35-card deck, must-follow, off-suit cards can never win, and winning trick 6 wins the hand. The only change, a 6-hand match with a draw on a tie, is listed in the DESIGN with its reason. (The 3-at-a-time dealing in R6 cannot be observed from the transcript.)"
+}

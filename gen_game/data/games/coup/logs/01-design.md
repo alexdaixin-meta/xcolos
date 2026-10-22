@@ -1,0 +1,145 @@
+# 01 design
+
+- time: 2026-10-09T20:53:38+00:00 (137.3s)  model: 
+- system prompt: [system/7690bdee-design.md](system/7690bdee-design.md) (sha256 7690bdee5db5fe2b)
+- sent sha256 d9e5be7f84159d64, reply sha256 2040cb2c9824feee
+
+## Sent
+
+````
+Original game: Coup
+Players in the original: 2 to 6
+
+Idea, as filed:
+Each player starts with two face-down influence cards from a shuffled deck. On your turn you take one action: Income (1 coin), Foreign Aid (2 coins, blockable), or Coup (pay 7 to force an opponent to lose influence). Character actions require claiming a role, even if you don't have it: Duke takes 3 coins and blocks Foreign Aid, Assassin pays 3 to assassinate, Captain steals 2, Ambassador exchanges with deck, Contessa blocks assassination. Any claim can be challenged by any player: the claimant must reveal the claimed role or lose influence; if they reveal it, they shuffle it back and draw new, and challenger loses influence. Some actions have counterclaims. Losing influence means turning one card face up. When both cards are face up you are eliminated. Last player remaining wins.
+````
+
+## Reply
+
+````
+```json
+{
+  "original_summary": "Coup is a bluffing and elimination game for 2 to 6 players. Each player holds two hidden character cards and on their turn takes one action. Character actions require claiming a role, which you may not actually hold. Any player may challenge a claim or block an action with a counterclaim, losing a challenge costs one card, and the last player with a hidden card wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy wins. Always-Income is slow (5 turns to afford a Coup) and gets robbed by Captain claims and assassinated. Always-Pass lets a bluffer take Tax every turn and is run over. Always-Challenge gives up a card to every honest claim and is out within two challenges. Always-Tax (claim Duke) is safe only until someone reckons the Dukes are revealed or unlikely and challenges. The one structural flaw is that the first player in a small game gets a tempo lead, which the original only fixes in its 2-player variant."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Winning depends on when to bluff, whom to challenge, and how to track which roles have been revealed or credibly claimed. Strong players beat weak ones consistently. The deal matters, but bluffing lets a player act as any role, so a bad hand can be played around."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "It is not solved. Reading claim histories, building a believable role story over several turns, and timing aggression against the leader all keep rewarding deeper play. A weak player still gets turns and can still win by a well-timed bluff or Coup."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden, the deck is hidden, and every claim may be a lie. A player has to infer who holds what from claims, from blocks not made, from revealed cards and from the count of 3 copies of each role, and has to model whether an opponent would bluff here."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Every outcome follows mechanically: whether the challenged player holds the role, coin counts, cards revealed, who is still standing. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "Challenges and blocks are open interrupts in the original: whoever speaks first acts, with no defined order. That is effectively real-time, and the engine is turn-based. Ambassador's draw-2-return-2 is a large extra choice. Shuffling a proven card back and redrawing can mean several random events in one turn. The game has no length limit. Everything else fits: hidden hands dealt from a deck, coins, targeted actions and elimination."
+    }
+  ],
+  "problems": [
+    "Challenges and blocks are free-for-all interrupts decided by who speaks first, which a turn-based engine cannot express.",
+    "When several players want to challenge or block the same action, the original does not say who goes first.",
+    "Shuffling a proven card back and drawing a replacement, plus the Ambassador's draws, can put several random events into one turn, and the limit is one.",
+    "The Ambassador's draw 2, return 2 out of 4 adds a large extra decision and drawing, pushing a turn past the choice-step budget.",
+    "Nothing bounds the game's length: passive Income play or mutual caution can drag on indefinitely.",
+    "The first player gets a tempo edge in small games, and the original corrects this only in the 2-player variant.",
+    "Losing influence can happen to several players in one turn (challenger, claimant, blocker, target), and one player can lose two cards in a turn. Each of these needs a defined resolution."
+  ],
+  "changes": [
+    {
+      "what": "Each reaction window is a single simultaneous poll. After an action, every other living player answers Pass, Challenge or Block (with the blocking role) at the same time. After a block, every living player except the blocker answers Accept or Challenge at the same time.",
+      "why": "Turns the speak-first interrupt into a turn-based step while keeping the rule that anyone may challenge and the right players may block.",
+      "fixes": "Challenges and blocks are free-for-all interrupts decided by who speaks first, which a turn-based engine cannot express."
+    },
+    {
+      "what": "Priority rules. A challenge to the action is resolved before any block. If several players challenge, only the first in seat order after the active player counts. If several players block, only the first in seat order counts.",
+      "why": "Gives every collision a single arithmetic answer.",
+      "fixes": "When several players want to challenge or block the same action, the original does not say who goes first."
+    },
+    {
+      "what": "A player who proves a challenged role first takes the top card of the deck as a replacement, then puts the revealed card into the deck. Returned cards stay where they are until the end of the turn, when the deck is shuffled once if any card went back. The game is dealt from one shuffle at the start.",
+      "why": "Keeps the original's reveal-and-replace (a proven role is not left exposed) using at most one random event per turn. The engine's limit of one random draw per round forces this reordering.",
+      "fixes": "Shuffling a proven card back and drawing a replacement, plus the Ambassador's draws, can put several random events into one turn, and the limit is one."
+    },
+    {
+      "what": "Ambassador Exchange becomes: draw 1 card from the deck, then return any 1 of your hidden cards. The return is chosen in the same simultaneous card-choice step where other players pick which card to reveal.",
+      "why": "Keeps the Ambassador's purpose (secretly changing your hand, which supports later bluffs and makes old claims unreliable) inside the platform's limit of 4 choice steps. Draw 2, return 2 would need its own decision step.",
+      "fixes": "The Ambassador's draw 2, return 2 out of 4 adds a large extra decision and drawing, pushing a turn past the choice-step budget."
+    },
+    {
+      "what": "Safety cap of 40 turns (one turn is one player's action). If the cap is reached, the player with the most hidden cards wins, ties are broken by most coins, and a remaining tie is a draw.",
+      "why": "Guarantees the match stops. The tiebreak rewards what the game rewards (staying alive and gaining coins), so stalling is not a safe way to win.",
+      "fixes": "Nothing bounds the game's length: passive Income play or mutual caution can drag on indefinitely."
+    },
+    {
+      "what": "The first player starts with 1 coin, and everyone else starts with 2.",
+      "why": "Offsets the extra tempo of acting first, as the original's own 2-player rule does.",
+      "fixes": "The first player gets a tempo edge in small games, and the original corrects this only in the 2-player variant."
+    },
+    {
+      "what": "Losses are counted as pending during the turn and resolved together at its end. A player with exactly 1 pending loss and 2 hidden cards chooses which card to reveal. A player whose pending losses are at least their hidden cards reveals them all and is eliminated.",
+      "why": "Resolves the original's double loss (for example a failed challenge against an Assassin followed by the assassination) and simultaneous losses by several players in one step, without stopping play for each.",
+      "fixes": "Losing influence can happen to several players in one turn (challenger, claimant, blocker, target), and one player can lose two cards in a turn. Each of these needs a defined resolution."
+    },
+    {
+      "what": "The table is 3 to 5 players, using a 15-card deck.",
+      "why": "Three is the smallest table where the core questions actually arise: who challenges when it is not your coins at stake, whom to target, and the threat of a third player profiting from a fight. Five keeps games within the cap and leaves at least 5 cards in the deck.",
+      "fixes": "Nothing bounds the game's length: passive Income play or mutual caution can drag on indefinitely."
+    }
+  ],
+  "keeps": [
+    "Two hidden influence cards per player, dealt from a shuffled 15-card deck with 3 copies each of Duke, Assassin, Captain, Ambassador and Contessa",
+    "All seven actions with their original costs and effects: Income, Foreign Aid, Coup (7, mandatory at 10 or more coins), Tax (Duke), Assassinate (Assassin, 3), Steal (Captain) and Exchange (Ambassador, reduced to 1 card)",
+    "Claiming any role, whether you hold it or not",
+    "Any player may challenge an action claim, and any player may challenge a block",
+    "Counteractions: Duke blocks Foreign Aid (any player), Contessa blocks Assassinate (target), Captain or Ambassador blocks Steal (target)",
+    "Challenge resolution: a proven claimant swaps the shown card for a new one and the challenger loses influence; a caught bluffer loses influence and the action fails",
+    "Losing influence means revealing a card of your choice, revealed cards stay face up and public, and two revealed cards mean elimination",
+    "One action per turn in seat order",
+    "Last player standing wins"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Coup already rewards inference, bluffing and opponent modelling. It needs only a turn-based reaction window, defined priorities, a one-card Ambassador and a length cap to fit the engine."
+  },
+  "variation": {
+    "name": "Coup (XColos)",
+    "summary": "A 3-to-5-player game of bluffing and elimination. Players hold two hidden role cards, claim roles they may not have, challenge and block in simultaneous reaction windows, and try to be the last one with a hidden card.",
+    "players": {
+      "min": 3,
+      "max": 5
+    },
+    "rules": "COMPONENTS. A deck of 15 cards: 3 each of Duke, Assassin, Captain, Ambassador and Contessa. Each player has a coin count.\n\nSETUP. Shuffle the deck and deal 2 cards face down to each player; only the owner sees them. The rest form the face-down deck. Seat order is fixed. The first player starts with 1 coin and every other player with 2. A player's cards are either hidden or revealed. Revealed cards are face up, public and permanent.\n\nTURNS. Players take turns in seat order, skipping eliminated players. Each turn has these steps.\n\n1. STATE. The engine announces every player's coins, revealed cards and number of hidden cards, plus the number of cards in the deck.\n\n2. ACTION. The active player chooses one action, and a target where the action needs one (any other living player). A player who starts the turn with 10 or more coins must choose Coup. The actions are:\n- Income: take 1 coin. Cannot be challenged or blocked.\n- Foreign Aid: take 2 coins. Cannot be challenged. Any other player may block by claiming Duke.\n- Coup: pay 7 coins (only if you have 7); the target loses 1 influence. Cannot be challenged or blocked.\n- Tax (claims Duke): take 3 coins. Can be challenged.\n- Assassinate (claims Assassin): pay 3 coins (only if you have 3); the target loses 1 influence. Can be challenged. The target may block by claiming Contessa.\n- Steal (claims Captain): take 2 coins from the target, or all the target's coins if they have fewer than 2. Can be challenged. The target may block by claiming Captain or Ambassador.\n- Exchange (claims Ambassador): take the top card of the deck into your hand, then return one of your hidden cards (your choice, made in step 7) to the deck. Can be challenged.\nCosts are paid immediately and are not refunded, even if the action is later blocked or fails a challenge.\n\n3. REACTION. Every other living player answers at the same moment, without seeing the others' answers. The options are:\n- Pass;\n- Challenge, only if the action claims a role;\n- Block as Duke / Block as Contessa / Block as Captain / Block as Ambassador, only where that block is allowed (Duke against Foreign Aid by anyone; Contessa against Assassinate by the target only; Captain or Ambassador against Steal by the target only).\nAll answers are announced.\n\n4. ACTION CHALLENGE. If anyone challenged, only the first challenger in seat order after the active player counts.\n- If the active player holds the claimed role: they reveal it, take the top card of the deck into their hand, and put the revealed card into the deck. The challenger gets 1 pending loss. The action continues.\n- Otherwise the active player gets 1 pending loss and the action fails. Any block is ignored, and the turn goes to step 7.\n\n5. BLOCK. If the action is still going ahead and anyone blocked, only the first blocker in seat order after the active player counts. Every living player except that blocker answers Accept or Challenge at the same moment, and the answers are announced.\n- If nobody challenges, the action is blocked and has no effect.\n- If anyone challenges, only the first challenger in seat order after the blocker counts. If the blocker holds the claimed blocking role, they reveal it, take the top card of the deck, and put the revealed card into the deck; the block challenger gets 1 pending loss and the action is blocked. Otherwise the blocker gets 1 pending loss, the block fails, and the action goes ahead.\n\n6. EFFECT. If the action went ahead (not failed, not blocked), apply it:\n- coins move as stated;\n- Assassinate and Coup give the target 1 pending loss;\n- Exchange gives the active player the top card of the deck and 1 card to return.\n\n7. CARD CHOICE. At the same moment:\n- every player with exactly 1 pending loss and 2 hidden cards chooses which hidden card to reveal;\n- a player who must return a card for Exchange chooses which of their hidden cards to put into the deck.\n\n8. RESOLVE.\n- A player with 1 pending loss and 2 hidden cards reveals the chosen card.\n- A player whose pending losses are equal to or more than their hidden cards reveals all of them and is eliminated. Their coins leave the game.\n- The Exchange card goes into the deck.\n- If any card was put into the deck this turn, the deck is shuffled.\n- Pending losses reset to 0.\nThe engine announces what was revealed (never what was returned).\n\n9. END CHECK. If only one player has hidden cards, that player wins. Otherwise the turn passes to the next living player in seat order.\n\nCAP. If 40 turns have been played without a winner, the game ends. The player with the most hidden cards wins; if tied, the tied player with the most coins wins; if still tied, the game is a draw.\n\nThere is no free discussion. Claims, challenges and blocks are the only communication.",
+    "objective": "The last player with at least one hidden card wins. If 40 turns pass first, the player with the most hidden cards wins, ties are broken by most coins, and any remaining tie is a draw. Everything is decided by counting cards and coins.",
+    "expected_effect": "Three players is the minimum because Coup's decisions involve third parties. You decide whether to spend a card challenging a claim aimed at someone else. You decide whom to target, knowing a third player gains from any fight. Blocking Foreign Aid is a public claim that everyone else can test. Below three, the game becomes a two-player duel.\n\nThe simultaneous reaction window adds a free-rider tension the speak-first original hides. Everyone would like someone else to pay for the challenge, so a player who never challenges lets bluffers take Tax and Steal freely, while one who always challenges gives up cards to honest claims.\n\nA thoughtful player:\n- keeps count: 3 copies per role, minus revealed cards, minus credible claims;\n- tells a consistent role story across turns and bluffs roles that are hard to disprove;\n- challenges when the arithmetic says a claim is probably false or when losing the action would be decisive;\n- uses Exchange to make earlier claims true or obsolete;\n- times a Coup or Assassination against whoever leads in coins or cards.\nA thoughtless player takes Income every turn, never challenges, or challenges everything, and loses to each of these.\n\nThe deal decides which claims are safe, not who wins, because any role can be claimed.\n\nTalk is left out. Claims and challenges already are the game's bluffing and reading channel, and free alliances would mostly produce non-binding gang-ups and kingmaking rather than new inference."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 18,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  }
+}
+```
+
+````
