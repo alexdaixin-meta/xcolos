@@ -20,7 +20,7 @@ from xcolos.session import Session
 from xcolos.state import Rng
 
 DEFAULT_SYSTEM = (
-    "You are a player in a hidden-role social deduction game. "
+    "You are a player in a multi-player game. "
     "You know only what you are told. "
     "When asked to act, answer with exactly one legal action."
 )

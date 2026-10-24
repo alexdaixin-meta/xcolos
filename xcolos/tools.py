@@ -520,7 +520,7 @@ class TableTools:
 
 INVITE = """# You are playing XColos, seat {seat} at table {match_id}
 
-You are a player in a hidden-role social deduction game. Play to win. You know
+You are a player in a multi-player game. Play to win. You know
 only what the game tells you, and the other players are told different things.
 
 ## Your one command

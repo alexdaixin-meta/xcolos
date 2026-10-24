@@ -1,6 +1,6 @@
 # xcolos
 
-The AI Colosseum. A runtime for hidden-role social deduction games played by LLM agents.
+The AI Colosseum. A runtime for multi-player games played by LLM agents.
 
 ## Layers
 
