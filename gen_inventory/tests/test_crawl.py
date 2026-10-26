@@ -181,12 +181,38 @@ def test_unmapped_needs_block_the_game_and_name_the_gap():
     assert inv.gaps().most_common() == [("unmapped: players secretly swap hands", 1)]
 
 
-def test_a_game_the_gates_drop_is_still_filed_so_it_is_not_asked_again():
+def test_a_duplicate_is_noted_in_the_log_against_its_original_and_not_filed():
     inv, model, log, ex = setup(json.dumps(GOOD), json.dumps({**GOOD, "name": "Perudo Two"}))
-    run(inv, ex, log, limit=2)
-    states = {r.id: r.status for r in inv.all()}
-    # the id follows the name the model read, not the page it was on
-    assert states == {"liar_s_dice": "ready", "perudo_two": "duplicate"}
+    counts = run(inv, ex, log, limit=2)
+    assert counts == {"added:ready": 1, "duplicate": 1}
+    assert [r.id for r in inv.all()] == ["liar_s_dice"]  # the alias Perudo makes the second page the same game
+    coup = log.entries["https://en.wikipedia.org/wiki/Coup_%28card_game%29"]
+    assert (coup["outcome"], coup["detail"]) == ("duplicate", "liar_s_dice")
+    assert "perudo_two" not in inv.index_path.read_text()
+    assert run(inv, ex, CrawlLog(log.path), limit=2) == {} and len(model.prompts) == 2  # never read again
+
+
+class TwoSites:
+    """One game on two sites: the same title at two addresses."""
+
+    name, host, licence, config = "two", "two.test", "rules_only", {}
+
+    def discover(self):
+        return [Lead("Liar's dice", "https://a.test/liars-dice", "two"), Lead("Liar's Dice", "https://b.test/liars", "two")]
+
+    def snippets(self, leads, chars=500):
+        return {lead.url: PAGE[:chars] for lead in leads}
+
+    def page(self, lead):
+        return PAGE
+
+
+def test_a_game_admitted_from_one_page_is_not_read_again_from_another():
+    inv, model, log, ex = setup(json.dumps(GOOD))
+    counts = crawl.crawl(TwoSites(), inv, ex, log)
+    assert counts == {"added:ready": 1, "known": 1}
+    assert len(model.prompts) == 1
+    assert log.entries["https://b.test/liars"]["detail"] == "liar_s_dice"
 
 
 # -- the pre-gate and the log ------------------------------------------------
@@ -240,7 +266,7 @@ def test_the_prompt_lists_the_manifest_vocabulary_so_the_model_cannot_guess_it()
 # -- the target and the record of what was crawled ---------------------------
 
 
-def test_target_stops_when_the_log_holds_that_many_added_games():
+def test_target_stops_when_the_inventory_holds_that_many_games():
     inv, model, log, ex = setup(json.dumps(GOOD), json.dumps({**GOOD, "name": "Other", "rules_text": RULES + " More."}))
     assert run(inv, ex, log, target=1) == {"added:ready": 1}
     assert len(model.prompts) == 1
@@ -251,6 +277,42 @@ def test_target_counts_games_from_earlier_runs():
     run(inv, ex, log, target=1)
     # a later run, a fresh log object over the same file, has nothing left to do
     assert run(inv, ex, CrawlLog(log.path), target=1) == {}
+
+
+def test_target_counts_every_game_whatever_site_it_came_from():
+    inv, model, log, ex = setup(json.dumps(GOOD))
+    roses = " ".join(f"rose{i}" for i in range(60))  # its own rules, or the gates would call it the same game
+    inv.add(crawl.from_dict({**GOOD, "id": "skull", "name": "Skull", "aliases": [], "rules_text": roses,
+                             "licence": "rules_only", "source": {"kind": "url", "url": "https://elsewhere.test/skull"}}))
+    assert run(inv, ex, log, target=1) == {} and model.prompts == []
+    assert run(inv, ex, log, target=2) == {"added:ready": 1}
+
+
+def test_a_blocked_game_counts_toward_the_target_and_a_rejected_one_does_not():
+    spatial = {**GOOD, "needs": GOOD["needs"] + ["spatial_board"]}
+    blocked = {**GOOD, "name": "Coup", "aliases": [], "rules_text": " ".join(f"court{i}" for i in range(60)),
+               "unmapped": ["a court"]}
+    inv, model, log, ex = setup(json.dumps(spatial), json.dumps(blocked))
+    assert run(inv, ex, log, target=1) == {"added:rejected": 1, "added:blocked": 1}
+
+
+def test_shards_split_the_leads_between_processes_without_overlap():
+    seen = []
+    for i in range(2):
+        inv, model, log, ex = setup()
+        crawl.crawl(source(), inv, None, log, shard=(i, 2), on_event=lambda outcome, lead, d: seen.append(lead.url))
+    assert sorted(seen) == sorted(l.url for l in source().discover())  # every lead once, in one share or the other
+
+
+def test_cli_refuses_a_shard_that_is_not_one_of_n():
+    from gen_inventory.cli import shard_arg
+    assert shard_arg("1/3") == (1, 3)
+    for bad in ("3/3", "x/2", "-1/2"):
+        try:
+            shard_arg(bad)
+        except Exception:
+            continue
+        raise AssertionError(f"{bad} should be refused")
 
 
 def test_skips_do_not_count_toward_the_target():

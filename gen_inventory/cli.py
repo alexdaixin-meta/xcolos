@@ -10,8 +10,11 @@
     python3 -m gen_inventory index               rewrite INDEX.md (every change does this)
     python3 -m gen_inventory discover            list new leads from the sources; reads no pages
     python3 -m gen_inventory crawl --model SPEC  list a source's games, rate them 1-5, read the best, run the gates
+                                                 (--target N stops once the inventory holds N games)
     python3 -m gen_inventory calibrate --model SPEC   does a high rating predict a game that passes?
     python3 -m gen_inventory crawled             rewrite CRAWLED.md: every page read, by website
+    python3 -m gen_inventory dedup [--model SPEC]  one record per game: remove duplicates, and with a model,
+                                                 the same game filed under different names
     python3 -m gen_inventory suggest --model SPEC   a model proposes sites and search phrases; kept in SOURCES.md
     python3 -m gen_inventory sources [approve|reject|crawl HOST]   the list of sites, and their status
 """
@@ -142,8 +145,9 @@ def make_fetcher():
 
 
 def source_for(args):
-    """The reader for `--site`: Wikipedia's own, or the generic one for an approved site."""
-    from gen_inventory import generic, sources
+    """The reader for `--site`: Wikipedia's own, or the generic one for an approved site,
+    with that site's lines from `crawl_sources.json` if it has any."""
+    from gen_inventory import crawl, generic, sources
 
     host = getattr(args, "site", None) or "en.wikipedia.org"
     if host == "en.wikipedia.org":
@@ -151,7 +155,8 @@ def source_for(args):
     entry = open_registry(args).get(host)
     if entry is None or entry["status"] not in ("approved", "crawling"):
         raise sources.SourceError(f"{host} is not approved; run: python3 -m gen_inventory sources approve {host}")
-    return generic.GenericSite(host, entry["url"], make_fetcher())
+    config = json.loads(crawl.CONFIG_PATH.read_text()).get(host, {})
+    return generic.GenericSite(host, entry["url"], make_fetcher(), config)
 
 
 def calibrate_command(args, inv: Inventory) -> int:
@@ -169,9 +174,6 @@ def crawl_command(args, inv: Inventory) -> int:
 
     source = source_for(args)
     log = open_log(args)
-    budget = args.rate_budget
-    if budget is None and source.host != "en.wikipedia.org":
-        budget = 12 * args.target
     extractor = rater = None
     if args.cmd == "crawl":
         # The platform's own model adapters: one backend interface, not two.
@@ -189,7 +191,8 @@ def crawl_command(args, inv: Inventory) -> int:
     counts = crawl.crawl(source, inv, extractor, log, limit=args.limit, target=getattr(args, "target", None),
                          retry_failed=getattr(args, "retry_failed", False), rater=rater,
                          min_rating=getattr(args, "min_rating", 3), rate_only=getattr(args, "rate_only", False),
-                         rate_budget=budget, on_event=show)
+                         rate_budget=getattr(args, "rate_budget", None), rerate=getattr(args, "rerate", False),
+                         shard=getattr(args, "shard", None), on_event=show)
     log_report(log, inv)
     sources_report(args, inv)
     for note in getattr(source, "notes", []):
@@ -198,6 +201,50 @@ def crawl_command(args, inv: Inventory) -> int:
         print(f"note: a rating call failed: {err}")
     print("\n" + (", ".join(f"{n} {k}" for k, n in sorted(counts.items())) or "nothing new"))
     return 0
+
+
+def dedup_command(args, inv: Inventory) -> int:
+    from gen_inventory import dedup
+
+    log = open_log(args)
+    if args.dry_run:
+        for rec in inv.all():
+            if rec.status == "duplicate":
+                print(f"would remove {rec.id:<28} duplicate of {rec.duplicate_of}")
+    else:
+        for gone, of in dedup.prune(inv, log):
+            print(f"removed {gone:<28} duplicate of {of}")
+    if args.model:
+        from xcolos.flow.backends import CompletionError, from_spec
+
+        try:
+            groups, names = dedup.find(from_spec(args.model), inv.kept())
+        except (CompletionError, ValueError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.dry_run:
+            for group in groups:
+                print(f"one game ({names.get(group[0], '?')}): " + ", ".join(group))
+        else:
+            for keep, gone in dedup.merge(inv, log, groups, names):
+                print(f"kept {keep:<28} removed {', '.join(gone)}")
+            for gone, of in dedup.prune(inv, log):  # a name added as an alias can make another record a duplicate
+                print(f"removed {gone:<28} duplicate of {of}")
+    if not args.dry_run:
+        log_report(log, inv)
+    print(f"{len(inv.kept())} games")
+    return 0
+
+
+def shard_arg(text: str) -> tuple[int, int]:
+    i, _, n = text.partition("/")
+    try:
+        share = (int(i), int(n))
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{text!r} is not I/N") from None
+    if not 0 <= share[0] < share[1]:
+        raise argparse.ArgumentTypeError(f"{text!r}: I must be at least 0 and less than N")
+    return share
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -229,16 +276,23 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("crawl")
     p.add_argument("--model", required=True,
                    help="a backend spec: anthropic[:model], muse[:model], command:<program>, echo:<reply>")
-    p.add_argument("--target", type=int, default=50, help="stop once this many games have been crawled in all")
+    p.add_argument("--target", type=int, default=None,
+                   help="stop once the inventory holds this many games (ready, blocked or later), from every site")
     p.add_argument("--limit", type=int, default=None, help="also stop after reading this many pages this run")
     p.add_argument("--retry-failed", action="store_true")
     p.add_argument("--rate-model", help="backend for the rating step (default: --model)")
     p.add_argument("--min-rating", type=int, default=3, choices=range(1, 6), help="read only leads rated at least this")
     p.add_argument("--rate-only", action="store_true", help="enumerate and rate, read nothing in full")
     p.add_argument("--site", default="en.wikipedia.org", help="which approved site to read (default: Wikipedia)")
-    p.add_argument("--rate-budget", type=int, default=None,
-                   help="most new leads to rate this run (default: all on Wikipedia, 12 per target game elsewhere)")
+    p.add_argument("--rate-budget", type=int, default=None, help="most new leads to rate this run (default: all)")
+    p.add_argument("--rerate", action="store_true",
+                   help="rate again every lead that was rated but never read, for when the scale has changed")
     p.add_argument("--no-rate", action="store_true", help="skip rating; every lead is eligible")
+    p.add_argument("--shard", type=shard_arg, default=None, metavar="I/N",
+                   help="take only share I of N (0-based) of the site's leads, so N processes can read it together")
+    p = sub.add_parser("dedup")
+    p.add_argument("--model", help="a backend that also looks for one game filed under different names")
+    p.add_argument("--dry-run", action="store_true", help="say what would change and change nothing")
     p = sub.add_parser("calibrate")
     p.add_argument("--model", required=True, help="backend for the rater")
     p.add_argument("--site", default="en.wikipedia.org", help="which site's pages to rate (default: Wikipedia)")
@@ -274,6 +328,8 @@ def main(argv: list[str] | None = None) -> int:
             print(inv.index_path)
         elif args.cmd == "calibrate":
             return calibrate_command(args, inv)
+        elif args.cmd == "dedup":
+            return dedup_command(args, inv)
         elif args.cmd == "suggest":
             return suggest_command(args, inv)
         elif args.cmd == "sources":

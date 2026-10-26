@@ -277,6 +277,38 @@ def test_the_rater_is_told_spatial_games_are_out():
     assert "spatial_board" not in system.split("The engine cannot express:")[1].split("Out of scope")[0]
 
 
+# -- what the inventory holds ---------------------------------------------------
+
+
+def test_kept_counts_ready_blocked_and_later_games_and_not_rejects_or_duplicates():
+    inv = inventory()
+    inv.add(make())
+    own = lambda word: " ".join(f"{word}{i}" for i in range(60))  # noqa: E731 - near-identical rules would be duplicates
+    inv.add(make(id="blocked", name="Blocked", rules_text=own("trade"), needs=["trading_between_players"]))
+    inv.add(make(id="board", name="Board", rules_text=own("grid"), needs=["spatial_board"]))
+    inv.add(make(id="twin", name="Race to Fifty"))
+    assert sorted(r.id for r in inv.kept()) == ["blocked", "race"]
+
+
+def test_remove_takes_a_game_out_of_the_store_and_the_index():
+    inv = inventory()
+    inv.add(make())
+    inv.remove("race")
+    assert inv.all() == [] and "`race`" not in inv.index_path.read_text()
+    try:
+        inv.remove("race")
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("removing a game that is not there should fail")
+
+
+def test_saving_leaves_no_temporary_file_behind():
+    inv = inventory()
+    inv.add(make())
+    assert sorted(p.name for p in inv.root.iterdir()) == ["INDEX.json", "INDEX.md", "race.json"]
+
+
 # -- dropped games ------------------------------------------------------------
 
 

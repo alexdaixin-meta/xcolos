@@ -8,6 +8,9 @@ nothing: the gates still judge every game that is extracted.
 
 The scale is anchored in what the platform can and cannot do, taken from the
 capability manifest, because "suitable for our platform" with no anchor drifts.
+It puts strategy first: a game decided mostly by luck rates 2, below a strategic
+game the engine cannot run yet (3), so the crawl reads the second and not the
+first.
 """
 
 from __future__ import annotations
@@ -43,12 +46,12 @@ opponent modelling, planning.
 
 For each numbered item you get a page title and the opening of its page. Rate how well that game would fit:
 
-  5  A specific playable game. Turn-based, strategic, with hidden information or bidding or bargaining or
+  5  A specific playable game of strategy. Turn-based, with hidden information or bidding or bargaining or
      bluffing, an outcome that follows from the moves, short, and needing nothing from the "cannot" list.
   4  Specific, playable, clearly strategic, but one thing is doubtful or needs a workaround.
-  3  Playable, but little reasoning (mostly luck, trivial or solved), or good but needs something on the
-     "cannot" list.
-  2  Playable but a poor fit: real-time or very long.
+  3  Specific, playable and strategic, but needs something on the "cannot" list.
+  2  Playable but little strategy: mostly luck (pure gambling, push-your-luck, betting against a house or
+     a dealer), one player alone, or choices too trivial to matter. Also 2: real-time or very long.
   1  Not a specific playable game: a concept, a list, an algorithm, a person, a company, a physical sport,
      a video game, or something that cannot be played turn by turn as text. Also 1: any game that depends
      on a spatial board (the "out of scope" list), whatever else it offers.

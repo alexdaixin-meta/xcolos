@@ -7,6 +7,14 @@ not decided here: the rater does that, from each page's opening.
 To keep that cheap on a large site, `discover` returns the pages interleaved
 across URL shapes (`/games/*`, `/blog/#/*`, ...), so a rating budget spent in
 order samples every part of the site instead of exhausting the first one.
+
+A site may have a few lines in `crawl_sources.json`, under its host, when its
+addresses say which pages are games: `include_path` and `exclude_path` (regular
+expressions on the path); `title_segment`, the path segment that names the game
+(`-1`, the last, unless a site files every game as `/<game>/rules.php`); and
+`title_strip`, what to cut from that name (a year a site appends, say), so the
+name can be matched against the games already here. That is configuration, not
+a reader: the pages are still read the same way.
 """
 
 from __future__ import annotations
@@ -35,21 +43,32 @@ def shape(url: str) -> str:
     return "/" + "/".join(head + ["*"])
 
 
-def title_from(url: str) -> str:
-    seg = [s for s in urllib.parse.urlparse(url).path.split("/") if s][-1:] or [""]
-    return re.sub(r"[-_+]+", " ", re.sub(r"\.\w{2,5}$", "", urllib.parse.unquote(seg[0]))).strip().title()
+def title_from(url: str, segment: int = -1) -> str:
+    segs = [s for s in urllib.parse.urlparse(url).path.split("/") if s] or [""]
+    seg = segs[segment] if -len(segs) <= segment < len(segs) else segs[-1]
+    return re.sub(r"[-_+]+", " ", re.sub(r"\.\w{2,5}$", "", urllib.parse.unquote(seg))).strip().title()
+
+
+#: When a site has no sitemap, the most pages fetched to find its links. Not a
+#: budget: it only stops a site whose addresses never run out.
+MAX_PAGES = 20_000
 
 
 class GenericSite:
     licence = "rules_only"
 
-    def __init__(self, host: str, seed_url: str, fetcher: Fetcher, config: dict | None = None, max_pages: int = 60):
+    def __init__(self, host: str, seed_url: str, fetcher: Fetcher, config: dict | None = None,
+                 max_pages: int | None = None):
         self.host = host
         self.name = host
         self.seed = seed_url
         self.fetcher = fetcher
         self.config = {"min_chars": 600, "max_chars": 9000, **(config or {})}
-        self.max_pages = max_pages  # when there is no sitemap, pages fetched to find links
+        self.max_pages = max_pages or self.config.get("max_pages", MAX_PAGES)
+        self._include = [re.compile(p) for p in self.config.get("include_path", [])]
+        self._exclude = [re.compile(p) for p in self.config.get("exclude_path", [])]
+        self._title_segment = int(self.config.get("title_segment", -1))
+        self._title_strip = re.compile(self.config["title_strip"]) if self.config.get("title_strip") else None
         self._leads: list[Lead] | None = None
         #: Why the site gave nothing, in plain words, when it did not.
         self.notes: list[str] = []
@@ -99,8 +118,14 @@ class GenericSite:
                 if (url in seen or not self._same_site(url) or SKIP_EXT.search(path) or SKIP_PATH.search(path)
                         or path in ("", "/")):
                     continue
+                if (self._include and not any(p.search(path) for p in self._include)) or any(
+                        p.search(path) for p in self._exclude):
+                    continue
                 seen.add(url)
-                groups[shape(url)].append(Lead(title_from(url), url, self.name, f"shape:{shape(url)}"))
+                title = title_from(url, self._title_segment)
+                if self._title_strip:
+                    title = self._title_strip.sub("", title).strip() or title
+                groups[shape(url)].append(Lead(title, url, self.name, f"shape:{shape(url)}"))
             # one page from each shape in turn, so a budget samples the whole site
             self._leads = [l for row in zip_longest(*groups.values()) for l in row if l is not None]
             if not self._leads and not self.notes:
