@@ -143,3 +143,12 @@ def test_plays_whose_players_give_no_reasons_are_unmeasured_and_no_model_is_aske
     assert error == "" and result["verdict"] == "unmeasured" and model.prompts == []
     assert "0 of 2" in result["summary"]
     assert "unmeasured" in reasoning.render(result, reasoning.stats([bare]), "Tiny")
+
+
+def test_choices_between_numbers_are_read_too():
+    numbers = json.loads(json.dumps(SIM))
+    move = numbers["events"]["records"][2]
+    move["legal_targets"], move["action"]["target"] = [1, 2, 3], 2
+    numbers["events"]["records"][1]["raw"] = "Seat 2 holds the card I need, and only a bid of 2 keeps my coins for the next round.\n\n2"
+    assert "offered [1, 2, 3]; chose '2'" in reasoning.transcript([numbers])
+    assert reasoning.decisions(numbers)[0]["said"].endswith("for the next round.")

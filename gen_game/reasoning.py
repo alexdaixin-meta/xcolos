@@ -91,7 +91,7 @@ def decisions(sim: dict) -> list[dict]:
         elif r.get("type") == "model_call" and r.get("raw"):
             said[(str(r.get("turn_seq")), _seat(r.get("for")))] = str(r["raw"])
         elif r.get("category") == "turn" and r.get("type") == "move":
-            options = list(r.get("legal_targets") or [])
+            options = [str(o) for o in r.get("legal_targets") or []]  # options may be numbers or seats
             chose = str((r.get("action") or {}).get("target") or "")
             if len(options) > 1:
                 raw = said.get((str(r.get("turn_seq")), _seat(r.get("seat"))), "")
