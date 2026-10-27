@@ -180,9 +180,11 @@ def run_batch(ids: list[str], out: Path, jobs: int, plays: int, stop_after: int,
              and (earlier[i].get("code") != pinned or (earlier[i].get("plays") or {}).get("players") != PLAYERS)}
     rows = [earlier[i] for i in ids if i in earlier and earlier[i]["outcome"] in FINISHED and i not in stale]
     todo = [i for i in ids if not (i in earlier and earlier[i]["outcome"] in FINISHED) or i in stale]
+    others = [r for i, r in earlier.items() if i not in ids]  # games of this batch not run this time: kept as they were
+    every = list(ids) + [r["id"] for r in others]
     (out / "logs").mkdir(parents=True, exist_ok=True)
     lock, state = threading.Lock(), {"stopped": None}
-    _save(out, ids, rows, None)
+    _save(out, every, others + rows, None)
 
     def one(game_id: str) -> None:
         if state["stopped"]:
@@ -201,10 +203,10 @@ def run_batch(ids: list[str], out: Path, jobs: int, plays: int, stop_after: int,
                 state["stopped"] = should_stop(rows, stop_after)
                 if state["stopped"]:
                     say(f"stopping the line: {state['stopped']}")
-            _save(out, ids, rows, state["stopped"])
+            _save(out, every, others + rows, state["stopped"])
         say(f"{game_id}: {row['outcome']}" + (f" ({row['detail'][:120]})" if row.get("detail") else ""))
 
     with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
         list(pool.map(one, todo))
-    _save(out, ids, rows, state["stopped"])
+    _save(out, every, others + rows, state["stopped"])
     return rows

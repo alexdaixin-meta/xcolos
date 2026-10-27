@@ -143,3 +143,18 @@ def test_replay_also_plays_again_a_game_played_by_other_players_on_the_same_code
         world = FakeWorld(code, {})
         batch.run_batch(["ok"], out, 1, 2, 3, "python", runner=world, say=lambda m: None, replay=True)
         assert [c[0] for c in world.commands] == ["uninstall", "install", "simulate"]
+
+
+def test_running_some_of_a_batchs_games_keeps_the_others_rows():
+    with tempfile.TemporaryDirectory() as d:
+        code = code_dir(d)
+        out = Path(d) / "batch"
+        out.mkdir()
+        (out / "CODE").write_text(str(code))
+        world = FakeWorld(code, {"a": ("needs_review", "24/28 scenarios"), "b": ("encode_failed", "did not parse")})
+        batch.run_batch(["a", "b"], out, 1, 0, 3, "python", runner=world, say=lambda m: None)
+        world.verdicts["b"] = ("ready_for_review", "")
+        batch.run_batch(["b"], out, 1, 0, 3, "python", runner=world, say=lambda m: None)
+        kept = json.loads((out / "batch.json").read_text())
+        assert {r["id"]: r["outcome"] for r in kept["rows"]} == {"a": "needs_review", "b": "ready_for_review"}
+        assert "| a | needs_review" in (out / "BATCH.md").read_text()
