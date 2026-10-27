@@ -152,3 +152,26 @@ def test_choices_between_numbers_are_read_too():
     numbers["events"]["records"][1]["raw"] = "Seat 2 holds the card I need, and only a bid of 2 keeps my coins for the next round.\n\n2"
     assert "offered [1, 2, 3]; chose '2'" in reasoning.transcript([numbers])
     assert reasoning.decisions(numbers)[0]["said"].endswith("for the next round.")
+
+
+def test_bids_and_messages_are_choices_and_a_forced_move_is_not():
+    sim = {"players": ["gateway"] * 2, "snapshot": {"status": "ended", "winner": "seat 1"}, "events": {"records": [
+        {"category": "model", "type": "model_call", "turn_seq": 1, "for": "seat 1", "raw": "Claiming a top card may scare others off, so I win this item cheaply.\n\nI drew a 16 this round."},
+        {"category": "turn", "type": "move", "turn_seq": 1, "seat": 1, "legal_targets": [], "action": {"target": None, "text": "I drew a 16 this round."}},
+        {"category": "model", "type": "model_call", "turn_seq": 2, "for": "seat 2", "raw": "My value is 10 and the bid is 4, so raising to 6 still leaves me a profit of four.\n\n6"},
+        {"category": "turn", "type": "move", "turn_seq": 2, "seat": 2, "legal_targets": ["DROP"], "action": {"target": 6, "text": ""}},
+        {"category": "turn", "type": "move", "turn_seq": 3, "seat": 1, "legal_targets": ["PASS"], "action": {"target": "PASS", "text": ""}},
+    ]}}
+    got = reasoning.decisions(sim)
+    assert [(d["turn"], d["chose"]) for d in got] == [(1, "I drew a 16 this round."), (2, "6")]
+    assert got[0]["said"].startswith("Claiming a top card") and got[1]["said"].endswith("profit of four.")
+    shown = reasoning.transcript([sim])
+    assert "offered [a message]" in shown and "offered [a number, or DROP]" in shown
+
+
+def test_plays_with_no_choices_are_unmeasured_and_no_model_is_asked():
+    empty = json.loads(json.dumps(SIM))
+    empty["events"]["records"] = [r for r in empty["events"]["records"] if r.get("category") != "turn"]
+    model = Scripted(good_check())
+    result, _ = reasoning.check(model, [empty], DESIGN)
+    assert result["verdict"] == "unmeasured" and model.prompts == []

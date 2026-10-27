@@ -71,8 +71,11 @@ def _seat(value) -> int | None:
 
 
 def _answer_removed(raw: str, chose: str) -> str:
-    """The reply without its final answer line: what the player said before answering."""
+    """The reply without its answer (the last line, or for a message the last paragraph): what the player said before answering."""
     text = raw.strip()
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    if len(paragraphs) > 1 and chose and chose.strip() in paragraphs[-1]:
+        return "\n\n".join(paragraphs[:-1]).strip()
     lines = text.splitlines()
     if lines and chose and chose.strip() in lines[-1]:
         text = "\n".join(lines[:-1]).strip()
@@ -92,8 +95,15 @@ def decisions(sim: dict) -> list[dict]:
             said[(str(r.get("turn_seq")), _seat(r.get("for")))] = str(r["raw"])
         elif r.get("category") == "turn" and r.get("type") == "move":
             options = [str(o) for o in r.get("legal_targets") or []]  # options may be numbers or seats
-            chose = str((r.get("action") or {}).get("target") or "")
-            if len(options) > 1:
+            action = r.get("action") or {}
+            target, text = action.get("target"), str(action.get("text") or "").strip()
+            chose = text or ("" if target is None else str(target))
+            if text:
+                options = ["a message"]  # a free-text answer: what to say is the choice
+            elif target is not None and str(target) not in options:
+                options = ["a number"] + [f"or {o}" for o in options][:1] + options[1:]  # a number from a range, or a word it accepts instead
+            forced = not chose or (len(options) == 1 and options[0] == chose)  # one option on offer, taken: not a choice
+            if not forced:
                 raw = said.get((str(r.get("turn_seq")), _seat(r.get("seat"))), "")
                 out.append({"turn": int(r.get("turn_seq") or 0), "round": r.get("round"), "seat": _seat(r.get("seat")), "options": options,
                             "chose": chose, "said": _answer_removed(raw, chose), "before": news})
@@ -204,7 +214,7 @@ def unmeasured(facts: dict) -> dict:
 
 def check(completion: Completion, sims: list[dict], design: dict, repairs: int = 2) -> tuple[dict | None, str]:
     facts = stats(sims)
-    if facts["decisions"] and facts["with_reasons"] < MEASURABLE * facts["decisions"]:
+    if not facts["decisions"] or facts["with_reasons"] < MEASURABLE * facts["decisions"]:
         return unmeasured(facts), ""
     found = [decisions(s) for s in sims]
     base = prompt = build_prompt(sims, design)
