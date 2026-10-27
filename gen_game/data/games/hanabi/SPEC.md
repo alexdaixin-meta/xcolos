@@ -54,8 +54,9 @@ Players: 2 to 4, best with 3
 ## Ending
 
 - ends when: fuses == 0 OR team_score == 15 OR final_turns_left == 0 OR turns_played == 40, checked at the end of each turn
-- results: all seats win, no seat wins
-- decided by: Every seat's total equals team_score = pile_red + pile_green + pile_blue. If team_score >= 13, every seat's total is at least 13 and all seats win together. Otherwise no seat wins. Pile progress counts even when the game ended because fuses reached 0.
+- ranked by: `team_score` (the highest wins; players level at the top share the win)
+- min_to_win: `win_threshold` (a player below it cannot win; if none reaches it, nobody wins)
+- decided by: Every seat is ranked by team_score = pile_red + pile_green + pile_blue (every seat's total equals it), so all seats stand level. If team_score >= 13 (win_threshold), every seat reaches the bar and all seats win together. Otherwise no seat wins: the game ends with no winner. Pile progress counts even when the game ended because fuses reached 0.
 
 ## Choices the source did not make
 
@@ -65,7 +66,7 @@ Players: 2 to 4, best with 3
 - Turn choice is an ask to the active seat only: The rules give one seat one action per turn, so it is a sequential ask, not a poll.
 - final_turns_left and active_seat are public: R6 does not list them. Both can be worked out from public information (deck_count, turn order), and players need to know whose turn it is.
 - deck_ids is hidden (none): R6 does not list it as public. Its contents follow from the public hand_ids and discard_pile anyway, and it reveals no faces.
-- Results are named 'all seats win' and 'no seat wins': The rules say the team wins or loses together, decided by team_score >= 13.
+- Every seat is ranked by team_score, with min_to_win win_threshold: all seats share the win, or nobody wins: The rules say the team wins or loses together, decided by team_score >= 13. Every seat's total equals team_score, so ranking by it puts all seats level.
 - The failure log text is 'turn t: seat a plays #id = face, failure': R13 says only that the failure and face are recorded; the wording mirrors the success line in R12.
 
 ## Simplifications

@@ -872,7 +872,7 @@ def test_the_generated_games_are_the_library_games_and_each_ends_ranked():
 
     data = Path(enc.ROOT) / "gen_game" / "data" / "games"
     ids = sorted(p.name for p in data.iterdir() if (p / "game.json").exists())
-    assert ids == ["agram", "assurance_game", "battle_of_wits", "coup"]
+    assert ids == ["agram", "assurance_game", "battle_of_wits", "coup", "hanabi"]
     for game_id in ids:
         assert (data / game_id / "game.json").read_bytes() == (LIBRARY / f"{game_id}.json").read_bytes(), game_id
         defn = load_file(data / game_id / "game.json")

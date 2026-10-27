@@ -231,7 +231,7 @@ def test_coup_rank_by_matches_old_winner():
 def test_library_games_rank_by():
     want = {"rps": "you.score", "auction": "you.cash + you.holdings", "agram": "you.match_points",
             "battle_of_wits": "you.score", "coup": "you.hidden_count * 1000 + you.coins",
-            "assurance_game": "1 if you.total_score >= win_threshold else 0"}
+            "assurance_game": "1 if you.total_score >= win_threshold else 0", "hanabi": "team_score"}
     games = available()
     for game_id, rank_by in want.items():
         assert [r.rank_by for r in games[game_id].end] == [rank_by], game_id
