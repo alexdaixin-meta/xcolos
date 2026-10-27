@@ -224,6 +224,11 @@ def parse_action(
         return None
 
     if schema.target == "text":
+        # Seats are told to keep any reasoning before the answer, so a reply in several paragraphs is reasons, then the
+        # message: only the last paragraph goes to the table, and the reasons stay private (a note no other seat is told).
+        paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+        if len(paragraphs) > 1:
+            return Action(type=schema.id, text=paragraphs[-1], notes={"reason": "\n\n".join(paragraphs[:-1])})
         return Action(type=schema.id, text=text)
 
     # A well-formed object, possibly inside a fenced block.

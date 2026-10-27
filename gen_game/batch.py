@@ -18,6 +18,7 @@ every game.
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import re
@@ -62,6 +63,27 @@ def pin(repo: Path, commit: str, pins: Path) -> Path:
         link.symlink_to((repo / rel).resolve())
     os.replace(tmp, dest)
     return dest
+
+
+_thread_lock = threading.Lock()
+
+
+class _library_lock:
+    """Held across processes (a file lock beside the pinned copies) and across this process's threads."""
+
+    def __init__(self, code: Path) -> None:
+        self.path = code.parent / ".library.lock"
+
+    def __enter__(self):
+        _thread_lock.acquire()
+        self.file = open(self.path, "w")
+        fcntl.flock(self.file, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, *exc) -> None:
+        fcntl.flock(self.file, fcntl.LOCK_UN)
+        self.file.close()
+        _thread_lock.release()
 
 
 def run_logged(cmd: list[str], cwd: Path, log: Path) -> int:
@@ -112,8 +134,10 @@ def play_game(row: dict, code: Path, python: str, plays: int, log: Path, runner:
     game_id, gen = row["id"], [python, "-m", "gen_game"]
     folder = code / "gen_game" / "data" / "games" / game_id
     row.update(code=code.name, plays=None, reasoning=None)
-    runner(gen + ["uninstall", game_id], code, log)  # an earlier version of this game, if any
-    if runner(gen + ["install", game_id], code, log) != 0:
+    with _library_lock(code):  # the library is shared by every batch: one install at a time, so none sees another's half-done change
+        runner(gen + ["uninstall", game_id], code, log)  # an earlier version of this game, if any
+        installed = runner(gen + ["install", game_id], code, log) == 0
+    if not installed:
         row["outcome"], row["detail"] = "install_failed", _last_error(log)
         return row
     began = time.time()

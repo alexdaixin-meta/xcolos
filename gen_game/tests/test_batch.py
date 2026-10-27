@@ -158,3 +158,29 @@ def test_running_some_of_a_batchs_games_keeps_the_others_rows():
         kept = json.loads((out / "batch.json").read_text())
         assert {r["id"]: r["outcome"] for r in kept["rows"]} == {"a": "needs_review", "b": "ready_for_review"}
         assert "| a | needs_review" in (out / "BATCH.md").read_text()
+
+
+def test_installs_from_parallel_games_never_overlap():
+    import threading
+    import time as clock
+
+    with tempfile.TemporaryDirectory() as d:
+        code = code_dir(d)
+        inside, overlaps = [], []
+
+        def runner(cmd, cwd, log):
+            if cmd[3] in ("install", "uninstall"):
+                if inside:
+                    overlaps.append(cmd[4])
+                inside.append(cmd[4])
+                clock.sleep(0.05)
+                inside.remove(cmd[4])
+            return 1 if cmd[3] == "install" else 0  # stop after installing: only the installs matter here
+
+        rows = [{"id": g, "outcome": "ready_for_review"} for g in ("a", "b", "c")]
+        threads = [threading.Thread(target=batch.play_game, args=(r, code, "python", 1, Path(d) / f"{r['id']}.log", runner)) for r in rows]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        assert overlaps == []

@@ -246,6 +246,14 @@ def test_text_actions_take_the_whole_reply():
     assert action.text == "Seat 3 is lying."
 
 
+def test_a_text_answer_after_reasons_is_its_last_paragraph_and_the_reasons_stay_private():
+    # Seats are told to keep any reasoning before the answer; a message must not carry it to the table ("my value is 12").
+    raw = "My value of 12 is good, so I'll signal strength.\n\nI like this item a lot and I'll bid hard for it."
+    action = parse_action(raw, SPEAK, ())
+    assert action.text == "I like this item a lot and I'll bid hard for it."
+    assert action.notes == {"reason": "My value of 12 is good, so I'll signal strength."}
+
+
 def test_a_model_agent_records_its_own_answer_in_its_session():
     agent = LLMAgent(name="m", completion=lambda msgs, env: '{"target": 2}')
     agent.bind(0, "m")
@@ -266,3 +274,16 @@ def test_random_agents_are_reproducible_and_independent():
     a, host_a = play(9, lambda i, name: RandomAgent(name=name, seed=i))
     b, host_b = play(9, lambda i, name: RandomAgent(name=name, seed=i))
     assert a.log.stable_records()[1:] == b.log.stable_records()[1:]
+
+
+def test_an_over_long_message_is_refused_without_asking_for_reasoning():
+    # Told "put your reasoning in `reason`", Claude refused the next move as reasoning extraction and the match stopped.
+    from xcolos.protocol import ActionInvalid, validate
+
+    schema = ActionSchema(id="speak", target="text", max_words=5)
+    try:
+        validate(Action(type="speak", text="one two three four five six"), schema, ())
+    except ActionInvalid as refused:
+        assert "6 words; keep it to 5" in str(refused) and "reasoning" not in str(refused)
+    else:
+        raise AssertionError("a message over the word limit must be refused")

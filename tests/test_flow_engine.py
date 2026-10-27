@@ -738,3 +738,15 @@ def test_who_is_out_is_announced_before_what_they_were():
             if f"Seat {seat} " in fact.payload["rendered"]:
                 named.add(seat)
     assert named == dead, f"eliminated {sorted(dead)}, announced {sorted(named)}"
+
+
+def test_a_library_file_removed_while_the_library_loads_is_skipped_not_an_error():
+    # Parallel batches uninstall games while another process loads the library: a file listed and then gone is not broken.
+    from xcolos.games import loader
+
+    real = loader.library_files
+    loader.library_files = lambda: [LIBRARY / "rps.json", LIBRARY / "gone_meanwhile.json"]
+    try:
+        assert list(loader.available()) == ["rps"]
+    finally:
+        loader.library_files = real

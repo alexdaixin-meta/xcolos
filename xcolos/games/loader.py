@@ -54,6 +54,8 @@ def available() -> dict[str, GameDefinition]:
     """
     out: dict[str, GameDefinition] = {}
     for path in library_files():
+        if not path.exists():  # removed after it was listed (another process uninstalling it): gone, not broken
+            continue
         definition = load_file(path)
         if definition.id in out:
             raise DefinitionError(f"{path}: duplicate game id {definition.id!r}")

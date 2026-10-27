@@ -293,7 +293,9 @@ def install_command(args) -> int:
         print(f"not installed: {target} already holds a different game with this id; remove it first with `uninstall`", file=sys.stderr)
         return 1
     existed = target.exists()
-    target.write_text(text)
+    tmp = target.with_name(f".{target.stem}.{os.getpid()}.tmp")  # written whole, then moved in: a loader never reads half a game
+    tmp.write_text(text)
+    os.replace(tmp, target)
     try:
         loaded = loader.available() if library == loader.LIBRARY else {p.stem: loader.load_file(p) for p in library.glob("*.json")}
     except Exception as exc:  # noqa: BLE001 - the library must keep loading, whatever this file did to it

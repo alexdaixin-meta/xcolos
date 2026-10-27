@@ -186,10 +186,10 @@ def validate(action: Action, schema: ActionSchema, legal_targets: tuple[Any, ...
         if schema.max_words:
             words = len(action.text.split())
             if words > schema.max_words:
+                # Not "put your reasoning in `reason`": told that, Claude refused the next move as reasoning extraction.
                 raise ActionInvalid(
                     f"that is {words} words; keep it to {schema.max_words} or "
-                    "fewer. Put your reasoning in `reason` instead, where it "
-                    "costs nobody anything to read"
+                    "fewer. Only the message counts; a private note can go in `reason`"
                 )
         return action
 
