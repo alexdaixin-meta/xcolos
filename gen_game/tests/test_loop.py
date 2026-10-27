@@ -218,3 +218,12 @@ def test_a_reasoning_check_that_cannot_be_made_changes_nothing_and_is_logged():
     r = loop.run_loop(h)
     assert r.status == "clean" and r.carried == [] and r.reasoning is None
     assert "**Reasoning check:** could not be made" in w.log_text[0]
+
+
+def test_an_unmeasured_reasoning_check_adds_no_finding():
+    w = World([[]])
+    h = w.hooks()
+    h.reasoning = lambda plays: {"verdict": "unmeasured", "summary": "only 2 of 249 choices came with a reason",
+                                 **{a: {"score": None, "notes": "", "evidence": []} for a in ("reasoning", "planning", "luck")}}
+    r = loop.run_loop(h)
+    assert r.status == "clean" and r.carried == [] and "**Reasoning check:** unmeasured" in w.log_text[0]

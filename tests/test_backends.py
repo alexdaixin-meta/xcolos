@@ -851,3 +851,10 @@ def test_the_servers_first_choice_is_the_newest_model_unless_the_environment_nam
         os.environ.pop("XCOLOS_MUSE_MODEL", None)
         if saved is not None:
             os.environ["XCOLOS_MUSE_MODEL"] = saved
+
+
+def test_a_model_seat_is_asked_for_its_reasons_before_its_answer():
+    from xcolos.seat_models import SEAT_SYSTEM
+
+    assert SEAT_SYSTEM.startswith("You are one player in a game")
+    assert "one to three short sentences" in SEAT_SYSTEM and "last line" in SEAT_SYSTEM  # so a play can be read for how the player thought

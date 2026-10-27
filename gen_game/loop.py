@@ -82,7 +82,7 @@ REASONING_EXPECTED = "winning takes reasoning and planning (each at least 2 of 3
 
 
 def _scores(check: dict) -> str:
-    return ", ".join(f"{a} {check[a]['score']}" for a in ASPECTS)
+    return ", ".join(f"{a} {'-' if check[a]['score'] is None else check[a]['score']}" for a in ASPECTS)
 
 
 def _reasoning_finding(check: dict, plays: list[str]) -> dict:

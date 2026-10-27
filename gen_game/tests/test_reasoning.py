@@ -131,3 +131,15 @@ def test_a_play_test_is_followed_by_the_reasoning_check_unless_it_is_skipped():
     a = parser().parse_args(["simulate", "tiny", "--players", "muse"])
     assert (a.no_reasoning, a.reasoning_model) == (False, "gateway|muse")
     assert parser().parse_args(["simulate", "tiny", "--players", "muse", "--no-reasoning"]).no_reasoning
+
+
+def test_plays_whose_players_give_no_reasons_are_unmeasured_and_no_model_is_asked():
+    bare = json.loads(json.dumps(SIM))
+    for r in bare["events"]["records"]:
+        if r.get("type") == "model_call":
+            r["raw"] = r["raw"].splitlines()[-1]  # the answer alone
+    model = Scripted(good_check())
+    result, error = reasoning.check(model, [bare], DESIGN)
+    assert error == "" and result["verdict"] == "unmeasured" and model.prompts == []
+    assert "0 of 2" in result["summary"]
+    assert "unmeasured" in reasoning.render(result, reasoning.stats([bare]), "Tiny")

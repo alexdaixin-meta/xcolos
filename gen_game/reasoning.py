@@ -27,6 +27,8 @@ from gen_inventory.crawl import first_json
 ASPECTS = ("reasoning", "planning", "luck")
 #: A reply with at least this many words before its answer gives a reason; fewer is an answer alone.
 REASON_WORDS = 8
+#: Fewer choices than this share with a reason, and there is not enough to read: the check says "unmeasured" and asks no model.
+MEASURABLE = 0.5
 SAID_CHARS = 900
 LIMIT = 150000
 
@@ -193,7 +195,17 @@ def verdict(result: dict) -> str:
     return "strong" if luck <= 1 else "adequate"
 
 
+def unmeasured(facts: dict) -> dict:
+    """The check when the players gave too few reasons to read: no scores, and nothing for the loop to act on."""
+    return {"verdict": "unmeasured", "weak_spots": [], **{a: {"score": None, "notes": "", "evidence": []} for a in ASPECTS},
+            "summary": f"Only {facts['with_reasons']} of {facts['decisions']} choices came with a reason, so how the players thought cannot be "
+                       "read. Play it with players that say why they choose (the seats are asked to)."}
+
+
 def check(completion: Completion, sims: list[dict], design: dict, repairs: int = 2) -> tuple[dict | None, str]:
+    facts = stats(sims)
+    if facts["decisions"] and facts["with_reasons"] < MEASURABLE * facts["decisions"]:
+        return unmeasured(facts), ""
     found = [decisions(s) for s in sims]
     base = prompt = build_prompt(sims, design)
     error = ""
@@ -225,6 +237,8 @@ def render(result: dict, facts: dict, game_name: str) -> str:
            f"(about {facts['reason_words_avg']} words each); results {facts['results']}.", ""]
     for a in ASPECTS:
         part = result[a]
+        if part.get("score") is None:
+            continue
         out += [f"## {a.capitalize()}: {part['score']} of 3", "", part.get("notes", ""), ""]
         out += [f"- match {e['match']}, turn {e['turn']}, seat {e['seat']}: \"{e['quote']}\" ({e.get('shows', '')})" for e in part.get("evidence") or []]
         out.append("")
