@@ -26,6 +26,16 @@ LIMITS = {
     "rounds": 40,                 # a cap, not a promise: a game may run until someone wins
 }
 KEYS = tuple(LIMITS)
+#: The most the built file may hold, where it counts more than the design does. A design counts the game's
+#: state; the file also declares the rules' fixed numbers (hand sizes, copies per rank) and its working fields.
+#: Hanabi Trio (2026-10-26) was designed as 19 attributes and built correctly by Claude with 64 (34/34
+#: scenarios), and a coding agent built a 52-attribute Hanabi correctly (12/12).
+BUILT_LIMITS = {"attributes": 80}
+
+
+def built_limit(key: str) -> int:
+    """The most the built file may hold of `key`: its own limit where it has one, else the design's."""
+    return BUILT_LIMITS.get(key, LIMITS[key])
 
 
 def problems(reported) -> list[str]:

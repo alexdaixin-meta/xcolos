@@ -20,9 +20,11 @@ from xcolos.flow.backends import (
     MUSE_MODEL,
     CompletionError,
     EchoCompletion,
+    FallbackCompletion,
     MuseCompletion,
     from_spec,
     read_key,
+    split_alternatives,
 )
 from xcolos.flow.judge import Call
 
@@ -305,6 +307,55 @@ def test_an_unknown_or_incomplete_spec_says_what_is_accepted():
             pass
         else:
             raise AssertionError(f"{bad!r} should not build a backend")
+
+
+class Down:
+    """A model that cannot be reached, counting how often it is asked."""
+
+    model = "down"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        self.calls += 1
+        raise CompletionError("Model API returned 403: requires the Meta corporate network")
+
+
+def test_alternatives_ask_the_next_model_when_one_fails_and_keep_the_one_that_answered():
+    import contextlib
+    import io
+
+    down, said = Down(), io.StringIO()
+    both = FallbackCompletion([down, EchoCompletion("ok")])
+    with contextlib.redirect_stderr(said):
+        assert both.complete("x") == "ok" and both.complete("y") == "ok"
+    assert down.calls == 1  # a model that is down costs one failed call, not one per call
+    assert said.getvalue().count("down: Model API returned 403") == 1  # the switch is said once, so a run shows which model answered
+
+
+def test_alternatives_report_every_failure_when_none_answers():
+    try:
+        FallbackCompletion([Down(), Down()]).complete("x")
+    except CompletionError as exc:
+        assert str(exc).count("403") == 2
+    else:
+        raise AssertionError("no model answered, so the call must fail")
+
+
+def test_a_spec_names_alternatives_with_a_bar():
+    both = from_spec("echo:a|echo:b")
+    assert isinstance(both, FallbackCompletion) and both.complete("x") == "a"
+    assert from_spec("echo:a|b").complete("x") == "a|b"  # a bar inside one spec's text is not a choice
+    assert split_alternatives(" gateway | muse ") == ["gateway", "muse"]
+    assert split_alternatives("command:sort | uniq") == ["command:sort | uniq"]
+
+
+def test_a_seat_falls_back_to_the_next_model_when_the_first_cannot_be_reached():
+    from xcolos.seat_models import seat_completion
+
+    complete = seat_completion("command:false|echo:Pass", pause=lambda s: None)
+    assert complete([{"role": "user", "content": "your move"}], None) == "Pass"
 
 
 # ----------------------------------------------------------------------
