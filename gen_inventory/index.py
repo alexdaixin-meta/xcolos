@@ -24,14 +24,19 @@ DISPOSITION = {
     "candidate": "unchecked",
 }
 
-ORDER = ["covered", "queued", "blocked", "needs work", "unchecked", "dropped"]
+ORDER = ["covered", "not passed", "queued", "blocked", "needs work", "unchecked", "dropped"]
 
 
 def disposition(rec: Record) -> str:
+    """A game gen_game tried and did not pass is `not passed`, unless it was dropped or blocked, which say more."""
+    if rec.not_passed and DISPOSITION[rec.status] not in ("dropped", "blocked"):
+        return "not passed"
     return DISPOSITION[rec.status]
 
 
 def note(rec: Record) -> str:
+    if disposition(rec) == "not passed":
+        return rec.not_passed
     if rec.status == "duplicate":
         return f"duplicate of {rec.duplicate_of}"
     if rec.status == "blocked":

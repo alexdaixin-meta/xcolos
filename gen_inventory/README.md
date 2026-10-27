@@ -140,6 +140,14 @@ queue takes new mechanics first.
 setting `dropped` on its record to the reason. The gates leave such a record alone, so a recheck cannot revive
 it, and the index shows it as `dropped` with the reason. Clear `dropped` to put it back through the gates.
 
+## Games that did not pass
+
+`not_passed` is set by `gen_game` when its last run of a game did not pass: a person must review it, a step
+or the play-test failed, or it was dropped or blocked. It holds the reason in words and is cleared when a
+run passes. It changes no status, so the game is still converted again. The index shows such a game as
+`not passed` with the reason, unless it is dropped or blocked. Its game folder holds the same reason
+(`gen_game/data/games/<id>/NOT_PASSED.md`, `DROPPED.md` or `PLATFORM_LIMIT.md`).
+
 ## The manifest
 
 `capabilities.json` lists what a game can need and what the engine does about

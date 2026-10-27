@@ -57,6 +57,13 @@ design flaw. A drop writes `DROPPED.md` and sets `dropped` on the inventory reco
 `ported` in the inventory means the game passed its scenarios and validity checks; `evaluated` means nothing was
 left to flag as well; `accepted` is a person's.
 
+Every game that does not pass is marked in both places. The inventory record's `not_passed` says why
+(`needs_review: 25/27 scenarios`, `play_failed: 2 of 3 plays ended; ...`, a failed step, a drop, a platform limit),
+and `gen_inventory`'s index lists it as `not passed` unless it is dropped or blocked. The game folder has
+`DROPPED.md`, `PLATFORM_LIMIT.md`, or, for everything else, `NOT_PASSED.md` with the reason and what to do next.
+The status is left alone, so a game that needs review or failed a step is converted again. Passing clears
+`not_passed` and moves an earlier run's file into `history/`. `convert` marks a game when it ends; `batch` also marks crashes and failed installs or play-tests.
+
 ## Models
 
 The default is `gateway|muse`: Claude, or Muse when Claude cannot be reached. Specs joined by `|` are tried in turn;
@@ -98,7 +105,7 @@ limits and must report its numbers; the built game is measured against them too.
 ```
 gen_game/data/games/<id>/   variation.json VARIATION.md  spec.json SPEC.md  AGENT_PROMPT.md  game.json
                             encode_notes.md  scenarios.json  report.json REPORT.md  history/round_N/
-                            DROPPED.md or PLATFORM_LIMIT.md when the flow stops
+                            DROPPED.md, PLATFORM_LIMIT.md or NOT_PASSED.md when the game did not pass
 ```
 
 A converted game stays here until a person copies it into `xcolos/games/library/`.

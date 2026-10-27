@@ -29,7 +29,7 @@ def _write(path: Path, text: str) -> None:
 class Inventory:
     def __init__(self, root: Path = DEFAULT_DIR, manifest: dict | None = None):
         self.root = Path(root)
-        self.index_path = DEFAULT_INDEX if self.root == DEFAULT_DIR else self.root / "INDEX.md"
+        self.index_path = DEFAULT_INDEX if self.root.resolve() == DEFAULT_DIR.resolve() else self.root / "INDEX.md"
         self.root.mkdir(parents=True, exist_ok=True)
         self.manifest = manifest or gates.load_manifest()
 

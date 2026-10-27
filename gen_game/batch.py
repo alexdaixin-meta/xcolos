@@ -31,6 +31,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable
 
+from gen_game import marks
+
 #: Kept in this checkout and linked into every pinned copy: the games, the inventory, the platform's library.
 SHARED = ("gen_game/data", "gen_inventory/data", "xcolos/games/library")
 #: Outcomes the pipeline means. They never stop the line, and a game that has one is not run again on resume.
@@ -125,6 +127,8 @@ def run_game(game_id: str, code: Path, python: str, plays: int, log: Path, runne
         row["outcome"], row["detail"] = "crashed", (status or {}).get("detail") or _last_error(log)
     if row["outcome"] == "ready_for_review" and plays > 0:
         play_game(row, code, python, plays, log, runner)
+    else:
+        _mark(row, code)
     row["minutes"] = round((time.time() - start) / 60, 1)
     return row
 
@@ -139,7 +143,7 @@ def play_game(row: dict, code: Path, python: str, plays: int, log: Path, runner:
         installed = runner(gen + ["install", game_id], code, log) == 0
     if not installed:
         row["outcome"], row["detail"] = "install_failed", _last_error(log)
-        return row
+        return _mark(row, code)
     began = time.time()
     rc = runner(gen + ["simulate", game_id, "--players", PLAYERS, "--matches", str(plays), "--seed", "1"], code, log)
     sims = [s for s in (_fresh_json(p, began) for p in sorted((folder / "sim").glob("*.json")) if not p.name.endswith(".review.json")) if s]
@@ -151,6 +155,18 @@ def play_game(row: dict, code: Path, python: str, plays: int, log: Path, runner:
     if check and "verdict" in check:
         row["reasoning"] = {"verdict": check["verdict"], "scores": ", ".join(
             f"{a} {'-' if (check.get(a) or {}).get('score') is None else check[a]['score']}" for a in ("reasoning", "planning", "luck"))}
+    return _mark(row, code)
+
+
+def _mark(row: dict, code: Path) -> dict:
+    """Mark a game that did not pass in its folder and its inventory record, and clear the marks of one that did."""
+    from gen_inventory.inventory import Inventory
+
+    try:
+        inv = Inventory(code / "gen_inventory" / "data" / "inventory")
+        marks.mark(inv, row["id"], code / "gen_game" / "data" / "games" / row["id"], row["outcome"], str(row.get("detail", "")))
+    except Exception as exc:  # noqa: BLE001 - say so on the row; how the game came out still stands
+        row["detail"] = f"{row.get('detail', '')} (not marked: {type(exc).__name__}: {str(exc)[:120]})".strip()
     return row
 
 

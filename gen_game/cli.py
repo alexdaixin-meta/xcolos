@@ -16,7 +16,7 @@ import sys
 import time
 from pathlib import Path
 
-from gen_game import evaluate, flow
+from gen_game import evaluate, flow, marks
 from gen_inventory.inventory import DEFAULT_DIR, Inventory
 from xcolos.games.loader import load
 
@@ -426,8 +426,11 @@ def main(argv: list[str] | None = None) -> int:
                                    design_feedback=(Path(args.design_feedback[1:]).read_text() if args.design_feedback.startswith("@") else args.design_feedback))
             except BaseException as exc:
                 runstatus.ended(args.root / args.id / "logs", "crashed", f"{type(exc).__name__}: {str(exc)[:300]}")
+                if isinstance(exc, Exception):
+                    marks.mark(Inventory(args.inventory), args.id, args.root / args.id, "crashed", f"{type(exc).__name__}: {str(exc)[:300]}")
                 raise
             runstatus.ended(args.root / args.id / "logs", out.verdict, out.detail)
+            marks.mark(Inventory(args.inventory), args.id, args.root / args.id, out.verdict, out.detail)
             print(f"\n{args.id}: {out.verdict.replace('_', ' ')}" + (f"\n  {out.detail}" if out.detail else ""))
             print(f"  {args.root / args.id}")
             from gen_game import verified

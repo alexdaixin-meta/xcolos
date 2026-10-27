@@ -184,3 +184,39 @@ def test_installs_from_parallel_games_never_overlap():
         for t in threads:
             t.join()
         assert overlaps == []
+
+
+def test_a_game_that_did_not_pass_is_marked_in_its_folder_and_its_inventory_record():
+    from fixtures import record
+    from gen_inventory.inventory import Inventory
+
+    with tempfile.TemporaryDirectory() as d:
+        code = code_dir(d)
+        inv = Inventory(code / "gen_inventory" / "data" / "inventory")
+        for game in ("rps", "ok"):
+            inv.save(record(id=game))
+        world = FakeWorld(code, {"rps": ("needs_review", "24/28 scenarios"), "ok": ("ready_for_review", "")})
+        batch.run_game("rps", code, "python", 2, Path(d) / "rps.log", world)
+        assert inv.get("rps").not_passed == "needs_review: 24/28 scenarios"
+        assert (code / "gen_game" / "data" / "games" / "rps" / "NOT_PASSED.md").exists()
+
+        def no_plays(cmd, cwd, log):
+            return 1 if cmd[3] == "simulate" else world(cmd, cwd, log)
+
+        row = batch.run_game("ok", code, "python", 2, Path(d) / "ok.log", no_plays)
+        assert row["outcome"] == "play_failed" and inv.get("ok").not_passed.startswith("play_failed: 0 of 2 plays ended")
+        batch.run_game("ok", code, "python", 2, Path(d) / "ok.log", world)  # played again, and every play ends
+        assert inv.get("ok").not_passed == "" and not (code / "gen_game" / "data" / "games" / "ok" / "NOT_PASSED.md").exists()
+
+
+def test_a_mark_that_cannot_be_written_never_hides_how_the_game_came_out():
+    from fixtures import record
+    from gen_inventory.inventory import Inventory
+
+    with tempfile.TemporaryDirectory() as d:
+        code = code_dir(d)
+        inv = Inventory(code / "gen_inventory" / "data" / "inventory")
+        inv.save(record(id="rps"))
+        (inv.root / "broken.json").write_text("{")  # another game's record, half written
+        row = batch.run_game("rps", code, "python", 0, Path(d) / "rps.log", FakeWorld(code, {"rps": ("needs_review", "24/28 scenarios")}))
+        assert row["outcome"] == "needs_review" and "24/28 scenarios" in row["detail"] and "not marked" in row["detail"]
