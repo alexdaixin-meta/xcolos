@@ -890,6 +890,12 @@ def test_the_encoder_is_warned_of_the_mistakes_the_loader_has_refused():
     assert "never `none`" in system and "no `each` key" in system and "`into`" in system
 
 
+def test_the_coder_is_told_to_ask_a_question_with_one_option_and_not_skip_it():
+    # Hanamikoji skipped "choose an action" when one action was left, so the forced move was never made and its tests failed
+    built = prompt.build("rps", PLAN, SPEC)
+    assert "still ask the question" in built and "Do not skip the question with a `when`" in built
+
+
 
 def test_a_muse_request_that_hangs_is_cut_after_three_minutes_not_ten():
     from gen_game import cli

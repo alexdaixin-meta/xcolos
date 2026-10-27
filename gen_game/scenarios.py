@@ -57,10 +57,22 @@ If the ending has a `min_to_win`, a seat below it cannot win, and when no seat r
 
 How a seat picks: for each question put to it, the first rule of that seat that still has uses left and whose option is on offer
 is used (`times` is how many times, default 1, or "all"). A choice of seats lists the seat numbers as options
-(`"options_include": 2` picks seat 2). A question no rule matches gets the scenario's `default`: "decline" (the option
+(`"options_include": 2` picks seat 2). A question that asks for a NUMBER (a bid, a declared total, an amount) is answered by
+naming the number: `{"seat": 1, "options_include": 300}` answers 300 the first time seat 1 is asked for a number that may be
+300, and a word the question accepts instead of a number is named the same way (`"options_include": "pass"`). In
+`expect.offered`, a number holds when the seat was asked for a number whose range included it. A question no rule matches
+gets the scenario's `default`: "decline" (the option
 that says no, pass or none, else the first), "first" or "last". Free-text chat is answered for you. Use the option names the
 spec gives, exactly (for example "Income", "Challenge Yes"). Never script a rule that depends on how many questions came before:
 say WHAT the seat does, and let the default cover everything else.
+
+EVERY RULE MUST BE USED: a rule the game never uses fails the scenario, because it says the game never offered that option. So
+script only the answers the scenario needs. Never script a seat that the rule under test says does not act (it is not its turn,
+it is out, it may not): check that with `not_offered` and with its attributes staying as they were. A question with only one
+option is answered for the seat, and that uses up a rule naming the option.
+
+An answer that was not on offer never reaches the game: the platform refuses it and asks again. So a rule about an invalid,
+illegal or malformed answer cannot be tested: give it no scenario, and never set scratch values in `given` to imitate one.
 
 TEST ONE RULE AT A TIME, FROM A SITUATION YOU STATE. Do not play twenty turns to reach a situation (that needs a long hand calculation, and
 long calculations go wrong). Start the match in the situation the rule needs, and stop it after the round that tests the rule:
@@ -146,6 +158,12 @@ def problems(items, observable: dict | None = None, rule_ids: set[str] | None = 
             items = (s.get("expect") or {}).get(form) if isinstance(s.get("expect"), dict) else None
             if items is not None and not (isinstance(items, list) and all(isinstance(x, dict) and "seat" in x and "option" in x for x in items)):
                 out.append(f"scenario {i}: expect.{form} is a list of {{\"seat\": n, \"option\": ...}}")
+        never = (s.get("expect") or {}).get("not_offered") if isinstance(s.get("expect"), dict) else None
+        if isinstance(never, list) and isinstance(s.get("rules"), list):
+            barred = {(str(x.get("seat")), str(x.get("option")).strip().lower()) for x in never if isinstance(x, dict)}
+            out += [f"scenario {i}: seat {r['seat']} is scripted to answer {r['options_include']!r}, but `not_offered` says it is never offered that. "
+                    "A rule the game never uses fails the scenario: drop the rule, and let `not_offered` check it"
+                    for r in s["rules"] if isinstance(r, dict) and (str(r.get("seat")), str(r.get("options_include")).strip().lower()) in barred]
         if s.get("given") is not None and attribute_keys is not None:
             g = s["given"]
             for seat, vals in (g.get("players") or {}).items():
@@ -290,11 +308,23 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
             shown.setdefault(r.get("seat"), set()).update(map(str, r["legal_targets"]))
         elif r.get("type") == "auto_answer":
             shown.setdefault(r.get("seat"), set()).add(str(r.get("value")))
+    ranges: dict[int, list] = {}  # a number question offers a range, not a list: what each seat's agent was asked
+    for seat, agent in enumerate(p.agents, 1):
+        for low, high, words in getattr(agent, "ranges", []):
+            ranges.setdefault(seat, []).append((low, high))
+            shown.setdefault(seat, set()).update(map(str, words))
+
+    def offered(seat: int, option) -> bool:
+        if str(option) in shown.get(seat, set()):
+            return True
+        n = harness.RuleAgent.number(option)
+        return n is not None and any(harness.RuleAgent.within(n, low, high) for low, high in ranges.get(seat, []))
+
     for x in exp.get("offered") or []:
-        if str(x["option"]) not in shown.get(int(x["seat"]), set()):
+        if not offered(int(x["seat"]), x["option"]):
             fails.append(f"seat {x['seat']} was never offered {x['option']!r}, but should have been")
     for x in exp.get("not_offered") or []:
-        if str(x["option"]) in shown.get(int(x["seat"]), set()):
+        if offered(int(x["seat"]), x["option"]):
             fails.append(f"seat {x['seat']} was offered {x['option']!r}, but must not be")
     trace = ""
     if fails:
@@ -303,9 +333,6 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
         final = {f"seat {seat}": dict(flow.player_attributes[seat]) for seat in sorted(flow.player_attributes)}
         trace = (f"moves played: {'; '.join(moves[:24])}{' ...' if len(moves) > 24 else ''}. First attribute changes: {'; '.join(writes[:14])}"
                  f"{' ...' if len(writes) > 14 else ''}. Final: players {json.dumps(final, default=str)[:420]}; table {json.dumps(flow.game_attributes, default=str)[:420]}")
-    for r in p.game.log.records:
-        if r.get("type") == "auto_answer" and isinstance(agents[r["seat"] - 1], harness.RuleAgent):
-            agents[r["seat"] - 1].forced(r.get("value"))
     for a in agents:
         if isinstance(a, harness.RuleAgent):
             if s.get("rounds") != 0:  # at rounds 0 nothing is asked, so no rule can be used and none is required to be

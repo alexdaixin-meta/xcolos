@@ -94,6 +94,10 @@ list can be built with `+` and `(... if ... else [])`. Whatever a seat may not d
 paid action, only the target of an action is offered a block against it, a player already out is not asked. Do the same for a target: put the
 legal seats in a list attribute.
 
+When only one option is left (the last unused action, the only legal card), still ask the question: the engine answers a choice with one
+option for the seat, with no model call, and records it as the seat's move. Do not skip the question with a `when` and set the answer
+yourself: that move is then missing from the match, and a test that scripts it fails.
+
 When a player is eliminated, set the PLATFORM status as well as your own counters: declare a status for it (`{"id": "out", "acts": false}`) next to `playing` and
 run `{"set_status": {"player": N, "to": "out", "text": "Seat {player} is out."}}`. Without it the platform and the console show the player as still in the game, and the
 prompts list them as playing, whatever your own `alive` attribute says. Name the cards it reveals in the same announcement.

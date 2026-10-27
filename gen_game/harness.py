@@ -68,6 +68,8 @@ class RuleAgent(BaseAgent):
         {"seat": 1, "options_include": "Steal"}                       answer Steal the first time it is on offer
         {"seat": 2, "options_include": "Block", "times": "all"}       answer Block every time
         {"seat": 1, "options_include": 2, "answer": 2}                pick seat 2 from a list of seats
+        {"seat": 1, "options_include": 300}                           bid 300 when asked for a number that may be 300
+        {"seat": 2, "options_include": "pass", "times": "all"}        a word a number question accepts instead, every time
 
     The first rule with uses left whose option is on offer to this seat wins. A question no rule
     matches gets the scenario's default: `decline` (No, Pass, None...), `first` or `last`.
@@ -83,6 +85,59 @@ class RuleAgent(BaseAgent):
         self.default = default
         self.unmatched: list[str] = []
         self.asked = 0
+        #: Each number question put to this seat, as (lowest, highest, words accepted instead). A range
+        #: is not a list of options, so this is what a scenario's `offered` checks a number against.
+        self.ranges: list[tuple[int | None, int | None, tuple]] = []
+        #: The match log this seat follows (see `watch`), and how much of it has been read.
+        self.log = None
+        self.seat = 0
+        self.seen = 0
+
+    @staticmethod
+    def number(value) -> int | None:
+        """`value` as a whole number (300, 300.0, "300", "-5"), or None when it is not one."""
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        if isinstance(value, str) and re.fullmatch(r"\s*-?\d+\s*", value):
+            return int(value)
+        return None
+
+    @staticmethod
+    def within(n: int, low: int | None, high: int | None) -> bool:
+        return (low is None or n >= low) and (high is None or n <= high)
+
+    def _numeric(self, schema) -> Action:
+        """A number question: the first rule with uses left that names a number in the range, or a
+        word the question accepts instead (`pass`), answers it; the older `{"number": true, "answer": n}`
+        form still does. Otherwise the default: `decline` takes a word that says no (pass) when the
+        question accepts one, and else, like `first` and `last`, the lowest number allowed."""
+        low, high, words = schema.minimum, schema.maximum, tuple(schema.choices)
+        self.ranges.append((low, high, words))
+        for r in self.rules:
+            if r["left"] == 0:
+                continue
+            if r.get("number"):
+                target = r["answer"]
+            else:
+                want = r.get("options_include")
+                n = self.number(want)
+                if not ((n is not None and self.within(n, low, high)) or (n is None and self._pick(want, words) is not None)):
+                    continue
+                answer = r.get("answer", want)
+                target = self.number(answer)
+                if target is None:
+                    target = self._pick(answer, words) or answer
+            r["left"] = r["left"] - 1 if r["left"] else None
+            return Action(type=schema.id, target=target)
+        if self.default == "decline":
+            for w in words:
+                if self.DECLINE.search(str(w)):
+                    return Action(type=schema.id, target=w)
+        return Action(type=schema.id, target=low if low is not None else 0)
 
     @staticmethod
     def _pick(want, legal):
@@ -92,7 +147,23 @@ class RuleAgent(BaseAgent):
         near = [o for o in legal if str(want).strip().lower() in str(o).lower()]
         return near[0] if len(near) == 1 else None
 
+    def watch(self, log, seat: int) -> None:
+        """Follow the match's log as `seat`. The engine answers a question with one option without asking, and
+        the rule naming that option is used up then, not after the match, so it cannot answer a later question
+        meant for the next rule."""
+        self.log, self.seat, self.seen = log, seat, 0
+
+    def _catch_up(self) -> None:
+        if self.log is None:
+            return
+        records = self.log.records
+        for r in records[self.seen:]:
+            if r.get("type") == "auto_answer" and r.get("seat") == self.seat:
+                self.forced(r.get("value"))
+        self.seen = len(records)
+
     def decide(self, env) -> Action:
+        self._catch_up()
         schema = self._schema(env)
         if schema.target == "text":
             return Action(type=schema.id, text=SAY)
@@ -101,11 +172,7 @@ class RuleAgent(BaseAgent):
         self.asked += 1
         legal = list(env.legal_targets)
         if schema.target == "number":
-            for r in self.rules:
-                if r.get("number") and r["left"] != 0:
-                    r["left"] = r["left"] - 1 if r["left"] else None
-                    return Action(type=schema.id, target=r["answer"])
-            return Action(type=schema.id, target=schema.minimum if schema.minimum is not None else 0)
+            return self._numeric(schema)
         for r in self.rules:
             if r["left"] == 0 or "options_include" not in r:
                 continue
@@ -135,7 +202,8 @@ class RuleAgent(BaseAgent):
 
     def unused(self) -> list[str]:
         """Rules that still had uses left: `times: "all"` rules are never required to fire."""
-        return [f"{self.name}: the rule for {r['options_include']!r} was never matched {'' if r['left'] == r.get('times', 1) else 'enough '}"
+        self._catch_up()
+        return [f"{self.name}: the rule for {r.get('options_include', r.get('answer'))!r} was never matched {'' if r['left'] == r.get('times', 1) else 'enough '}"
                 "(the game never put that option to this seat)"
                 for r in self.rules if r["left"] not in (None, 0)]
 
@@ -318,6 +386,9 @@ def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: 
     for bound in host.register():
         index = game.register_seat(bound.name, host.host_id, bound.profile)
         registry.attach(index, host, bound)
+    for seat, agent in enumerate(agents, 1):
+        if isinstance(agent, RuleAgent):
+            agent.watch(game.log, seat)
     orchestrator = _GivenOrchestrator(definition, given, judge) if given else FlowOrchestrator(definition, judge)
     result = Runner(game, orchestrator, registry).run()
     return Played(result, game, orchestrator, agents)

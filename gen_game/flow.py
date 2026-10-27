@@ -10,6 +10,7 @@
                                                                          report.json / REPORT.md
     E  triage    whenever C or D finds a problem, a model decides whose it is:
                    fix_game        the file is wrong: the coder tries again with guidance
+                   fix_tests       a test is wrong: the tests are rewritten, and the file and the rules stand
                    revise_rules    the rules are the problem: back to A with guidance
                    platform_limit  the rules need what the platform cannot do: STOP, and record exactly what
 
@@ -45,7 +46,8 @@ STEPS = ("adapt", "spec", "encode", "scenarios", "evaluate")
 DESIGN_ROUNDS = 3
 #: How many times the designer and critic go back and forth before the rules go to a coder.
 CRITIC_ROUNDS = 3
-#: How many times the coder is sent back with guidance before the rules are blamed.
+#: How many times the coder is sent back with guidance before the rules are blamed, and, separately, how many
+#: times the tests are rewritten: a wrong test is not the coder's failure and must not use up the coder's turns.
 FIX_ROUNDS = 2
 ARTIFACTS = ("variation.json", "VARIATION.md", "spec.json", "SPEC.md", "AGENT_PROMPT.md", "CODER_PROMPT.md", "encode_attempts.json", "encode_notes.md",
              "game.json", "scenarios.json", "report.json", "REPORT.md")
@@ -432,12 +434,13 @@ def convert(
         interface = promptmod.interface(spec)
 
         # -- C, D, E: build, test, and triage whatever goes wrong -----------------
+        verdict = None  # triage's last decision in this round
         if spec["unsupported"]:
             evidence = Evidence("spec", "the spec lists what it needs that the platform cannot do: " + "; ".join(map(str, spec["unsupported"])))
             report = None
         else:
-            guidance = ""
-            for fix_no in range(FIX_ROUNDS + 1):
+            guidance, game_fixes, test_fixes = "", 0, 0
+            while True:
                 stop, evidence, report = _build_and_test(game_id, completion, encoder, spec, plan, folder, redo_set, guidance, log, fidelity_in_loop, judge, check_brief)
                 redo_set -= {"encode", "scenarios", "evaluate"}
                 if stop is not None:
@@ -452,12 +455,14 @@ def convert(
                     decision, error = triage.decide(completion, rules, interface, evidence.text)
                 if decision is None:
                     return Outcome(game_id, "needs_review", f"could not decide whose problem it is: {error}")
-                decisions.append({"round": round_no, "fix": fix_no, **decision})
-                log(f"triage: {decision['decision']}: {decision['reason']}")
-                tried.append(f"round {round_no}: {evidence.kind} problem; triage said {decision['decision']}: {decision['reason'][:160]}")
-                if decision["decision"] == "platform_limit":
+                decisions.append({"round": round_no, "fix": game_fixes + test_fixes, **decision})
+                verdict = decision["decision"]
+                log(f"triage: {verdict}: {decision['reason']}")
+                tried.append(f"round {round_no}: {evidence.kind} problem; triage said {verdict}: {decision['reason'][:160]}")
+                if verdict == "platform_limit":
                     return _platform_limit(inv, rec, folder, decision, tried)
-                if decision["decision"] == "fix_tests" and fix_no < FIX_ROUNDS:
+                if verdict == "fix_tests" and test_fixes < FIX_ROUNDS:
+                    test_fixes += 1
                     log("rewriting the independent tests")
                     items, error = scenarios.write_scenarios(completion, spec, guidance=decision["guidance"])
                     if items is None:
@@ -465,7 +470,8 @@ def convert(
                     _write(folder / "scenarios.json", json.dumps(items, indent=2) + "\n")
                     guidance = ""  # the coder starts fresh against the new tests
                     continue
-                if decision["decision"] == "fix_game" and fix_no < FIX_ROUNDS:
+                if verdict == "fix_game" and game_fixes < FIX_ROUNDS:
+                    game_fixes += 1
                     guidance = decision["guidance"]
                     continue
                 break
@@ -473,6 +479,8 @@ def convert(
             break
         if not adapt or not judge:
             break  # nobody to revise the rules: the report says what is wrong
+        if verdict == "fix_tests":
+            break  # the file follows the rules and only the tests are still wrong: new rules would not fix that, a person reviews it
         if spec["unsupported"]:
             decision, error = triage.decide(completion, rules, interface, evidence.text)
             if decision is None:
