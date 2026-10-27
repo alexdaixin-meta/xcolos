@@ -853,8 +853,9 @@ def test_the_servers_first_choice_is_the_newest_model_unless_the_environment_nam
             os.environ["XCOLOS_MUSE_MODEL"] = saved
 
 
-def test_a_model_seat_is_asked_for_its_reasons_before_its_answer():
+def test_a_model_seat_is_invited_to_give_reasons_before_its_answer_but_never_told_to():
     from xcolos.seat_models import SEAT_SYSTEM
 
     assert SEAT_SYSTEM.startswith("You are one player in a game")
-    assert "one to three short sentences" in SEAT_SYSTEM and "last line" in SEAT_SYSTEM  # so a play can be read for how the player thought
+    assert "keep any reasoning short and before the answer" in SEAT_SYSTEM  # Claude gave reasons on all 103 Hanabi decisions with this
+    assert "first give your reasons" not in SEAT_SYSTEM  # told to, Claude refused bids as reasoning_extraction and the plays stopped

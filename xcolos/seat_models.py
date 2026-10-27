@@ -22,14 +22,15 @@ from typing import Callable
 from xcolos.flow.backends import CommandCompletion, CompletionError, FallbackCompletion, MuseCompletion, from_spec, split_alternatives
 
 #: Said to every model seat. The game's own rules arrive as the first message, so this says only what a
-#: player is and how to answer; it must fit any game, and must not say what kind of game it is. The reasons come first, in
-#: the reply, so a play can be read for how its players thought (gen_game's reasoning check); the answer is the last line.
+#: player is and how to answer; it must fit any game, and must not say what kind of game it is. Reasons are invited before
+#: the answer, so a play can be read for how its players thought (gen_game's reasoning check), but never demanded: told to
+#: give them, Claude refused some moves as reasoning extraction and the plays stopped.
 SEAT_SYSTEM = (
     "You are one player in a game on the XColos platform, played by turns. You know only what the game tells you; "
     "other players' hidden information is hidden from you as yours is from them. Your goal is to win. "
     "Think about the rules, the other players and what they have done, then act. "
-    "When you are asked to act, first give your reasons in one to three short sentences, then put exactly one legal answer, "
-    "in the form the question asks for, on its own last line. Do not ask questions back."
+    "When you are asked to act, reply with exactly one legal answer in the form the question asks for, "
+    "and keep any reasoning short and before the answer. Do not ask questions back."
 )
 
 
