@@ -1,0 +1,1200 @@
+[
+  {
+    "name": "After setup 8 cards remain in the deck (12 minus 4 dealt) and nothing is discarded",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 8,
+          "discard": 0
+        },
+        "players": {
+          "1": {},
+          "2": {}
+        }
+      },
+      "game": {
+        "discard": []
+      }
+    },
+    "rule_text": "When the game is set up, the deck contains exactly 12 cards: three each of 11 and 21, two each of 12 and 22, and one each of 13 and 23."
+  },
+  {
+    "name": "After the deal: piles 0, hints 3, fuses 3, empty discard and notes, scores 0, deck 8",
+    "rule": "R2",
+    "players": 2,
+    "seed": 2,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "red_pile": 0,
+        "blue_pile": 0,
+        "hints": 3,
+        "fuses": 3,
+        "discard": []
+      },
+      "lens": {
+        "game": {
+          "deck": 8
+        },
+        "players": {
+          "1": {
+            "note_a": 0,
+            "note_b": 0
+          },
+          "2": {
+            "note_a": 0,
+            "note_b": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When the deal is done, each seat holds 2 cards (card_a and card_b), deck_left is 8, red_pile and blue_pile are 0, hints is 3, fuses is 3, discard is empty, all notes are empty and both scores are 0."
+  },
+  {
+    "name": "Each seat is offered all 8 actions on its turn; empty-slot plays change nothing",
+    "rule": "R3",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 12
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      },
+      {
+        "seat": 2,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "game": {
+        "red_pile": 0,
+        "blue_pile": 0,
+        "hints": 3,
+        "fuses": 3,
+        "discard": []
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Play A"
+        },
+        {
+          "seat": 1,
+          "option": "Discard B"
+        },
+        {
+          "seat": 1,
+          "option": "Hint rank of partner's B"
+        },
+        {
+          "seat": 2,
+          "option": "Play B"
+        },
+        {
+          "seat": 2,
+          "option": "Hint colour of partner's A"
+        }
+      ]
+    },
+    "rule_text": "When a seat is shown its state, it sees its partner's card_a and card_b but never its own card_a or card_b."
+  },
+  {
+    "name": "Playing Red 1 on red_pile 0 raises red_pile to 1, fuses unchanged",
+    "rule": "R4",
+    "players": 2,
+    "seed": 4,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 11,
+          "card_b": 22
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 1
+        }
+      },
+      "game": {
+        "red_pile": 1,
+        "blue_pile": 0,
+        "fuses": 3,
+        "discard": []
+      }
+    },
+    "rule_text": "When a seat plays a card whose rank equals its colour's pile + 1 (e.g. Red 1 on red_pile 0), then that pile increases by 1 and fuses are unchanged."
+  },
+  {
+    "name": "Playing Blue 1 on blue_pile 0 raises blue_pile to 1",
+    "rule": "R4",
+    "players": 2,
+    "seed": 5,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 12,
+          "card_b": 21
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 11
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play B"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 1
+        }
+      },
+      "game": {
+        "red_pile": 0,
+        "blue_pile": 1,
+        "fuses": 3,
+        "discard": []
+      }
+    },
+    "rule_text": "When a seat plays a card whose rank equals its colour's pile + 1 (e.g. Red 1 on red_pile 0), then that pile increases by 1 and fuses are unchanged."
+  },
+  {
+    "name": "Playing Blue 2 on blue_pile 0 fails: card goes to discard and fuses drop to 2",
+    "rule": "R5",
+    "players": 2,
+    "seed": 6,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 22,
+          "card_b": 11
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "red_pile": 0,
+        "blue_pile": 0,
+        "fuses": 2,
+        "discard": [
+          22
+        ]
+      }
+    },
+    "rule_text": "When a seat plays a card whose rank is not its colour's pile + 1 (e.g. Blue 2 on blue_pile 0), then the card's code is appended to discard and fuses decrease by 1."
+  },
+  {
+    "name": "Playing or discarding an empty slot changes nothing and draws nothing",
+    "rule": "R6",
+    "players": 2,
+    "seed": 7,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 11
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21
+        }
+      },
+      "game": {
+        "hints": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      },
+      {
+        "seat": 2,
+        "options_include": "Discard A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "red_pile": 0,
+        "blue_pile": 0,
+        "hints": 2,
+        "fuses": 3,
+        "discard": []
+      },
+      "lens": {
+        "game": {
+          "deck": 8
+        }
+      }
+    },
+    "rule_text": "When a seat plays or discards an empty slot (code 0), then nothing changes: no pile, fuse, hint or discard change, and no draw."
+  },
+  {
+    "name": "Discarding a card with hints 2 puts it in discard and raises hints to 3",
+    "rule": "R7",
+    "players": 2,
+    "seed": 8,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 13,
+          "card_b": 11
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21
+        }
+      },
+      "game": {
+        "hints": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Discard A"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 3,
+        "fuses": 3,
+        "discard": [
+          13
+        ],
+        "red_pile": 0,
+        "blue_pile": 0
+      }
+    },
+    "rule_text": "When a seat discards a non-empty slot, then the card's code is appended to discard and hints become min(3, hints + 1); with hints at 3, hints stay 3."
+  },
+  {
+    "name": "Discarding a card with hints already 3 keeps hints at 3",
+    "rule": "R7",
+    "players": 2,
+    "seed": 9,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 11,
+          "card_b": 23
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21
+        }
+      },
+      "game": {
+        "hints": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Discard B"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 3,
+        "fuses": 3,
+        "discard": [
+          23
+        ]
+      }
+    },
+    "rule_text": "When a seat discards a non-empty slot, then the card's code is appended to discard and hints become min(3, hints + 1); with hints at 3, hints stay 3."
+  },
+  {
+    "name": "A hint on a non-empty partner slot costs one hint token",
+    "rule": "R8",
+    "players": 2,
+    "seed": 10,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 11,
+          "card_b": 21
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 22
+        }
+      },
+      "game": {
+        "hints": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Hint colour of partner's B"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 2,
+        "fuses": 3,
+        "discard": []
+      }
+    },
+    "rule_text": "When a seat gives a hint with hints >= 1 and the named partner slot is non-empty, then hints decrease by 1."
+  },
+  {
+    "name": "A colour hint adds one note to each non-empty partner card and costs a token",
+    "rule": "R9",
+    "players": 2,
+    "seed": 11,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 21
+        },
+        "2": {
+          "card_a": 11,
+          "card_b": 22
+        }
+      },
+      "game": {
+        "hints": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Hint colour of partner's A"
+      },
+      {
+        "seat": 2,
+        "options_include": "Hint rank of partner's A"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "note_a": 0,
+            "note_b": 0
+          },
+          "2": {
+            "note_a": 1,
+            "note_b": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a colour hint names Red (or Blue), then each non-empty partner card gets the note 'is Red' if its colour is Red, and 'not Red' otherwise (likewise for Blue)."
+  },
+  {
+    "name": "A rank hint adds one note to each non-empty partner card and costs a token",
+    "rule": "R10",
+    "players": 2,
+    "seed": 12,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 21
+        },
+        "2": {
+          "card_a": 11,
+          "card_b": 22
+        }
+      },
+      "game": {
+        "hints": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Hint rank of partner's B"
+      },
+      {
+        "seat": 2,
+        "options_include": "Hint colour of partner's A"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "note_a": 0,
+            "note_b": 0
+          },
+          "2": {
+            "note_a": 1,
+            "note_b": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a rank hint names rank r, then each non-empty partner card gets the note 'is r' if its rank is r, and 'not r' otherwise."
+  },
+  {
+    "name": "A hint with hints 0 is still offered but is wasted: no token change, no notes",
+    "rule": "R11",
+    "players": 2,
+    "seed": 13,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 21
+        },
+        "2": {
+          "card_a": 11,
+          "card_b": 22
+        }
+      },
+      "game": {
+        "hints": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Hint colour of partner's A"
+      },
+      {
+        "seat": 2,
+        "options_include": "Hint rank of partner's B"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 0,
+        "fuses": 3,
+        "discard": []
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "note_a": 0,
+            "note_b": 0
+          },
+          "2": {
+            "note_a": 0,
+            "note_b": 0
+          }
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Hint colour of partner's A"
+        }
+      ]
+    },
+    "rule_text": "When a seat gives a hint with hints == 0 or names an empty partner slot, then nothing changes and the turn is wasted."
+  },
+  {
+    "name": "A hint naming an empty partner slot is wasted: hints stay 3, no notes",
+    "rule": "R11",
+    "players": 2,
+    "seed": 14,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 21
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 22
+        }
+      },
+      "game": {
+        "hints": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Hint colour of partner's A"
+      },
+      {
+        "seat": 2,
+        "options_include": "Hint rank of partner's A"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 3
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "note_a": 0,
+            "note_b": 0
+          },
+          "2": {
+            "note_a": 0,
+            "note_b": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a seat gives a hint with hints == 0 or names an empty partner slot, then nothing changes and the turn is wasted."
+  },
+  {
+    "name": "After a play the front deck card fills the slot with cleared notes; playing it next round shows it was Blue 1",
+    "rule": "R12",
+    "players": 2,
+    "seed": 15,
+    "rounds": 2,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 11,
+          "card_b": 22,
+          "note_a": [
+            "is Red"
+          ]
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 12
+        }
+      },
+      "game": {
+        "deck": [
+          21,
+          23,
+          11,
+          11,
+          12,
+          13,
+          21,
+          22
+        ],
+        "deck_left": 8
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A",
+        "times": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 2
+        },
+        "2": {
+          "score": 2
+        }
+      },
+      "game": {
+        "red_pile": 1,
+        "blue_pile": 1,
+        "fuses": 3,
+        "discard": []
+      },
+      "lens": {
+        "game": {
+          "deck": 6
+        },
+        "players": {
+          "1": {
+            "note_a": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a card leaves a slot by play (successful or failed) or by discard and deck_left > 0, then the front card of the deck goes into that slot, deck_left decreases by 1 and that slot's note becomes empty."
+  },
+  {
+    "name": "With an empty deck a played slot becomes empty, so playing it again changes nothing",
+    "rule": "R13",
+    "players": 2,
+    "seed": 16,
+    "rounds": 2,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 11,
+          "card_b": 22,
+          "note_a": [
+            "is 1"
+          ]
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 12
+        }
+      },
+      "game": {
+        "deck": [],
+        "deck_left": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A",
+        "times": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 1
+        }
+      },
+      "game": {
+        "red_pile": 1,
+        "blue_pile": 0,
+        "fuses": 3,
+        "discard": []
+      },
+      "lens": {
+        "game": {
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "note_a": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a card leaves a slot and deck_left == 0, then the slot becomes 0 and its note stays empty."
+  },
+  {
+    "name": "Both seats' scores equal red_pile + blue_pile after a successful Red 2 play",
+    "rule": "R14",
+    "players": 2,
+    "seed": 17,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 12,
+          "card_b": 11,
+          "score": 2
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21,
+          "score": 2
+        }
+      },
+      "game": {
+        "red_pile": 1,
+        "blue_pile": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 3
+        },
+        "2": {
+          "score": 3
+        }
+      },
+      "game": {
+        "red_pile": 2,
+        "blue_pile": 1,
+        "fuses": 3
+      }
+    },
+    "rule_text": "When any turn ends, then both seats' scores equal red_pile + blue_pile."
+  },
+  {
+    "name": "Seat 2's discard is applied and publicly visible: discard holds 21 and hints rise to 2",
+    "rule": "R15",
+    "players": 2,
+    "seed": 18,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 11
+        },
+        "2": {
+          "card_a": 12,
+          "card_b": 21
+        }
+      },
+      "game": {
+        "hints": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      },
+      {
+        "seat": 2,
+        "options_include": "Discard B"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hints": 2,
+        "fuses": 3,
+        "discard": [
+          21
+        ],
+        "red_pile": 0,
+        "blue_pile": 0
+      }
+    },
+    "rule_text": "When any turn ends, then the chosen option, any revealed card, whether a play succeeded, and any hint named are announced to both seats."
+  },
+  {
+    "name": "Last fuse lost on seat 1's turn ends the game at once (seat 2 never asked); score 2 means no win",
+    "rule": "R16",
+    "players": 2,
+    "seed": 19,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 23,
+          "card_b": 11,
+          "score": 2
+        },
+        "2": {
+          "card_a": 12,
+          "card_b": 22,
+          "score": 2
+        }
+      },
+      "game": {
+        "red_pile": 1,
+        "blue_pile": 1,
+        "fuses": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "result": "no seat wins",
+      "players": {
+        "1": {
+          "score": 2
+        },
+        "2": {
+          "score": 2
+        }
+      },
+      "game": {
+        "fuses": 0,
+        "discard": [
+          23
+        ],
+        "red_pile": 1,
+        "blue_pile": 1
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Play A"
+        }
+      ]
+    },
+    "rule_text": "When fuses reach 0 after any turn, then the game ends immediately."
+  },
+  {
+    "name": "Completing both piles at 3 ends the game at once with score 6 and a shared win",
+    "rule": "R17",
+    "players": 2,
+    "seed": 20,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 23,
+          "card_b": 11,
+          "score": 5
+        },
+        "2": {
+          "card_a": 12,
+          "card_b": 22,
+          "score": 5
+        }
+      },
+      "game": {
+        "red_pile": 3,
+        "blue_pile": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "result": "both seats win",
+      "players": {
+        "1": {
+          "score": 6
+        },
+        "2": {
+          "score": 6
+        }
+      },
+      "game": {
+        "red_pile": 3,
+        "blue_pile": 3,
+        "fuses": 3
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Play A"
+        }
+      ]
+    },
+    "rule_text": "When red_pile == 3 and blue_pile == 3 after any turn, then the game ends immediately with score 6."
+  },
+  {
+    "name": "The game ends after round 12 is completed; score 4 means both win",
+    "rule": "R18",
+    "players": 2,
+    "seed": 21,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 11,
+          "score": 4
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21,
+          "score": 4
+        }
+      },
+      "game": {
+        "red_pile": 2,
+        "blue_pile": 2,
+        "round_number": 11
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Play A",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "result": "both seats win",
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 4
+        }
+      },
+      "game": {
+        "red_pile": 2,
+        "blue_pile": 2,
+        "fuses": 3
+      }
+    },
+    "rule_text": "When round 12 is completed (seat 2's 12th turn), then the game ends."
+  },
+  {
+    "name": "Ending on fuses with score 4 is still a shared win",
+    "rule": "R19",
+    "players": 2,
+    "seed": 22,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 22,
+          "card_b": 11,
+          "score": 4
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21,
+          "score": 4
+        }
+      },
+      "game": {
+        "red_pile": 2,
+        "blue_pile": 2,
+        "fuses": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "result": "both seats win",
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 4
+        }
+      },
+      "game": {
+        "fuses": 0,
+        "discard": [
+          22
+        ],
+        "red_pile": 2,
+        "blue_pile": 2
+      }
+    },
+    "rule_text": "When the game ends with red_pile + blue_pile >= 4, then both seats win."
+  },
+  {
+    "name": "Reaching the round limit with score 3 means no seat wins",
+    "rule": "R20",
+    "players": 2,
+    "seed": 23,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 0,
+          "card_b": 11,
+          "score": 3
+        },
+        "2": {
+          "card_a": 0,
+          "card_b": 21,
+          "score": 3
+        }
+      },
+      "game": {
+        "red_pile": 2,
+        "blue_pile": 1,
+        "round_number": 11
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Play A",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "result": "no seat wins",
+      "players": {
+        "1": {
+          "score": 3
+        },
+        "2": {
+          "score": 3
+        }
+      },
+      "game": {
+        "red_pile": 2,
+        "blue_pile": 1,
+        "fuses": 3
+      }
+    },
+    "rule_text": "When the game ends with red_pile + blue_pile <= 3, then no seat wins."
+  },
+  {
+    "name": "Seat 1 acts before seat 2: Red 1 then Red 2 both succeed",
+    "rule": "R21",
+    "players": 2,
+    "seed": 24,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "card_a": 11,
+          "card_b": 22
+        },
+        "2": {
+          "card_a": 12,
+          "card_b": 23
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Play A"
+      },
+      {
+        "seat": 2,
+        "options_include": "Play A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 2
+        },
+        "2": {
+          "score": 2
+        }
+      },
+      "game": {
+        "red_pile": 2,
+        "blue_pile": 0,
+        "fuses": 3,
+        "discard": []
+      }
+    },
+    "rule_text": "When a round is played, then seat 1 takes its turn before seat 2."
+  }
+]

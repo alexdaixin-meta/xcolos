@@ -1,0 +1,741 @@
+# 24 scenarios
+
+- time: 2026-10-27T04:48:16+00:00 (145.9s)  model: claude-opus-5-5
+- system prompt: [system/5914d71d-scenarios.md](system/5914d71d-scenarios.md) (sha256 5914d71de58bb622)
+- sent sha256 9bea1bf8c61f277e, reply sha256 312d86011864e8f0
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Hanabi Trio",
+  "summary": "A cooperative card game. Each player sees everyone's cards but their own and plays coloured cards 1 to 5 in order onto three piles, using hints, discards and plays; the team wins together if it scores 10 or more of the 15 possible points.",
+  "players": {
+    "min": 2,
+    "max": 4,
+    "suggested": 3
+  },
+  "parameters": {
+    "deck_size": 30,
+    "num_colours": 3,
+    "copies_of_rank_1": 3,
+    "copies_of_rank_2": 2,
+    "copies_of_rank_3": 2,
+    "copies_of_rank_4": 2,
+    "copies_of_rank_5": 1,
+    "max_rank": 5,
+    "hand_size_2_players": 5,
+    "hand_size_3_players": 4,
+    "hand_size_4_players": 4,
+    "deck_count_start_2_players": 20,
+    "deck_count_start_3_players": 18,
+    "deck_count_start_4_players": 14,
+    "pile_start": 0,
+    "hint_tokens_start": 8,
+    "hint_tokens_max": 8,
+    "hint_cost": 1,
+    "discard_hint_gain": 1,
+    "five_played_hint_gain": 1,
+    "fuses_start": 3,
+    "fuse_loss_per_failed_play": 1,
+    "score_per_successful_play": 1,
+    "max_team_score": 15,
+    "win_threshold": 10,
+    "max_turns": 40,
+    "final_turns_left_start": -1,
+    "final_turns_extra": 1,
+    "team_score_start": 0,
+    "turns_played_start": 0,
+    "first_active_seat": 1
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "hand_ids",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "IDs (#k) of the cards this seat holds, in order; seen by everyone (R6)",
+        "observable": false
+      },
+      {
+        "key": "hand_faces",
+        "type": "list",
+        "visible": "others",
+        "initial": [],
+        "meaning": "Faces (e.g. R1) of the held cards, index-paired with hand_ids; every seat except the owner sees them (R6)",
+        "observable": false
+      },
+      {
+        "key": "legal_options",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "Options offered this turn; filled only for the active seat, empty for all others (R9)",
+        "observable": false
+      },
+      {
+        "key": "total",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "This seat's score; set to team_score at the end of every turn (R16)",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "deck_ids",
+        "type": "list",
+        "visible": "none",
+        "initial": [],
+        "meaning": "IDs of the cards still in the deck, front = top; index-paired with deck_faces",
+        "observable": false
+      },
+      {
+        "key": "deck_faces",
+        "type": "list",
+        "visible": "none",
+        "initial": [],
+        "meaning": "Faces of the cards still in the deck, shuffled once at setup, front = top; hidden from every player (R2)",
+        "observable": false
+      },
+      {
+        "key": "deck_count",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Always the number of entries in deck_ids",
+        "observable": true
+      },
+      {
+        "key": "pile_red",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Highest red rank played successfully",
+        "observable": true
+      },
+      {
+        "key": "pile_green",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Highest green rank played successfully",
+        "observable": true
+      },
+      {
+        "key": "pile_blue",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Highest blue rank played successfully",
+        "observable": true
+      },
+      {
+        "key": "hint_tokens",
+        "type": "number",
+        "visible": "public",
+        "initial": 8,
+        "meaning": "Hint tokens available, 0 to 8",
+        "observable": true
+      },
+      {
+        "key": "fuses",
+        "type": "number",
+        "visible": "public",
+        "initial": 3,
+        "meaning": "Fuses left; the game ends when this reaches 0",
+        "observable": true
+      },
+      {
+        "key": "discard_pile",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "Revealed discarded or failed cards as '#id=face', in order",
+        "observable": true
+      },
+      {
+        "key": "action_log",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "One public line per turn: hints with matched IDs, plays and discards with faces",
+        "observable": false
+      },
+      {
+        "key": "team_score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "pile_red + pile_green + pile_blue (0 to 15)",
+        "observable": true
+      },
+      {
+        "key": "turns_played",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Turns completed so far",
+        "observable": true
+      },
+      {
+        "key": "final_turns_left",
+        "type": "number",
+        "visible": "public",
+        "initial": -1,
+        "meaning": "-1 until the deck empties; then counts down the remaining turns",
+        "observable": false
+      },
+      {
+        "key": "active_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Seat whose turn it is",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Build the 30 faces: for each of R, G, B, three 1s, two 2s, two 3s, two 4s and one 5. Shuffle them once into deck_faces.",
+    "Set deck_ids to #1, #2, ..., #30 in order, so deck_ids[k] and deck_faces[k] are the same card.",
+    "Hand size is 5 with 2 players and 4 with 3 or 4 players.",
+    "Seat 1 takes the front hand-size entries of deck_ids and deck_faces together, in order, into hand_ids and hand_faces. Then seat 2 takes the next hand-size entries, and so on to the last seat. With 3 players, seat 1 holds #1-#4, seat 2 #5-#8, seat 3 #9-#12, and the deck holds #13-#30.",
+    "Set deck_count to the length of deck_ids: 20 with 2 players, 18 with 3, 14 with 4.",
+    "Set pile_red, pile_green, pile_blue = 0, hint_tokens = 8, fuses = 3, team_score = 0, discard_pile = [], action_log = [], turns_played = 0, final_turns_left = -1, active_seat = 1, and every seat's total = 0.",
+    "Sync: each seat receives every seat's hand_ids, every other seat's hand_faces (never its own) and all public table attributes."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "seat {active_seat}",
+      "answer": null,
+      "effect": "Set legal_options of the active seat to: 'PLAY #id' for each id in its hand_ids; 'DISCARD #id' for each id in its hand_ids; and, if hint_tokens >= 1, 'HINT s v' for each other seat s and each v in {R,G,B,1,2,3,4,5} where at least one face in seat s's hand_faces has colour letter v or rank v. Set every other seat's legal_options to []."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "Each seat receives its permitted view: all hand_ids, other seats' hand_faces, the piles, hint_tokens, fuses, deck_count, discard_pile, action_log, team_score, turns_played, active_seat, and its own legal_options."
+    },
+    {
+      "action": "ask",
+      "who": "seat {active_seat}",
+      "answer": "exactly one option from the active seat's legal_options",
+      "effect": "Store the chosen option as this turn's choice."
+    },
+    {
+      "action": "update",
+      "who": "seat {active_seat}",
+      "answer": null,
+      "effect": "When the choice is 'HINT s v': hint_tokens -= 1. Append to action_log 'turn {turns_played+1}: seat {active_seat} hints seat s v = ' followed by every id in seat s's hand_ids whose paired face matches v. No card moves."
+    },
+    {
+      "action": "update",
+      "who": "seat {active_seat}",
+      "answer": null,
+      "effect": "When the choice is 'PLAY #id': find index i of #id in the active seat's hand_ids, take face = hand_faces[i], and remove index i from both hand_ids and hand_faces. If face rank == (pile of face colour) + 1: set that pile to the rank, team_score += 1, if rank == 5 and hint_tokens < 8 then hint_tokens += 1, and append 'turn t: seat a plays #id = face, success' to action_log. Otherwise: fuses -= 1, append '#id=face' to discard_pile, and append 'turn t: seat a plays #id = face, failure' to action_log."
+    },
+    {
+      "action": "update",
+      "who": "seat {active_seat}",
+      "answer": null,
+      "effect": "When the choice is 'DISCARD #id': find index i of #id in the active seat's hand_ids, take face = hand_faces[i], and remove index i from both lists. Append '#id=face' to discard_pile, set hint_tokens = min(8, hint_tokens + 1), and append 'turn t: seat a discards #id = face' to action_log."
+    },
+    {
+      "action": "update",
+      "who": "seat {active_seat}",
+      "answer": null,
+      "effect": "When the choice was PLAY or DISCARD and deck_ids is not empty: remove the front entry of deck_ids and of deck_faces together and append them to the end of the active seat's hand_ids and hand_faces. Set deck_count = length of deck_ids. If deck_count is now 0 and final_turns_left == -1, set final_turns_left = num_players + 1. After a HINT nobody draws."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Set every seat's total = team_score. turns_played += 1. If final_turns_left > 0, final_turns_left -= 1. active_seat = active_seat + 1, or 1 after the last seat."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce the last action_log line with the current pile_red, pile_green, pile_blue, hint_tokens, fuses, deck_count and team_score."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "End the game if fuses == 0 or team_score == 15 or final_turns_left == 0 or turns_played == 40; otherwise continue with the next round."
+    }
+  ],
+  "ending": {
+    "condition": "fuses == 0 OR team_score == 15 OR final_turns_left == 0 OR turns_played == 40, checked at the end of each turn",
+    "results": [
+      "all seats win",
+      "no seat wins"
+    ],
+    "decided_by": "Every seat's total equals team_score = pile_red + pile_green + pile_blue. If team_score >= 10, every seat's total is at least 10 and all seats win together. Otherwise no seat wins. Pile progress counts even when the game ended because fuses reached 0."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "When the deck is built, then it has 30 cards: for each of R, G, B, three 1s, two 2s, two 3s, two 4s and one 5."
+    },
+    {
+      "id": "R2",
+      "text": "When setup runs, then deck_faces is a shuffle of the 30 faces and deck_ids is #1..#30 in order, with deck_ids[k] paired to deck_faces[k]."
+    },
+    {
+      "id": "R3",
+      "text": "When any card moves, then its ID and face are removed from the same index of their paired lists and moved together, and no other record of the face exists."
+    },
+    {
+      "id": "R4",
+      "text": "When there are 2 players, then each hand has 5 cards and deck_count starts at 20."
+    },
+    {
+      "id": "R5",
+      "text": "When there are 3 players, then each hand has 4 cards and deck_count starts at 18."
+    },
+    {
+      "id": "R6",
+      "text": "When there are 4 players, then each hand has 4 cards and deck_count starts at 14."
+    },
+    {
+      "id": "R7",
+      "text": "When dealing with 3 players, then seat 1 holds #1-#4, seat 2 #5-#8, seat 3 #9-#12, and deck_ids holds #13-#30."
+    },
+    {
+      "id": "R8",
+      "text": "When any step ends, then deck_count equals the number of entries in deck_ids."
+    },
+    {
+      "id": "R9",
+      "text": "When a seat views the table, then it sees every seat's hand_ids and every other seat's hand_faces, but never its own hand_faces."
+    },
+    {
+      "id": "R10",
+      "text": "When the game starts, then the piles are 0, hint_tokens is 8, fuses is 3, team_score is 0, discard_pile and action_log are empty, turns_played is 0, final_turns_left is -1 and active_seat is 1."
+    },
+    {
+      "id": "R11",
+      "text": "When a turn begins, then only the active seat is asked; seats act in order 1..num_players and then seat 1 again."
+    },
+    {
+      "id": "R12",
+      "text": "When a turn begins, then the active seat's options are 'PLAY #id' and 'DISCARD #id' for each id in its hand, and every other seat's legal_options is empty."
+    },
+    {
+      "id": "R13",
+      "text": "When hint_tokens >= 1, then the active seat is also offered 'HINT s v' for each other seat s and each v in R,G,B,1-5 that matches at least one card in seat s's hand; when hint_tokens is 0, no HINT is offered."
+    },
+    {
+      "id": "R14",
+      "text": "When a seat hints, then hint_tokens falls by 1, action_log gains a line naming giver, receiver, value and every matching ID in the receiver's hand, and no card moves or is drawn."
+    },
+    {
+      "id": "R15",
+      "text": "When a seat plays or discards #id, then the card at #id's index in its hand_ids is removed from both hand_ids and hand_faces."
+    },
+    {
+      "id": "R16",
+      "text": "When a played card's rank is exactly 1 more than its colour's pile, then that pile becomes the rank, team_score rises by 1, and action_log records the success with the face."
+    },
+    {
+      "id": "R17",
+      "text": "When a 5 is played successfully and hint_tokens is below 8, then hint_tokens rises by 1; at 8 it stays 8."
+    },
+    {
+      "id": "R18",
+      "text": "When a play fails, then fuses falls by exactly 1, '#id=face' is appended to discard_pile, the piles and team_score are unchanged, and action_log records the failure with the face."
+    },
+    {
+      "id": "R19",
+      "text": "When a seat discards, then '#id=face' is appended to discard_pile, hint_tokens rises by 1 to at most 8 (8 stays 8), and action_log records the discard with the face."
+    },
+    {
+      "id": "R20",
+      "text": "When a seat plays or discards and deck_ids is not empty, then the front entries of deck_ids and deck_faces move together to the end of that seat's hand_ids and hand_faces."
+    },
+    {
+      "id": "R21",
+      "text": "When a draw makes deck_count 0 and final_turns_left is -1, then final_turns_left is set to num_players + 1."
+    },
+    {
+      "id": "R22",
+      "text": "When a turn ends, then every seat's total is set to team_score, turns_played rises by 1, final_turns_left falls by 1 if it is above 0, and active_seat passes to the next seat (after the last seat, seat 1)."
+    },
+    {
+      "id": "R23",
+      "text": "When fuses reaches 0 at the end of a turn, then the game ends."
+    },
+    {
+      "id": "R24",
+      "text": "When team_score reaches 15 at the end of a turn, then the game ends."
+    },
+    {
+      "id": "R25",
+      "text": "When final_turns_left reaches 0 at the end of a turn, then the game ends, so every player, including the one who drew the last card, has had one more turn after the deck emptied."
+    },
+    {
+      "id": "R26",
+      "text": "When turns_played reaches 40, then the game ends."
+    },
+    {
+      "id": "R27",
+      "text": "When the game is played, then there is no message phase and players communicate only through PLAY, DISCARD and HINT."
+    },
+    {
+      "id": "R28",
+      "text": "When the game ends with team_score >= 10, then every seat wins; with team_score below 10, no seat wins, even if the game ended on the third fuse."
+    }
+  ],
+  "offers": [
+    {
+      "question": "The active seat's turn action",
+      "who": "seat {active_seat} only",
+      "options": "If hint_tokens >= 1: 'PLAY #id' for each id in its hand_ids, 'DISCARD #id' for each id in its hand_ids, and 'HINT s v' for each other seat s and each v in R,G,B,1,2,3,4,5 that matches at least one card in seat s's hand_faces. If hint_tokens == 0: only the PLAY and DISCARD options. Seats that are not active are not asked and are offered nothing."
+    }
+  ],
+  "choices": [
+    {
+      "what": "2 to 4 players, suggested 3",
+      "why": "The designer chose 3, so it is kept. 2 is the smallest table where hints between players happen. 4 is the source maximum: the 30-card deck leaves only 14 cards to draw, and with more seats each player waits longer between turns and each hint matters less."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player reads the action_log to infer what a hint implies, spends scarce hint tokens on playable or critical cards, discards cards already played or with remaining duplicates, and avoids blind plays that burn fuses. A thoughtless player wastes hints or plays unknown cards."
+    },
+    {
+      "what": "No talk phase",
+      "why": "R18 forbids any message phase. Limited communication is the core of the game, so no talk poll is added even though there are 3 or more players."
+    },
+    {
+      "what": "Turn choice is an ask to the active seat only",
+      "why": "The rules give one seat one action per turn, so it is a sequential ask, not a poll."
+    },
+    {
+      "what": "final_turns_left and active_seat are public",
+      "why": "R6 does not list them. Both can be worked out from public information (deck_count, turn order), and players need to know whose turn it is."
+    },
+    {
+      "what": "deck_ids is hidden (none)",
+      "why": "R6 does not list it as public. Its contents follow from the public hand_ids and discard_pile anyway, and it reveals no faces."
+    },
+    {
+      "what": "Results are named 'all seats win' and 'no seat wins'",
+      "why": "The rules say the team wins or loses together, decided by team_score >= 10."
+    },
+    {
+      "what": "The failure log text is 'turn t: seat a plays #id = face, failure'",
+      "why": "R13 says only that the failure and face are recorded; the wording mirrors the success line in R12."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A face's colour and rank are read from its two-character text (colour letter, rank digit)",
+      "why": "The engine compares numbers and text; this lets rank == pile + 1 and the hint matching be computed arithmetically, with no change to the rules."
+    },
+    {
+      "what": "PLAY, DISCARD and HINT are three separate update steps, each guarded by a 'when' on the choice",
+      "why": "The step list is flat. Each branch is a single conditional update, which the engine supports."
+    }
+  ],
+  "unsupported": []
+}
+
+OBSERVABLE (the only attributes you may assert on): player: total; table: deck_count, pile_red, pile_green, pile_blue, hint_tokens, fuses, discard_pile, team_score, turns_played.
+````
+
+## Reply
+
+````
+```json
+[
+  {"name": "Setup: 3 players hold 4+4+4 cards and the deck holds 18, 30 cards in all (faces random, only counts asserted)", "rule": "R1", "players": 3, "seed": 1, "rounds": 0,
+   "expect": {"game": {"deck_count": 18},
+              "lens": {"game": {"deck_faces": 18, "deck_ids": 18}, "players": {"1": {"hand_faces": 4}, "2": {"hand_faces": 4}, "3": {"hand_faces": 4}}}}},
+
+  {"name": "Setup: deck_ids and deck_faces are paired lists of equal length (2 players, 20 left)", "rule": "R2", "players": 2, "seed": 2, "rounds": 0,
+   "expect": {"game": {"deck_count": 20}, "lens": {"game": {"deck_ids": 20, "deck_faces": 20}}}},
+
+  {"name": "A discarded card moves with its id and face together; the paired lists keep equal lengths", "rule": "R3", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #3", "times": "all"}],
+   "expect": {"game": {"discard_pile": ["#3=B3"], "deck_count": 2},
+              "lens": {"game": {"deck_ids": 2, "deck_faces": 2}, "players": {"1": {"hand_ids": 4, "hand_faces": 4}}}}},
+
+  {"name": "2 players: hands of 5, deck_count 20", "rule": "R4", "players": 2, "seed": 3, "rounds": 0,
+   "expect": {"game": {"deck_count": 20}, "lens": {"players": {"1": {"hand_ids": 5, "hand_faces": 5}, "2": {"hand_ids": 5, "hand_faces": 5}}}}},
+
+  {"name": "3 players: hands of 4, deck_count 18", "rule": "R5", "players": 3, "seed": 3, "rounds": 0,
+   "expect": {"game": {"deck_count": 18}, "lens": {"players": {"1": {"hand_ids": 4}, "2": {"hand_ids": 4}, "3": {"hand_ids": 4}}}}},
+
+  {"name": "4 players: hands of 4, deck_count 14", "rule": "R6", "players": 4, "seed": 3, "rounds": 0,
+   "expect": {"game": {"deck_count": 14}, "lens": {"players": {"1": {"hand_ids": 4}, "2": {"hand_ids": 4}, "3": {"hand_ids": 4}, "4": {"hand_ids": 4}}}}},
+
+  {"name": "3-player deal: each seat holds 4 ids, the deck holds the remaining 18 ids", "rule": "R7", "players": 3, "seed": 4, "rounds": 0,
+   "expect": {"game": {"deck_count": 18}, "lens": {"game": {"deck_ids": 18}, "players": {"1": {"hand_ids": 4}, "2": {"hand_ids": 4}, "3": {"hand_ids": 4}}}}},
+
+  {"name": "deck_count tracks deck_ids after two draws", "rule": "R8", "players": 3, "seed": 1, "rounds": 2,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #1", "times": "all"}, {"seat": 2, "options_include": "DISCARD #5", "times": "all"}],
+   "expect": {"game": {"deck_count": 1, "discard_pile": ["#1=R1", "#5=G1"]}, "lens": {"game": {"deck_ids": 1, "deck_faces": 1}}}},
+
+  {"name": "Hints are offered from other seats' faces, never about one's own hand", "rule": "R9", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "HINT 3 R", "times": "all"}],
+   "expect": {"game": {"hint_tokens": 7},
+              "offered": [{"seat": 1, "option": "HINT 3 R"}],
+              "not_offered": [{"seat": 1, "option": "HINT 1 R"}, {"seat": 1, "option": "HINT 1 G"}]}},
+
+  {"name": "Start state: piles 0, 8 hints, 3 fuses, score 0, empty discard pile, no turns played", "rule": "R10", "players": 3, "seed": 5, "rounds": 0,
+   "expect": {"game": {"pile_red": 0, "pile_green": 0, "pile_blue": 0, "hint_tokens": 8, "fuses": 3, "team_score": 0, "discard_pile": [], "turns_played": 0},
+              "players": {"1": {"total": 0}, "2": {"total": 0}, "3": {"total": 0}}}},
+
+  {"name": "First turn: only seat 1 is asked", "rule": "R11", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": "all"}],
+   "expect": {"game": {"turns_played": 1},
+              "not_offered": [{"seat": 2, "option": "PLAY #5"}, {"seat": 2, "option": "HINT 3 R"}, {"seat": 3, "option": "PLAY #9"}, {"seat": 3, "option": "HINT 1 R"}]}},
+
+  {"name": "Seats act in order 1, 2, 3", "rule": "R11", "players": 3, "seed": 1, "rounds": 3,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": "all"},
+             {"seat": 2, "options_include": "HINT 3 R", "times": "all"},
+             {"seat": 3, "options_include": "HINT 1 R", "times": "all"}],
+   "expect": {"game": {"turns_played": 3, "hint_tokens": 5, "deck_count": 3},
+              "offered": [{"seat": 1, "option": "HINT 2 G"}, {"seat": 2, "option": "HINT 3 R"}, {"seat": 3, "option": "HINT 1 R"}]}},
+
+  {"name": "The active seat may play or discard only its own cards", "rule": "R12", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #1", "times": "all"}],
+   "expect": {"game": {"discard_pile": ["#1=R1"], "hint_tokens": 8},
+              "offered": [{"seat": 1, "option": "PLAY #1"}, {"seat": 1, "option": "PLAY #4"}, {"seat": 1, "option": "DISCARD #4"}],
+              "not_offered": [{"seat": 1, "option": "PLAY #5"}, {"seat": 1, "option": "DISCARD #9"}, {"seat": 2, "option": "PLAY #5"}, {"seat": 3, "option": "DISCARD #9"}]}},
+
+  {"name": "With 1 hint token, only hints matching the target's cards are offered", "rule": "R13", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1, "hint_tokens": 1}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": "all"}],
+   "expect": {"game": {"hint_tokens": 0},
+              "offered": [{"seat": 1, "option": "HINT 2 G"}, {"seat": 1, "option": "HINT 2 B"}, {"seat": 1, "option": "HINT 2 1"}, {"seat": 1, "option": "HINT 3 R"}],
+              "not_offered": [{"seat": 1, "option": "HINT 2 R"}, {"seat": 1, "option": "HINT 2 5"}, {"seat": 1, "option": "HINT 2 2"}, {"seat": 1, "option": "HINT 1 R"}]}},
+
+  {"name": "With 0 hint tokens no hint is offered; the seat discards and regains one", "rule": "R13", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1, "hint_tokens": 0}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #4", "times": "all"}],
+   "expect": {"game": {"hint_tokens": 1, "discard_pile": ["#4=R4"]},
+              "offered": [{"seat": 1, "option": "DISCARD #4"}],
+              "not_offered": [{"seat": 1, "option": "HINT 2 G"}, {"seat": 1, "option": "HINT 3 R"}, {"seat": 1, "option": "HINT 2 1"}]}},
+
+  {"name": "A hint costs 1 token and moves or draws no card", "rule": "R14", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": "all"}],
+   "expect": {"game": {"hint_tokens": 7, "deck_count": 3, "discard_pile": [], "fuses": 3, "team_score": 0, "turns_played": 1},
+              "lens": {"game": {"deck_ids": 3}, "players": {"1": {"hand_ids": 4}, "2": {"hand_ids": 4, "hand_faces": 4}}}}},
+
+  {"name": "Discarding with an empty deck removes the card from both hand lists and draws nothing", "rule": "R15", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": [], "deck_faces": [], "deck_count": 0, "final_turns_left": 3, "active_seat": 1, "hint_tokens": 5}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #2", "times": "all"}],
+   "expect": {"game": {"discard_pile": ["#2=G2"], "deck_count": 0, "hint_tokens": 6},
+              "lens": {"players": {"1": {"hand_ids": 3, "hand_faces": 3}}}}},
+
+  {"name": "Playing R1 onto an empty red pile succeeds: pile_red 1, team_score 1, every total 1", "rule": "R16", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "PLAY #1", "times": "all"}],
+   "expect": {"game": {"pile_red": 1, "pile_green": 0, "pile_blue": 0, "team_score": 1, "fuses": 3, "discard_pile": [], "hint_tokens": 8, "deck_count": 2},
+              "players": {"1": {"total": 1}, "2": {"total": 1}, "3": {"total": 1}}}},
+
+  {"name": "A successful 5 with 5 hint tokens raises them to 6", "rule": "R17", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R5","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1,
+                      "pile_red": 4, "team_score": 4, "hint_tokens": 5}},
+   "rules": [{"seat": 1, "options_include": "PLAY #1", "times": "all"}],
+   "expect": {"game": {"pile_red": 5, "team_score": 5, "hint_tokens": 6, "fuses": 3},
+              "players": {"1": {"total": 5}, "2": {"total": 5}, "3": {"total": 5}}}},
+
+  {"name": "A successful 5 with 8 hint tokens leaves them at 8", "rule": "R17", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["G5","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1,
+                      "pile_green": 4, "team_score": 4, "hint_tokens": 8}},
+   "rules": [{"seat": 1, "options_include": "PLAY #1", "times": "all"}],
+   "expect": {"game": {"pile_green": 5, "team_score": 5, "hint_tokens": 8}}},
+
+  {"name": "Playing G2 onto an empty green pile fails: fuses 2, card to discard pile, piles and score unchanged", "rule": "R18", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "PLAY #2", "times": "all"}],
+   "expect": {"game": {"fuses": 2, "discard_pile": ["#2=G2"], "pile_red": 0, "pile_green": 0, "pile_blue": 0, "team_score": 0, "hint_tokens": 8, "deck_count": 2},
+              "players": {"1": {"total": 0}}}},
+
+  {"name": "Discarding with 5 hint tokens: card to discard pile, tokens 6", "rule": "R19", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1, "hint_tokens": 5}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #4", "times": "all"}],
+   "expect": {"game": {"discard_pile": ["#4=R4"], "hint_tokens": 6, "fuses": 3, "team_score": 0, "deck_count": 2}}},
+
+  {"name": "Discarding with 8 hint tokens leaves them at 8", "rule": "R19", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1, "hint_tokens": 8}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #3", "times": "all"}],
+   "expect": {"game": {"discard_pile": ["#3=B3"], "hint_tokens": 8}}},
+
+  {"name": "After a play the player draws the top deck card: hand back to 4, deck down by 1", "rule": "R20", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "PLAY #1", "times": "all"}],
+   "expect": {"game": {"deck_count": 2, "pile_red": 1},
+              "lens": {"game": {"deck_ids": 2, "deck_faces": 2}, "players": {"1": {"hand_ids": 4, "hand_faces": 4}}}}},
+
+  {"name": "2 players, last card drawn on turn 1: the game ends after 3 turns", "rule": "R21", "players": 2, "seed": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4","#5"], "hand_faces": ["R1","G2","B3","R4","G4"]},
+                         "2": {"hand_ids": ["#6","#7","#8","#9","#10"], "hand_faces": ["G1","B1","G3","B4","R3"]}},
+             "game": {"deck_ids": ["#11"], "deck_faces": ["B2"], "deck_count": 1, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #1"}, {"seat": 1, "options_include": "DISCARD #2"},
+             {"seat": 2, "options_include": "DISCARD #6", "times": "all"}],
+   "expect": {"result": "no seat wins",
+              "game": {"turns_played": 3, "deck_count": 0, "discard_pile": ["#1=R1", "#6=G1", "#2=G2"], "team_score": 0},
+              "players": {"1": {"total": 0}, "2": {"total": 0}}}},
+
+  {"name": "End of turn: every total becomes team_score and turns_played rises by 1", "rule": "R22", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"], "total": 0},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"], "total": 0},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"], "total": 0}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1,
+                      "pile_red": 2, "pile_green": 1, "team_score": 3}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": "all"}],
+   "expect": {"game": {"turns_played": 1, "team_score": 3, "hint_tokens": 7},
+              "players": {"1": {"total": 3}, "2": {"total": 3}, "3": {"total": 3}}}},
+
+  {"name": "After seat 3 the turn passes back to seat 1", "rule": "R22", "players": 3, "seed": 1, "rounds": 4,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": 1},
+             {"seat": 1, "options_include": "DISCARD #4", "times": "all"},
+             {"seat": 2, "options_include": "HINT 3 R", "times": "all"},
+             {"seat": 3, "options_include": "HINT 1 R", "times": "all"}],
+   "expect": {"game": {"turns_played": 4, "hint_tokens": 6, "discard_pile": ["#4=R4"], "deck_count": 2}}},
+
+  {"name": "A failed play on the last fuse ends the game with score 0: no seat wins", "rule": "R23", "players": 3, "seed": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1, "fuses": 1}},
+   "rules": [{"seat": 1, "options_include": "PLAY #2", "times": "all"}],
+   "expect": {"result": "no seat wins",
+              "game": {"fuses": 0, "turns_played": 1, "team_score": 0, "discard_pile": ["#2=G2"]},
+              "players": {"1": {"total": 0}, "2": {"total": 0}, "3": {"total": 0}}}},
+
+  {"name": "Playing the last 5 reaches 15 and ends the game: all seats win, a hint token is regained", "rule": "R24", "players": 3, "seed": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["B5","G2","B3","R4"], "total": 14},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"], "total": 14},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"], "total": 14}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1,
+                      "pile_red": 5, "pile_green": 5, "pile_blue": 4, "team_score": 14, "hint_tokens": 3}},
+   "rules": [{"seat": 1, "options_include": "PLAY #1", "times": "all"}],
+   "expect": {"result": "all seats win",
+              "game": {"pile_blue": 5, "team_score": 15, "hint_tokens": 4, "turns_played": 1},
+              "players": {"1": {"total": 15}, "2": {"total": 15}, "3": {"total": 15}}}},
+
+  {"name": "3 players, last card drawn on turn 1: everyone gets one more turn, the game ends after 4 turns", "rule": "R25", "players": 3, "seed": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13"], "deck_faces": ["B2"], "deck_count": 1, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "DISCARD #1"}, {"seat": 1, "options_include": "DISCARD #2"},
+             {"seat": 2, "options_include": "DISCARD #5", "times": "all"},
+             {"seat": 3, "options_include": "DISCARD #9", "times": "all"}],
+   "expect": {"result": "no seat wins",
+              "game": {"turns_played": 4, "deck_count": 0, "hint_tokens": 8, "discard_pile": ["#1=R1", "#5=G1", "#9=R2", "#2=G2"], "team_score": 0}}},
+
+  {"name": "The 40th turn ends the game", "rule": "R26", "players": 3, "seed": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1, "turns_played": 39}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": "all"}],
+   "expect": {"result": "no seat wins",
+              "game": {"turns_played": 40, "hint_tokens": 7, "deck_count": 3, "team_score": 0}}},
+
+  {"name": "A turn is a single action by the active seat; other seats are offered nothing", "rule": "R27", "players": 3, "seed": 1, "rounds": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"]},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"]},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"]}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1}},
+   "rules": [{"seat": 1, "options_include": "HINT 2 G", "times": "all"}],
+   "expect": {"game": {"turns_played": 1, "hint_tokens": 7},
+              "not_offered": [{"seat": 2, "option": "DISCARD #5"}, {"seat": 2, "option": "HINT 1 R"}, {"seat": 3, "option": "DISCARD #9"}, {"seat": 3, "option": "HINT 2 G"}]}},
+
+  {"name": "The game ends on the third fuse with team_score 10: all seats win", "rule": "R28", "players": 3, "seed": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"], "total": 10},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"], "total": 10},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"], "total": 10}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1,
+                      "pile_red": 4, "pile_green": 3, "pile_blue": 3, "team_score": 10, "fuses": 1}},
+   "rules": [{"seat": 1, "options_include": "PLAY #2", "times": "all"}],
+   "expect": {"result": "all seats win",
+              "game": {"fuses": 0, "team_score": 10, "pile_green": 3, "discard_pile": ["#2=G2"]},
+              "players": {"1": {"total": 10}, "2": {"total": 10}, "3": {"total": 10}}}},
+
+  {"name": "The game ends on the third fuse with team_score 9: no seat wins", "rule": "R28", "players": 3, "seed": 1,
+   "given": {"players": {"1": {"hand_ids": ["#1","#2","#3","#4"], "hand_faces": ["R1","G2","B3","R4"], "total": 9},
+                         "2": {"hand_ids": ["#5","#6","#7","#8"], "hand_faces": ["G1","B1","G3","B4"], "total": 9},
+                         "3": {"hand_ids": ["#9","#10","#11","#12"], "hand_faces": ["R2","B2","G4","R3"], "total": 9}},
+             "game": {"deck_ids": ["#13","#14","#15"], "deck_faces": ["R1","G1","B1"], "deck_count": 3, "active_seat": 1,
+                      "pile_red": 3, "pile_green": 3, "pile_blue": 3, "team_score": 9, "fuses": 1}},
+   "rules": [{"seat": 1, "options_include": "PLAY #2", "times": "all"}],
+   "expect": {"result": "no seat wins",
+              "game": {"fuses": 0, "team_score": 9},
+              "players": {"1": {"total": 9}, "2": {"total": 9}, "3": {"total": 9}}}}
+]
+```
+````
