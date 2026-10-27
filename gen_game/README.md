@@ -4,11 +4,12 @@ Turns a game from the inventory (`../gen_inventory/`) into a game file for the X
 Design: `design/2026-10-05-game-generation-pipeline.md`.
 
 ```bash
-python3 -m gen_game convert ID --model muse                    # the idea is designed into rules (players, numbers, winner), then spec, build, scenarios, checks
-python3 -m gen_game convert ID --model muse --encoder claude   # a coding agent writes it (claude, metacode, command:...)
-python3 -m gen_game convert ID --model muse --redo adapt       # run a step again (adapt, spec, encode, scenarios)
-python3 -m gen_game convert ID --model muse --judge            # also gate the design (critic, balance checks; can drop a game)
-python3 -m gen_game convert ID --model muse --no-adapt         # the entry is finished rules: convert them as written
+.venv/bin/python -m gen_game convert ID                       # the idea is designed into rules (players, numbers, winner), then spec, build, scenarios, checks
+.venv/bin/python -m gen_game convert ID --model muse          # the same with Muse instead of Claude (plain python3 works for Muse)
+.venv/bin/python -m gen_game convert ID --encoder claude      # a coding agent writes it (claude, metacode, command:...)
+.venv/bin/python -m gen_game convert ID --redo adapt          # run a step again (adapt, spec, encode, scenarios)
+.venv/bin/python -m gen_game convert ID --judge               # also gate the design (critic, balance checks; can drop a game)
+.venv/bin/python -m gen_game convert ID --no-adapt            # the entry is finished rules: convert them as written
 python3 -m gen_game verify ID variation|spec|game|scenarios    # check a file written by hand or by an agent
 python3 -m gen_game show ID                                    # the report
 python3 -m gen_game evaluate ID                                # tiers 0 and 1 on an existing game.json
@@ -52,11 +53,22 @@ left to flag as well; `accepted` is a person's.
 
 ## Models
 
+The default is `gateway`: Claude (`claude-opus-5-5` unless you name one, `gateway:<model>`) through Meta's AI Gateway,
+the sanctioned route to third-party models for internal tools. There is no key: the local proxy (`localhost:10054`)
+vouches for your Meta identity, and requests are labelled `x-meta-ai-gateway-calling-product: xcolos`, not sensitive.
+It needs the `anthropic` package, which is installed in `.venv` only (`.venv/bin/pip install anthropic` from a normal
+terminal; pip cannot reach PyPI from inside a Claude Code sandbox), so run the pipeline with `.venv/bin/python`.
+`--effort minimal|low|medium|high` becomes the API's `low|low|medium|high`. This runs under your own identity, which
+suits experiments; a team workload should register its own gateway with an access list and rate limits
+(https://www.internalfb.com/intern/staticdocs/ai-gateway/docs/owning/onboarding). Model seats (`--players`) stay
+`muse` by default.
+
 `muse` uses `rl-muse-spark-1-2-playground` unless you name a model (`muse:<model>`). The platform's default
 (`...-1-1-playground`) sheds load with 503s for long stretches, and `...-1-3-sglang-playground` is slow and drops
 the connection; `MuseCompletion().models()` lists what a key holds. `--effort` sets the reasoning effort (default
 `medium`; at `minimal` the games came out wrong). Every model call is retried with growing waits when the connection
-fails. `claude[:model]` is the `claude` CLI in print mode; it needs a terminal where `claude` can start.
+fails. `claude[:model]` is the `claude` CLI in print mode; it needs a terminal where `claude` can start (not a shell inside a
+Claude Code session: macOS refuses the nested sandbox).
 
 The coding agents (`claude`, `metacode`) are run with the prompt on stdin, in the repository, with permission to
 read, write, edit and run commands. Those flags have not been exercised: the CLIs refuse to start inside the

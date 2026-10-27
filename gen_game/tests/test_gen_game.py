@@ -186,6 +186,60 @@ def test_a_judged_when_on_a_check_is_refused_because_it_would_choose_when_the_ga
     assert "check" in enc.check(g, "rps")[2]
 
 
+def test_the_gateway_model_takes_the_pipelines_effort():
+    import types
+
+    from gen_game.cli import completion_for
+
+    stand_in = "anthropic" not in sys.modules and not _importable("anthropic")
+    if stand_in:  # only the construction is checked, never a call: a placeholder module is enough without the SDK
+        sys.modules["anthropic"] = types.ModuleType("anthropic")
+    try:
+        for effort, want in (("minimal", "low"), ("low", "low"), ("medium", "medium"), ("high", "high")):
+            c = completion_for("gateway", effort)
+            assert c.inner.effort == want and c.inner.model == "claude-opus-5-5"
+        assert completion_for("gateway:claude-sonnet-5-5", "high").inner.model == "claude-sonnet-5-5"
+    finally:
+        if stand_in:
+            del sys.modules["anthropic"]
+
+
+def _importable(name: str) -> bool:
+    import importlib.util
+
+    return importlib.util.find_spec(name) is not None
+
+
+def test_claude_through_the_gateway_is_the_generators_default_and_muse_is_still_there():
+    from gen_game import cli
+
+    p = cli.parser()
+    assert p.parse_args(["convert", "x"]).model == "gateway"
+    assert p.parse_args(["convert", "x", "--model", "muse"]).model == "muse"
+    for cmd in ("review", "revise", "brief"):
+        assert p.parse_args([cmd, "x"]).model == "gateway", cmd
+    a = p.parse_args(["loop", "x"])
+    assert (a.model, a.review_model, a.encoder, a.players) == ("gateway", "gateway", "completion", "muse")
+
+
+def test_the_gateway_default_says_at_once_how_to_run_it_when_the_sdk_is_missing():
+    from gen_game.cli import completion_for
+
+    saved = sys.modules.get("anthropic", "absent")
+    sys.modules["anthropic"] = None  # makes `import anthropic` fail, as under a python without the package
+    try:
+        completion_for("gateway", "high")
+    except SystemExit as stop:
+        assert ".venv/bin/python" in str(stop) and "--model muse" in str(stop)
+    else:
+        raise AssertionError("a missing SDK must stop the command before any retry waits")
+    finally:
+        if saved == "absent":
+            del sys.modules["anthropic"]
+        else:
+            sys.modules["anthropic"] = saved
+
+
 def test_a_reply_that_never_loads_ends_with_every_attempt_recorded():
     got = enc.encode(Models(games=["not json"]), SPEC, "rps", repairs=2)
     assert not got.ok and len(got.attempts) == 3

@@ -15,6 +15,7 @@ from xcolos.flow import ModelJudge, Output
 from xcolos.flow.backends import (
     DEFAULT_MODEL,
     AnthropicCompletion,
+    gateway_completion,
     CommandCompletion,
     MUSE_MODEL,
     CompletionError,
@@ -52,9 +53,10 @@ class Block:
 class FakeClient:
     """Records the request and returns a canned message."""
 
-    def __init__(self, blocks=None, error=None):
+    def __init__(self, blocks=None, error=None, stop_reason="end_turn"):
         self.blocks = blocks or [Block("text", '{"answer": true, "reason": "ok"}')]
         self.error = error
+        self.stop_reason = stop_reason
         self.requests = []
         self.messages = self
 
@@ -62,7 +64,7 @@ class FakeClient:
         self.requests.append(request)
         if self.error:
             raise self.error
-        return FakeStream(type("M", (), {"content": self.blocks})())
+        return FakeStream(type("M", (), {"content": self.blocks, "stop_reason": self.stop_reason, "stop_details": None})())
 
 
 # ----------------------------------------------------------------------
@@ -83,6 +85,99 @@ def test_the_request_names_the_current_model_and_asks_for_adaptive_thinking():
     )
     assert request["messages"] == [{"role": "user", "content": "Has the town won?"}]
     assert request["max_tokens"] > 0
+
+
+class FakeBetaClient(FakeClient):
+    """Also answers `client.beta.messages.stream`, the path the refusal-fallback beta takes."""
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.beta = self
+
+
+def test_the_gateway_spec_points_the_claude_client_at_the_ai_gateway():
+    c = from_spec("gateway")
+    assert isinstance(c, AnthropicCompletion) and c.model == "claude-opus-5-5"
+    kw = c.client_kwargs()
+    assert kw["base_url"] == "http://anthropic.ai-gateway.x2p.facebook.net" and kw["api_key"] == "meta-ai-gateway-placeholder"
+    assert kw["default_headers"]["x-meta-ai-gateway-calling-product"] == "xcolos"
+    assert kw["default_headers"]["x-meta-ai-gateway-sensitive"] == "false"
+    assert c.proxy == "http://localhost:10054" and c.max_tokens == 64000 and c.effort == "high" and c.fallbacks
+    assert from_spec("gateway:claude-sonnet-5-5").model == "claude-sonnet-5-5"
+    assert gateway_completion(effort="low").effort == "low"
+
+
+def test_a_gateway_request_sets_effort_caches_the_system_and_asks_for_fallbacks():
+    client = FakeBetaClient()
+    AnthropicCompletion(client=client, model="claude-opus-5-5", effort="high", fallbacks=True).complete("go", system="rules")
+    r = client.requests[0]
+    assert r["output_config"] == {"effort": "high"} and r["system"][0]["cache_control"] == {"type": "ephemeral"}
+    assert r["betas"] == ["server-side-fallback-2026-07-01"] and r["fallbacks"] == "default"
+
+
+def test_without_gateway_options_the_anthropic_request_is_unchanged():
+    client = FakeClient()
+    AnthropicCompletion(client=client).complete("x")
+    assert not {"output_config", "betas", "fallbacks"} & set(client.requests[0])
+    assert "base_url" not in AnthropicCompletion(api_key="k").client_kwargs()
+
+
+def test_a_refusal_or_a_reply_with_no_text_raises_a_completion_error():
+    cases = (([Block("text", "no")], "refusal", "refus"), ([Block("thinking", "hm")], "end_turn", "no text"))
+    for blocks, stop, words in cases:
+        try:
+            AnthropicCompletion(client=FakeClient(blocks=blocks, stop_reason=stop)).complete("x")
+        except CompletionError as error:
+            assert words in str(error), str(error)
+        else:
+            raise AssertionError(f"{stop} should raise")
+
+
+def test_the_gateway_request_is_labelled_xcolos_even_inside_claude_code():
+    """A Claude Code shell exports its own calling product; the gateway request must still say xcolos."""
+    import os
+
+    import pytest
+
+    try:
+        import anthropic
+    except ImportError:
+        pytest.skip("the anthropic SDK is not installed")
+    try:
+        import httpx2 as http  # anthropic 1.x
+    except ImportError:
+        import httpx as http  # anthropic 0.x
+    seen = []
+
+    def handler(request):
+        seen.append(request)
+        raise http.ConnectError("stop here")
+
+    old = os.environ.get("ANTHROPIC_CUSTOM_HEADERS")
+    os.environ["ANTHROPIC_CUSTOM_HEADERS"] = (
+        "X-Meta-AI-Gateway-Calling-Product: claude_code:cli\nx-meta-ai-gateway-harness: claude_code\n"
+        "X-Meta-AI-Gateway-Trace-Id: claude_code_invocation_1"
+    )
+    try:
+        c = gateway_completion()
+        c.http_client = anthropic.DefaultHttpxClient(transport=http.MockTransport(handler))
+        try:
+            c.complete("x")
+        except CompletionError:
+            pass
+    finally:
+        if old is None:
+            os.environ.pop("ANTHROPIC_CUSTOM_HEADERS", None)
+        else:
+            os.environ["ANTHROPIC_CUSTOM_HEADERS"] = old
+    assert seen and all(r.headers["x-meta-ai-gateway-calling-product"] == "xcolos" for r in seen)
+    assert seen[0].url.host == "anthropic.ai-gateway.x2p.facebook.net"
+    # anthropic 2.x sends the key as a bearer token, 0.x/1.x as x-api-key; the gateway replaces either placeholder
+    sent = seen[0].headers.get("x-api-key") or seen[0].headers.get("authorization", "").removeprefix("Bearer ")
+    assert sent == "meta-ai-gateway-placeholder"
+    # nothing else of Claude Code's own labelling rides along
+    assert "x-meta-ai-gateway-harness" not in seen[0].headers
+    assert "claude_code" not in seen[0].headers.get("x-meta-ai-gateway-trace-id", "")
 
 
 def test_thinking_can_be_turned_off():
