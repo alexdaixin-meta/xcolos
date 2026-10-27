@@ -40,10 +40,11 @@ import os
 import re
 import shlex
 import subprocess
+import sys
 from pathlib import Path
 import urllib.error
 import urllib.request
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 #: The model to reach for unless told otherwise.
 DEFAULT_MODEL = "claude-opus-5"
@@ -618,6 +619,60 @@ def _cache_key(system: str) -> str:
     return f"xcolos-judge-{digest}"
 
 
+#: The names a spec can start with, so that a bar inside one spec's own text (a shell pipe, a reply) is not read as a choice.
+KINDS = ("anthropic", "gateway", "muse", "command", "echo", "claude", "offline")
+
+
+def split_alternatives(spec: str) -> list[str]:
+    """`gateway|muse` names two models, the first preferred. Split only when every part names a backend."""
+    parts = [p.strip() for p in spec.split("|")]
+    if len(parts) > 1 and all(p.partition(":")[0].strip().lower() in KINDS for p in parts):
+        return parts
+    return [spec.strip()]
+
+
+class FallbackCompletion:
+    """Several models in order of preference, so a run uses whichever can be reached: Muse needs the corporate
+    network, and Claude through the gateway needs the `anthropic` package and the local proxy.
+
+    A call goes to the first; when it fails, the next is asked. The one that answered goes first from then on, so
+    a model that is down costs one failed call, not one per call.
+    """
+
+    def __init__(self, backends: list[Completion]) -> None:
+        if not backends:
+            raise CompletionError("no models to choose from")
+        self.backends = list(backends)
+
+    @property
+    def model(self) -> str:
+        return getattr(self.backends[0], "model", type(self.backends[0]).__name__)
+
+    def __getattr__(self, name: str) -> Any:
+        backends = self.__dict__.get("backends", [])
+        if name == "converse" and backends and all(hasattr(b, "converse") for b in backends):
+            return lambda messages, system="": self._first_that_answers(lambda b: b.converse(messages, system=system))
+        raise AttributeError(name)
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        return self._first_that_answers(lambda b: b.complete(prompt, system=system))
+
+    def _first_that_answers(self, call: Callable[[Any], str]) -> str:
+        failures = []
+        for backend in list(self.backends):
+            try:
+                reply = call(backend)
+            except Exception as exc:  # noqa: BLE001 - whatever stopped this model, the next one may answer
+                failures.append(f"{getattr(backend, 'model', type(backend).__name__)}: {exc}")
+                continue
+            if failures:  # said once, at the switch, so a run shows which model answered
+                print(f"note: {'; '.join(failures)[:300]}; using {getattr(backend, 'model', type(backend).__name__)} instead", file=sys.stderr)
+            self.backends.remove(backend)
+            self.backends.insert(0, backend)
+            return reply
+        raise CompletionError("no model answered: " + "; ".join(failures))
+
+
 def from_spec(spec: str) -> Completion:
     """Build a backend from one string, for a command line or a config file.
 
@@ -631,7 +686,11 @@ def from_spec(spec: str) -> Completion:
         muse:muse-spark-1.1-byoc      a named Muse model
         command:ollama run llama3     any program
         echo:{"answer": true}         a fixed reply, for a wiring check
+        gateway|muse                  either, the first preferred: whichever answers
     """
+    alternatives = split_alternatives(spec)
+    if len(alternatives) > 1:
+        return FallbackCompletion([from_spec(p) for p in alternatives])
     kind, _, rest = spec.partition(":")
     kind = kind.strip().lower()
     if kind == "anthropic":
@@ -647,5 +706,5 @@ def from_spec(spec: str) -> Completion:
     if kind == "echo":
         return EchoCompletion(rest or json.dumps({"answer": False, "reason": "echo"}))
     raise CompletionError(
-        f"unknown backend {spec!r}; expected anthropic:, gateway:, muse:, command: or echo:"
+        f"unknown backend {spec!r}; expected anthropic:, gateway:, muse:, command: or echo:, or several joined by |"
     )

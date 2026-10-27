@@ -68,8 +68,45 @@ class Patient:
 GATEWAY_EFFORT = {"minimal": "low", "low": "low", "medium": "medium", "high": "high"}
 
 
+#: Where Meta's own Python finds the corporate CA bundle: its sitecustomize sets SSL_CERT_FILE to the first that exists.
+#: A virtualenv made without system site-packages (the .venv the gateway needs) skips that file, and then every HTTPS
+#: call, Muse's among them, fails certificate verification.
+CA_BUNDLES = ("/etc/ssl/certs/fb_certs.pem", "/System/Library/OpenSSL/certs/fb_certs.pem",
+              "/opt/facebook/certs/facebook-ca-bundle.cer", "/etc/ssl/cert.pem")
+
+
+def trust_corporate_ca(env=None, bundles: tuple[str, ...] = CA_BUNDLES) -> None:
+    """Do what Meta's Python does at start-up, for a virtualenv that skipped it. A bundle already chosen is kept."""
+    env = os.environ if env is None else env
+    if "SSL_CERT_FILE" not in env:
+        found = next((b for b in bundles if Path(b).is_file()), None)
+        if found:
+            env["SSL_CERT_FILE"] = found
+
+
 def completion_for(spec: str, effort: str):
-    """The model for a backend spec. Muse gets a reasoning effort and room for a whole game file:
+    """The model for a backend spec. `gateway|muse` is either, the first preferred: one that cannot be built here
+    (the gateway without the `anthropic` package) is left out, and one that cannot be reached (Muse off the corporate
+    network) is passed over at its first failed call, before any retry waits."""
+    from xcolos.flow.backends import FallbackCompletion, split_alternatives
+
+    alternatives = split_alternatives(spec)
+    if len(alternatives) == 1:
+        return _one_model(spec, effort)
+    built, missing = [], []
+    for part in alternatives:
+        try:
+            built.append(_one_model(part, effort))
+        except SystemExit as stop:
+            missing.append(str(stop))
+    if not built:
+        raise SystemExit("; ".join(missing))
+    bare = [m.inner if isinstance(m, Patient) else m for m in built]  # retried as a whole below, so a model that is down is skipped at once
+    return Patient(bare[0] if len(bare) == 1 else FallbackCompletion(bare))
+
+
+def _one_model(spec: str, effort: str):
+    """One model. Muse gets a reasoning effort and room for a whole game file:
     the platform's default (minimal effort, 8192 output tokens) suits a referee, not an author."""
     from xcolos.flow.backends import from_spec
 
@@ -253,7 +290,7 @@ def parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("convert")
     p.add_argument("id")
-    p.add_argument("--model", default="gateway", help="a backend spec: gateway[:model] (Claude through Meta's AI Gateway, the default), muse[:model], claude[:model], anthropic[:model], command:<program>, echo:<reply>")
+    p.add_argument("--model", default="gateway|muse", help="a backend spec: gateway[:model] (Claude through Meta's AI Gateway), muse[:model], claude[:model], anthropic[:model], command:<program>, echo:<reply>; several joined by | are tried in turn, and the default gateway|muse is Claude, or Muse when Claude cannot be reached")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"),
                    help="Muse reasoning effort for the conversion (default: medium)")
     p.add_argument("--encoder", default="completion",
@@ -289,26 +326,30 @@ def parser() -> argparse.ArgumentParser:
     p = sub.add_parser("review", help="read a simulated play against the idea, the design, the spec and the prompt, and say what is aligned and what is not")
     p.add_argument("id")
     p.add_argument("--sim", type=Path, default=None, help="a saved play (default: the newest under <game>/sim/)")
-    p.add_argument("--model", default="gateway", help="the reviewer: gateway[:model], muse[:model], claude[:model], anthropic[:model]")
+    p.add_argument("--model", default="gateway|muse", help="the reviewer: gateway[:model], muse[:model], claude[:model], anthropic[:model], or several joined by |")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
+    p = sub.add_parser("reasoning", help="read every saved play and say whether winning took reasoning and planning, with quotes from the players")
+    p.add_argument("id")
+    p.add_argument("--model", default="gateway|muse", help="the reader: gateway[:model], muse[:model], ..., or several joined by |")
+    p.add_argument("--effort", default="high", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("revise", help="revise the spec from a play review's findings, so the coder is told what it got wrong")
     p.add_argument("id")
     p.add_argument("--review", type=Path, default=None, help="a saved review (default: the newest under <game>/sim/)")
     p.add_argument("--drop", default="", help="finding ids a person judged wrong, comma separated, e.g. F5")
-    p.add_argument("--model", default="gateway", help="gateway[:model] (Claude), muse[:model], ...")
+    p.add_argument("--model", default="gateway|muse", help="gateway[:model] (Claude), muse[:model], ..., or several joined by |")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("brief", help="check that the rules text players read says what the spec's numbered rules say")
     p.add_argument("id")
-    p.add_argument("--model", default="gateway", help="gateway[:model] (Claude), muse[:model], ...")
+    p.add_argument("--model", default="gateway|muse", help="gateway[:model] (Claude), muse[:model], ..., or several joined by |")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("loop", help="play the installed game with real models at its suggested size, review it, and loop back to the generator for confirmed critical and major findings")
     p.add_argument("id")
-    p.add_argument("--players", default="muse", help="the model for the seats: one name fills the table to the game's suggested size, or a comma-separated list (muse, claude, offline...)")
+    p.add_argument("--players", default="muse|gateway", help="the model for the seats: one name fills the table to the game's suggested size, or a comma-separated list (muse, claude, offline...); muse|gateway is Muse, or Claude when Muse cannot be reached")
     p.add_argument("--plays", type=int, default=2, help="plays per iteration, at different seeds")
     p.add_argument("--max-iterations", type=int, default=3)
     p.add_argument("--seed", type=int, default=1)
-    p.add_argument("--review-model", default="gateway", help="reviews each play and verifies each finding")
-    p.add_argument("--model", default="gateway", help="the generator's model (design, spec, scenarios, triage) when the loop goes back to it")
+    p.add_argument("--review-model", default="gateway|muse", help="reviews each play and verifies each finding")
+    p.add_argument("--model", default="gateway|muse", help="the generator's model (design, spec, scenarios, triage) when the loop goes back to it")
     p.add_argument("--encoder", default="completion", help="who writes the game file when the loop goes back to the generator: completion (the --model), or an agent: claude, metacode, command:...")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p.add_argument("--timeout", type=int, default=3600, help="seconds to wait for one play")
@@ -320,6 +361,7 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    trust_corporate_ca()  # before any model call, and inherited by a server this run starts
     ap = parser()
     args = ap.parse_args(argv)
 
@@ -453,6 +495,25 @@ def main(argv: list[str] | None = None) -> int:
             out_md.write_text(playreview.render(review, sim, design["variation"]["name"]))
             print(out_md.read_text())
             print(f"saved {out_md} and {out_json}")
+            return 0
+        if args.cmd == "reasoning":
+            from gen_game import reasoning
+
+            folder = args.root / args.id
+            logs = reasoning.play_logs(folder)
+            sims = [json.loads(p.read_text()) for p in logs]
+            sims = [s for s in sims if (s.get("snapshot") or {}).get("status") == "ended"]
+            if not sims:
+                print(f"no finished plays under {folder / 'sim'}: run `simulate` first")
+                return 1
+            design = json.loads((folder / "variation.json").read_text())
+            result, error = reasoning.check(completion_for(args.model, args.effort), sims, design)
+            if result is None:
+                print(f"reasoning check failed: {error}")
+                return 1
+            path = reasoning.write(folder, result, reasoning.stats(sims), (design.get("variation") or design).get("name", args.id))
+            print(path.read_text())
+            print(f"saved {path} and {folder / 'reasoning.json'}")
             return 0
         if args.cmd == "simulate":
             from gen_game import simulate as sim

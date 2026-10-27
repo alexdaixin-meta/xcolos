@@ -106,8 +106,8 @@ def conformance(spec: dict, defn) -> list[str]:
 
 def complexity_flags(report: dict) -> list[str]:
     m = report.get("complexity_measured") or {}
-    return [f"the built game has {m[k]} {k.replace('_', ' ')}, over the limit of {complexity.LIMITS[k]}"
-            for k in ("steps_per_round", "choice_steps_per_round", "attributes") if m.get(k, 0) > complexity.LIMITS[k]]
+    return [f"the built game has {m[k]} {k.replace('_', ' ')}, over the limit of {complexity.built_limit(k)}"
+            for k in ("steps_per_round", "choice_steps_per_round", "attributes") if m.get(k, 0) > complexity.built_limit(k)]
 
 
 def design_flags(report: dict) -> list[str]:
@@ -529,7 +529,8 @@ def render_report(r: dict) -> str:
     if cx.get("measured"):
         rep = cx.get("reported") or {}
         out += ["## Complexity", ""] + [
-            f"- {k}: designed {rep.get(k, '?')}, built {cx['measured'].get(k, '-')}, limit {complexity.LIMITS[k]}" for k in complexity.KEYS] + [""]
+            f"- {k}: designed {rep.get(k, '?')}, built {cx['measured'].get(k, '-')}, limit {complexity.LIMITS[k]}"
+            + (f" (built: {complexity.built_limit(k)})" if complexity.built_limit(k) != complexity.LIMITS[k] else "") for k in complexity.KEYS] + [""]
     out += ["## Fidelity to the rules (tier 1: independent tests written from the spec alone; they do not decide whether the file works)", ""]
     for o in r["scenarios"]:
         out.append(f"- {'pass' if o['passed'] else 'FAIL'}: {o['name']}" + ("" if o["passed"] else " | " + "; ".join(o["failures"])))
@@ -550,6 +551,7 @@ def render_report(r: dict) -> str:
     else:
         out += ["", "## Balance (informational: a thoughtless policy that always wins, or luck deciding everything)", ""]
         out += [f"- {f}" for f in t1["flags"]] or ["- no flags"]
+        out += [f"- note: {n}" for n in t1.get("notes", [])]
         out += [f"- random seats: {t1['random_results']}"]
         for k, v in t1["dominance"].items():
             out.append(f"- always `{k}`: won {v['win']}, lost {v['loss']}, drew {v['draw']}")

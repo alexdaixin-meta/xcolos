@@ -5,7 +5,7 @@ Design: `design/2026-10-05-game-generation-pipeline.md`.
 
 ```bash
 .venv/bin/python -m gen_game convert ID                       # the idea is designed into rules (players, numbers, winner), then spec, build, scenarios, checks
-.venv/bin/python -m gen_game convert ID --model muse          # the same with Muse instead of Claude (plain python3 works for Muse)
+.venv/bin/python -m gen_game convert ID --model muse          # Muse only, never Claude (plain python3 works for Muse)
 .venv/bin/python -m gen_game convert ID --encoder claude      # a coding agent writes it (claude, metacode, command:...)
 .venv/bin/python -m gen_game convert ID --redo adapt          # run a step again (adapt, spec, encode, scenarios)
 .venv/bin/python -m gen_game convert ID --judge               # also gate the design (critic, balance checks; can drop a game)
@@ -13,6 +13,8 @@ Design: `design/2026-10-05-game-generation-pipeline.md`.
 python3 -m gen_game verify ID variation|spec|game|scenarios    # check a file written by hand or by an agent
 python3 -m gen_game show ID                                    # the report
 python3 -m gen_game evaluate ID                                # tiers 0 and 1 on an existing game.json
+.venv/bin/python -m gen_game simulate ID --players 'muse|gateway'   # real model players (installed game), logs under <game>/sim/
+.venv/bin/python -m gen_game reasoning ID                      # did winning take reasoning and planning? REASONING.md, with quotes from the plays
 
 python3 gen_game/run_tests.py
 ```
@@ -53,15 +55,22 @@ left to flag as well; `accepted` is a person's.
 
 ## Models
 
-The default is `gateway`: Claude (`claude-opus-5-5` unless you name one, `gateway:<model>`) through Meta's AI Gateway,
+The default is `gateway|muse`: Claude, or Muse when Claude cannot be reached. Specs joined by `|` are tried in turn;
+the one that answers goes first from then on, so a model that is down costs one failed call, and the switch is printed
+(`note: ... using <model> instead`). Muse needs the corporate network (off the VPN it answers 403
+`network_access_required`); Claude needs the `anthropic` package (under plain `python3` the gateway is left out and
+Muse is used alone). Model seats default to `muse|gateway`: Muse, or Claude when Muse cannot be reached.
+
+`gateway` is Claude (`claude-opus-5-5` unless you name one, `gateway:<model>`) through Meta's AI Gateway,
 the sanctioned route to third-party models for internal tools. There is no key: the local proxy (`localhost:10054`)
 vouches for your Meta identity, and requests are labelled `x-meta-ai-gateway-calling-product: xcolos`, not sensitive.
 It needs the `anthropic` package, which is installed in `.venv` only (`.venv/bin/pip install anthropic` from a normal
 terminal; pip cannot reach PyPI from inside a Claude Code sandbox), so run the pipeline with `.venv/bin/python`.
 `--effort minimal|low|medium|high` becomes the API's `low|low|medium|high`. This runs under your own identity, which
 suits experiments; a team workload should register its own gateway with an access list and rate limits
-(https://www.internalfb.com/intern/staticdocs/ai-gateway/docs/owning/onboarding). Model seats (`--players`) stay
-`muse` by default.
+(https://www.internalfb.com/intern/staticdocs/ai-gateway/docs/owning/onboarding). The `.venv` skips the base Python's
+`sitecustomize`, which points `SSL_CERT_FILE` at Meta's CA bundle; the command line does the same at start-up, so
+Muse's HTTPS calls verify under `.venv` too.
 
 `muse` uses `rl-muse-spark-1-2-playground` unless you name a model (`muse:<model>`). The platform's default
 (`...-1-1-playground`) sheds load with 503s for long stretches, and `...-1-3-sglang-playground` is slow and drops

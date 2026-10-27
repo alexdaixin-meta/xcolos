@@ -22,6 +22,7 @@ from gen_game import complexity  # noqa: E402
 from gen_game import encode as enc  # noqa: E402
 from gen_game import evaluate, flow, harness, scenarios, spec as specmod  # noqa: E402
 from gen_game.cli import main  # noqa: E402
+from xcolos.games.loader import load  # noqa: E402
 
 def test_a_shipped_game_passes_smoke_and_replays_identically():
     assert harness.smoke(RPS) == []
@@ -214,12 +215,60 @@ def test_claude_through_the_gateway_is_the_generators_default_and_muse_is_still_
     from gen_game import cli
 
     p = cli.parser()
-    assert p.parse_args(["convert", "x"]).model == "gateway"
+    assert p.parse_args(["convert", "x"]).model == "gateway|muse"  # Claude, or Muse when Claude cannot be reached
     assert p.parse_args(["convert", "x", "--model", "muse"]).model == "muse"
     for cmd in ("review", "revise", "brief"):
-        assert p.parse_args([cmd, "x"]).model == "gateway", cmd
+        assert p.parse_args([cmd, "x"]).model == "gateway|muse", cmd
     a = p.parse_args(["loop", "x"])
-    assert (a.model, a.review_model, a.encoder, a.players) == ("gateway", "gateway", "completion", "muse")
+    assert (a.model, a.review_model, a.encoder, a.players) == ("gateway|muse", "gateway|muse", "completion", "muse|gateway")
+
+
+def test_the_generator_uses_claude_or_muse_whichever_answers():
+    import types
+
+    from gen_game.cli import completion_for
+    from xcolos.flow.backends import FallbackCompletion
+
+    stand_in = "anthropic" not in sys.modules and not _importable("anthropic")
+    if stand_in:  # only the construction is checked, never a call
+        sys.modules["anthropic"] = types.ModuleType("anthropic")
+    try:
+        c = completion_for("gateway|muse", "high")
+    finally:
+        if stand_in:
+            del sys.modules["anthropic"]
+    assert isinstance(c.inner, FallbackCompletion)
+    assert [type(b).__name__ for b in c.inner.backends] == ["AnthropicCompletion", "MuseChat"]
+    assert c.inner.backends[0].effort == "high"
+
+
+def test_the_cli_trusts_the_corporate_ca_bundle_as_metas_python_does():
+    from gen_game.cli import trust_corporate_ca
+
+    with tempfile.TemporaryDirectory() as d:
+        bundle = Path(d) / "ca.pem"
+        bundle.write_text("certificates")
+        env: dict[str, str] = {}
+        trust_corporate_ca(env, bundles=(str(Path(d) / "missing.pem"), str(bundle)))
+        assert env == {"SSL_CERT_FILE": str(bundle)}
+        env = {"SSL_CERT_FILE": "/mine.pem"}
+        trust_corporate_ca(env, bundles=(str(bundle),))
+        assert env == {"SSL_CERT_FILE": "/mine.pem"}  # a bundle the user chose is kept
+
+
+def test_without_the_sdk_the_generator_uses_muse_alone_instead_of_stopping():
+    from gen_game.cli import completion_for
+
+    saved = sys.modules.get("anthropic", "absent")
+    sys.modules["anthropic"] = None  # makes `import anthropic` fail, as under a python without the package
+    try:
+        c = completion_for("gateway|muse", "high")
+    finally:
+        if saved == "absent":
+            del sys.modules["anthropic"]
+        else:
+            sys.modules["anthropic"] = saved
+    assert type(c.inner).__name__ == "MuseChat"
 
 
 def test_the_gateway_default_says_at_once_how_to_run_it_when_the_sdk_is_missing():
@@ -334,6 +383,31 @@ def test_tier_one_flags_a_policy_that_always_wins(monkeypatch=None):
 
 def test_tier_one_does_not_flag_a_balanced_game():
     assert evaluate.tier1(RPS, seeds=range(1, 25))["flags"] == []
+
+
+def _shared_rps(result: str):
+    """RPS where every ending gives the whole table one result, as a team target does."""
+    d = json.loads(RPS_TEXT)
+    for e in d["end"].values():
+        e["result"] = result
+    return load(json.dumps(d), source="rps")
+
+
+def test_a_shared_outcome_is_one_where_no_ending_names_a_seat():
+    assert evaluate.shared_outcome(_shared_rps("no seat wins"))
+    assert not evaluate.shared_outcome(RPS)
+
+
+def test_tier_one_expects_random_teams_to_miss_a_shared_target():
+    t1 = evaluate.tier1(_shared_rps("no seat wins"), seeds=range(1, 13))
+    assert [f for f in t1["flags"] if not any(i in f for i in flow.IGNORED_FLAGS)] == []
+    assert any("no seat wins" in n and "play-test" in n for n in t1["notes"])
+
+
+def test_tier_one_flags_a_shared_target_random_teams_always_reach():
+    t1 = evaluate.tier1(_shared_rps("all seats win"), seeds=range(1, 13))
+    assert any("every random match ended 'all seats win'" in f for f in t1["flags"])
+    assert t1["notes"] == []
 
 
 # -- the flow --------------------------------------------------------------
@@ -557,6 +631,15 @@ def test_complexity_limits_measure_what_the_designer_reports_and_what_was_built(
     m = complexity.measure(RPS)
     assert m["steps_per_round"] == 22 and m["choice_steps_per_round"] == 4
     assert complexity.describe_limits().startswith(f"steps_per_round at most {complexity.LIMITS['steps_per_round']}")
+
+
+def test_the_built_file_has_its_own_attribute_limit():
+    """The design counts the game's state; the built file also holds the rules' fixed numbers and its working fields."""
+    built = {"steps_per_round": 11, "choice_steps_per_round": 1, "attributes": 64}  # Hanabi Trio, built correctly by Claude
+    assert flow.complexity_flags({"complexity_measured": built}) == []
+    over = flow.complexity_flags({"complexity_measured": {**built, "attributes": complexity.BUILT_LIMITS["attributes"] + 1}})
+    assert over and "attributes" in over[0] and f"limit of {complexity.BUILT_LIMITS['attributes']}" in over[0]
+    assert complexity.over({**PLAN["complexity"], "attributes": 21})  # the designer's own count is still held to 20
 
 
 def test_a_designer_that_gives_nothing_usable_stops_the_flow():
