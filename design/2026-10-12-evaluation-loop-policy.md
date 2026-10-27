@@ -58,3 +58,15 @@ announcement, the measured facts, the reviewer's verdicts and the merged finding
 How its call is used: a confirmed critical or major finding always iterates, whatever the judge says. The judge may add minor findings to the pass (a minor that
 misleads players about the result, or that shows in every play); only finding ids that exist count. Infra findings still stop the loop and the judge is not asked.
 If the judge cannot answer, the severity rules decide as before. "Good enough" ends the loop with the remaining minors carried.
+
+## The reasoning-and-planning check (added 2026-10-27, built)
+
+A result says a game can be won, not how. Hanabi Trio's teams won every play, and only the play logs showed whether by inference or by lucky
+blind plays. So after each iteration's plays (and after every `simulate`), a model reads the plays' decisions, each with the options on offer, the
+answer, the player's own words and what the table had just been told (`reasoning.py`, `Hooks.reasoning`, written to `REASONING.md` and `LOOP_LOG.md`).
+It scores reasoning, planning and luck from 0 to 3, each with quotes; a quote that is not in the reply it cites sends the check back. The verdict is
+worked out from the scores: strong (reasoning and planning at least 2, luck at most 1), weak (either at most 1, or luck 3), adequate otherwise.
+
+How it is used: a weak verdict is a major `design` finding that needs no verifier, since its quotes were checked against the players' own replies, so it
+sends the design back to the designer; if it comes back after the redesign, the loop stops and escalates, as any finding that comes back. An adequate
+verdict is a minor finding: carried, and never starts a pass alone. A strong verdict adds nothing. A check that cannot be made is logged and changes nothing.

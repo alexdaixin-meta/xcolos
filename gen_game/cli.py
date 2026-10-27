@@ -137,6 +137,29 @@ def _one_model(spec: str, effort: str):
     return from_spec(spec)
 
 
+def reasoning_hook(folder: Path, completion, say=print):
+    """The reasoning-and-planning check over a play-test's plays (`simulate`, each loop iteration, `reasoning`): writes REASONING.md
+    and returns the check, or None when it could not be made."""
+    from gen_game import reasoning
+
+    def run(paths) -> dict | None:
+        sims = [json.loads(Path(p).read_text()) for p in paths]
+        sims = [x for x in sims if (x.get("snapshot") or {}).get("status") == "ended"]
+        if not sims:
+            say("reasoning check: no finished plays to read")
+            return None
+        design = json.loads((folder / "variation.json").read_text())
+        out, error = reasoning.check(completion, sims, design)
+        if out is None:
+            say(f"reasoning check failed: {error}")
+            return None
+        path = reasoning.write(folder, out, reasoning.stats(sims), (design.get("variation") or design).get("name", folder.name))
+        say(f"reasoning check: {out['verdict']} (" + ", ".join(f"{a} {out[a]['score']}" for a in reasoning.ASPECTS) + f"); {path}")
+        return out
+
+    return run
+
+
 def loop_command(args) -> int:
     """Wire the loop's rules (gen_game/loop.py) to the real play, review, verifier, spec revision and generator."""
     import types
@@ -230,7 +253,8 @@ def loop_command(args) -> int:
         if not (folder / "game.json").exists():
             raise SystemExit("no game file was produced, so there is nothing to play: see the generation log above")
     install()
-    result = loopmod.run_loop(loopmod.Hooks(play, review, confirm, prepare_redesign, regenerate, append("LOOP_LOG.md"), append("ESCALATIONS.md"), say, judge), args.max_iterations)
+    result = loopmod.run_loop(loopmod.Hooks(play, review, confirm, prepare_redesign, regenerate, append("LOOP_LOG.md"), append("ESCALATIONS.md"), say, judge,
+                                            reasoning=reasoning_hook(folder, reviewer, say)), args.max_iterations)
     say(f"\nloop {result.status} after {result.iterations} iteration(s); log {folder / 'LOOP_LOG.md'}")
     if result.escalated:
         say(f"needs your review: {folder / 'ESCALATIONS.md'}")
@@ -323,6 +347,8 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--server", default=None, help="a running server's URL (default: start one on a free port for this run)")
     p.add_argument("--timeout", type=int, default=7200, help="seconds to wait for one match")
+    p.add_argument("--reasoning-model", default="gateway|muse", help="reads the plays afterwards for reasoning and planning (REASONING.md)")
+    p.add_argument("--no-reasoning", action="store_true", help="skip the reasoning-and-planning check after the plays")
     p = sub.add_parser("review", help="read a simulated play against the idea, the design, the spec and the prompt, and say what is aligned and what is not")
     p.add_argument("id")
     p.add_argument("--sim", type=Path, default=None, help="a saved play (default: the newest under <game>/sim/)")
@@ -500,26 +526,17 @@ def main(argv: list[str] | None = None) -> int:
             from gen_game import reasoning
 
             folder = args.root / args.id
-            logs = reasoning.play_logs(folder)
-            sims = [json.loads(p.read_text()) for p in logs]
-            sims = [s for s in sims if (s.get("snapshot") or {}).get("status") == "ended"]
-            if not sims:
-                print(f"no finished plays under {folder / 'sim'}: run `simulate` first")
+            if reasoning_hook(folder, completion_for(args.model, args.effort))(reasoning.play_logs(folder)) is None:
                 return 1
-            design = json.loads((folder / "variation.json").read_text())
-            result, error = reasoning.check(completion_for(args.model, args.effort), sims, design)
-            if result is None:
-                print(f"reasoning check failed: {error}")
-                return 1
-            path = reasoning.write(folder, result, reasoning.stats(sims), (design.get("variation") or design).get("name", args.id))
-            print(path.read_text())
-            print(f"saved {path} and {folder / 'reasoning.json'}")
+            print((folder / "REASONING.md").read_text())
             return 0
         if args.cmd == "simulate":
             from gen_game import simulate as sim
 
-            done = sim.simulate(args.id, [x.strip() for x in args.players.split(",") if x.strip()], args.root, args.matches, args.seed,
-                                args.server, args.timeout)
+            players = [x.strip() for x in args.players.split(",") if x.strip()]
+            done = sim.simulate(args.id, players, args.root, args.matches, args.seed, args.server, args.timeout)
+            if not args.no_reasoning and any(p.lower() != "offline" for p in players):  # after the play-test: did winning take reasoning and planning?
+                reasoning_hook(args.root / args.id, completion_for(args.reasoning_model, "high"))([d["file"] for d in done])
             return 0 if all(d["status"] == "ended" for d in done) else 1
         if args.cmd == "agent-command":
             import shlex

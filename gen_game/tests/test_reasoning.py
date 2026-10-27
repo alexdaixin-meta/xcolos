@@ -107,3 +107,27 @@ def test_the_reasoning_command_reads_the_play_logs_and_writes_the_report():
         report = (folder / "REASONING.md").read_text()
         assert "strong" in report and "red is at 0, so #5 must be R1" in report
         assert json.loads((folder / "reasoning.json").read_text())["stats"]["matches"] == 1
+
+
+def test_the_loops_reasoning_hook_checks_an_iterations_plays_and_writes_the_report():
+    from gen_game.cli import reasoning_hook
+
+    with tempfile.TemporaryDirectory() as d:
+        folder = Path(d) / "tiny"
+        (folder / "sim").mkdir(parents=True)
+        (folder / "variation.json").write_text(json.dumps(DESIGN))
+        play = folder / "sim" / "w0001-seed1.json"
+        play.write_text(json.dumps(SIM))
+        said: list[str] = []
+        out = reasoning_hook(folder, Scripted(good_check()), said.append)([str(play)])
+        assert out["verdict"] == "strong" and (folder / "REASONING.md").exists()
+        assert reasoning_hook(folder, Scripted({"nonsense": True}), said.append)([str(play)]) is None
+        assert any("reasoning check failed" in s for s in said)
+
+
+def test_a_play_test_is_followed_by_the_reasoning_check_unless_it_is_skipped():
+    from gen_game.cli import parser
+
+    a = parser().parse_args(["simulate", "tiny", "--players", "muse"])
+    assert (a.no_reasoning, a.reasoning_model) == (False, "gateway|muse")
+    assert parser().parse_args(["simulate", "tiny", "--players", "muse", "--no-reasoning"]).no_reasoning
