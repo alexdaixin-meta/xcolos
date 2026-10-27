@@ -13,8 +13,8 @@ Design: `design/2026-10-05-game-generation-pipeline.md`.
 python3 -m gen_game verify ID variation|spec|game|scenarios    # check a file written by hand or by an agent
 python3 -m gen_game show ID                                    # the report
 python3 -m gen_game evaluate ID                                # tiers 0 and 1 on an existing game.json
-.venv/bin/python -m gen_game simulate ID --players 'muse|gateway'   # real model players (installed game), logs under <game>/sim/
-.venv/bin/python -m gen_game reasoning ID                      # did winning take reasoning and planning? REASONING.md, with quotes from the plays
+.venv/bin/python -m gen_game simulate ID --players 'muse|gateway'   # real model players (installed game), logs under <game>/sim/, then the reasoning check
+.venv/bin/python -m gen_game reasoning ID                      # did winning take reasoning and planning? REASONING.md, with quotes from the plays (also run by simulate and by every loop iteration)
 
 python3 gen_game/run_tests.py
 ```
