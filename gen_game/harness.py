@@ -15,6 +15,7 @@ from typing import Any
 
 from xcolos.agents import BaseAgent, RandomAgent
 from xcolos.flow import FlowOrchestrator
+from xcolos.flow.judge import NO_REPLY, ScriptedJudge
 from xcolos.game import Game
 from xcolos.games.definition import GameDefinition
 from xcolos.host import LocalAgentHost, Registry
@@ -124,6 +125,14 @@ class RuleAgent(BaseAgent):
                     return Action(type=schema.id, target=o)
         return Action(type=schema.id, target=legal[-1] if self.default == "last" else legal[0])
 
+    def forced(self, value) -> None:
+        """The engine answered a question with one legal option for this seat, without asking: a rule naming that option was met."""
+        for r in self.rules:
+            if r["left"] != 0 and "options_include" in r and self._pick(r["options_include"], [value]) is not None:
+                if r["left"]:
+                    r["left"] -= 1
+                return
+
     def unused(self) -> list[str]:
         """Rules that still had uses left: `times: "all"` rules are never required to fire."""
         return [f"{self.name}: the rule for {r['options_include']!r} was never matched {'' if r['left'] == r.get('times', 1) else 'enough '}"
@@ -221,12 +230,31 @@ class _GivenOrchestrator(FlowOrchestrator):
                 game.eliminate(int(seat))
 
 
+def offline_judge(answers: dict[str, bool] | None = None, default: bool = False) -> ScriptedJudge:
+    """The referee for a match played with no model: a judged step is `default` (false) unless `answers` says otherwise.
+
+    A key answers every prose condition whose sentence contains it, ignoring case; when several do, the longest wins, so a
+    specific key overrides a general one. Anything that is not a true-or-false question (wording, a choice) gets no reply,
+    so a step's `text` is used, as it is when no model is reachable.
+    """
+    keys = sorted(((k.lower(), v) for k, v in (answers or {}).items()), key=lambda kv: -len(kv[0]))
+
+    def answer(call):
+        if call.output.kind != "boolean":
+            return NO_REPLY
+        task = call.task.lower()
+        return next((v for k, v in keys if k in task), default)
+
+    return ScriptedJudge(answer)
+
+
 def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: dict | None = None, rounds: int | None = None, judge=None) -> Played:
     """One match to the end. Seat `i + 1` is `agents[i]`.
 
     `given` starts it from a stated situation, and `rounds` stops it after that many rounds (the match is then abandoned, which is
-    the point: the state at the stop is what a single-rule test looks at).
+    the point: the state at the stop is what a single-rule test looks at). With no `judge`, judged steps are answered false.
     """
+    judge = judge if judge is not None else offline_judge()
     if rounds is not None:
         import dataclasses
 

@@ -5,6 +5,7 @@ The flow itself is in test_flow.py. Nothing here touches a model or the network.
 
 from __future__ import annotations
 
+import copy
 import json
 import sys
 import tempfile
@@ -96,6 +97,147 @@ def test_a_loader_error_goes_back_to_the_model_and_the_next_reply_is_used():
 def test_a_game_decided_by_a_model_is_refused_with_the_reason():
     problem = enc.check(json.loads((LIBRARY / "auction.json").read_text()), "x")[2]
     assert "decided by arithmetic" in problem and "winner" in problem
+
+
+def test_a_judged_step_and_llm_wording_with_a_text_fallback_pass_the_check():
+    from fixtures import JUDGED_RPS_DICT
+
+    assert enc.check(copy.deepcopy(JUDGED_RPS_DICT), "rps")[2] == ""
+
+
+def test_a_bare_sentence_when_counts_as_a_judged_step():
+    from fixtures import JUDGED_RPS_DICT
+
+    g = copy.deepcopy(JUDGED_RPS_DICT)
+    g["steps"][20]["when"] = "The bonus rule applies this round."
+    assert enc.check(g, "rps")[2] == ""
+
+
+def test_llm_without_text_and_a_prose_ending_are_still_refused():
+    from fixtures import JUDGED_RPS_DICT
+
+    g = copy.deepcopy(JUDGED_RPS_DICT)
+    del g["steps"][5]["text"]
+    assert "no `text`" in enc.check(g, "rps")[2]
+    g = copy.deepcopy(JUDGED_RPS_DICT)
+    g["end"]["seat_1_wins"]["when"] = {"prose": "Seat 1 played better."}
+    assert "decided by arithmetic" in enc.check(g, "rps")[2]
+
+
+def test_a_spec_step_may_be_judged_and_render_shows_it():
+    s = copy.deepcopy(SPEC)
+    s["round"][0]["judged"] = "The bonus rule applies this round."
+    assert specmod.problems(s) == [] and 'judged: "The bonus rule applies this round."' in specmod.render(s)
+    s["round"][0]["judged"] = ""
+    assert any("judged" in p for p in specmod.problems(s))
+
+
+def _judged_copy():
+    from fixtures import JUDGED_RPS_DICT
+
+    return copy.deepcopy(JUDGED_RPS_DICT)
+
+
+def test_the_coder_sees_a_judged_step_and_its_sentence():
+    s = copy.deepcopy(SPEC)
+    s["round"][0]["judged"] = "The bonus rule applies this round."
+    shown = specmod.script(s)
+    assert "The bonus rule applies this round." in shown and '"prose"' in shown
+
+
+def test_a_null_judged_is_the_same_as_no_judged():
+    s = copy.deepcopy(SPEC)
+    s["round"][0]["judged"] = None
+    assert specmod.problems(s) == [] and "judged" not in specmod.render(s) and "judged" not in specmod.script(s)
+
+
+def test_an_attribute_only_a_judged_step_changes_is_not_reported_dead():
+    g = _judged_copy()
+    g["attributes"]["player"].append({"key": "bonuses", "visible": "public", "type": "number", "initial": 0})
+    g["steps"][20]["do"].append({"adjust": {"player": 1, "key": "bonuses", "value": 1}})
+    assert enc.check(g, "rps")[2] == ""
+
+
+def test_llm_on_a_question_is_refused_because_it_can_skip_a_seat():
+    g = _judged_copy()
+    g["steps"][3]["llm"] = "Ask seat 1 for a card."
+    assert "`llm`" in enc.check(g, "rps")[2]
+
+
+def test_llm_on_an_outcome_branch_and_a_broadcast_without_text_are_refused():
+    g = _judged_copy()
+    g["steps"][1]["broadcast"] = {"llm": "Pass the opening on."}
+    assert "broadcast" in enc.check(g, "rps")[2]
+    g = _judged_copy()
+    g["steps"][3]["outcome"] = {"chosen": {"do": [], "text": "Seat 1 has played.", "llm": "Say seat 1 has played."}}
+    assert "outcome" in enc.check(g, "rps")[2]
+
+
+def test_a_prose_when_that_is_really_arithmetic_is_refused():
+    for when in ("rounds_left >= 3", {"prose": "rounds_left >= 3"}):
+        g = _judged_copy()
+        g["steps"][20]["when"] = when
+        assert "calc" in enc.check(g, "rps")[2], when
+
+
+def test_a_judged_when_on_a_check_is_refused_because_it_would_choose_when_the_game_ends():
+    g = _judged_copy()
+    g["steps"][22]["when"] = {"prose": "The table has had enough."}
+    assert "check" in enc.check(g, "rps")[2]
+
+
+def test_the_gateway_model_takes_the_pipelines_effort():
+    import types
+
+    from gen_game.cli import completion_for
+
+    stand_in = "anthropic" not in sys.modules and not _importable("anthropic")
+    if stand_in:  # only the construction is checked, never a call: a placeholder module is enough without the SDK
+        sys.modules["anthropic"] = types.ModuleType("anthropic")
+    try:
+        for effort, want in (("minimal", "low"), ("low", "low"), ("medium", "medium"), ("high", "high")):
+            c = completion_for("gateway", effort)
+            assert c.inner.effort == want and c.inner.model == "claude-opus-5-5"
+        assert completion_for("gateway:claude-sonnet-5-5", "high").inner.model == "claude-sonnet-5-5"
+    finally:
+        if stand_in:
+            del sys.modules["anthropic"]
+
+
+def _importable(name: str) -> bool:
+    import importlib.util
+
+    return importlib.util.find_spec(name) is not None
+
+
+def test_claude_through_the_gateway_is_the_generators_default_and_muse_is_still_there():
+    from gen_game import cli
+
+    p = cli.parser()
+    assert p.parse_args(["convert", "x"]).model == "gateway"
+    assert p.parse_args(["convert", "x", "--model", "muse"]).model == "muse"
+    for cmd in ("review", "revise", "brief"):
+        assert p.parse_args([cmd, "x"]).model == "gateway", cmd
+    a = p.parse_args(["loop", "x"])
+    assert (a.model, a.review_model, a.encoder, a.players) == ("gateway", "gateway", "completion", "muse")
+
+
+def test_the_gateway_default_says_at_once_how_to_run_it_when_the_sdk_is_missing():
+    from gen_game.cli import completion_for
+
+    saved = sys.modules.get("anthropic", "absent")
+    sys.modules["anthropic"] = None  # makes `import anthropic` fail, as under a python without the package
+    try:
+        completion_for("gateway", "high")
+    except SystemExit as stop:
+        assert ".venv/bin/python" in str(stop) and "--model muse" in str(stop)
+    else:
+        raise AssertionError("a missing SDK must stop the command before any retry waits")
+    finally:
+        if saved == "absent":
+            del sys.modules["anthropic"]
+        else:
+            sys.modules["anthropic"] = saved
 
 
 def test_a_reply_that_never_loads_ends_with_every_attempt_recorded():

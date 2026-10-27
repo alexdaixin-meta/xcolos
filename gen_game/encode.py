@@ -6,8 +6,9 @@ out:
 
   1 the platform's loader, which refuses misspelled keys, bad selectors and the
     rest of what `design/actions.md` lists
-  2 a rule this pipeline adds: a generated game is decided by arithmetic, with no
-    prose condition and no model-written text, so its outcome is a fact
+  2 a rule this pipeline adds: a generated game's outcome is decided by arithmetic
+    (no prose ending, no `winner`, no model-written state), so its outcome is a fact;
+    a step may be judged by a referee, and a message may be worded by a model over its `text`
   3 smoke play: random seats play it at the smallest and largest table, and it
     must end, give a result, write a valid log and never leave a seat unable to
     answer
@@ -99,8 +100,10 @@ Rules for this task:
 - Use exactly the attribute keys the spec declares, with its visibility. Put every spec parameter in the file
   as an attribute with its value, never as a number buried in a step, so a number is written once.
 - The outcome must follow from arithmetic. Every ending's `when` is a {{"calc": ...}} condition and its
-  `result` is one of the spec's result names exactly. Do not use `winner` or prose conditions, and no step uses
-  `llm` anywhere, endings included: every step and every ending uses `text`.
+  `result` is one of the spec's result names exactly; no `winner`, no prose ending, no `llm` in an ending.
+  Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
+  {{"prose": "<the judged sentence, verbatim>"}}: a referee answers it true or false at play time. You may add
+  `llm` wording to a tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no model answers.
 - ENDING STATEMENT. The end screen announces the result only: who won (or a draw) and the final figures that
   decided it, written with placeholders over the final state, such as "Seat 1 wins. Final scores: Seat 1
   {{players[0].score}}, Seat 2 {{players[1].score}}, Seat 3 {{players[2].score}}; target {{target}}." One or two lines.
@@ -262,13 +265,16 @@ def dead_attributes(defn: GameDefinition, constants: set[str] = frozenset(), mat
             touched.add(("game" if player is None else "player", key))
         return original(self, player, key, value, dealing=dealing)
 
+    # Offline, judged steps are answered false; an attribute only a judged step writes is alive when they are true.
+    judges = [None] + ([harness.offline_judge(default=True)] if _judged(defn) else [])
     FlowState.set_attribute = spy
     try:
         for seed in range(1, matches + 1):
-            try:
-                harness.play(defn, harness.random_agents(defn.min_players, seed), seed)
-            except Exception:  # noqa: BLE001 - smoke play reports crashes; this is not the place
-                return []
+            for judge in judges:
+                try:
+                    harness.play(defn, harness.random_agents(defn.min_players, seed), seed, judge=judge)
+                except Exception:  # noqa: BLE001 - smoke play reports crashes; this is not the place
+                    return []
     finally:
         FlowState.set_attribute = original
     declared = [("player", a.key) for a in defn.player_attributes] + [("game", a.key) for a in defn.game_attributes]
@@ -276,8 +282,35 @@ def dead_attributes(defn: GameDefinition, constants: set[str] = frozenset(), mat
             for scope, key in declared if key not in constants and (scope, key) not in touched]
 
 
+#: The steps a model may word, over their `text`. Anywhere else `llm` would let a model write state or end the game, and on an
+#: `ask` or `poll` a model's message can mark a seat as not asked, so it could skip a player's turn.
+WORDED = ("tell", "sync", "update")
+
+
+def _walk(steps):
+    for s in steps:
+        yield s
+        yield from _walk(getattr(s, "steps", ()) or ())
+
+
+def _judged(defn: GameDefinition) -> bool:
+    """Whether any step's `when` is a sentence a referee answers."""
+    return any(s.when is not None and s.when.kind == "prose" for s in _walk(tuple(defn.setup) + tuple(defn.steps)))
+
+
+def _is_calc(sentence: str) -> bool:
+    try:
+        Condition.parse({"calc": sentence}, "when")
+    except Exception:  # noqa: BLE001 - anything that does not parse as an expression is a sentence
+        return False
+    return True
+
+
 def model_use(defn: GameDefinition) -> list[str]:
-    """Where a definition lets a model, not arithmetic, decide or speak."""
+    """Where a definition lets a model, not arithmetic, decide the outcome or write state, or speak with no `text` to fall back on.
+
+    A step's `when` may be prose: a referee rules whether a complex rule applies, and the outcome is still calculated.
+    """
     found: list[str] = []
     for rule in defn.end:
         if rule.when.kind != "calc":
@@ -289,12 +322,27 @@ def model_use(defn: GameDefinition) -> list[str]:
 
     def walk(steps, where):
         for s in steps:
+            name = s.label or s.use
             for f in dataclasses.fields(s):
                 v = getattr(s, f.name)
-                if isinstance(v, Condition) and v.kind == "prose":
-                    found.append(f"step {s.label or s.use!r}: `{f.name}` is prose; write it as a calc")
+                if f.name != "when" and isinstance(v, Condition) and v.kind == "prose":
+                    found.append(f"step {name!r}: `{f.name}` is prose; write it as a calc")
+            if s.when is not None and s.when.kind == "prose":
+                if s.use == "check":
+                    found.append(f"step {name!r}: a `check` may not be judged, because a referee must not choose when the game ends; write its `when` as a calc")
+                elif _is_calc(s.when.prose):
+                    found.append(f"step {name!r}: `when` is arithmetic written as prose; write it as {{\"calc\": ...}}")
             if getattr(s, "llm", ""):
-                found.append(f"step {s.label or s.use!r} uses `llm`; use `text`")
+                if s.use not in WORDED:
+                    found.append(f"step {name!r} uses `llm` on a `{s.use}`; only a tell, sync or update may be worded by a model, so remove `llm`")
+                elif not s.text:
+                    found.append(f"step {name!r} uses `llm` with no `text`; give `text` as the fallback")
+            for branch in ("chosen", "none"):
+                b = getattr(s.outcome, branch, None) if s.outcome else None
+                if b is not None and b.llm:
+                    found.append(f"step {name!r}: its outcome's `{branch}` uses `llm`, and the engine drops a branch's `text` when a model is wired; use `text` only")
+            if s.broadcast is not None and s.broadcast.llm and not s.broadcast.text:
+                found.append(f"step {name!r}: its broadcast uses `llm` with no `text`; give `text` as the fallback")
             walk(getattr(s, "steps", ()) or (), where)
 
     walk(defn.setup, "setup")
@@ -344,7 +392,7 @@ def check(text_or_obj, game_id: str, constants: set[str] = frozenset(), tests: l
     except Exception as exc:  # noqa: BLE001 - a loader crash is still a finding for the model
         return None, None, f"the loader crashed on it: {type(exc).__name__}: {exc}"
     if (used := model_use(defn)):
-        return obj, None, "a generated game must be decided by arithmetic: " + "; ".join(used[:4])
+        return obj, None, "a generated game's outcome must be decided by arithmetic: " + "; ".join(used[:4])
     for n in sorted({defn.min_players, defn.max_players}):
         if (found := harness.smoke(defn, players=n)):
             return obj, None, "playing it with random seats failed: " + "; ".join(found[:3])

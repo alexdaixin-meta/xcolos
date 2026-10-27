@@ -64,6 +64,10 @@ class Patient:
 
 
 
+#: The pipeline's `--effort` (Muse's names) as the Claude API's `output_config.effort`, which has no `minimal`.
+GATEWAY_EFFORT = {"minimal": "low", "low": "low", "medium": "medium", "high": "high"}
+
+
 def completion_for(spec: str, effort: str):
     """The model for a backend spec. Muse gets a reasoning effort and room for a whole game file:
     the platform's default (minimal effort, 8192 output tokens) suits a referee, not an author."""
@@ -77,6 +81,17 @@ def completion_for(spec: str, effort: str):
 
         model = rest.strip() or "claude-opus-5-5"
         return Patient(CommandCompletion(["claude", "-p", "--bare", "--model", model], timeout_s=1800))
+    if kind.strip().lower() == "gateway":
+        # Claude through Meta's AI Gateway: the pipeline's effort names, in the API's terms
+        from xcolos.flow.backends import GATEWAY_MODEL, gateway_completion
+
+        try:
+            import anthropic  # noqa: F401 - the gateway backend needs the SDK; say so now, not after the retry waits
+        except ImportError:
+            raise SystemExit("the default model is Claude through Meta's AI Gateway, which needs the `anthropic` package: "
+                             "run with .venv/bin/python (or `.venv/bin/pip install anthropic` from a normal terminal), "
+                             "or pass --model muse") from None
+        return Patient(gateway_completion(model=rest.strip() or GATEWAY_MODEL, effort=GATEWAY_EFFORT[effort]))
     if kind.strip().lower() == "muse":
         from gen_game.chat import MuseChat
 
@@ -230,14 +245,15 @@ def install_command(args) -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def parser() -> argparse.ArgumentParser:
+    """The command line, with its defaults."""
     ap = argparse.ArgumentParser(prog="gen_game", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--inventory", type=Path, default=DEFAULT_DIR, help="gen_inventory's directory")
     ap.add_argument("--root", type=Path, default=flow.DATA, help="where converted games are kept")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("convert")
     p.add_argument("id")
-    p.add_argument("--model", required=True, help="a backend spec: claude[:model], muse[:model], anthropic[:model], command:<program>, echo:<reply>")
+    p.add_argument("--model", default="gateway", help="a backend spec: gateway[:model] (Claude through Meta's AI Gateway, the default), muse[:model], claude[:model], anthropic[:model], command:<program>, echo:<reply>")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"),
                    help="Muse reasoning effort for the conversion (default: medium)")
     p.add_argument("--encoder", default="completion",
@@ -273,17 +289,17 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("review", help="read a simulated play against the idea, the design, the spec and the prompt, and say what is aligned and what is not")
     p.add_argument("id")
     p.add_argument("--sim", type=Path, default=None, help="a saved play (default: the newest under <game>/sim/)")
-    p.add_argument("--model", default="muse", help="the reviewer: muse[:model], claude[:model], anthropic[:model]")
+    p.add_argument("--model", default="gateway", help="the reviewer: gateway[:model], muse[:model], claude[:model], anthropic[:model]")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("revise", help="revise the spec from a play review's findings, so the coder is told what it got wrong")
     p.add_argument("id")
     p.add_argument("--review", type=Path, default=None, help="a saved review (default: the newest under <game>/sim/)")
     p.add_argument("--drop", default="", help="finding ids a person judged wrong, comma separated, e.g. F5")
-    p.add_argument("--model", default="muse")
+    p.add_argument("--model", default="gateway", help="gateway[:model] (Claude), muse[:model], ...")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("brief", help="check that the rules text players read says what the spec's numbered rules say")
     p.add_argument("id")
-    p.add_argument("--model", default="muse")
+    p.add_argument("--model", default="gateway", help="gateway[:model] (Claude), muse[:model], ...")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("loop", help="play the installed game with real models at its suggested size, review it, and loop back to the generator for confirmed critical and major findings")
     p.add_argument("id")
@@ -291,15 +307,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--plays", type=int, default=2, help="plays per iteration, at different seeds")
     p.add_argument("--max-iterations", type=int, default=3)
     p.add_argument("--seed", type=int, default=1)
-    p.add_argument("--review-model", default="claude", help="reviews each play and verifies each finding")
-    p.add_argument("--model", default="claude", help="the generator's model (design, spec, scenarios, triage) when the loop goes back to it")
-    p.add_argument("--encoder", default="claude", help="who writes the game file when the loop goes back to the generator")
+    p.add_argument("--review-model", default="gateway", help="reviews each play and verifies each finding")
+    p.add_argument("--model", default="gateway", help="the generator's model (design, spec, scenarios, triage) when the loop goes back to it")
+    p.add_argument("--encoder", default="completion", help="who writes the game file when the loop goes back to the generator: completion (the --model), or an agent: claude, metacode, command:...")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p.add_argument("--timeout", type=int, default=3600, help="seconds to wait for one play")
     sub.add_parser("status").add_argument("id")
     sub.add_parser("verified").add_argument("id")
     for name in ("evaluate", "show"):
         sub.add_parser(name).add_argument("id")
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = parser()
     args = ap.parse_args(argv)
 
     try:

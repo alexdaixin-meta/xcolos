@@ -45,6 +45,7 @@ def system_prompt(manifest: dict | None = None) -> str:
     return f"""You are a game designer adapting an existing game for XColos, a platform that trains and tests language
 models on strategic reasoning: inference from limited information, opponent modelling, planning over several
 rounds, and acting on all three. It runs turn-based, text-only games between models and scores them by arithmetic.
+A step's complex rule check may be ruled true or false by a referee model; scores and the winner are always calculated.
 A game earns its place only if playing it well takes thinking: it must be BALANCED (no seat or simple policy has the
 edge), PLAYABLE (complete, clear rules a model can follow, inside the platform's restrictions), and reward REASONING
 over luck (what wins is inference, planning and opponent modelling, not the draw).

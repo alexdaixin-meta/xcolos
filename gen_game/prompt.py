@@ -121,8 +121,11 @@ def build(game_id: str, plan: dict, spec: dict, guidance: str = "", agent: bool 
 {examples}
   The `auction` example ends with a model-decided `winner`; do NOT copy that part. End with a `result` and a calc condition
   as `rps` does.
-- The outcome must be decided by arithmetic: every ending's `when` is a calc condition, no prose conditions; no step uses `llm`
-  and every step uses `text`. Choices made at the same moment are a `poll`.
+- The outcome must be decided by arithmetic: every ending's `when` is a calc condition with a `result`; no `winner`, no prose
+  ending, no `llm` in an ending. Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
+  `{{"prose": "<the judged sentence, verbatim>"}}`: a referee answers it true or false at play time. You may add `llm` wording to a
+  tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no model answers. Choices made at the same moment
+  are a `poll`.
 - ENDING STATEMENT: the end screen announces the result only: who won (or that it was a draw) and the final figures that decided it,
   using placeholders such as `{{players[0].score}}` and `{{target}}`. Keep it to a line or two. Do NOT retell the game, and do NOT use
   `llm` in an ending: no summary of what each player did or of the turning points.
@@ -159,8 +162,10 @@ below as a game definition for the XColos engine. Do not write any other file ex
 
 The complete file format reference and two example games are in your system prompt. Follow them exactly: every key an
 action accepts is listed there, and the loader refuses any other. The outcome must be decided by arithmetic: every
-ending's `when` is a calc condition, no prose conditions; no step and no ending uses `llm`, and every step uses `text`; choices made at the same
-moment are a `poll`. The end screen announces only the result: every ending's `text` says who won and the final scores or deciding figures with
+ending's `when` is a calc condition with a `result`; no `winner`, no prose ending, no `llm` in an ending. Use calc for any rule that is
+arithmetic. For a spec step marked `judged`, make that step's `when` `{{"prose": "<the judged sentence, verbatim>"}}`: a referee answers it
+true or false at play time. You may add `llm` wording to a tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no
+model answers. Choices made at the same moment are a `poll`. The end screen announces only the result: every ending's `text` says who won and the final scores or deciding figures with
 placeholders such as `{{players[0].score}}`, in a line or two, with no retelling of how the game went. End with a `result` and a calc condition as the `rps` example does (not the `auction`'s `winner`).
 
 {MISTAKES}
