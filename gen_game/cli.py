@@ -363,7 +363,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--stop-after", type=int, default=3, help="stop starting games when the same failure has ended this many")
     p.add_argument("--pin", default=None, help="the commit the games run on (default: the batch's pin, or HEAD for a new batch)")
     p.add_argument("--pin-only", action="store_true", help="pin and stop: deploys a fix to a running batch's next games")
-    p.add_argument("--replay", action="store_true", help="also play again the games that came out ready on older code (not converted again)")
+    p.add_argument("--replay", action="store_true", help="also play again the games that came out ready on older code or with other players (not converted again)")
     p = sub.add_parser("reasoning", help="read every saved play and say whether winning took reasoning and planning, with quotes from the players")
     p.add_argument("id")
     p.add_argument("--model", default="gateway|muse", help="the reader: gateway[:model], muse[:model], ..., or several joined by |")

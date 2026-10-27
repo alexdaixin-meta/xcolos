@@ -130,3 +130,16 @@ def test_replay_plays_again_the_games_played_on_older_code_without_converting_th
         rows = batch.run_batch(["ok", "gone"], out, 1, 2, 3, "python", runner=world, say=lambda m: None, replay=True)
         assert [c[:2] for c in world.commands] == [("uninstall", "ok"), ("install", "ok"), ("simulate", "ok")]
         assert {r["id"]: r["code"] for r in rows} == {"ok": "code2", "gone": "code"}  # a dropped game is not played again
+
+
+def test_replay_also_plays_again_a_game_played_by_other_players_on_the_same_code():
+    with tempfile.TemporaryDirectory() as d:
+        code = code_dir(d)
+        out = Path(d) / "batch"
+        out.mkdir()
+        (out / "CODE").write_text(str(code))
+        row = {"id": "ok", "code": "code", "outcome": "ready_for_review", "detail": "", "plays": {"of": 2, "ended": 2, "results": {}}, "reasoning": None}
+        (out / "batch.json").write_text(json.dumps({"ids": ["ok"], "rows": [row], "stopped": None}))  # played before the players were recorded
+        world = FakeWorld(code, {})
+        batch.run_batch(["ok"], out, 1, 2, 3, "python", runner=world, say=lambda m: None, replay=True)
+        assert [c[0] for c in world.commands] == ["uninstall", "install", "simulate"]

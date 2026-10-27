@@ -176,7 +176,8 @@ def run_batch(ids: list[str], out: Path, jobs: int, plays: int, stop_after: int,
     path = out / "batch.json"
     earlier = {r["id"]: r for r in json.loads(path.read_text())["rows"]} if path.exists() else {}
     pinned = Path((out / "CODE").read_text().strip()).name
-    stale = {i for i in ids if replay and i in earlier and earlier[i]["outcome"] == "ready_for_review" and earlier[i].get("code") != pinned}
+    stale = {i for i in ids if replay and i in earlier and earlier[i]["outcome"] == "ready_for_review"
+             and (earlier[i].get("code") != pinned or (earlier[i].get("plays") or {}).get("players") != PLAYERS)}
     rows = [earlier[i] for i in ids if i in earlier and earlier[i]["outcome"] in FINISHED and i not in stale]
     todo = [i for i in ids if not (i in earlier and earlier[i]["outcome"] in FINISHED) or i in stale]
     (out / "logs").mkdir(parents=True, exist_ok=True)
