@@ -193,8 +193,20 @@ class Played:
                 return r.get("standings")
         return None
 
+    @property
+    def ending(self) -> Any:
+        """The ending that finished the match (its EndRule), from the game-over fact; None if none fired."""
+        for r in reversed(self.game.log.records):
+            if r.get("category") == "fact" and r.get("type") == "game_over":
+                name = (r.get("payload") or {}).get("ending")
+                return next((e for e in self.orchestrator.definition.end if e.name == name), None)
+        return None
+
     def end_problems(self) -> list[str]:
-        """What is wrong with how the match finished: it must end, name a winner, and log the standings that decided it."""
+        """What is wrong with how the match finished: it must end, name a winner, and log the standings that decided it.
+
+        A match may end with no winner only through an ending with `min_to_win`, when no seat reached the bar.
+        """
         r = self.result
         if r.status != "ended":
             return [f"the match did not end ({r.status}: {r.reason})"]
@@ -202,6 +214,8 @@ class Played:
             return ["the match ended with no result"]
         if self.standings is None:
             return ["the match ended with no standings: its ending has no `rank_by`"]
+        if not winning_seats(r.winner) and not (self.ending is not None and self.ending.min_to_win):
+            return [f"the match ended with no winner ({r.winner!r}), and only an ending with `min_to_win` may"]
         return []
 
 
@@ -229,6 +243,11 @@ def winning_seats(result: str | None) -> list[int]:
     """The seats a result names, worded as the engine words a ranked ending: "seat 2" -> [2], "seats 1, 3 and 4" -> [1, 3, 4]; else []."""
     m = re.fullmatch(r"seats? ((?:\d+, )*\d+(?: and \d+)?)", result or "")
     return [int(x) for x in re.findall(r"\d+", m.group(1))] if m else []
+
+
+def no_winner(result: str | None) -> bool:
+    """Whether a result is the engine's "no winner" (no seat reached `min_to_win`, or nobody could say who won)."""
+    return bool(result) and result.startswith(FlowOrchestrator.NO_WINNER)
 
 
 def name_seats(seats: list[int]) -> str:

@@ -44,6 +44,10 @@ RESULT_RPS_DICT = _ending(json.loads(RPS_TEXT), {
     "seat_1_wins": {"when": {"calc": "players[0].score > players[1].score"}, "result": "seat 1", "text": "Seat 1 wins."},
     "seat_2_wins": {"when": {"calc": "players[1].score > players[0].score"}, "result": "seat 2", "text": "Seat 2 wins."},
     "draw": {"when": {"calc": "players[0].score == players[1].score"}, "result": "draw", "text": "A draw."}})
+#: rps ranked by score with a bar no seat reaches (`min_to_win`): every match ends with no winner, its standings logged.
+BAR_RPS_DICT = _ending(json.loads(RPS_TEXT), {
+    "over": {"when": {"calc": "rounds_left == 0"}, "rank_by": "you.score", "min_to_win": 1000,
+             "text": "Result: {result}. Nobody reached 1000 points."}})
 #: rps whose winner a model names from a sentence (the engine's `winner`), which a generated game may not use.
 WINNER_RPS_DICT = _ending(json.loads(RPS_TEXT), {
     "over": {"when": {"calc": "rounds_left == 0"}, "winner": "The player with the higher score wins; level scores share the win.",

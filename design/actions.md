@@ -675,6 +675,10 @@ then coins). Every seat's value is logged with the end of the game as its
 `standings`. The expression is checked at load like any calc; a value that is
 not a number when the game ends stops the match with an error.
 
+`min_to_win` (a number, or a calc for the table with no `you`) sets a bar on
+`rank_by`: a seat below it cannot win, and when no seat reaches it the game ends
+with no winner (`no winner decided (...)`), its standings still logged.
+
 `winner` says it in words:
 
 ```json

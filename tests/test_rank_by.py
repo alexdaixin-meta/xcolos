@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -59,8 +60,8 @@ def test_rank_by_checked_at_load():
     parse(raw())
 
 
-def ranked(scores):
-    d = raw()
+def ranked(scores, over=None):
+    d = raw(over)
     d["meta"]["players"] = {"min": 1, "max": 8}
     game = Game("rank", "rps", 1, MatchLog("rank"))
     for i in scores:
@@ -107,6 +108,56 @@ def test_rank_by_match_logs_standings():
               and r["type"] == "end_game"][-1]
     assert set(record["standings"]) == {"1", "2"}
     assert set(game.standings) == {1, 2}
+
+
+# -- `min_to_win`: a bar a seat must reach to win ------------------------------
+
+def test_min_to_win_is_checked_at_load():
+    plain = {"when": {"calc": "rounds_left == 0"}, "result": "draw", "text": "Over.", "min_to_win": 1}
+    with pytest.raises(DefinitionError):
+        parse(raw(plain))  # only an ending that ranks the seats has a bar to reach
+    for bad in (True, None, [], "", "True", "'high'", "score", "you.score", "rounds_left +"):
+        with pytest.raises(DefinitionError):
+            parse(raw({**OVER, "min_to_win": bad}))
+    for good in (3, 2.5, "rounds_left + 1"):
+        assert parse(raw({**OVER, "min_to_win": good})).end[0].min_to_win == str(good)
+
+
+def test_min_to_win_below_the_bar_cannot_win():
+    bar = {**OVER, "min_to_win": 6}
+    assert ranked({1: 5, 2: 7, 3: 2}, bar)[1] == ("seat 2", {1: 5, 2: 7, 3: 2})
+    assert ranked({1: 9, 2: 3}, bar)[1][0] == "seat 1"
+
+
+def test_min_to_win_qualifiers_level_at_the_top_share_the_win():
+    bar = {**OVER, "min_to_win": 6}
+    assert ranked({1: 7, 2: 7, 3: 1}, bar)[1][0] == "seats 1 and 2"
+    assert ranked({1: 6, 2: 6, 3: 6}, bar)[1][0] == "seats 1, 2 and 3"
+
+
+def test_min_to_win_nobody_qualifies_no_winner_and_the_standings_are_logged():
+    orch, (result, standings) = ranked({1: 5, 2: 5}, {**OVER, "min_to_win": 6})
+    assert result.startswith(FlowOrchestrator.NO_WINNER) and not re.match(r"seats? \d", result)
+    assert standings == {1: 5, 2: 5}
+    log = MatchLog("no_winner")
+    game = Game("no_winner", "rps", 3, log)
+    registry = Registry(game.match_id)
+    host = LocalAgentHost([RandomAgent(name=n, seed=i) for i, n in enumerate(["Ada", "Blaise"])],
+                          player=Player.new("operator"))
+    for bound in host.register():
+        registry.attach(game.register_seat(bound.name, host.host_id, bound.profile), host, bound)
+    result = Runner(game, FlowOrchestrator(parse(raw({**OVER, "min_to_win": 1000}))), registry).run()
+    assert result.status == "ended" and result.winner.startswith(FlowOrchestrator.NO_WINNER)
+    record = [r for r in log.records if r["category"] == "process" and r["type"] == "end_game"][-1]
+    assert set(record["standings"]) == {"1", "2"} and set(game.standings) == {1, 2}
+
+
+def test_min_to_win_that_is_not_a_number_at_the_end_stops_the_match():
+    orch, _ = ranked({1: 1, 2: 2})
+    for bar in ("rounds_left == 0", "rounds_left > 99"):
+        rule = parse(raw({**OVER, "min_to_win": bar})).end[0]
+        with pytest.raises(FlowError):
+            orch._rank(rule)
 
 
 # -- the library games decide their winner with `rank_by` ---------------------

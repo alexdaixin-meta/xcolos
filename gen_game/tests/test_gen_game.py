@@ -350,6 +350,56 @@ def test_a_scenario_may_assert_the_winner_and_the_standings():
     assert any(f"seat 1 standing: expected 3, got {score}" in f for f in out.failures)
 
 
+def _bar_rps():
+    from fixtures import BAR_RPS_DICT
+    from xcolos.games.loader import load
+
+    return load(json.dumps(BAR_RPS_DICT), source="rps")
+
+
+def test_min_to_win_is_optional_in_a_spec_and_reaches_the_reviewer_and_the_coder():
+    barred = {**SPEC, "ending": {**SPEC["ending"], "min_to_win": 1}}
+    assert specmod.problems(barred) == []
+    for bad in ("", True, [1]):
+        assert any("min_to_win" in p for p in specmod.problems({**SPEC, "ending": {**SPEC["ending"], "min_to_win": bad}})), bad
+    assert "min_to_win" in specmod.render(barred) and "min_to_win" in specmod.script(barred)
+    assert "min_to_win" not in specmod.render(SPEC) and "min_to_win" in specmod.SYSTEM
+    for flag in (True, False):
+        assert "`min_to_win` is `1`" in prompt.build("rps", PLAN, barred, agent=flag)
+        assert "`min_to_win` is" not in prompt.build("rps", PLAN, SPEC, agent=flag)
+    assert "min_to_win" in enc.system_prompt()
+
+
+def test_a_match_with_no_winner_passes_only_when_its_ending_has_min_to_win():
+    from fixtures import BAR_RPS_DICT
+
+    defn = _bar_rps()
+    played = harness.play(defn, harness.random_agents(2, 1), 1)
+    assert harness.no_winner(played.result.winner) and played.standings.keys() == {"1", "2"}
+    assert played.end_problems() == [] and harness.smoke(defn) == []
+    assert evaluate.tier0(defn, seeds=range(1, 3))["passed"]
+    assert enc.check(copy.deepcopy(BAR_RPS_DICT), "rps")[2] == ""
+    import dataclasses
+
+    unbarred = dataclasses.replace(played, orchestrator=SimpleNamespace(definition=RPS))  # an ending of the same name, with no bar
+    assert any("no winner" in p for p in unbarred.end_problems())
+
+
+def test_a_match_with_no_winner_counts_as_a_draw_in_the_dominance_tally():
+    t1 = evaluate.tier1(_bar_rps(), seeds=range(1, 13))
+    assert not any("not 'seat N'" in f for f in t1["flags"])
+    assert all(v["draw"] == 12 and v["win"] == v["loss"] == 0 for v in t1["dominance"].values()), t1["dominance"]
+
+
+def test_a_scenario_may_assert_that_nobody_wins():
+    nobody = {**ALWAYS_ROCK, "expect": {"winner": None, "standings": {"1": 0, "2": 0}}}
+    assert scenarios.problems([nobody]) == []
+    assert scenarios.run_scenario(_bar_rps(), nobody).passed
+    out = scenarios.run_scenario(RPS, nobody)  # no bar: level scores share the win
+    assert any("winner: expected no winner, got 'seats 1 and 2'" in f for f in out.failures)
+    assert any("expected no winner" in f for f in scenarios.run_scenario(RPS, {**SEAT1_WINS, "expect": {"winner": None}}).failures)
+
+
 def test_scripting_too_many_or_too_few_moves_is_reported_as_that():
     few = {**ALWAYS_ROCK_MOVES, "moves": {"1": ["rock"], "2": ["rock"]}}
     assert any("more question" in f for f in scenarios.run_scenario(RPS, few).failures)
@@ -718,6 +768,7 @@ def test_the_generated_games_are_the_library_games_and_each_ends_ranked():
         assert enc.model_use(defn) == [], (game_id, enc.model_use(defn))
         spec = json.loads((data / game_id / "spec.json").read_text())
         assert spec["ending"]["rank_by"] == defn.end[0].rank_by, game_id
+        assert str(spec["ending"].get("min_to_win", "")) == defn.end[0].min_to_win, game_id
         assert not [p for p in specmod.problems(spec) if "ending" in p or "rank_by" in p], game_id
         assert scenarios.problems(json.loads((data / game_id / "scenarios.json").read_text())) == [], game_id
 

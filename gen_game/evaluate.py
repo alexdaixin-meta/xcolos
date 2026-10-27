@@ -83,7 +83,7 @@ def tier1(defn: GameDefinition, seeds: range = range(1, 61)) -> dict:
     random_results: Counter = Counter()
     for seed in seeds:
         random_results[harness.play(defn, harness.random_agents(n, seed), seed).result.winner] += 1
-    seat_named = all(w is None or w == "draw" or harness.winning_seats(w) for w in random_results)
+    seat_named = all(w is None or w == "draw" or harness.winning_seats(w) or harness.no_winner(w) for w in random_results)
 
     if len(random_results) == 1:
         flags.append(f"every random match ended {next(iter(random_results))!r}: choices do not change the result")
@@ -103,8 +103,8 @@ def tier1(defn: GameDefinition, seeds: range = range(1, 61)) -> dict:
                     agents[seat - 1] = harness.FixedAgent(harness.NAMES[seat - 1], policy)
                     w = harness.play(defn, agents, seed).result.winner
                     won = harness.winning_seats(w)
-                    # a win shared at the top counts as a draw: the policy did not beat the table
-                    tally["win" if won == [seat] else "draw" if w == "draw" or seat in won else "loss"] += 1
+                    # a win shared at the top, or a match nobody won, counts as a draw: the policy did not beat the table
+                    tally["win" if won == [seat] else "draw" if w == "draw" or seat in won or harness.no_winner(w) else "loss"] += 1
                 decided = tally["win"] + tally["loss"]
                 rate = tally["win"] / decided if decided else 0.0
                 dominance[f"{policy}@seat{seat}"] = {"win": tally["win"], "loss": tally["loss"], "draw": tally["draw"], "win_rate": round(rate, 2)}

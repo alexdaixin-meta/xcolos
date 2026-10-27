@@ -20,7 +20,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from xcolos.games.calc import BUILTIN_NAMES, CalcError, Expr
+from xcolos.games.calc import BUILTIN_NAMES, CalcError, Expr, Scope, evaluate
 
 SCHEMA_VERSION = 1
 
@@ -1036,12 +1036,16 @@ class EndRule:
     #: highest value winning and ties sharing. The engine decides, with no
     #: model, and the per-seat values are logged as the standings.
     rank_by: str = ""
+    #: With `rank_by` only: a bar a seat's value must reach to win, worked out
+    #: once for the table (no `you`). Seats below it cannot win; when none
+    #: reaches it the game ends with no winner, its standings still logged.
+    min_to_win: str = ""
 
     @staticmethod
     def parse(name: str, raw: Any, where: str) -> "EndRule":
         _require(isinstance(raw, dict), where, f"expected an ending, got {raw!r}")
         _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "winner",
-                     "rank_by"), where)
+                     "rank_by", "min_to_win"), where)
         _require("when" in raw, where, "needs a `when`")
         _require(sum(k in raw for k in ("result", "winner", "rank_by")) == 1, where,
                  "needs exactly one of `result`, `winner` (a sentence saying who "
@@ -1054,6 +1058,7 @@ class EndRule:
                 Expr(rank_by)
             except Exception as exc:
                 raise DefinitionError(f"{where}.rank_by: {exc}") from None
+        min_to_win = _min_to_win(raw, where)
         winner = raw.get("winner")
         if winner is not None:
             _require(isinstance(winner, str) and winner.strip(), where + ".winner",
@@ -1064,11 +1069,44 @@ class EndRule:
             result=str(raw.get("result", "")),
             winner=str(winner or "").strip(),
             rank_by=str(rank_by or "").strip(),
+            min_to_win=min_to_win,
             reason=str(raw.get("reason", "")),
             reveal=tuple(raw.get("reveal", ())),
             text=str(raw.get("text", "")),
             llm=str(raw.get("llm", "")),
         )
+
+
+def _min_to_win(raw: dict, where: str) -> str:
+    """An ending's `min_to_win` as expression text ("" when absent): a number, or a calc for the table.
+
+    Only an ending that ranks the seats has a bar to reach. A calc that reads no
+    state is worked out here, so a constant that is not a number is refused at
+    load; one that reads the table is checked when the game ends.
+    """
+    if "min_to_win" not in raw:
+        return ""
+    value, where = raw["min_to_win"], where + ".min_to_win"
+    _require("rank_by" in raw, where, "is a bar on `rank_by`; this ending has no `rank_by`")
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return str(value)
+    _require(isinstance(value, str) and value.strip(), where,
+             f"is a number, or a calc worked out for the table, not {value!r}")
+    try:
+        expr = Expr(value)
+    except Exception as exc:
+        raise DefinitionError(f"{where}: {exc}") from None
+    _require("you" not in expr.names(), where,
+             "is worked out once for the table, so it cannot read `you`")
+    if not (expr.names() - {"True", "False", "None"}) and not expr.attributes() and not expr.bindings():
+        constants = {"True": True, "False": False, "None": None}
+        try:
+            got = evaluate(expr, Scope(constants.__getitem__, lambda name: None, lambda seat: None))
+        except CalcError:
+            got = None
+        _require(isinstance(got, (int, float)) and not isinstance(got, bool), where,
+                 f"{value!r} gives {got!r}, not a number")
+    return value.strip()
 
 
 #: Legacy per-seat fields on the kernel's Seat, kept from Milestone 1 because
@@ -1651,6 +1689,9 @@ def _check_references(d: GameDefinition) -> None:
         if rule.rank_by:
             _check_expr(Expr(rule.rank_by), player_keys, game_keys, None,
                         f"end[{i}].rank_by")
+        if rule.min_to_win:
+            _check_expr(Expr(rule.min_to_win), player_keys, game_keys, None,
+                        f"end[{i}].min_to_win")
     for key in d.reveal:
         _require(key in player_keys, "reveal", f"{key!r} is not a declared attribute")
 

@@ -25,7 +25,8 @@ inventory game
              cannot do, and its complexity limits), not from its file format. A separate critic must then find
              them BALANCED, PLAYABLE and rewarding REASONING OVER LUCK, showing its arithmetic, before they go on.
              They go back and forth up to 3 times.                          variation.json  VARIATION.md
- B spec      The rules' interface (attribute names, parameters, the `rank_by` that picks the winner) as a contract.
+ B spec      The rules' interface (attribute names, parameters, the `rank_by` that picks the winner, and an
+             optional `min_to_win` bar below which no player wins) as a contract.
                                                                                spec.json  SPEC.md
  C build     A coder writes the game file from a prompt that carries the platform's API (design/actions.md,
              example games, the mistakes the loader has refused, a `verify` command that says when it is done).

@@ -54,6 +54,9 @@ def interface(spec: dict) -> str:
                + ", ".join(f"{k} = {v}" for k, v in spec["parameters"].items()))
     out.append(f"- the game ends with ONE ending whose `rank_by` is `{spec['ending']['rank_by']}`: worked out for every player (`you` is that "
                "player), the highest wins and players level at the top share the win")
+    if "min_to_win" in spec["ending"]:
+        out.append(f"- that ending's `min_to_win` is `{spec['ending']['min_to_win']}`: a player below it cannot win, and if nobody reaches it "
+                   "the match ends with no winner")
     out.append("- anything else the game needs to keep track of is yours to design: name it as you like.")
     return "\n".join(out)
 

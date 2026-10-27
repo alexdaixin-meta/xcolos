@@ -13,8 +13,9 @@ the match ends. They are run on the encoded game with rule-following seats.
                 "players": {"1": {"coins": 4}}}}
 
 A rule names an option, not a position in the script, so one extra prompt in the game cannot
-shift every later answer. `winner` is the seat that wins, or the list of seats that share the win;
-`standings` may give seats' `rank_by` values at the end. The older forms, `result` (the winner as the
+shift every later answer. `winner` is the seat that wins, the list of seats that share the win, or
+null when nobody wins (no seat reached the ending's `min_to_win`); `standings` may give seats'
+`rank_by` values at the end. The older forms, `result` (the winner as the
 engine words it) and `moves` (each seat's answers in the order asked), still run. Chat is answered by
 the harness.
 """
@@ -51,6 +52,7 @@ on offer, not by counting questions:
 
 The winner follows the spec's ending: its `rank_by` is worked out for every seat when the game ends, the highest value wins and
 seats level at the top share the win (`"winner": [1, 3]`). There is no draw: when every seat is level, `winner` lists them all.
+If the ending has a `min_to_win`, a seat below it cannot win, and when no seat reaches it nobody wins: write `"winner": null`.
 `standings` is optional; give it for the seats whose value you can work out by hand.
 
 How a seat picks: for each question put to it, the first rule of that seat that still has uses left and whose option is on offer
@@ -130,8 +132,9 @@ def problems(items, observable: dict | None = None, rule_ids: set[str] | None = 
         exp = s.get("expect") if isinstance(s.get("expect"), dict) else None
         if exp is not None and "result" not in exp and "winner" not in exp and s.get("rounds") is None:
             out.append(f"scenario {i}: expect needs a 'winner' (or set `rounds`, to stop after that many rounds and look at the state)")
-        if exp is not None and "winner" in exp and not _seats(exp["winner"]):
-            out.append(f"scenario {i}: expect.winner is a seat number, or a non-empty list of seat numbers when the win is shared")
+        if exp is not None and exp.get("winner") is not None and not _seats(exp["winner"]):
+            out.append(f"scenario {i}: expect.winner is a seat number, a non-empty list of seat numbers when the win is shared, "
+                       "or null when nobody wins")
         if exp is not None and "standings" in exp and not (isinstance(exp["standings"], dict) and all(
                 str(k).isdigit() and isinstance(v, (int, float)) and not isinstance(v, bool) for k, v in exp["standings"].items())):
             out.append(f"scenario {i}: expect.standings maps a seat number to its rank_by value, such as {{\"1\": 20}}")
@@ -241,7 +244,10 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
     if whole or p.result.status == "ended":  # a match stopped after `rounds` has no result to compare
         if "result" in exp and p.result.winner != exp["result"]:
             fails.append(f"result: expected {exp['result']!r}, got {p.result.winner!r}")
-        if "winner" in exp:
+        if "winner" in exp and exp["winner"] is None:
+            if not harness.no_winner(p.result.winner):
+                fails.append(f"winner: expected no winner, got {p.result.winner!r}")
+        elif "winner" in exp:
             seats = _seats(exp["winner"])
             want = harness.name_seats(seats) if seats else None
             if want is None or p.result.winner != want:

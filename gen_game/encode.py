@@ -103,8 +103,9 @@ Rules for this task:
 - The outcome must follow from arithmetic. Write ONE ending: its `when` is a {{"calc": ...}} condition and its
   `rank_by` is the spec's ranking, an expression over `you.<attribute>` (the player being ranked) and table
   attributes. The engine works it out for every player: the highest value wins and players level at the top share
-  the win, so there is no draw ending and no ending per seat. No `result`, no `winner`, no prose ending, no `llm` in
-  an ending. Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
+  the win, so there is no draw ending and no ending per seat. If the spec's ending has `min_to_win`, put it on the
+  ending as given: a player below it cannot win, and when nobody reaches it the match ends with no winner. No
+  `result`, no `winner`, no prose ending, no `llm` in an ending. Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
   {{"prose": "<the judged sentence, verbatim>"}}: a referee answers it true or false at play time. You may add
   `llm` wording to a tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no model answers.
 - ENDING STATEMENT. The end screen announces the result only: who won and the final figures that decided it,

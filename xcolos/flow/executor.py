@@ -1942,6 +1942,8 @@ class FlowOrchestrator:
 
         The highest value wins and equal values share it; the result is worded
         like `_winner`'s ("seat 2", "seats 1, 3 and 4"). No model is involved.
+        With `min_to_win`, a seat below the bar cannot win, and when none
+        reaches it the result is `NO_WINNER`: the standings are logged all the same.
         """
         flow = self._state()
         expr = Expr(rule.rank_by)
@@ -1953,8 +1955,17 @@ class FlowOrchestrator:
                     f"end.{rule.name}.rank_by: {rule.rank_by!r} gave {value!r} "
                     f"for seat {seat}, not a number")
             standings[seat] = value
-        top = max(standings.values())
-        winners = [s for s, v in standings.items() if v == top]
+        eligible = standings
+        if rule.min_to_win:
+            bar = flow.calc(Expr(rule.min_to_win))
+            if isinstance(bar, bool) or not isinstance(bar, (int, float)):
+                raise FlowError(
+                    f"end.{rule.name}.min_to_win: {rule.min_to_win!r} gave {bar!r}, not a number")
+            eligible = {s: v for s, v in standings.items() if v >= bar}
+            if not eligible:
+                return f"{self.NO_WINNER} (no seat reached the minimum to win)", standings
+        top = max(eligible.values())
+        winners = [s for s, v in eligible.items() if v == top]
         if len(winners) == 1:
             return f"seat {winners[0]}", standings
         return ("seats " + ", ".join(str(w) for w in winners[:-1])
