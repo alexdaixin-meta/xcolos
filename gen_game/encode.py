@@ -7,11 +7,12 @@ out:
   1 the platform's loader, which refuses misspelled keys, bad selectors and the
     rest of what `design/actions.md` lists
   2 a rule this pipeline adds: a generated game's outcome is decided by arithmetic
-    (no prose ending, no `winner`, no model-written state), so its outcome is a fact;
-    a step may be judged by a referee, and a message may be worded by a model over its `text`
+    (every ending ranks the players with `rank_by`; no prose ending, no `winner`, no
+    model-written state), so its outcome is a fact; a step may be judged by a referee,
+    and a message may be worded by a model over its `text`
   3 smoke play: random seats play it at the smallest and largest table, and it
-    must end, give a result, write a valid log and never leave a seat unable to
-    answer
+    must end, name a winner, log the standings, write a valid log and never leave
+    a seat unable to answer
 
 None of these says the game is the right game. That is the scenarios' job.
 """
@@ -99,20 +100,21 @@ Reply with the complete game file as ONE JSON object and nothing else.
 Rules for this task:
 - Use exactly the attribute keys the spec declares, with its visibility. Put every spec parameter in the file
   as an attribute with its value, never as a number buried in a step, so a number is written once.
-- The outcome must follow from arithmetic. Every ending's `when` is a {{"calc": ...}} condition and its
-  `result` is one of the spec's result names exactly; no `winner`, no prose ending, no `llm` in an ending.
-  Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
+- The outcome must follow from arithmetic. Write ONE ending: its `when` is a {{"calc": ...}} condition and its
+  `rank_by` is the spec's ranking, an expression over `you.<attribute>` (the player being ranked) and table
+  attributes. The engine works it out for every player: the highest value wins and players level at the top share
+  the win, so there is no draw ending and no ending per seat. No `result`, no `winner`, no prose ending, no `llm` in
+  an ending. Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
   {{"prose": "<the judged sentence, verbatim>"}}: a referee answers it true or false at play time. You may add
   `llm` wording to a tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no model answers.
-- ENDING STATEMENT. The end screen announces the result only: who won (or a draw) and the final figures that
-  decided it, written with placeholders over the final state, such as "Seat 1 wins. Final scores: Seat 1
+- ENDING STATEMENT. The end screen announces the result only: who won and the final figures that decided it,
+  written with placeholders over the final state. `{{result}}` names the winner as the engine ranked them
+  ("seat 2", or "seats 1 and 3" when they share the win), so: "Winner: {{result}}. Final scores: Seat 1
   {{players[0].score}}, Seat 2 {{players[1].score}}, Seat 3 {{players[2].score}}; target {{target}}." One or two lines.
   Do not retell the game or explain the process (no turning points, no what-each-player-did).
 - meta.id and meta.name come from the spec; give `meta.blurb` one line and write `rules` as the rules a
   player reads, using {{key}} for public attributes.
 - Do what the spec says, in its order. Do not add mechanics.
-- The `auction` example ends with a model-decided `winner`. Do NOT copy that: end with `result` and a calc
-  condition, as the `rps` example does.
 {MISTAKES}
 
 # THE FORMAT
@@ -310,13 +312,17 @@ def model_use(defn: GameDefinition) -> list[str]:
     """Where a definition lets a model, not arithmetic, decide the outcome or write state, or speak with no `text` to fall back on.
 
     A step's `when` may be prose: a referee rules whether a complex rule applies, and the outcome is still calculated.
+    Every ending ranks the players with `rank_by`, so the winner and the standings are calculated too.
     """
     found: list[str] = []
     for rule in defn.end:
         if rule.when.kind != "calc":
             found.append(f"ending {rule.name!r} has a prose condition; write it as a calc")
         if rule.winner:
-            found.append(f"ending {rule.name!r} uses `winner`; use `result` with a calc condition")
+            found.append(f"ending {rule.name!r} uses `winner`; rank the players with `rank_by` instead")
+        if not rule.rank_by:
+            found.append(f"ending {rule.name!r} has no rank_by: write one ending whose `rank_by` is the spec's ranking over `you.<attribute>`, "
+                         "worked out for every player (the highest wins, a tie at the top shares the win)")
         if rule.llm:
             found.append(f"ending {rule.name!r} uses `llm`; the ending only announces the result, so use `text` (winner and final figures)")
 

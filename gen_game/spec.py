@@ -72,8 +72,11 @@ Reply with ONE JSON object and nothing else, with exactly these keys:
                   changes, in terms of attribute keys, "judged": optional, the one sentence a referee answers true or
                   false, for a step whose rule check is too complex for arithmetic}
   ending          {"condition": an arithmetic condition on attributes that ends the game,
-                   "results": the exact result names, e.g. ["seat 1", "seat 2", "draw"],
-                   "decided_by": how the result follows from the attributes}
+                   "rank_by": each player's standing as ONE arithmetic expression over `you.<attribute>` (`you` is the player
+                              being ranked) and table attributes, e.g. "you.score" or "you.cards * 1000 + you.coins" (cards first,
+                              then coins as the tie-break). It is worked out for every player when the game ends: the highest
+                              value wins and players level at the top share the win, so there is no separate draw,
+                   "decided_by": that ranking in words: what a player's standing is, and who wins}
   rules           (optional but wanted) a list of {"id": "R1", "text": "..."}: EVERY rule of the game as one sentence a test can check, with its numbers: each
                   action's cost and gain, each block, each challenge (a true claim and a bluff), each forced action, each way the game ends. Tests are written
                   one per rule, and a failing test names the rule, so write each as "when X, then Y" with concrete values.
@@ -102,7 +105,8 @@ What the engine does well:
     list and taking it out of the deck list; RETURNING is the reverse; shuffling is just drawing at random. Dealing N cards to everyone is N draws each.
   - Arithmetic: counters, scores, costs, comparisons, sums over players, counting how many players did something; all decided by calculation, never by opinion.
   - A referee model can rule whether a complex rule applies at a step (true or false), from one sentence; scores and the winner are still calculated.
-  - Elimination of players, a fixed number of rounds or "until a condition", and a winner or a draw picked by calculation from the final state.
+  - Elimination of players, a fixed number of rounds or "until a condition", and a winner picked by calculation from the final state: each player's
+    standing is worked out by one expression, the highest wins, and players level at the top share the win.
   - Talk: players write short messages, one at a time or all at once, that are shown to everyone or to some.
   - Announcements: fixed sentences filled with the current numbers, or a short summary a model writes.
 What it cannot do: a board, grid, map or movement; real time or time pressure; a model deciding the outcome (a game's outcome is calculated);
@@ -186,8 +190,10 @@ def problems(spec: dict) -> list[str]:
             elif step.get("judged") is not None and not (isinstance(step["judged"], str) and step["judged"].strip()):
                 out.append(f"round step {i + 1}: judged must be one non-empty sentence")
     end = spec["ending"]
-    if not (isinstance(end, dict) and end.get("condition") and isinstance(end.get("results"), list) and end["results"]):
-        out.append("ending needs a condition and a non-empty list of results")
+    if not (isinstance(end, dict) and end.get("condition")):
+        out.append("ending needs a condition")
+    if not (isinstance(end, dict) and isinstance(end.get("rank_by"), str) and end["rank_by"].strip()):
+        out.append("ending needs a rank_by: one expression over `you.<attribute>` worked out for every player; the highest wins")
     rules = spec.get("rules")
     if rules is not None:
         ids = [r.get("id") for r in rules if isinstance(r, dict)] if isinstance(rules, list) else []
@@ -245,7 +251,8 @@ def render(spec: dict) -> str:
     out += ["", "## Round", ""]
     out += [f"{i}. **{s['action']}** ({s.get('who', '')}): {s.get('effect', '')}" + (f' (judged: "{s["judged"]}")' if s.get("judged") else "")
             for i, s in enumerate(spec["round"], 1)]
-    out += ["", "## Ending", "", f"- ends when: {spec['ending']['condition']}", f"- results: {', '.join(spec['ending']['results'])}",
+    out += ["", "## Ending", "", f"- ends when: {spec['ending']['condition']}",
+            f"- ranked by: `{spec['ending']['rank_by']}` (the highest wins; players level at the top share the win)",
             f"- decided by: {spec['ending'].get('decided_by', '')}"]
     for title, key in (("Choices the source did not make", "choices"), ("Simplifications", "simplifications"),
                        ("Unsupported (needs engine work)", "unsupported")):
@@ -284,7 +291,9 @@ def script(spec: dict) -> str:
         out += [f"  - {o['question']} | asked: {o['who']} | options: {o['options']}" for o in spec["offers"]]
     end = spec["ending"]
     out += ["", "EVALUATION (how the game ends and who wins; decided by calculation):",
-            f"  - the game ends when: {end['condition']}", f"  - the result is one of: {', '.join(end['results'])}",
+            f"  - the game ends when: {end['condition']}",
+            f"  - each player's standing: {end['rank_by']} (worked out for every player, `you` being that player; the highest "
+            "wins and players level at the top share the win)",
             f"  - how the result is decided: {end.get('decided_by', '')}",
             "  - the end screen states the final scores or deciding figures, and a short model-written summary of how the game went"]
     return "\n".join(out) + "\n"

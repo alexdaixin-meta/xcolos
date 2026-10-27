@@ -30,7 +30,7 @@ For "each player chooses in private, then the choices decide the score":
 1. One `ask` per seat, addressed with `{{"where": "you.seat == N"}}`, with `"verify": {{"bind": "aN"}}`. The answer exists only because it is bound.
 2. One `update` after both. It `set`s the bound answers into table attributes with `"$aN"`, and `adjust`s each player's score with a
    `calc` that may use `$aN` and `if ... else`.
-3. A `check` with `when` and `against`, and the endings in `end`, comparing `players[0].score` and `players[1].score`.
+3. A `check` with `when` and `against`, and ONE ending in `end` whose `rank_by` is `you.score`: the engine ranks the players by it.
 Every attribute is set by a step that runs. Adapt this; do not invent another way to store answers.
 
 ```json
@@ -52,7 +52,8 @@ def interface(spec: dict) -> str:
                 out.append(f"- {label}: `{a['key']}` ({a.get('type', 'number')}, visible: {a.get('visible')}, starts {a.get('initial')!r}): {a.get('meaning', '')}")
     out.append("- parameters (each must be an attribute holding this value, never a number buried in a step): "
                + ", ".join(f"{k} = {v}" for k, v in spec["parameters"].items()))
-    out.append("- the game ends with exactly one of these results, named exactly: " + ", ".join(f"`{r}`" for r in spec["ending"]["results"]))
+    out.append(f"- the game ends with ONE ending whose `rank_by` is `{spec['ending']['rank_by']}`: worked out for every player (`you` is that "
+               "player), the highest wins and players level at the top share the win")
     out.append("- anything else the game needs to keep track of is yours to design: name it as you like.")
     return "\n".join(out)
 
@@ -119,15 +120,15 @@ def build(game_id: str, plan: dict, spec: dict, guidance: str = "", agent: bool 
   and the loader refuses any other.
 - Complete example games to imitate, in `xcolos/games/library/`:
 {examples}
-  The `auction` example ends with a model-decided `winner`; do NOT copy that part. End with a `result` and a calc condition
-  as `rps` does.
-- The outcome must be decided by arithmetic: every ending's `when` is a calc condition with a `result`; no `winner`, no prose
-  ending, no `llm` in an ending. Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
+- The outcome must be decided by arithmetic: write ONE ending, whose `when` is a calc condition and whose `rank_by` is the
+  ranking in the interface below, as both examples do; no `result`, no `winner`, no prose ending, no `llm` in an ending. Use
+  calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when`
   `{{"prose": "<the judged sentence, verbatim>"}}`: a referee answers it true or false at play time. You may add `llm` wording to a
   tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no model answers. Choices made at the same moment
   are a `poll`.
-- ENDING STATEMENT: the end screen announces the result only: who won (or that it was a draw) and the final figures that decided it,
-  using placeholders such as `{{players[0].score}}` and `{{target}}`. Keep it to a line or two. Do NOT retell the game, and do NOT use
+- ENDING STATEMENT: the end screen announces the result only: who won (`{{result}}` names the winning seat, or seats when they
+  share the win) and the final figures that decided it, using placeholders such as `{{players[0].score}}` and `{{target}}`. Keep it
+  to a line or two. Do NOT retell the game, and do NOT use
   `llm` in an ending: no summary of what each player did or of the turning points.
 
 {MISTAKES}
@@ -161,12 +162,12 @@ below as a game definition for the XColos engine. Do not write any other file ex
         how = f"""## How the platform works
 
 The complete file format reference and two example games are in your system prompt. Follow them exactly: every key an
-action accepts is listed there, and the loader refuses any other. The outcome must be decided by arithmetic: every
-ending's `when` is a calc condition with a `result`; no `winner`, no prose ending, no `llm` in an ending. Use calc for any rule that is
-arithmetic. For a spec step marked `judged`, make that step's `when` `{{"prose": "<the judged sentence, verbatim>"}}`: a referee answers it
+action accepts is listed there, and the loader refuses any other. The outcome must be decided by arithmetic: write ONE
+ending, whose `when` is a calc condition and whose `rank_by` is the ranking in the interface below; no `result`, no `winner`, no prose
+ending, no `llm` in an ending. Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when` `{{"prose": "<the judged sentence, verbatim>"}}`: a referee answers it
 true or false at play time. You may add `llm` wording to a tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no
-model answers. Choices made at the same moment are a `poll`. The end screen announces only the result: every ending's `text` says who won and the final scores or deciding figures with
-placeholders such as `{{players[0].score}}`, in a line or two, with no retelling of how the game went. End with a `result` and a calc condition as the `rps` example does (not the `auction`'s `winner`).
+model answers. Choices made at the same moment are a `poll`. The end screen announces only the result: the ending's `text` says who won (`{{result}}`) and the final scores or deciding figures with
+placeholders such as `{{players[0].score}}`, in a line or two, with no retelling of how the game went. End with `rank_by` as both examples do.
 
 {MISTAKES}
 - Keep a round to at most {complexity.LIMITS['steps_per_round']} steps. Put several operations in one `update`'s `do` list, and use one `tell` for the
@@ -204,8 +205,8 @@ that fires them. Do not drop a piece of state because it looks hard: write the s
 
 If the script ends when someone wins (the last player standing, a target reached) and not after a set number of rounds, do not add a fixed
 round count to the rules. The game file still has a `limits` block: set `limits.rounds` to the generous cap the script gives (the number of
-rounds it says a match may run at most) and `limits.rounds_max` to at least that. The `end` rules fire the real endings from the state; add one more
-ending that fires when the cap is reached and decides the winner as the script says, so a match that hits the cap still ends with a result.
+rounds it says a match may run at most) and `limits.rounds_max` to at least that. The ending's `when` holds for the real ending AND when the cap
+is reached, and its `rank_by` also ranks the players as the script says at the cap, so a match that hits the cap still ends with a winner.
 
 ## The interface the file must use
 

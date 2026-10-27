@@ -185,6 +185,25 @@ class Played:
     def comparable_log(self) -> list[dict]:
         return [{k: v for k, v in r.items() if k not in VOLATILE_FIELDS} for r in self.game.log.records]
 
+    @property
+    def standings(self) -> dict[str, Any] | None:
+        """Each seat's `rank_by` value as the game-over record logged it ({"1": 20, "2": 9}), or None when no ranked ending fired."""
+        for r in reversed(self.game.log.records):
+            if r.get("category") == "process" and r.get("type") == "end_game":
+                return r.get("standings")
+        return None
+
+    def end_problems(self) -> list[str]:
+        """What is wrong with how the match finished: it must end, name a winner, and log the standings that decided it."""
+        r = self.result
+        if r.status != "ended":
+            return [f"the match did not end ({r.status}: {r.reason})"]
+        if not r.winner:
+            return ["the match ended with no result"]
+        if self.standings is None:
+            return ["the match ended with no standings: its ending has no `rank_by`"]
+        return []
+
 
 class ListenAgent(RandomAgent):
     """A random seat that keeps every message the server sent it: the text a player is actually shown, state dump and all."""
@@ -204,6 +223,20 @@ def listening_agents(n: int, seed: int) -> list[ListenAgent]:
 
 def random_agents(n: int, seed: int) -> list[BaseAgent]:
     return [RandomAgent(name=NAMES[i], seed=seed * 10 + i) for i in range(n)]
+
+
+def winning_seats(result: str | None) -> list[int]:
+    """The seats a result names, worded as the engine words a ranked ending: "seat 2" -> [2], "seats 1, 3 and 4" -> [1, 3, 4]; else []."""
+    m = re.fullmatch(r"seats? ((?:\d+, )*\d+(?: and \d+)?)", result or "")
+    return [int(x) for x in re.findall(r"\d+", m.group(1))] if m else []
+
+
+def name_seats(seats: list[int]) -> str:
+    """The engine's words for the winning seats: [2] -> "seat 2", [1, 3, 4] -> "seats 1, 3 and 4"."""
+    seats = sorted(seats)
+    if len(seats) == 1:
+        return f"seat {seats[0]}"
+    return "seats " + ", ".join(map(str, seats[:-1])) + f" and {seats[-1]}"
 
 
 class _GivenOrchestrator(FlowOrchestrator):
@@ -275,8 +308,8 @@ def smoke(definition: GameDefinition, players: int | None = None, seeds: range =
     """What is wrong, if anything, with a game played by random seats.
 
     Each of these is something a repair prompt can quote back to a model: the
-    game crashed, did not end, ended with no result, wrote a malformed log, or
-    left a seat unable to answer validly.
+    game crashed, did not end, ended with no result or no standings, wrote a
+    malformed log, or left a seat unable to answer validly.
     """
     n = players or definition.min_players
     problems: list[str] = []
@@ -286,10 +319,7 @@ def smoke(definition: GameDefinition, players: int | None = None, seeds: range =
         except Exception as exc:  # noqa: BLE001 - whatever the game did, a model must be told
             return [f"seed {seed}, {n} players: the match crashed: {type(exc).__name__}: {exc}"]
         r = p.result
-        if r.status != "ended":
-            problems.append(f"seed {seed}, {n} players: the match did not end ({r.status}: {r.reason})")
-        elif not r.winner:
-            problems.append(f"seed {seed}, {n} players: the match ended with no result")
+        problems += [f"seed {seed}, {n} players: {m}" for m in p.end_problems()]
         if r.degraded_turns:
             problems.append(f"seed {seed}, {n} players: {r.degraded_turns} turn(s) a seat could not answer validly")
         problems += [f"seed {seed}: log: {m}" for m in p.log_problems()[:3]]

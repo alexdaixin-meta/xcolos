@@ -20,7 +20,7 @@ from fixtures import (ALWAYS_ROCK, ALWAYS_ROCK_MOVES, LIBRARY, PLAN, RPS, RPS_TE
 from gen_game import adapt as adaptmod  # noqa: E402
 from gen_game import complexity  # noqa: E402
 from gen_game import encode as enc  # noqa: E402
-from gen_game import evaluate, flow, harness, scenarios, spec as specmod  # noqa: E402
+from gen_game import evaluate, flow, harness, prompt, scenarios, spec as specmod  # noqa: E402
 from gen_game.cli import main  # noqa: E402
 
 def test_a_shipped_game_passes_smoke_and_replays_identically():
@@ -75,13 +75,31 @@ def test_a_spec_renders_for_review_with_its_choices_and_gaps():
     assert "twelve cards each" in page and "a board" in page and "`rounds` = 10" in page
 
 
+def test_a_spec_without_rank_by_is_a_problem_and_the_ranking_reaches_the_reviewer_and_the_coder():
+    assert specmod.problems(SPEC) == []
+    for ending in ({"condition": "rounds_left == 0", "decided_by": "higher score"},
+                   {"condition": "rounds_left == 0", "rank_by": " ", "decided_by": "higher score"},
+                   {"condition": "rounds_left == 0", "results": ["seat 1", "seat 2", "draw"], "decided_by": "higher score"}):
+        assert any("rank_by" in p for p in specmod.problems({**SPEC, "ending": ending})), ending
+    assert "you.score" in specmod.render(SPEC) and "you.score" in specmod.script(SPEC)
+    assert "rank_by" in specmod.SYSTEM and "share the win" in specmod.SYSTEM
+
+
 # -- step 3 ----------------------------------------------------------------
 
 
 def test_the_encoder_is_shown_the_format_and_told_to_use_arithmetic():
     system = enc.system_prompt()
     assert "calc" in system and "# THE FORMAT" in system and "Example game: rps" in system
-    assert "Do NOT copy" in system
+    assert "rank_by" in system and "you." in system
+    assert "Do NOT copy" not in system  # both examples now end with `rank_by`, so there is nothing to warn about
+
+
+def test_the_coder_prompt_asks_for_one_ending_ranked_by_the_spec():
+    for flag in (True, False):
+        text = prompt.build("rps", PLAN, SPEC, agent=flag)
+        assert "`rank_by` is `you.score`" in text and "rank_by" in text
+        assert "do NOT copy" not in text and "not the `auction`" not in text
 
 
 def test_a_loader_error_goes_back_to_the_model_and_the_next_reply_is_used():
@@ -95,8 +113,30 @@ def test_a_loader_error_goes_back_to_the_model_and_the_next_reply_is_used():
 
 
 def test_a_game_decided_by_a_model_is_refused_with_the_reason():
-    problem = enc.check(json.loads((LIBRARY / "auction.json").read_text()), "x")[2]
+    from fixtures import WINNER_RPS_DICT
+
+    problem = enc.check(copy.deepcopy(WINNER_RPS_DICT), "rps")[2]
     assert "decided by arithmetic" in problem and "winner" in problem
+
+
+def test_an_ending_without_rank_by_is_refused():
+    from fixtures import RESULT_RPS_DICT
+
+    problem = enc.check(copy.deepcopy(RESULT_RPS_DICT), "rps")[2]
+    assert "ending 'seat_1_wins' has no rank_by" in problem and "ending 'draw' has no rank_by" in problem
+
+
+def test_a_match_that_ends_without_standings_fails_smoke_play_and_tier_zero():
+    from fixtures import RESULT_RPS_DICT
+    from xcolos.games.loader import load
+
+    defn = load(json.dumps(RESULT_RPS_DICT), source="rps")
+    played = harness.play(defn, harness.random_agents(2, 1), 1)
+    assert played.result.status == "ended" and played.result.winner and played.standings is None
+    assert any("standings" in p for p in harness.smoke(defn))
+    t0 = evaluate.tier0(defn, seeds=range(1, 3))
+    assert not t0["passed"] and any("standings" in p for p in t0["problems"])
+    assert harness.play(RPS, harness.random_agents(2, 1), 1).standings.keys() == {"1", "2"}
 
 
 def test_a_judged_step_and_llm_wording_with_a_text_fallback_pass_the_check():
@@ -120,7 +160,7 @@ def test_llm_without_text_and_a_prose_ending_are_still_refused():
     del g["steps"][5]["text"]
     assert "no `text`" in enc.check(g, "rps")[2]
     g = copy.deepcopy(JUDGED_RPS_DICT)
-    g["end"]["seat_1_wins"]["when"] = {"prose": "Seat 1 played better."}
+    next(iter(g["end"].values()))["when"] = {"prose": "Seat 1 played better."}
     assert "decided by arithmetic" in enc.check(g, "rps")[2]
 
 
@@ -285,7 +325,10 @@ def test_scenarios_parse_from_a_fenced_reply_and_bad_ones_are_named():
     items, err = scenarios.write_scenarios(Fenced(), SPEC)
     assert err == "" and items[0]["name"] == ALWAYS_ROCK["name"]
     assert any("one entry per seat" in p for p in scenarios.problems([{**ALWAYS_ROCK, "moves": {"1": []}}]))
-    assert any("'result'" in p for p in scenarios.problems([{**ALWAYS_ROCK, "expect": {}}]))
+    assert any("'winner'" in p for p in scenarios.problems([{**ALWAYS_ROCK, "expect": {}}]))
+    for bad in ({"winner": "seat 1"}, {"winner": []}, {"winner": [1, "x"]}, {"winner": 1, "standings": [3, 1]}):
+        assert any("winner" in p or "standings" in p for p in scenarios.problems([{**ALWAYS_ROCK, "expect": bad}])), bad
+    assert scenarios.problems([{**ALWAYS_ROCK, "expect": {"winner": 1, "standings": {"1": 3, "2": 1}}}]) == []
 
 
 def test_a_correct_game_passes_and_a_wrong_expectation_names_the_difference():
@@ -294,6 +337,17 @@ def test_a_correct_game_passes_and_a_wrong_expectation_names_the_difference():
     out = scenarios.run_scenario(RPS, bad)
     assert not out.passed
     assert any("result: expected 'seat 2'" in f for f in out.failures) and any("seat 1 score" in f for f in out.failures)
+
+
+def test_a_scenario_may_assert_the_winner_and_the_standings():
+    score = 4 * 3 + 4 * 1 + 2 * 2
+    right = {**SEAT1_WINS, "expect": {"winner": 1, "standings": {"1": score, "2": 0}}}
+    assert scenarios.run_scenario(RPS, right).passed
+    assert scenarios.run_scenario(RPS, ALWAYS_ROCK).passed  # level scores: seats 1 and 2 share the win
+    out = scenarios.run_scenario(RPS, {**SEAT1_WINS, "expect": {"winner": [1, 2], "standings": {"1": 3}}})
+    assert not out.passed
+    assert any("winner: expected 'seats 1 and 2', got 'seat 1'" in f for f in out.failures)
+    assert any(f"seat 1 standing: expected 3, got {score}" in f for f in out.failures)
 
 
 def test_scripting_too_many_or_too_few_moves_is_reported_as_that():
@@ -649,6 +703,23 @@ def test_a_patient_model_asks_again_with_growing_waits_and_gives_up_after_the_la
         assert waits == [10, 20] and Flaky.calls == 3
     else:
         raise AssertionError("an endless outage was not reported")
+
+
+def test_the_generated_games_are_the_library_games_and_each_ends_ranked():
+    from xcolos.games.loader import load_file
+
+    data = Path(enc.ROOT) / "gen_game" / "data" / "games"
+    ids = sorted(p.name for p in data.iterdir() if (p / "game.json").exists())
+    assert ids == ["agram", "assurance_game", "battle_of_wits", "coup"]
+    for game_id in ids:
+        assert (data / game_id / "game.json").read_bytes() == (LIBRARY / f"{game_id}.json").read_bytes(), game_id
+        defn = load_file(data / game_id / "game.json")
+        assert defn.end and all(rule.rank_by for rule in defn.end), game_id
+        assert enc.model_use(defn) == [], (game_id, enc.model_use(defn))
+        spec = json.loads((data / game_id / "spec.json").read_text())
+        assert spec["ending"]["rank_by"] == defn.end[0].rank_by, game_id
+        assert not [p for p in specmod.problems(spec) if "ending" in p or "rank_by" in p], game_id
+        assert scenarios.problems(json.loads((data / game_id / "scenarios.json").read_text())) == [], game_id
 
 
 def test_the_encoder_is_warned_of_the_mistakes_the_loader_has_refused():

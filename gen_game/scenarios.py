@@ -9,12 +9,14 @@ the match ends. They are run on the encoded game with rule-following seats.
      "players": 3, "seed": 1, "default": "decline",
      "rules": [{"seat": 1, "options_include": "Duke", "times": 1},
                {"seat": 2, "options_include": "Challenge Yes", "times": 1}],
-     "expect": {"result": "seat 1",
+     "expect": {"winner": 1,
                 "players": {"1": {"coins": 4}}}}
 
 A rule names an option, not a position in the script, so one extra prompt in the game cannot
-shift every later answer. The older form, `moves` (each seat's answers in the order asked), still
-runs. Chat is answered by the harness.
+shift every later answer. `winner` is the seat that wins, or the list of seats that share the win;
+`standings` may give seats' `rank_by` values at the end. The older forms, `result` (the winner as the
+engine words it) and `moves` (each seat's answers in the order asked), still run. Chat is answered by
+the harness.
 """
 
 from __future__ import annotations
@@ -34,7 +36,7 @@ class Completion(Protocol):
 
 
 SYSTEM = """You write test scenarios for a game, from its SPEC alone. You have not seen the game file and must not
-guess at it: use only the spec's attribute keys, parameters, round steps, answer options and result names.
+guess at it: use only the spec's attribute keys, parameters, round steps, answer options and ending.
 
 A scenario says what each seat answers and what must be true when the match ends. Seats answer by NAMING THE OPTION
 on offer, not by counting questions:
@@ -42,9 +44,14 @@ on offer, not by counting questions:
   {"name": "...", "rule": "R3", "players": n, "seed": 1, "default": "decline",
    "rules": [{"seat": 1, "options_include": "<an option from the spec>", "answer": "<optional, defaults to the same>", "times": 1},
              {"seat": 2, "options_include": "Pass", "times": "all"}],
-   "expect": {"result": "<one of the spec's result names; optional when `rounds` is set>",
+   "expect": {"winner": <the seat that wins, or a list of seats that share the win; optional when `rounds` is set>,
+              "standings": {"1": <seat 1's value of the spec's rank_by at the end>, ...},
               "players": {"1": {"<player attribute key>": value}, ...},
               "game": {"<game attribute key>": value}}}
+
+The winner follows the spec's ending: its `rank_by` is worked out for every seat when the game ends, the highest value wins and
+seats level at the top share the win (`"winner": [1, 3]`). There is no draw: when every seat is level, `winner` lists them all.
+`standings` is optional; give it for the seats whose value you can work out by hand.
 
 How a seat picks: for each question put to it, the first rule of that seat that still has uses left and whose option is on offer
 is used (`times` is how many times, default 1, or "all"). A choice of seats lists the seat numbers as options
@@ -65,8 +72,8 @@ long calculations go wrong). Start the match in the situation the rule needs, an
 `given` overwrites attributes after the game has set itself up: any player attribute and any table attribute the spec lists, hidden ones
 included (a hand, a deck, whose turn it is). A seat that is already OUT of the game needs its platform status too: `"status": {"2": "out"}` in `given`,
 next to its attributes (the status id the spec names for an eliminated player). `rounds` is how many rounds to play before stopping (one pass through the spec's round steps;
-with it you assert the state at that point and `expect.result` is optional). Use `given` and `rounds: 1` for each rule's cost, gain,
-block, challenge, bluff and forced action. Use a whole match (no `rounds`, so a `result`) only for an ending, from a `given` that is one move
+with it you assert the state at that point and `expect.winner` is optional). Use `given` and `rounds: 1` for each rule's cost, gain,
+block, challenge, bluff and forced action. Use a whole match (no `rounds`, so a `winner`) only for an ending, from a `given` that is one move
 from the end.
 
 Besides values, `expect` can say what status the PLATFORM holds for a seat (`"status": {"1": "out"}`: the status ids the spec names, as
@@ -84,9 +91,9 @@ right after the game has set itself up, with no turn played and so no question a
 A round step in the spec may be JUDGED: it has a `judged` sentence that a referee answers true or false at play time. For a scenario that needs
 a judged step to apply, give `"judge": {"<that sentence, or a distinctive part of it>": true}`. A judged step you do not list is answered false.
 
-ASSERT ONLY ON WHAT AN OUTSIDE OBSERVER SEES: the result, and the attributes the message lists as observable. Never assert on
+ASSERT ONLY ON WHAT AN OUTSIDE OBSERVER SEES: the winner, the standings, and the attributes the message lists as observable. Never assert on
 counters, scratch values, codes or whose turn it is: the coder keeps those however it likes, and a test that depends on them
-fails a correct game. Assert on each player's score and on the result.
+fails a correct game. Assert on each player's score and on the winner.
 
 If the spec lists RULES (R1, R2...), write at least one scenario for EACH, and put the rule's id in the scenario as `"rule": "R3"`. A failing
 scenario is then reported against that rule, so each scenario should test one rule. Otherwise write 4 to 8 scenarios, ONE PER RULE of the spec where you can: each action's cost and gain, each block, each challenge (true
@@ -120,8 +127,14 @@ def problems(items, observable: dict | None = None, rule_ids: set[str] | None = 
         if isinstance(s.get("moves"), dict) and isinstance(s.get("players"), int):
             if set(s["moves"]) != {str(n) for n in range(1, s["players"] + 1)}:
                 out.append(f"scenario {i}: moves needs one entry per seat, keyed '1' to '{s['players']}'")
-        if isinstance(s.get("expect"), dict) and "result" not in s["expect"] and s.get("rounds") is None:
-            out.append(f"scenario {i}: expect needs a 'result' (or set `rounds`, to stop after that many rounds and look at the state)")
+        exp = s.get("expect") if isinstance(s.get("expect"), dict) else None
+        if exp is not None and "result" not in exp and "winner" not in exp and s.get("rounds") is None:
+            out.append(f"scenario {i}: expect needs a 'winner' (or set `rounds`, to stop after that many rounds and look at the state)")
+        if exp is not None and "winner" in exp and not _seats(exp["winner"]):
+            out.append(f"scenario {i}: expect.winner is a seat number, or a non-empty list of seat numbers when the win is shared")
+        if exp is not None and "standings" in exp and not (isinstance(exp["standings"], dict) and all(
+                str(k).isdigit() and isinstance(v, (int, float)) and not isinstance(v, bool) for k, v in exp["standings"].items())):
+            out.append(f"scenario {i}: expect.standings maps a seat number to its rank_by value, such as {{\"1\": 20}}")
         if "judge" in s and not (isinstance(s["judge"], dict) and all(isinstance(k, str) and k.strip() and isinstance(v, bool) for k, v in s["judge"].items())):
             out.append(f"scenario {i}: judge is a map from a sentence (or part of one) to true or false")
         if s.get("rounds") is not None and not (isinstance(s["rounds"], int) and s["rounds"] >= 0):
@@ -144,6 +157,14 @@ def problems(items, observable: dict | None = None, rule_ids: set[str] | None = 
             out += [f"scenario {i}: asserts on table attribute `{k}`, which is not observable (use only: {', '.join(observable['game']) or 'none'})"
                     for k in (s["expect"].get("game") or {}) if k not in observable["game"]]
     return out
+
+
+def _seats(winner) -> list[int]:
+    """`expect.winner` as a sorted list of seats: 2 -> [2], [3, 1] -> [1, 3]; [] when it is neither."""
+    items = winner if isinstance(winner, list) else [winner]
+    if not items or not all(isinstance(x, int) and not isinstance(x, bool) and x >= 1 for x in items):
+        return []
+    return sorted(items)
 
 
 def write_scenarios(completion: Completion, spec: dict, repairs: int = 2, guidance: str = "") -> tuple[list[dict] | None, str]:
@@ -214,13 +235,24 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
         FlowState.set_attribute = original
     fails: list[str] = []
     exp = s["expect"]
-    if s.get("rounds") is None:
-        if p.result.status != "ended":
-            fails.append(f"the match did not end ({p.result.status}: {p.result.reason})")
-        if p.result.winner != exp["result"]:
+    whole = s.get("rounds") is None
+    if whole and p.result.status != "ended":
+        fails.append(f"the match did not end ({p.result.status}: {p.result.reason})")
+    if whole or p.result.status == "ended":  # a match stopped after `rounds` has no result to compare
+        if "result" in exp and p.result.winner != exp["result"]:
             fails.append(f"result: expected {exp['result']!r}, got {p.result.winner!r}")
-    elif "result" in exp and p.result.status == "ended" and p.result.winner != exp["result"]:
-        fails.append(f"result: expected {exp['result']!r}, got {p.result.winner!r}")
+        if "winner" in exp:
+            seats = _seats(exp["winner"])
+            want = harness.name_seats(seats) if seats else None
+            if want is None or p.result.winner != want:
+                fails.append(f"winner: expected {want or exp['winner']!r}, got {p.result.winner!r}")
+        if exp.get("standings"):
+            got = p.standings
+            if got is None:
+                fails.append("standings: expected some, but the match logged none (it did not end on a `rank_by` ending)")
+            else:
+                fails += [f"seat {seat} standing: expected {want!r}, got {got.get(str(seat))!r}"
+                          for seat, want in exp["standings"].items() if got.get(str(seat)) != want]
     for seat, attrs in (exp.get("players") or {}).items():
         for key, want in attrs.items():
             got = p.attribute(int(seat), key)

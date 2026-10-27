@@ -25,13 +25,15 @@ inventory game
              cannot do, and its complexity limits), not from its file format. A separate critic must then find
              them BALANCED, PLAYABLE and rewarding REASONING OVER LUCK, showing its arithmetic, before they go on.
              They go back and forth up to 3 times.                          variation.json  VARIATION.md
- B spec      The rules' interface (attribute names, parameters, result names) as a contract.   spec.json  SPEC.md
+ B spec      The rules' interface (attribute names, parameters, the `rank_by` that picks the winner) as a contract.
+                                                                               spec.json  SPEC.md
  C build     A coder writes the game file from a prompt that carries the platform's API (design/actions.md,
              example games, the mistakes the loader has refused, a `verify` command that says when it is done).
              The coder is a model in a repair loop (`--encoder completion`) or a coding agent with tools
              (`--encoder claude|metacode|command:...`). An independent model writes scenario tests from the
              spec alone. The pipeline re-checks the file itself; it never takes the coder's word.
- D evaluate  Tier 0: valid, ends, same seed replays the same. Tier 1: does a thoughtless policy always win?
+ D evaluate  Tier 0: valid, ends with a winner and its standings, same seed replays the same. Tier 1: does a
+             thoughtless policy always win?
              does chance decide everything? is the built game within the complexity limits?
  E triage    Whenever C or D finds a problem a model decides whose it is:
                fix_game        the file is wrong: the coder tries again with guidance (up to 2 times)

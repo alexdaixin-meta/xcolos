@@ -371,7 +371,7 @@ def test_a_backend_outage_while_building_is_not_a_reason_to_drop_a_game():
 
 def test_the_agent_prompt_carries_the_rules_the_interface_the_api_and_how_to_check():
     text = prompt.build("rps", PLAN, SPEC, "fix the payoffs")
-    for must in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`seat 1`", "design/actions.md", "xcolos/games/library/rps.json",
+    for must in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`you.score`", "design/actions.md", "xcolos/games/library/rps.json",
                  "python3 -m gen_game verify rps game", "never `none`", "Do NOT read", "fix the payoffs", "platform genuinely cannot"):
         assert must in text, must
     assert "gen_game/data/games/rps/game.json" in text
@@ -596,7 +596,7 @@ def test_the_lint_reports_every_known_mistake_in_one_message():
 def test_a_model_and_an_agent_get_the_same_game_interface_and_rules_but_reach_the_api_differently():
     agent_text = prompt.build("rps", PLAN, SPEC, agent=True)
     model_text = prompt.build("rps", PLAN, SPEC, agent=False)
-    for shared in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`seat 1`", "never `none`", "bound and then stored" if False else "binds it"):
+    for shared in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`you.score`", "never `none`", "bound and then stored" if False else "binds it"):
         assert shared in agent_text and shared in model_text, shared
     assert "python3 -m gen_game verify rps game" in agent_text and "design/actions.md" in agent_text
     assert "python3 -m gen_game verify" not in model_text and "design/actions.md" not in model_text  # a reply cannot read files or run commands

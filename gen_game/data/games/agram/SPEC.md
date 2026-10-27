@@ -32,8 +32,8 @@ Players: 3 to 4, best with 4
 ## Ending
 
 - ends when: hand_number==6
-- results: seat 1, seat 2, seat 3, seat 4, draw
-- decided by: seat with max match_points wins the match; if two or more tie for max then draw; announce Final points seat 1 to num_players with points plus Winner seat N or Draw among seats
+- ranked by: `you.match_points` (the highest wins; players level at the top share the win)
+- decided by: the seat with the most match_points wins the match; seats tied for the most share the win; announce Final points for seats 1 to num_players with points, then the winner (the winning seat, or seats when they share the win)
 
 ## Choices the source did not make
 
