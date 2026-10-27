@@ -13,6 +13,43 @@ from xcolos.games.loader import load_file  # noqa: E402
 
 RPS = load_file(Path(__file__).resolve().parents[2] / "xcolos" / "games" / "library" / "rps.json")
 
+from fixtures import JUDGED  # noqa: E402 - rps with a judged +100 bonus step for seat 1 and `llm` wording on the reveal
+
+
+def _rock_vs_scissors():
+    return [harness.RuleAgent("Ada", [{"seat": 1, "options_include": "rock", "times": "all"}]),
+            harness.RuleAgent("Blaise", [{"seat": 2, "options_include": "scissors", "times": "all"}])]
+
+
+def _seat1_score_after_one_round(judge=None):
+    p = harness.play(JUDGED, _rock_vs_scissors(), 1, given={"players": {"1": {"score": 5}}}, rounds=1, judge=judge)
+    return p.orchestrator.flow.player_attributes[1]["score"]
+
+
+def test_offline_play_answers_an_unscripted_judged_step_false():
+    assert _seat1_score_after_one_round() == 6  # 5 given, plus the round; no bonus
+
+
+def test_a_scripted_judge_opens_the_judged_step_case_insensitively():
+    assert _seat1_score_after_one_round(harness.offline_judge({"Bonus Rule": True})) == 106
+
+
+def test_the_longest_matching_key_decides():
+    assert _seat1_score_after_one_round(harness.offline_judge({"bonus": True, "the bonus rule applies": False})) == 6
+
+
+def test_an_llm_step_played_offline_sends_its_text():
+    p = harness.play(JUDGED, _rock_vs_scissors(), 1, rounds=1)
+    sent = json.dumps([r for r in p.game.log.records if r.get("type") == "to_agent"], default=str)
+    assert "Cards down. Seat 1 played rock" in sent and "False" not in sent
+
+
+def test_tier0_ends_every_match_of_a_judged_game_and_the_judged_step_never_fires():
+    t0 = evaluate.tier0(JUDGED, seeds=range(1, 6))
+    assert t0["passed"], t0["problems"]
+    p = harness.play(JUDGED, harness.random_agents(2, 1), 1)
+    assert "Bonus to seat 1" not in json.dumps(p.game.log.records, default=str)
+
 ROCK_BEATS_SCISSORS = {
     "name": "rock against scissors every round", "players": 2, "seed": 1,
     "rules": [{"seat": 1, "options_include": "rock", "times": "all"},
@@ -35,6 +72,34 @@ def test_a_rule_the_game_never_matches_is_reported_as_the_game_not_asking_it():
     s = {**ROCK_BEATS_SCISSORS, "rules": ROCK_BEATS_SCISSORS["rules"] + [{"seat": 1, "options_include": "lizard", "times": 1}]}
     out = scenarios.run_scenario(RPS, s)
     assert not out.passed and any("'lizard' was never matched" in f for f in out.failures), out.failures
+
+
+def test_a_rule_for_a_question_the_engine_answers_alone_is_used_by_that_answer():
+    # seat 1 holds only a rock, so the engine plays it without asking: the rule naming rock was still met
+    s = {"name": "a forced card", "players": 2, "rounds": 1,
+         "given": {"players": {"1": {"hand": ["rock"]}}},
+         "rules": [{"seat": 1, "options_include": "rock"}, {"seat": 2, "options_include": "scissors"}],
+         "expect": {"offered": [{"seat": 1, "option": "rock"}]}}
+    out = scenarios.run_scenario(RPS, s)
+    assert out.passed, out.failures
+    other = {**s, "rules": [{"seat": 1, "options_include": "paper"}, {"seat": 2, "options_include": "scissors"}], "expect": {}}
+    out = scenarios.run_scenario(RPS, other)
+    assert any("'paper' was never matched" in f for f in out.failures), out.failures
+
+
+def test_a_scenario_can_script_the_judge_for_a_judged_step():
+    s = {"name": "bonus", "players": 2, "rounds": 1, "given": {"players": {"1": {"score": 5}}},
+         "rules": [{"seat": 1, "options_include": "rock", "times": "all"}, {"seat": 2, "options_include": "scissors", "times": "all"}],
+         "judge": {"bonus rule applies": True}, "expect": {"players": {"1": {"score": 106}}}}
+    out = scenarios.run_scenario(JUDGED, s)
+    assert out.passed, out.failures
+    assert not scenarios.run_scenario(JUDGED, {**s, "judge": {}}).passed  # unscripted, so false: 6, not 106
+
+
+def test_a_judge_that_is_not_a_map_of_sentences_to_booleans_is_refused():
+    found = " ".join(scenarios.problems([{**ROCK_BEATS_SCISSORS, "judge": {"bonus": "yes"}}]))
+    assert "judge" in found
+    assert scenarios.problems([{**ROCK_BEATS_SCISSORS, "judge": {"bonus": True}}]) == []
 
 
 def test_an_extra_question_does_not_shift_later_answers_because_rules_name_options():

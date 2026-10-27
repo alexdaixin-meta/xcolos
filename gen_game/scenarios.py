@@ -81,6 +81,9 @@ any question during the scenario (a question with one option is answered for the
 right after the game has set itself up, with no turn played and so no question asked (give it no `rules`): that is where "each seat holds 2 cards and the deck holds the rest" is checked. Write a
 `not_offered` for each restriction the spec states (only the target may block, nobody may target itself, an unaffordable action is not offered).
 
+A round step in the spec may be JUDGED: it has a `judged` sentence that a referee answers true or false at play time. For a scenario that needs
+a judged step to apply, give `"judge": {"<that sentence, or a distinctive part of it>": true}`. A judged step you do not list is answered false.
+
 ASSERT ONLY ON WHAT AN OUTSIDE OBSERVER SEES: the result, and the attributes the message lists as observable. Never assert on
 counters, scratch values, codes or whose turn it is: the coder keeps those however it likes, and a test that depends on them
 fails a correct game. Assert on each player's score and on the result.
@@ -119,6 +122,8 @@ def problems(items, observable: dict | None = None, rule_ids: set[str] | None = 
                 out.append(f"scenario {i}: moves needs one entry per seat, keyed '1' to '{s['players']}'")
         if isinstance(s.get("expect"), dict) and "result" not in s["expect"] and s.get("rounds") is None:
             out.append(f"scenario {i}: expect needs a 'result' (or set `rounds`, to stop after that many rounds and look at the state)")
+        if "judge" in s and not (isinstance(s["judge"], dict) and all(isinstance(k, str) and k.strip() and isinstance(v, bool) for k, v in s["judge"].items())):
+            out.append(f"scenario {i}: judge is a map from a sentence (or part of one) to true or false")
         if s.get("rounds") is not None and not (isinstance(s["rounds"], int) and s["rounds"] >= 0):
             out.append(f"scenario {i}: rounds is a whole number, 0 or more (0 looks at the state right after setup)")
         for form in ("offered", "not_offered"):
@@ -202,7 +207,7 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
 
     FlowState.set_attribute = spy
     try:
-        p = harness.play(defn, agents, int(s.get("seed", 1)), given=s.get("given"), rounds=s.get("rounds"))
+        p = harness.play(defn, agents, int(s.get("seed", 1)), given=s.get("given"), rounds=s.get("rounds"), judge=harness.offline_judge(s.get("judge")))
     except Exception as exc:  # noqa: BLE001
         return Outcome(s["name"], False, [f"the match crashed: {type(exc).__name__}: {exc}"])
     finally:
@@ -260,6 +265,9 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
         final = {f"seat {seat}": dict(flow.player_attributes[seat]) for seat in sorted(flow.player_attributes)}
         trace = (f"moves played: {'; '.join(moves[:24])}{' ...' if len(moves) > 24 else ''}. First attribute changes: {'; '.join(writes[:14])}"
                  f"{' ...' if len(writes) > 14 else ''}. Final: players {json.dumps(final, default=str)[:420]}; table {json.dumps(flow.game_attributes, default=str)[:420]}")
+    for r in p.game.log.records:
+        if r.get("type") == "auto_answer" and isinstance(agents[r["seat"] - 1], harness.RuleAgent):
+            agents[r["seat"] - 1].forced(r.get("value"))
     for a in agents:
         if isinstance(a, harness.RuleAgent):
             if s.get("rounds") != 0:  # at rounds 0 nothing is asked, so no rule can be used and none is required to be

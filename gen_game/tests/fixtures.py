@@ -16,10 +16,18 @@ from gen_game import complexity, critic, flow
 from gen_inventory.inventory import Inventory
 from gen_inventory.schema import from_dict
 from xcolos.games import available
+from xcolos.games.loader import load
 
 LIBRARY = Path(__file__).resolve().parents[2] / "xcolos" / "games" / "library"
 RPS_TEXT = (LIBRARY / "rps.json").read_text()
 RPS = available()["rps"]
+
+# rps with one judged step (a prose `when` a referee answers) worth +100 to seat 1, and `llm` wording on the reveal, which keeps its `text`
+JUDGED_RPS_DICT = json.loads(RPS_TEXT)
+JUDGED_RPS_DICT["steps"][5]["llm"] = "Announce the reveal in a few words."
+JUDGED_RPS_DICT["steps"].insert(20, {"use": "update", "label": "the bonus", "when": {"prose": "The bonus rule applies this round."},
+                                     "do": [{"adjust": {"player": 1, "key": "score", "value": 100}}], "text": "Bonus to seat 1."})
+JUDGED = load(json.dumps(JUDGED_RPS_DICT), source="rps")
 
 SPEC = {
     "name": "Rock, Paper, Scissors", "summary": "ten rounds of hidden cards",
