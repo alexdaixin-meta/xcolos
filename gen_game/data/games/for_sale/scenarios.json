@@ -1,0 +1,1338 @@
+[
+  {
+    "name": "R1: at setup no seat holds any property and the game is at round 1",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "hand": []
+        },
+        "2": {
+          "hand": []
+        },
+        "3": {
+          "hand": []
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When the game starts, each of the 3 players has coins = 18, cheques = 0 and an empty hand."
+  },
+  {
+    "name": "R2: at setup property_deck holds 30 cards and cheque_deck holds 30 cheques",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "property_deck": 30,
+          "cheque_deck": 30
+        }
+      }
+    },
+    "rule_text": "When the game starts, property_deck holds the 30 cards 1 to 30, and cheque_deck holds two each of 0 and 2 to 15, for 30 cheques."
+  },
+  {
+    "name": "R3: a buying round draws 3 properties, so the deck shrinks by 3 and each seat gains one card (which cards is chance)",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "property_deck": 27
+        },
+        "players": {
+          "1": {
+            "hand": 1
+          },
+          "2": {
+            "hand": 1
+          },
+          "3": {
+            "hand": 1
+          }
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "When a buying round (1-8) begins, 3 cards are drawn at random from property_deck into revealed_properties, and property_deck shrinks by 3."
+  },
+  {
+    "name": "R4: bid options run from 0 to the seat's current coins and no higher",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 5
+        }
+      },
+      "game": {
+        "round": 1,
+        "property_deck": [
+          5,
+          10,
+          20
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 0
+        },
+        {
+          "seat": 1,
+          "option": 5
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 6
+        },
+        {
+          "seat": 1,
+          "option": 18
+        }
+      ]
+    },
+    "rule_text": "When a player bids in a buying round, the bid is a whole number from 0 to that player's current coins, and all bids are made simultaneously."
+  },
+  {
+    "name": "R5: the highest bid takes HIGH, the next takes MIDDLE and the lowest takes LOW",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "property_deck": [
+          5,
+          10,
+          20
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            10
+          ]
+        },
+        "3": {
+          "hand": [
+            20
+          ]
+        }
+      }
+    },
+    "rule_text": "When bids are ranked, the higher bid ranks higher."
+  },
+  {
+    "name": "R6: in round 2, tied bids give priority in the order 2, 3, 1",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 2,
+        "property_deck": [
+          5,
+          10,
+          20
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            20
+          ]
+        },
+        "3": {
+          "hand": [
+            10
+          ]
+        }
+      }
+    },
+    "rule_text": "When bids tie in round r, priority goes first to seat ((r-1) mod 3)+1, then to the next seat, wrapping from 3 to 1; for example, in round 2 the order is 2, 3, 1."
+  },
+  {
+    "name": "R6: in round 1, tied bids give priority in the order 1, 2, 3",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "property_deck": [
+          5,
+          10,
+          20
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand": [
+            20
+          ]
+        },
+        "2": {
+          "hand": [
+            10
+          ]
+        },
+        "3": {
+          "hand": [
+            5
+          ]
+        }
+      }
+    },
+    "rule_text": "When bids tie in round r, priority goes first to seat ((r-1) mod 3)+1, then to the next seat, wrapping from 3 to 1; for example, in round 2 the order is 2, 3, 1."
+  },
+  {
+    "name": "R7: the top bidder pays the full bid of 7; all cheques are 0, so final money is the coins left",
+    "rule": "R7",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 18,
+          "cheques": 0,
+          "hand": [
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            8
+          ]
+        },
+        "2": {
+          "coins": 18,
+          "cheques": 0,
+          "hand": [
+            9,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        "3": {
+          "coins": 18,
+          "cheques": 0,
+          "hand": [
+            17,
+            18,
+            19,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      },
+      "game": {
+        "round": 8,
+        "property_deck": [
+          5,
+          10,
+          20
+        ],
+        "cheque_deck": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 7
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3
+      ],
+      "standings": {
+        "1": 1111,
+        "2": 1818,
+        "3": 1818
+      },
+      "players": {
+        "1": {
+          "final_coins": 11,
+          "final_money": 11,
+          "hand": []
+        },
+        "2": {
+          "final_coins": 18,
+          "final_money": 18,
+          "hand": []
+        },
+        "3": {
+          "final_coins": 18,
+          "final_money": 18,
+          "hand": []
+        }
+      },
+      "game": {
+        "round": 17
+      }
+    },
+    "rule_text": "When a player ranks first in a buying round, they take the HIGH card and pay their full bid; for example, a bid of 7 costs 7."
+  },
+  {
+    "name": "R8: second and third place pay floor(bid/2), so a bid of 5 costs 2 and a bid of 3 costs 1; all cheques are 0",
+    "rule": "R8",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 18,
+          "cheques": 0,
+          "hand": [
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            8
+          ]
+        },
+        "2": {
+          "coins": 18,
+          "cheques": 0,
+          "hand": [
+            9,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        "3": {
+          "coins": 18,
+          "cheques": 0,
+          "hand": [
+            17,
+            18,
+            19,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      },
+      "game": {
+        "round": 8,
+        "property_deck": [
+          5,
+          10,
+          20
+        ],
+        "cheque_deck": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 7
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 1111,
+        "2": 1616,
+        "3": 1717
+      },
+      "players": {
+        "1": {
+          "final_coins": 11,
+          "final_money": 11
+        },
+        "2": {
+          "final_coins": 16,
+          "final_money": 16
+        },
+        "3": {
+          "final_coins": 17,
+          "final_money": 17
+        }
+      }
+    },
+    "rule_text": "When a player ranks second or third, they take MIDDLE or LOW respectively and pay floor(bid/2); for example, a bid of 5 costs 2."
+  },
+  {
+    "name": "R9: after a buying round the public hands show who took LOW, MIDDLE and HIGH",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 3,
+        "property_deck": [
+          2,
+          15,
+          28
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand": [
+            28
+          ]
+        },
+        "2": {
+          "hand": [
+            15
+          ]
+        },
+        "3": {
+          "hand": [
+            2
+          ]
+        }
+      },
+      "game": {
+        "round": 4
+      }
+    },
+    "rule_text": "When a buying round ends, it is announced who took LOW, MIDDLE and HIGH, but bids and coin totals are not announced."
+  },
+  {
+    "name": "R10: after round 8 each seat holds 8 properties and 6 cards stay in property_deck",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            8
+          ]
+        },
+        "2": {
+          "hand": [
+            9,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        "3": {
+          "hand": [
+            17,
+            18,
+            19,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      },
+      "game": {
+        "round": 8,
+        "property_deck": [
+          5,
+          10,
+          20,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "property_deck": 6
+        },
+        "players": {
+          "1": {
+            "hand": 8
+          },
+          "2": {
+            "hand": 8
+          },
+          "3": {
+            "hand": 8
+          }
+        }
+      },
+      "game": {
+        "round": 9
+      }
+    },
+    "rule_text": "When round 8 ends, each player holds exactly 8 properties and 6 cards remain unused in property_deck."
+  },
+  {
+    "name": "R11: a selling round draws 3 cheques from cheque_deck (which cheques is chance)",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            8,
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            9,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            10
+          ]
+        },
+        "3": {
+          "hand": [
+            17,
+            18,
+            19,
+            21,
+            22,
+            23,
+            24,
+            20
+          ]
+        }
+      },
+      "game": {
+        "round": 9
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 9
+      },
+      {
+        "seat": 3,
+        "options_include": 17
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "cheque_deck": 27
+        },
+        "players": {
+          "1": {
+            "hand": 7
+          },
+          "2": {
+            "hand": 7
+          },
+          "3": {
+            "hand": 7
+          }
+        }
+      },
+      "game": {
+        "round": 10
+      }
+    },
+    "rule_text": "When a selling round (9-16) begins, 3 cheques are drawn at random from cheque_deck into revealed_cheques."
+  },
+  {
+    "name": "R12: in a selling round a seat is offered only the cards in its own hand",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            7
+          ]
+        },
+        "2": {
+          "hand": [
+            10,
+            12
+          ]
+        },
+        "3": {
+          "hand": [
+            1,
+            20
+          ]
+        }
+      },
+      "game": {
+        "round": 9
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 12
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 3
+        },
+        {
+          "seat": 1,
+          "option": 7
+        },
+        {
+          "seat": 2,
+          "option": 12
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 10
+        },
+        {
+          "seat": 1,
+          "option": 20
+        },
+        {
+          "seat": 2,
+          "option": 3
+        },
+        {
+          "seat": 3,
+          "option": 7
+        }
+      ]
+    },
+    "rule_text": "When a selling round is played, each player simultaneously chooses one property from their own hand."
+  },
+  {
+    "name": "R13: in the last round the highest property takes cheque 15, the middle takes 9 and the lowest takes 2",
+    "rule": "R13",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 3,
+          "cheques": 0,
+          "hand": [
+            30
+          ]
+        },
+        "2": {
+          "coins": 3,
+          "cheques": 0,
+          "hand": [
+            10
+          ]
+        },
+        "3": {
+          "coins": 3,
+          "cheques": 0,
+          "hand": [
+            5
+          ]
+        }
+      },
+      "game": {
+        "round": 16,
+        "cheque_deck": [
+          2,
+          9,
+          15
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 30
+      },
+      {
+        "seat": 2,
+        "options_include": 10
+      },
+      {
+        "seat": 3,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 1803,
+        "2": 1203,
+        "3": 503
+      },
+      "players": {
+        "1": {
+          "final_money": 18
+        },
+        "2": {
+          "final_money": 12
+        },
+        "3": {
+          "final_money": 5
+        }
+      }
+    },
+    "rule_text": "When the properties are revealed, the highest takes the highest cheque, the middle takes the middle cheque and the lowest takes the lowest cheque, each added to that player's cheques."
+  },
+  {
+    "name": "R14: a played property is removed from its owner's hand",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            7
+          ]
+        },
+        "2": {
+          "hand": [
+            10,
+            12
+          ]
+        },
+        "3": {
+          "hand": [
+            1,
+            20
+          ]
+        }
+      },
+      "game": {
+        "round": 9
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 7
+      },
+      {
+        "seat": 2,
+        "options_include": 12
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ]
+        },
+        "2": {
+          "hand": [
+            10
+          ]
+        },
+        "3": {
+          "hand": [
+            20
+          ]
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 1
+          },
+          "2": {
+            "hand": 1
+          },
+          "3": {
+            "hand": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a property is played, it is removed from its owner's hand."
+  },
+  {
+    "name": "R15: after a selling round the public hands show which property each seat played",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4,
+            25
+          ]
+        },
+        "2": {
+          "hand": [
+            11,
+            13
+          ]
+        },
+        "3": {
+          "hand": [
+            2,
+            29
+          ]
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 25
+      },
+      {
+        "seat": 2,
+        "options_include": 11
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            13
+          ]
+        },
+        "3": {
+          "hand": [
+            29
+          ]
+        }
+      },
+      "game": {
+        "round": 13
+      }
+    },
+    "rule_text": "When a selling round ends, it is announced who played which property and who took which cheque; cheque totals stay private."
+  },
+  {
+    "name": "R16: after round 16 the game ends with final_money = cheques + coins",
+    "rule": "R16",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 4,
+          "cheques": 10,
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "coins": 0,
+          "cheques": 20,
+          "hand": [
+            6
+          ]
+        },
+        "3": {
+          "coins": 8,
+          "cheques": 5,
+          "hand": [
+            7
+          ]
+        }
+      },
+      "game": {
+        "round": 16,
+        "cheque_deck": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      },
+      {
+        "seat": 3,
+        "options_include": 7
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 1404,
+        "2": 2000,
+        "3": 1308
+      },
+      "players": {
+        "1": {
+          "final_money": 14,
+          "final_coins": 4
+        },
+        "2": {
+          "final_money": 20,
+          "final_coins": 0
+        },
+        "3": {
+          "final_money": 13,
+          "final_coins": 8
+        }
+      },
+      "game": {
+        "round": 17
+      }
+    },
+    "rule_text": "When round 16 ends, the game ends and each player's final_money = cheques + coins is revealed."
+  },
+  {
+    "name": "R17: equal final money is won by the seat with more remaining coins",
+    "rule": "R17",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 5,
+          "cheques": 10,
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "coins": 3,
+          "cheques": 12,
+          "hand": [
+            6
+          ]
+        },
+        "3": {
+          "coins": 0,
+          "cheques": 0,
+          "hand": [
+            7
+          ]
+        }
+      },
+      "game": {
+        "round": 16,
+        "cheque_deck": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      },
+      {
+        "seat": 3,
+        "options_include": 7
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 1505,
+        "2": 1503,
+        "3": 0
+      },
+      "players": {
+        "1": {
+          "final_money": 15,
+          "final_coins": 5
+        },
+        "2": {
+          "final_money": 15,
+          "final_coins": 3
+        },
+        "3": {
+          "final_money": 0,
+          "final_coins": 0
+        }
+      }
+    },
+    "rule_text": "When final money is compared, the most wins; a tie goes to more remaining coins, and a remaining tie is a shared win (a draw)."
+  },
+  {
+    "name": "R17: seats level on both money and coins share the win",
+    "rule": "R17",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 6,
+          "cheques": 9,
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "coins": 6,
+          "cheques": 9,
+          "hand": [
+            6
+          ]
+        },
+        "3": {
+          "coins": 2,
+          "cheques": 4,
+          "hand": [
+            7
+          ]
+        }
+      },
+      "game": {
+        "round": 16,
+        "cheque_deck": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      },
+      {
+        "seat": 3,
+        "options_include": 7
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 1506,
+        "2": 1506,
+        "3": 602
+      },
+      "players": {
+        "1": {
+          "final_money": 15,
+          "final_coins": 6
+        },
+        "2": {
+          "final_money": 15,
+          "final_coins": 6
+        },
+        "3": {
+          "final_money": 6,
+          "final_coins": 2
+        }
+      }
+    },
+    "rule_text": "When final money is compared, the most wins; a tie goes to more remaining coins, and a remaining tie is a shared win (a draw)."
+  }
+]

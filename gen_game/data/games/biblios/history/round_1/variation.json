@@ -1,0 +1,157 @@
+{
+  "original_summary": "Biblios is a 2-4 player set-collection game. In a gift phase the active player splits drawn cards between themselves, the auction pile and the other players. In an auction phase cards are bid for with Gold cards, and Church cards shift what each colour is worth. Winning the majority in a colour scores that colour's current die value.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "In the original, choices matter: what to keep, give or auction, and how much to bid. The previous variation, though, let a thoughtless 'always keep the 4, auction the 1' policy be close to optimal. Gold paid simply vanished, so a cheap card left little reason to sell anything valuable. Ties discarded the card, so 'always bid 0' cost nothing when the other bidders also passed. Neither policy is a certain winner, but the trade-offs were thin."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The previous test estimated that 30-40% of results were set by the deal. Which lots a player was active on decided where their four high cards fell. The auction pool, mostly 1s and 2s, rarely overturned a 3-card cluster. Once auction ties and blocking cancel out among good players, the luck of the high cards decides most majorities."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Gold budgeting over many auctions, reading which colour opponents are chasing, and timing changes to colour worth leave room to improve. A weak player still collects cards and scores some colours."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "bad",
+      "evidence": "The previous variation revealed the lot publicly, so every kept card could be deduced (auction card subtracted from the lot). The only hidden thing left was an ambiguous peek, and the game became open-information bidding. The original Biblios has real hidden cards, but at 87 cards that hidden state is far too large for the platform."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Majorities, worths and VP are all sums and comparisons. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The original's 87-card deck, Church cards and re-auction on non-payment are too large. The previous variation was text-only and turn-based but broke the limits: it needed 24 attributes against a limit of 20, used exactly 20 steps with no slack, and left the peek undefined in round 12."
+    }
+  ],
+  "problems": [
+    "P1 Hidden-information contradiction: the lot was revealed publicly, so kept cards could be deduced and the claimed inference did not exist.",
+    "P2 The 'next lot' peek was undefined in round 12 and confusing in every round.",
+    "P3 Separate hidden and public holdings needed 24 attributes, more than the limit of 20.",
+    "P4 The step budget sat exactly at 20, with no slack for the multi-operation resolve and the bounded worth shift.",
+    "P5 Deal luck: which lots a player was active on decided their high kept cards. Nothing let a player convert a bad lot into value.",
+    "P6 Thin trade-offs: gold paid simply vanished, so selling a valuable card never paid. Ties discarded the card, so passive zero bidding carried no risk."
+  ],
+  "changes": [
+    {
+      "what": "The current lot is shown privately to the active player only. Everyone else sees just the auction card. The public lot list lets opponents work out that the kept card's value is 5 minus the auction value and that its colour is one of exactly two. They narrow it by tracking which lots are used up.",
+      "why": "This creates real, bounded hidden state that rewards bookkeeping and inference.",
+      "fixes": "P1 Hidden-information contradiction: the lot was revealed publicly, so kept cards could be deduced and the claimed inference did not exist."
+    },
+    {
+      "what": "The 'next lot' peek is removed entirely. Each round's own lot is the only thing shown, and only to its active player.",
+      "why": "Nothing is left unspecified in round 12, and there is one clear private view per round.",
+      "fixes": "P2 The 'next lot' peek was undefined in round 12 and confusing in every round."
+    },
+    {
+      "what": "There is a single hidden holding per player per colour (9 attributes). Cards gained in auctions are announced in the public log rather than stored separately. The total is 19 attributes.",
+      "why": "This stays under 20, and the public cards remain knowable from the log.",
+      "fixes": "P3 Separate hidden and public holdings needed 24 attributes, more than the limit of 20."
+    },
+    {
+      "what": "Announcing bids is merged into resolve, and the active player is excluded from bidding. The round is 15 steps.",
+      "why": "This leaves 5 steps of slack.",
+      "fixes": "P4 The step budget sat exactly at 20, with no slack for the multi-operation resolve and the bounded worth shift."
+    },
+    {
+      "what": "The active player is the seller: the winning bid is paid to the active player, not removed. Remaining gold counts at the end, at 1 VP per full 4 gold.",
+      "why": "A lot in an unwanted colour can be sold dear for gold that becomes VP. Choosing whether to keep the 4 or sell it becomes a real decision, and bad deals can be overcome by play.",
+      "fixes": "P5 Deal luck: which lots a player was active on decided their high kept cards. Nothing let a player convert a bad lot into value."
+    },
+    {
+      "what": "Equal bids, including 0-0, give the auction card to the seller for free.",
+      "why": "Passive bidding now hands the seller a full lot, so 'always bid 0' can lose. Bidders must actually contest.",
+      "fixes": "P6 Thin trade-offs: gold paid simply vanished, so selling a valuable card never paid. Ties discarded the card, so passive zero bidding carried no risk."
+    },
+    {
+      "what": "Only the two non-active players bid, and they bid simultaneously.",
+      "why": "This creates a direct duel between two rivals, with the seller profiting from their competition.",
+      "fixes": "P6 Thin trade-offs: gold paid simply vanished, so selling a valuable card never paid. Ties discarded the card, so passive zero bidding carried no risk."
+    }
+  ],
+  "keeps": [
+    "The active player privately splits a draw between a secret card for themselves and a card that goes to auction, as in Biblios's gift phase.",
+    "Gold-based auctions for cards.",
+    "Colour majorities score the colour's current worth.",
+    "Worth of colours shifts during play, like the Church cards and dice.",
+    "Hidden holdings, with majorities known only at the end."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Private lots, a seller who earns the gold, and gold that counts as VP give real inference and real trade-offs inside the limits."
+  },
+  "variation": {
+    "name": "Scriptorium Lots (Seller's Edition)",
+    "summary": "Three scribes take turns privately splitting a two-card lot: one card kept secretly, one auctioned to the other two for gold that the seller pockets. Colour majorities score the colours' shifting worths, and leftover gold scores too.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "SETUP\n- 3 players, seated 1, 2, 3.\n- Each player starts with 12 gold. Gold is public.\n- Each player has a holding of 0 in each of three colours: Red, Blue, Green.\n- A player always knows their own holdings. Other players' holdings are never shown during the game.\n- Each colour has a public worth, starting at 3.\n\nTHE LOT LIST\n- The lot list is public and contains exactly these 12 lots of two cards each: R1+B4, R2+B3, B1+R4, B2+R3, R1+G4, R2+G3, G1+R4, G2+R3, B1+G4, B2+G3, G1+B4, G2+B3.\n- R1 means a Red card of value 1, B4 a Blue card of value 4, and so on.\n- Every lot sums to 5. Every individual card appears in exactly two lots.\n- Before round 1, the 12 lots are put in a random hidden order. Round k uses the k-th lot, so all 12 lots are used, one per round.\n\nROUNDS\n- There are 12 rounds.\n- The active player is seat 1 in round 1, seat 2 in round 2, seat 3 in round 3, seat 1 in round 4, and so on. Each seat is active 4 times.\n- The two other players are the bidders.\n\nEACH ROUND\n1. Private view. This round's lot is shown to the active player only. No other player ever sees it.\n2. Keep. The active player chooses one of the two cards to keep. Its value is added secretly to that player's holding in its colour.\n3. Announce. The other card (the auction card) is announced to everyone: its colour and value. Others can deduce the kept card's value (5 minus the auction value), but its colour is one of the two lots containing the auction card. Lots already used narrow this down.\n4. Talk. All three players each write one short message at the same time, without seeing the others. All messages are then shown to everyone. Messages are not binding and may be false.\n5. Bid. The two bidders, at the same time, each submit a whole-number bid from 0 up to the gold they hold.\n6. Resolve. Both bids are announced.\n   - If one bid is strictly higher, that bidder wins. The winner pays the bid to the active player (gold moves from winner to active player). The winner adds the auction card's value to their holding in its colour.\n   - If the bids are equal (including both 0), nobody pays. The active player adds the auction card's value to their own holding in its colour.\n   - The log records who received the auction card.\n7. Shift worth. If a bidder won, that winner may choose one colour and raise its worth by 1 or lower it by 1, or change nothing. Worth stays between 1 and 5: a change past these limits has no effect. If nobody won, no shift happens. The worths are announced.\n\nEND OF GAME (after round 12)\n- For each colour, compare the three players' holdings.\n- The single highest holder scores VP equal to that colour's final worth.\n- If two or three players tie for highest, each tied player scores half the worth, rounded down.\n- If everyone holds 0 in a colour, nobody scores that colour.\n- Each player also scores 1 VP for every full 4 gold they hold (gold divided by 4, rounded down).\n- A player's VP is the colour VP plus the gold VP.",
+    "objective": "The player with the most VP wins. If players tie on VP, the tied player with more remaining gold wins. If still tied, the game is a draw.",
+    "expected_effect": "Kept-card colours become the hidden state. Players track the lot list to work out whether a rival's secret 4 went to Red or Blue, and bid and shift worths accordingly. Because sellers pocket the gold, a lot in an unwanted colour can be sold dear, which offsets deal luck and makes keeping versus selling the 4 a real choice. Equal bids hand the card to the seller, so passive bidding is punished, while overbidding enriches a rival. Talk earns its place because interests conflict. The seller wants the bidders to escalate. Each bidder wants the card cheaply and wants the other to overpay. Everyone disagrees about which colour's worth should move. A player who believes a seller's claim, such as 'I kept Blue, I won't contest Red', or a bidder's bluff, such as 'I'm all-in on this one', can overpay, push up a rival's colour, or concede a majority that the claim's maker was secretly building. Following a proposal can lose."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 19,
+    "hidden_elements": 2,
+    "random_draws_per_round": 0,
+    "rounds": 12
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Structure: each lot is a low card (1 or 2) of one colour plus a high card (3 or 4) of another. Each player is active in 4 rounds, so holds about 4 kept cards. If the active player always keeps the high card (average 3.5), each player's kept total is about 14, and the auction cards total 12 x 1.5 = 18, shared among bidders. Gold has no value at the end except as the VP tie-breaker.\n\nThoughtless policies, applying the winner rule:\n(a) Always bid 0.\n- Holds about 14 and keeps 15 gold.\n- Each opponent holds about 14 plus a share of the 18 auction points, roughly 20-23.\n- The bidder-at-0 takes a colour only where its 3-4 kept cards happen to cluster. With three colours and majority scoring it usually wins at most one colour (3-5 VP), while opponents win two.\n- Its gold only matters on VP ties. So it usually loses and is not unbeatable.\n(b) Always bid all gold.\n- Wins round 1 for 15 gold, gaining a 1-2 card plus one worth shift.\n- Then it is broke for 11 rounds, and any later opponent bid of 1 beats its 0.\n- It loses unless its kept cards are lucky.\n(c) Always bid 1.\n- Beaten by any bid of 2.\n- Tied, so the card is discarded, by another bid of 1.\n- Cheap to counter.\n(d) Always keep the high card.\n- Usually good, but not strictly dominant: keeping R2 over G3 can be right when Red is your majority colour and Green is lost.\n\nNo option is strictly better whatever the opponents do.\n\nSeat order:\n- Each seat is active 4 times.\n- Seat 1 opens with everyone at full gold.\n- Seat 3 is active in round 12, where its peek shows nothing.\n- These are small asymmetries. The worth shift in round 12 goes to the auction winner, not to a fixed seat.\n\nTie-for-high discards the card. This gives a blocking tactic but no free win. All three players can realistically win. Pass, with the caveat that ties at worth 1 score 0 for each tied player, which is intended."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "1. Contradiction in the hidden information.\n- Step 1 says 'Reveal the lot', which as written means publicly.\n- Step 2 then says nobody learns which card was kept.\n- Step 3 announces the other card publicly.\n- If both cards were revealed, the kept card is exactly the lot minus the auction card. For example, with lot R1+B4 revealed and R1 announced, B4 was kept.\n- A model with only these words cannot tell whether opponents know its kept cards. It also cannot tell what 'which lots remain unseen except through inference' means.\n\n2. Round 12 peek.\n- 'The next lot is shown privately' has no next lot in round 12. The rule is unspecified there.\n\n3. Attribute count.\n- The rules make kept holdings hidden and won holdings public, so the engine must store them separately.\n- That is 3 colours x 3 players x 2 = 18, plus 3 gold, plus 3 worth, giving 24 attributes. This exceeds 20, against the stated 19.\n- If kept and won are merged into one attribute, the 'won holding is public' rule cannot be shown.\n\n4. Step budget.\n- Steps per round are at exactly 20 for: reveal, private peek, keep, announce, talk, bid, find maximum, check uniqueness, pay, add to holding, announce bids, shift with bounds 1-5, and the auction-card holding update.\n- There is no slack, and the bounded worth shift plus the unique-maximum check are each multi-operation.\n\nOther checks:\n- Choice steps (keep, talk, bid, shift) = 4. OK.\n- Rounds 12, random draws (one shuffle) and hidden elements 2 are OK.\n- Talk is simultaneous and placed where players disagree about who should win an auction and which worth to move. That is sensible.\n- The game is finite and scored arithmetically."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "As written, step 1 reveals the lot. Every kept card is then publicly deducible, so the only hidden element left is the one-lot peek.\n\nThe game reduces to open-information simultaneous bidding over 12 cards that are mostly worth 1-2. What a player can infer:\n- Opponents' likely bids.\n- Which colour each opponent is chasing. This is fully visible from the public holdings.\n\nThe advertised inference (deducing hidden kept cards from the public lot list and elimination) does not exist.\n\nMeanwhile, the random lot order decides which high cards each player keeps. The luck is in how those 4 kept cards spread across colours:\n- 4 kept cards spread over 3 colours means 3 colours^4 = 81 colour patterns per player.\n- A player whose kept cards fall 3-1-0 starts with a near-locked majority of about 10 in one colour.\n- A player whose kept cards fall 2-1-1 has none.\n- The auction pool (about 18 points, cut by tie-discards) is often not enough to overturn a 3-card cluster.\n\nRough estimate: 30-40% of results are set by the deal.\n\nWhen all players play well, auction ties and blocking cancel out, and the deal of high cards largely decides majorities. A strong reasoner is not clearly favoured enough."
+        },
+        "required_changes": [
+          "Make step 1 private: 'The active player alone sees the lot.' Everyone else sees only the announced auction card. Then opponents know only that the kept card is one of two partners (e.g. R1 shown means B4 or G4 was kept), and they narrow it by eliminating lots over the game. That gives real inference.",
+          "State the round-12 peek explicitly: 'In round 12 there is no next lot; nothing is shown.'",
+          "Fit the attribute limit: store one hidden kept-total and one public won-total per player per colour only if the total stays at 20 or fewer. Otherwise drop the public/private split, e.g. keep a single hidden holding per player per colour (9) and announce won cards in the log (the log is not an attribute). Restate the count.",
+          "Reduce deal luck. Either let the active player choose which card to auction from a 3-card lot (keep 1, auction 1, discard 1, without adding a draw), or give each player one public 'starting card' chosen in turn order before round 1, so a bad colour spread can be offset by planning.",
+          "Trim at least 2 steps per round, e.g. merge 'announce bids' into the resolve step, so the round is under 20 with margin for the unique-maximum check and the bounded worth shift."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "TOTALS. Each card appears in exactly two lots, so every colour carries 2x(1+2+3+4) = 20 card points. All 60 points enter play.\n\nGOLD. The 36 gold is conserved. Gold VP is floor(g/4), so the starting 12 gold is worth 3 VP and a full 36 would be worth 9. Colour VP is the sum of three worths, each between 1 and 5, so 3 to 15 VP. Majorities therefore dominate, but gold is not negligible.\n\nLOTS. Each lot is (1,4) or (2,3), six of each. An active player who keeps the higher card keeps 4 or 3, average 3.5, about 14 over 4 turns. The auctioned card is then 1 or 2. The other policy, keeping the low card to bait bids, is also live: auctioning a 4 invites high bids paid to the active player. So neither keep option is strictly better.\n\nBID TABLE (bidders A and B; c = card, payments go to the active player):\n- A0 vs B0: active takes c, no gold moves.\n- A1 vs B0: A takes c, pays 1.\n- A0 vs B1: B takes c, pays 1.\n- A=B>0: active takes c, no gold moves.\n- A>B: A pays A.\nNo bid is strictly best. Bidding 0 concedes c to whoever bids 1. Tying hands c to the active player. Overbidding transfers gold to a rival.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE:\n- Always bid 0: never wins an auction card. The only card points are about 14 kept points spread over three colours, while the rivals add auction cards and the free tie cards when they are active. Against any opponent who bids 1 it loses majorities. It loses against sensible play and frequently against random play.\n- Always bid max: the first win spends 12 gold (3 VP) for a card worth 1-4 points, then it is broke and bids 0 thereafter. It loses.\n- Always bid 1: beats a 0, ties a 1 (card goes to the active player), loses to 2+. A sensible opponent bids 2 on pivotal cards. Against random bids (uniform 0..g) it wins only about 1/13 of early auctions. Not never-losing.\n- Always keep the higher card: predictable. Observers learn the kept value (5 minus auction value) and narrow its colour, and can then contest that colour. Not dominant.\n\nNo policy wins or draws against every opponent action. All three seats can win.\n\nSEATS. Each seat is active 4 times and a bidder 8 times. Seat 3 is active in round 12 and keeps last. The round-12 winning bidder (seat 1 or 2) gets the final worth shift. These edges roughly offset.\n\nDESCRIPTION. 'Every lot sums to 5' and 'every card in exactly two lots' check out against the listed 12 lots."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES COMPLETE.\n- Bids are capped at gold held, so payment is always possible.\n- Ties, including 0-0, are resolved.\n- Shift limits of 1-5 are clamped.\n- The all-zero colour case is explicitly excluded from the half-worth split.\n- The VP tie-break uses gold, and draws are allowed.\n- The game is finite at 12 rounds and decided by arithmetic on holdings, worths and gold.\n\nLIMITS.\n- Steps 15 (at most 20).\n- Choices 4 (keep, talk, bid, shift; at most 4).\n- Attributes 19: 3 gold, 9 holdings, 3 worths, plus lot list/turn bookkeeping (at most 20).\n- Hidden elements 2: lot order/current lot, and private holdings (at most 3).\n- Random draws per round 0. The shuffle is at setup and uses list remove/append.\n- Rounds 12 (at most 40).\n- No board, judge or clock.\n- The bid is a simultaneous poll, as required.\n\nTALK. It is simultaneous and justified, because interests diverge:\n- The active player wants high, unequal bids.\n- Each bidder wants the card cheap and wants the other bidder to bid 0.\n- Players can bluff about which colour was kept.\nFollowing a proposal is costly. If A says 'I'll bid 0' and B believes it, B bids 1. If both bid 0, the active player profits.\n\nENDGAME. There is no fixed-length cooperate/defect collapse. The late rounds remain contested majority fights, with no safe dominant option."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE. The only randomness is the setup order of the lots, which decides which seat sees which lots.\n\nVARIANCE. The values a seat can keep range from four (2,3) lots, keeping 12, to four (1,4) lots, keeping 16. That is a 4-point swing out of about 60. Colour concentration and auction outcomes matter more.\n\nWHEN ALL PLAY WELL. The winner is decided by:\n- tracking announced auction cards, which narrow each kept card to one of two colours and accumulate across rounds;\n- inferring rivals' hidden majorities;\n- bid sizing against a simultaneous rival;\n- using worth shifts to devalue a rival's colour.\nThe deal does not decide it alone.\n\nINFERENCE. There is real hidden information (kept colours, holdings) with real levers to act on it: keep choice, bids, shifts, and bluffing talk.\n\nESTIMATE. Roughly 15-25% of the outcome is luck. A skilled player is clearly favoured over a thoughtless one."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

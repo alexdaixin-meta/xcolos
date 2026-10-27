@@ -1,0 +1,392 @@
+{
+  "game": "coloretto",
+  "attempts": [],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "R1: at setup no turn has been played, the turn counter is 1, all rows are empty and nobody has scored",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R2: three different Favourites are dealt from the pool of 5, leaving 2, and none is revealed yet",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R3: a full row cannot be placed on, and placing on an empty open row appends one card",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R3: a closed row can be neither placed on nor taken",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R4: taking row 2 (red, blue) on the last turn scores 1+1 plus the Favourite bonus (green count 0 >= third count 0), so 8",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R5: when every open row is full, only take options are offered",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R6: with only row 1 open and full, the single option is the take of the lowest open row with a card; the score is 1+1+1 with no bonus (yellow 0 < 1)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R7: a seat that has taken this cycle is skipped, so seat 3 acts after seat 1 and seat 2 is never asked",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R8: after seat 1 places, seat 2 is the next active player",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R8: when the other two seats have taken, the placing seat is active again",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When a place or a non-final take happens, then the next active player is the next seat in order 1,2,3,1 whose taken is false, which may be the same player.",
+        "Ada: the rule for 'take_1' was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "R9: the third take reopens all three rows empty and the last taker stays active",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R10: taking two '+2' cards on the last turn gives 4 points plus the bonus (Favourite count 0 >= 0), so 10",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R11: the game ends after round 36 and the placed card is discarded; every seat has no cards and scores only the bonus of 6",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R12: counts 7, 4 and 3 are worth 28+10+6 = 44 with no bonus (yellow 0 < 3)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R13: counts 3,3,3 score +18 and the lowest two (2,2) score -3-3, so 12 with no bonus",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R14: three '+2' cards add 6 to colour points 3+1+1, so 11 with no bonus (purple 0 < 1)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R15: a Favourite equal to the third count earns +6 (21); a Favourite below it does not (18)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R16: at the end each seat's Favourite is copied to favourite_revealed",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R17: seats 1 and 2 tie on 12 at the top and share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        3
+      ],
+      "results": {
+        "seats 1 and 2": 1,
+        "seat 1": 5,
+        "seat 2": 7,
+        "seat 3": 6,
+        "seats 1 and 3": 1
+      },
+      "turns_min": 30,
+      "turns_max": 34
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seats 1 and 2": 4,
+      "seat 1": 16,
+      "seat 2": 19,
+      "seat 3": 17,
+      "seats 1 and 3": 1,
+      "seats 2 and 3": 3
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 31,
+        "loss": 25,
+        "draw": 4,
+        "win_rate": 0.55
+      },
+      "first@seat2": {
+        "win": 35,
+        "loss": 23,
+        "draw": 2,
+        "win_rate": 0.6
+      },
+      "last@seat1": {
+        "win": 19,
+        "loss": 38,
+        "draw": 3,
+        "win_rate": 0.33
+      },
+      "last@seat2": {
+        "win": 7,
+        "loss": 48,
+        "draw": 5,
+        "win_rate": 0.13
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 36.0,
+      "prompt_chars_avg": 244,
+      "prompt_chars_max": 286
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 3 players",
+      "why": "The designer fixed the size at 3, and the rules are built around three rows and three takers per cycle. A fourth player has no row to take, and with two the cycle logic breaks."
+    },
+    {
+      "what": "No talk step",
+      "why": "The source rules include no discussion, and adding one would add a mechanic. The strategy lies in reading the other players' collections, guessing their Favourites from what they take, and deciding when to take a small row rather than wait."
+    },
+    {
+      "what": "Points written as c*(c+1)/2",
+      "why": "This matches the source table 0,1,3,6,10,15,21,28 exactly and is arithmetic."
+    },
+    {
+      "what": "Favourite pool removes dealt colours",
+      "why": "This makes every Favourite different, as the source requires."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "One action per round; the active seat is tracked in active_seat and the asked seat is taken from it",
+      "why": "The engine runs flat rounds, so the 'who' of the ask step comes from a table attribute."
+    },
+    {
+      "what": "Top-3 versus bottom-2 scoring is computed by sorting the five colour counts in a calc step",
+      "why": "There is no lookup operation; sorting counts gives the same result as sorting points because the points table is increasing."
+    },
+    {
+      "what": "Favourites are revealed by copying them to a public attribute at the end",
+      "why": "This is the engine's way to reveal hidden player state."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 1,
+    "attributes": 48,
+    "hidden_elements": 10
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Coloretto is a card game for 2 to 5 players. On each turn a player either draws a coloured card and places it on one of several shared rows (each holding up to 3 cards), or takes a row and sits out the rest of the round. At the end each player scores their best three colours positively on a rising table and all other colours negatively.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "Simple policies lose. 'Always take at once' collects 1-card rows and ends with few cards. 'Always place' is forced into full 3-card rows of colours it did not choose, which spreads it across many colours that score negatively. Where you place a card (poisoning a row a rival wants, or building one you want) and when you take both change the result. The rule that a round starts with whoever took last softens the advantage of moving first."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "The draw order is random, but each player makes many small decisions: where to place, when to stop and take, and which colours to commit to. Their effects add up, so a careful player usually beats a careless one over a game of about 30 to 40 turns."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "A weak player still scores something with three colours. A strong player keeps gaining by reading rivals' colours, timing takes against the size of the rows, and denying cards to others. The game is not solved."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "weak",
+        "evidence": "The only hidden thing is the order of the deck. Every tableau is public, so 'what does the opponent want' can be read straight off the table. Inference is shallow: it amounts to counting public colours plus estimating probabilities. Planning over turns and opponent modelling are present."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Scoring is a lookup table on colour counts, with the best three positive, the rest negative, and +2 per bonus card. One discretionary step, assigning jokers at the end, is still arithmetic."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "The game is turn-based and text-only, and the rows are just piles, not a board. However, a 'round' contains a variable number of turns, so it cannot be one engine round with a few choice steps. Ending on a 'last-round card', joker assignment, rules that differ by player count, and 2 to 5 players all add steps and attributes."
+      }
+    ],
+    "problems": [
+      "P1: A Coloretto round has a variable number of turns, which does not fit the engine's flat, fixed-length step list of at most 4 choice steps per round.",
+      "P2: Very little is hidden. All collections are public, so modelling an opponent is mere counting and there is no private information to infer.",
+      "P3: Variable length (the last-round card), jokers with free assignment, and different card sets per player count add complexity and building risk with little strategic return.",
+      "P4: Drawing a card face down and only then deciding where it goes needs a draw on every turn, and it makes the place-or-take decision partly blind."
+    ],
+    "changes": [
+      {
+        "what": "Each engine round is ONE turn. The active player makes one choice: PLACE the revealed top card on row 1, 2 or 3, or TAKE row 1, 2 or 3. Whose turn it is comes from public flags (who has taken in the current cycle) and the last-taker rule. The game lasts exactly 36 turns.",
+        "why": "This turns Coloretto's variable rounds into a fixed sequence of single-choice engine rounds while keeping its exact turn logic.",
+        "fixes": "P1"
+      },
+      {
+        "what": "Each player is secretly dealt a distinct Favourite colour from the 5 colours. If the favourite is among a player's three scoring colours at the end, that player gains +6.",
+        "why": "This adds one strong hidden element. Rivals must infer favourites from take and placement behaviour, and a player may bluff or delay showing interest. All colours are equally common, so every favourite is worth the same and there is no lottery.",
+        "fixes": "P2"
+      },
+      {
+        "what": "The game uses 3 players, 5 colours of 7 cards each, and 3 +2 cards (38 cards). There are no jokers and no last-round card. The game ends after turn 36, and any cards left in rows are discarded.",
+        "why": "This makes one fixed configuration that is cheap to build. A known end date replaces the random last-round card and adds an endgame timing problem: whether to take before the clock runs out.",
+        "fixes": "P3"
+      },
+      {
+        "what": "The deck is shuffled once at setup. The top card is always face up and visible to everyone before the active player chooses. If the player takes, the card stays on top for the next player.",
+        "why": "No random draw is needed per turn. The choice becomes a reasoned one about where this specific card should go, or whom it should be left to.",
+        "fixes": "P4"
+      }
+    ],
+    "keeps": [
+      "Shared rows of up to 3 cards, and the core choice between placing a card and taking a row and sitting out.",
+      "Taken rows leave play for the cycle, and the last player left may keep placing on the remaining row.",
+      "The next cycle starts with the player who took last.",
+      "The triangular colour scoring (1, 3, 6, 10, 15, 21, 28), with the best three colours positive and all others negative.",
+      "+2 bonus cards.",
+      "Poisoning rows that rivals want, and judging when a row is good enough to take."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The placement-and-timing dilemma at Coloretto's heart survives a one-choice-per-round restructuring. A secret favourite colour supplies the hidden information it lacks."
+    },
+    "variation": {
+      "name": "Coloretto: Secret Favourites",
+      "summary": "This is three-player Coloretto played one turn per round. Each turn the active player places the face-up top card on a row or takes a row. Every player secretly favours one colour worth a bonus, so rivals must read each other's interests from their play.",
+      "players": {
+        "min": 3,
+        "max": 3,
+        "suggested": 3
+      },
+      "rules": "COMPONENTS. 38 cards: 7 each of Red, Blue, Green, Yellow and Purple, plus 3 '+2' cards. There are three rows, numbered 1, 2 and 3, and each holds at most 3 cards.\n\nSETUP. Shuffle the 38 cards into a face-down deck. The top card is always shown face up to everyone. Deal each player a different secret Favourite colour, chosen at random from the 5 colours. Only that player knows it. All rows start empty and open. No player has taken. Player 1 is active.\n\nCYCLE. A cycle runs until all three players have taken a row.\n- A player who has taken a row in the current cycle sits out until the cycle ends.\n- A row that has been taken is closed for the rest of the cycle.\n- When the third player takes, the cycle ends immediately. All three rows reopen empty, all players become eligible again, and the player who took last is active.\n\nTURN (one per round, 36 rounds). The game shows everyone: the face-up top card, the contents of every row and whether it is open, every player's collected cards, who has taken this cycle, and the turn number. The active player chooses one action:\n(a) PLACE on row k. This is legal only if row k is open and has fewer than 3 cards. Move the top card onto row k; the next card becomes the face-up top card.\n(b) TAKE row k. This is legal only if row k is open and has at least 1 card. Add all its cards to your collection, close the row, and mark yourself as taken.\nIf every open row is full, the player must TAKE. An illegal or missing choice becomes TAKE of the lowest-numbered open row that has a card. If there is none, it becomes PLACE on the lowest-numbered open row that has room.\n\nNEXT ACTIVE PLAYER. After a PLACE, or after a TAKE that does not end the cycle, the next active player is the next player in seat order (1, 2, 3, 1, ...) who has not taken this cycle. This may be the same player again if they are the only one left; that player may keep placing on the remaining row until it is full, then must take it.\n\nEND. The game ends after round 36. Cards still lying in rows are discarded.\n\nSCORING. For each colour, count the cards of that colour you hold and convert the count to points: 0 = 0, 1 = 1, 2 = 3, 3 = 6, 4 = 10, 5 = 15, 6 = 21, 7 = 28.\n- Your three colours with the highest counts score positive. If counts tie for third place, either tied colour can be counted; the points are the same.\n- Your other two colours score negative.\n- Add 2 for each '+2' card you hold.\n- Add 6 if your Favourite colour's count is at least your third-highest colour count, that is, if it can be one of your scoring colours.\nAll favourites are revealed at the end.",
+      "objective": "The player with the highest final score wins. If two or three players tie for the highest score, those players draw.",
+      "expected_effect": "Players weigh placing a card to build a row they want, or to poison a row a rival wants, against taking early before rows are spoiled or the game clock runs out. The secret favourite turns tableau-reading into real inference. Was that take a commitment, or a bluff to make rivals poison the wrong colour? Hiding your favourite costs tempo, while revealing it invites denial. The known 36-turn end creates late-game timing problems about who will be left holding the last row. Discussion is left out: there is no shared goal, and talk would mostly be cheap claims that add steps. Thoughtless policies such as 'always take at once' or 'always place' lose to a timing-aware player."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 1,
+      "attributes": 18,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 36
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Score table (triangular): 0=0, 1=1, 2=3, 3=6, 4=10, 5=15, 6=21, 7=28. Top three colour counts score positive, the other two negative, +2 per '+2' card, +6 if the Favourite is a scoring colour. The rules call this 'favourite' scoring, and the numbers agree. Concentration is rewarded convexly: a 4th card in a colour adds 4, while a card in a 4th or 5th colour costs about 1 to 3.\n\nThoughtless policies, judged by the WINNER RULE:\n(1) Always TAKE as soon as legal. This player usually grabs a 1-card row and sits out. Sketch of one cycle: P1 places, P2 takes 1 card, then P1 and P3 fill rows 2 and 3 to 3 cards each and take them. That is about 10 rounds per cycle, so about 3.5 cycles in 36 rounds. The always-taker ends with about 4 cards, spread like 1/1/1/1: score about 1+1+1-1 = 2, +6 Favourite, about 8. A sensible collector ends with about 10 to 11 cards, e.g. 4/3/2/1/1: 10+6+3-1-1 = 17, +6 = 23, plus any +2s. The always-taker loses to sensible play. Against random play (10 cards spread 2/2/2/2/2: 9-6+6 = 9) it is close, but it does not always win.\n(2) Always PLACE (lowest legal row). This player is forced to take only when every open row is full, so they take 3 cards they did not choose and often receive dumped off-colour cards. Sensible opponents take good rows first and leave them the poisoned row. It loses often.\n(3) Always take the row with most cards. This player ignores colour and cannot avoid negative colours. It loses to sensible play.\nNo action dominates. Whether to place or take depends on the visible top card and row contents.\n\nSeat edge: P1 must place in round 1, and later cycles start with the last taker, so the start rotates by play, not by fixed seat. The edge is small. Information is symmetric: the deck top, rows and collections are public, and only the Favourites are private. All three players can realistically win."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Every situation has a rule:\n- legal PLACE/TAKE conditions;\n- forced TAKE when all open rows are full;\n- the last remaining player continues;\n- cycle reset, with the last taker active;\n- a default for illegal or missing choices;\n- end after round 36, with leftover row cards discarded;\n- tie handling for third place and for the winner.\n\nFiniteness and arithmetic: 36 rounds, so at most 36 placements from 38 cards, and the top card always exists. Scoring is pure arithmetic: top-3 = the sum of triangular values minus twice the two smallest, done in calc.\n\nComplexity is within limits: 13 steps (\u226420), 1 choice step (\u22644), 18 attributes (\u226420; per player 5 colour counts + plus2 + favourite + taken, plus table rows, open flags and active player), 2 hidden elements (deck order, Favourites), 0 random draws per round, 36 rounds (\u226440). The play is sequential choice by one active player per round, with no board, judge or clock.\n\nTalk: none, which is sensible. Every action is public and sequential, so players read intentions from rows taken and collections rather than guessing. Talk would add only unenforceable words. This is not a repeated cooperation dilemma, so the late-round betrayal test does not apply. End-of-game play near round 36 is driven by the known turn count, not by a dominant safe option."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Chance comes from the deck order (only one card ahead is visible) and the random Favourites. Every player gets a Favourite worth the same +6, and a top-3-of-5 condition is easy to reach, so the deal is near-symmetric and good play can overcome it.\n\nThe decisions are skill-based:\n- placing the known top card to poison an opponent's row or build your own;\n- timing a take against what opponents need;\n- planning the 36-round endpoint, where unclaimed rows are discarded;\n- inferring opponents' Favourites and focus colours from their takes, then denying them.\n\nWith all players playing well, results differ by card-flow and placement tactics, not by the Favourite deal alone. Rough estimate: about 30 to 35% chance, similar to base Coloretto. A reasoning player clearly beats random or thoughtless play: about 23 versus about 8 to 9 in the sketches above."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_tests",
+      "reason": "The game offered take_2 as a legal move, so row 2 was open in the game's own state. The test expected take_2 to be refused and row 2 to keep its card, which only makes sense if the test marked row 2 closed while it still held a card. Under the rules that state cannot happen: a row closes only when it is taken, and taking moves all its cards into the taker's collection, so a closed row is always empty until the cycle ends. The test also depends on an internal open/closed flag whose name the interface does not fix.",
+      "guidance": "Rewrite the illegal-choice fallback scenario so it reaches a state the rules allow and the illegality comes from the rules themselves. (1) Leave every row open, put one card in row 1 and leave row 2 empty, then have seat 1 submit take_2 (taking an empty row is illegal). Expect row 1 to become empty, seat 1's collection to gain that card, and seat 1 to be marked as taken. (2) Make row 1 full (3 cards) and have seat 1 submit place_1, or submit nothing. Expect TAKE of the lowest open row that has a card. (3) Make all open rows empty and submit an illegal or missing choice. Expect PLACE on the lowest open row with room. To get a closed row, play a real take earlier in the same cycle rather than setting an invented closed flag, and never put cards in a closed row. Assert on row contents, collected cards and scores, not on internal flags.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_tests",
+      "reason": "The game offers only legal actions: place_1 on the full row is not in seat 1's offer, so the scripted illegal move could not be played. The move actually recorded was take_2, and the game scored it correctly (one red card plus the Favourite bonus is 7). The test's expected 12 assumes row 1 was taken, which the recorded move never asked for.",
+      "guidance": "Do not script a move that is not in the offered options and then expect the fallback to fire. In this engine, illegal actions are simply not offered. Test that, as the existing 'not offered' tests already do: with row 1 full, place_1 must not be offered. If you want to exercise the fallback, use a genuinely missing or timed-out choice. Then assert that the default takes the lowest-numbered open row that has a card. Base the score you expect on the move actually played and on the cards and Favourite you set up. For a take of row 2 holding one red card with a Favourite of count 0, the score is 1 + 6 = 7."
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "The rules state plainly that after a PLACE the next active player is the next seat in order that has not taken this cycle, and that this can be the same player again. The engine can express this. In the test, seat 1 placed while seats 2 and 3 had already taken, and the game never offered seat 1 the take of the row it was filling, so the next-active logic is wrong.",
+      "guidance": "Rework the next-active computation after a PLACE or a non-final TAKE. Search the seats in order starting after the current seat (s+1, s+2, then s itself, wrapping 1\u21922\u21923\u21921) and pick the first seat whose taken flag is false. Do not skip the current seat or assume the active player always changes. When seats 2 and 3 have taken and seat 1 places on the only open row, seat 1 must be active in the next round. That round must offer seat 1 `take_k` for every open row holding at least 1 card, and `place_k` only while that row has fewer than row_capacity cards. Once the row is full, `take_k` is the only legal option. Make sure the cycle ends only when the third player takes (taker count reaches 3), not when the active seat runs out of other untaken players. After the cycle ends, reset all taken flags, reopen and empty all rows, and make the last taker active. Make every condition read the same row-open, row-count and taken attributes that the tests' `given` state sets, so a preset mid-cycle state is honoured.",
+      "missing": ""
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 1,
+      "attributes": 18,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 36
+    },
+    "measured": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 1,
+      "attributes": 48,
+      "hidden_elements": 10
+    }
+  },
+  "verdict": "needs_review"
+}

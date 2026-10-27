@@ -1,0 +1,55 @@
+
+$ gen_game convert love_letter --judge   (code 3cc92d3ca2, 11:08:34)
+step A: designing the rules
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+triage: fix_game: Every failure is a mistake in the file, not in the rules. The prompts use a placeholder ({hand}) that the step cannot fill, bookkeeping fields are visible to players, and the attributes full_deck and from_burned are declared but never actually changed. The rules need nothing the engine lacks: hidden hands, a deck held in a game list, and conditional effects are all supported.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are expressible on the platform, but the game does not put the expected options to the active player. In R8 seat 1 discarded a Guard and was never offered the number 3 (guard_guess defaulted to 2, so seat 2's Baron survived and no stake was paid). In R6 and R9 the options for the card to discard (ranks 1, 2, ...) were never offered.
+step C: building the game file
+triage: fix_game: Each attempt failed on a different coder-side slip: an unfillable {hand} placeholder in prompts, bookkeeping attributes left visible, and attributes that no step ever changes. None of these is a flaw in the rules or a missing engine capability. Hidden hands are supported, so the player's card only needs to come from state the player can see, not from prompt text.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_tests: The failures come from `options_include` rules that ask for options the rules themselves exclude or that the given state cannot produce. The Countess test requires option 5 (Prince) to be offered even though its own title says the Prince must not be offered. The turn-start test gives seat 1 hand [1] with top card 1, so its hand is [1,1] and option 3 can never appear. The game's evidence (draw from the top, deck_count dropping by 1, the Guard discard recorded) matches the rules.
+rewriting the independent tests
+step D: evaluating
+triage: fix_game: The Guard guess step does not offer the ranks 2 to 8. The tests never saw 2, 3, 5 or 8 offered, and a correct guess of 5 did not eliminate the opponent. On a Countess hand the discard choice never offered the King or Prince, but the rules say the player chooses between both cards and only then is the Countess forced. Both are faults in the game file, not in the rules or the tests.
+step C: building the game file
+triage: fix_game: Both recurring failures are mistakes in the game file, not problems with the rules. A short announcement ('Miss' / 'Miss.') is used without being declared in the text block, and constant helper attributes (full_deck, card_names) are declared but no step ever changes them. The coder has been swapping one error for the other between attempts; this is not a repeated design failure.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are clear and the platform can express them, but the game does not put the right options to the active player. The Guard guess is never offered as the ranks 2 to 8: the tests' choices of 2, 3 and 8 are never matched, so a correct guess never eliminates anyone and no token is awarded. The two-card discard choice also leaves out a held rank (5) when the Countess is in hand.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The match crashed with a CalcError when it drew from an empty deck list, which is a bug in the file. A new hand must start from all 16 cards no matter what state came before, and every draw must be guarded. The Countess failure is easy to fix in the file too: the rules force rank 7 out anyway, so offering only 7 changes nothing in play and satisfies the test.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are sound and the platform can express them, but the game file does not offer the choices the rules require. In the trace the Guard guess was recorded as 2 without ranks 2 to 8 ever being offered to seat 1, and the Countess scenario never offered rank 5. The tests match the rules: the choice happens in step 4, before the Countess override in step 5.
+
+love_letter: dropped
+  too complex: it could not be built to behave as designed: scenario `Countess with Prince must be discarded` failed: rule R6 is broken: When the active player holds rank 7 together with rank 5 or rank 6, then discard_choice = 7.; Ada: the rule for 5 was never matched (the game never put that option to this seat) (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/3cc92d3ca2/gen_game/data/games/love_letter
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/3cc92d3ca2/gen_game/data/games/love_letter/VERIFIED.md

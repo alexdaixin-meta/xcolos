@@ -1,0 +1,174 @@
+# 04 spec
+
+- time: 2026-10-27T21:02:31+00:00 (64.9s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 6e3bcf837bf3333e, reply sha256 1f67779b2e576e62
+
+## Sent
+
+````
+Game: Little Two
+Players in the source: 3 to 3
+Suggested table size, chosen by the designer of these rules (keep it): 3
+
+Rules, as filed in the inventory:
+CARDS. There are 30 cards numbered 1 to 30. A card's rank is (card + 2) divided by 3, rounded down, giving ranks 1 to 10. Its suit is card − 3 × (rank − 1), giving suits 1 to 3. A higher card number always beats a lower one. Rank 10 (cards 28, 29, 30) are called 'twos'.
+
+SEATS. The players sit as A, B and C. Turn order is always A, then B, then C, then A again.
+
+MATCH. The match has 3 deals and at most 40 orbits. An orbit is one turn for each seat in order.
+
+DEALING. At the start of each deal, shuffle all 30 cards. Deal 9 to each player, privately. Set the remaining 3 cards aside face-down; nobody sees them during the deal. Every player's card count is public at all times.
+
+COMBINATIONS. There are four kinds:
+- Single: one card.
+- Pair: two cards of the same rank.
+- Triple: three cards of the same rank.
+- Run: three cards of three consecutive ranks, any suits. Ranks do not wrap around, so 9-10-1 is not a run.
+The value of a combination is its highest card number.
+
+THE PILE. The pile holds a current kind and a current value, or is empty.
+- When the pile is empty, the player whose turn it is must lead any combination. They may not pass.
+- When the pile is not empty, the player whose turn it is may pass, or may play a combination of the same kind with a higher value.
+- Bomb: a triple may be played on a single or a pair whatever its value. The pile's kind then becomes triple.
+- A triple on the pile can only be beaten by a higher triple.
+- A run can only be beaten by a higher run.
+Played cards are announced to everyone and removed from the game for the rest of the deal.
+
+PASSING AND CLEARING. A player who passes may play again the next time their turn comes in the same trick. The engine records who made the last play. If play comes back round to that player because both others passed since their play, the pile is cleared and that player must lead.
+
+ILLEGAL PLAYS. An illegal or malformed play counts as a pass. If the player was required to lead, their lowest-numbered card is played as a single instead.
+
+STARTING A DEAL. In deal 1, seat A leads first. In deal 2, seat B leads first. In deal 3, seat C leads first. Seats before the leader in the first orbit of a deal do not act in that orbit.
+
+END OF A DEAL. A deal ends the moment a player plays their last card. That player wins the deal, and the rest of that orbit is skipped. The next deal begins at the start of the next orbit.
+
+PENALTIES. Each non-winner receives a penalty equal to the number of cards left in their hand, plus 1 for each two (rank 10) left in their hand. If they have 7 or more cards left, this penalty is doubled. The deal winner receives 0. Penalties are added to each player's public running total.
+
+END OF THE MATCH. The match ends after the third deal ends, or at the end of orbit 40, whichever comes first. If orbit 40 ends during a deal, that deal is scored as if it had ended with no winner: every player receives a penalty under the rule above.
+
+How the winner is decided: The player with the lowest total penalty after the match ends wins. If two or three players tie for the lowest total, the match is a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Little Two",
+  "summary": "A three-player climbing card game. Over 3 deals, players shed singles, pairs, triples and runs onto a pile, and each deal's losers take penalties for the cards left in hand. The lowest total penalty wins.",
+  "players": {"min": 3, "max": 3, "suggested": 3},
+  "parameters": {
+    "card_count_total": 30,
+    "rank_count": 10,
+    "suit_count": 3,
+    "deals": 3,
+    "max_orbits": 40,
+    "hand_size": 9,
+    "cards_aside": 3,
+    "two_rank": 10,
+    "two_lowest_card": 28,
+    "two_extra_penalty": 1,
+    "double_threshold": 7,
+    "double_factor": 2,
+    "winner_penalty": 0,
+    "run_length": 3,
+    "pair_size": 2,
+    "triple_size": 3
+  },
+  "attributes": {
+    "player": [
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Card numbers (1-30) the player holds in the current deal.", "observable": false},
+      {"key": "card_count", "type": "number", "visible": "public", "initial": 0, "meaning": "Number of cards in hand. It is public at all times.", "observable": true},
+      {"key": "penalty", "type": "number", "visible": "public", "initial": 0, "meaning": "Running total of penalties across deals. This is the score, and lower is better.", "observable": true},
+      {"key": "deals_won", "type": "number", "visible": "public", "initial": 0, "meaning": "Number of deals this player won by emptying their hand.", "observable": true},
+      {"key": "last_action", "type": "text", "visible": "public", "initial": "", "meaning": "Announcement of this player's most recent play or pass.", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": [], "meaning": "Cards still to be dealt this deal (shuffled 1-30).", "observable": false},
+      {"key": "aside", "type": "list", "visible": "none", "initial": [], "meaning": "The 3 face-down cards set aside, unseen during the deal.", "observable": false},
+      {"key": "deal_number", "type": "number", "visible": "public", "initial": 0, "meaning": "Current deal (1-3); 0 before the first deal.", "observable": true},
+      {"key": "orbit", "type": "number", "visible": "public", "initial": 0, "meaning": "Number of completed orbits in the match.", "observable": true},
+      {"key": "deal_active", "type": "bool", "visible": "public", "initial": false, "meaning": "True while a deal is in progress.", "observable": false},
+      {"key": "leader_seat", "type": "number", "visible": "public", "initial": 0, "meaning": "Seat (1=A, 2=B, 3=C) that leads first in the current deal.", "observable": false},
+      {"key": "first_orbit", "type": "bool", "visible": "public", "initial": false, "meaning": "True during the first orbit of a deal, when seats before the leader do not act.", "observable": false},
+      {"key": "pile_kind", "type": "text", "visible": "public", "initial": "empty", "meaning": "Current combination kind on the pile: empty, single, pair, triple or run.", "observable": false},
+      {"key": "pile_value", "type": "number", "visible": "public", "initial": 0, "meaning": "Highest card number of the combination on the pile (0 when empty).", "observable": false},
+      {"key": "last_player", "type": "number", "visible": "public", "initial": 0, "meaning": "Seat that made the last play on the current pile (0 if none).", "observable": false}
+    ]
+  },
+  "setup": [
+    "Seats are named A (seat 1), B (seat 2) and C (seat 3); turn order is always A, B, C.",
+    "Every player's penalty, deals_won and card_count start at 0; deal_number and orbit start at 0; deal_active is false.",
+    "The first deal is dealt by the first round step, since deal_active is false."
+  ],
+  "round": [
+    {"action": "update", "who": "table", "answer": null, "effect": "WHEN deal_active is false AND deal_number < 3: deal_number += 1; deck = [1..30]; aside = []; each player's hand = []; pile_kind = 'empty'; pile_value = 0; last_player = 0; leader_seat = deal_number; first_orbit = true; deal_active = true. Announce 'Deal {deal_number} begins; seat {leader_seat} leads.'"},
+    {"action": "update", "who": "table", "answer": null, "effect": "WHEN first_orbit is true AND orbit has not advanced since the deal started (the deal-start condition above): for each player, 9 times move a random card from deck to hand; card_count = 9; then move the remaining 3 deck cards to aside. Hands stay private (ally)."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "Each player sees their own hand, all card_counts, all penalties, pile_kind, pile_value and last_player."},
+    {"action": "update", "who": "seat 1", "answer": null, "effect": "WHEN deal_active AND NOT (first_orbit AND leader_seat > 1): if last_player == 1, then pile_kind = 'empty' and pile_value = 0 (the pile clears because both others passed)."},
+    {"action": "ask", "who": "seat 1", "answer": "short text: 'pass', or the card numbers to play separated by spaces (e.g. '13 14'). 'pass' is not allowed when pile_kind is empty.", "effect": "WHEN deal_active AND NOT (first_orbit AND leader_seat > 1). Records the answer for the next step."},
+    {"action": "update", "who": "seat 1", "answer": null, "judged": "The answer is not 'pass', every named card is in seat 1's hand, the cards form a single, a pair (2 cards, same rank floor((c+2)/3)), a triple (3 same rank) or a run (3 cards of three consecutive ranks without wrap), and either pile_kind is empty, or the kind equals pile_kind with highest card > pile_value, or it is a triple played on a single or pair.", "effect": "WHEN the same condition as seat 1's ask. If judged true: remove the cards from hand; card_count -= number of cards; pile_kind = that kind; pile_value = highest card played; last_player = 1; last_action announces the cards to everyone. If judged false and pile_kind != 'empty': treat as a pass (last_action = 'pass'). If judged false and pile_kind == 'empty': play min(hand) as a single (remove it, card_count -= 1, pile_kind = 'single', pile_value = that card, last_player = 1, announce)."},
+    {"action": "update", "who": "table", "answer": null, "effect": "WHEN deal_active AND seat 1 card_count == 0: seat 1 deals_won += 1; each other player's penalty += (card_count + number of hand cards >= 28) * (2 if card_count >= 7 else 1); deal_active = false. Announce the deal result. The remaining seats' steps this orbit are skipped because deal_active is false."},
+    {"action": "update", "who": "seat 2", "answer": null, "effect": "WHEN deal_active AND NOT (first_orbit AND leader_seat > 2): if last_player == 2, then pile_kind = 'empty' and pile_value = 0."},
+    {"action": "ask", "who": "seat 2", "answer": "short text: 'pass' or card numbers separated by spaces; 'pass' is not allowed when pile_kind is empty.", "effect": "WHEN deal_active AND NOT (first_orbit AND leader_seat > 2)."},
+    {"action": "update", "who": "seat 2", "answer": null, "judged": "The answer is not 'pass', every named card is in seat 2's hand, the cards form a single, pair, triple or run (ranks floor((c+2)/3), runs without wrap), and either pile_kind is empty, or the kind equals pile_kind with highest card > pile_value, or it is a triple played on a single or pair.", "effect": "Same as seat 1's resolution with seat 2: a legal play removes the cards, lowers card_count, sets pile_kind and pile_value, sets last_player = 2 and is announced. An illegal answer is a pass, or, if the pile is empty, min(hand) is played as a single."},
+    {"action": "update", "who": "table", "answer": null, "effect": "WHEN deal_active AND seat 2 card_count == 0: seat 2 deals_won += 1; each other player's penalty += (card_count + twos in hand) * (2 if card_count >= 7 else 1); deal_active = false."},
+    {"action": "update", "who": "seat 3", "answer": null, "effect": "WHEN deal_active: if last_player == 3, then pile_kind = 'empty' and pile_value = 0."},
+    {"action": "ask", "who": "seat 3", "answer": "short text: 'pass' or card numbers separated by spaces; 'pass' is not allowed when pile_kind is empty.", "effect": "WHEN deal_active."},
+    {"action": "update", "who": "seat 3", "answer": null, "judged": "The answer is not 'pass', every named card is in seat 3's hand, the cards form a single, pair, triple or run (ranks floor((c+2)/3), runs without wrap), and either pile_kind is empty, or the kind equals pile_kind with highest card > pile_value, or it is a triple played on a single or pair.", "effect": "Same as seat 1's resolution with seat 3 (last_player = 3)."},
+    {"action": "update", "who": "table", "answer": null, "effect": "WHEN deal_active AND seat 3 card_count == 0: seat 3 deals_won += 1; each other player's penalty += (card_count + twos in hand) * (2 if card_count >= 7 else 1); deal_active = false."},
+    {"action": "update", "who": "table", "answer": null, "effect": "orbit += 1; first_orbit = false. If orbit == 40 AND deal_active: every player's penalty += (card_count + twos in hand) * (2 if card_count >= 7 else 1); deal_active = false. Announce penalty totals."},
+    {"action": "check", "who": "table", "answer": null, "effect": "End the game if (deal_number == 3 AND deal_active == false) OR orbit >= 40; otherwise continue."}
+  ],
+  "ending": {
+    "condition": "(deal_number == 3 AND deal_active == false) OR orbit >= 40",
+    "rank_by": "0 - you.penalty",
+    "decided_by": "Each player's standing is their total penalty, and lower is better. The player with the lowest total wins. Players tied for the lowest total share the result, which the source calls a draw."
+  },
+  "rules": [
+    {"id": "R1", "text": "When card c is ranked, then rank = floor((c+2)/3) (1-10) and suit = c - 3*(rank-1) (1-3); e.g. card 14 has rank 5, suit 2."},
+    {"id": "R2", "text": "When a deal starts, then the 30 cards are shuffled, each player receives 9 cards into a private hand, 3 cards go to the hidden aside list, and every card_count is set to 9."},
+    {"id": "R3", "text": "When deal 1, 2 or 3 starts, then seat A, B or C respectively leads first, and seats before the leader do not act in that first orbit."},
+    {"id": "R4", "text": "When the pile is empty, then the acting player must lead any single, pair, triple or run and may not pass."},
+    {"id": "R5", "text": "When the pile is not empty, then the acting player may pass or play the same kind with a higher value (highest card number)."},
+    {"id": "R6", "text": "When a triple is played on a single or a pair of any value, then it is legal (a bomb) and pile_kind becomes triple."},
+    {"id": "R7", "text": "When a triple is on the pile, then only a triple with a higher value may be played on it."},
+    {"id": "R8", "text": "When a run is on the pile, then only a run with a higher value may be played on it; runs are three consecutive ranks without wrap, so ranks 9-10-1 are not a run."},
+    {"id": "R9", "text": "When a pair or triple is played, then all its cards must share a rank; e.g. 4,5,6 is a triple of rank 2 and 4,5 is a pair of rank 2."},
+    {"id": "R10", "text": "When a legal play is made, then the cards leave the player's hand, card_count drops by the number played, pile_value becomes the highest card, last_player becomes that seat, and the cards are announced to everyone."},
+    {"id": "R11", "text": "When a player passes, then they may still play on their next turn in the same trick."},
+    {"id": "R12", "text": "When play returns to last_player after both other seats passed, then the pile is cleared (pile_kind empty, pile_value 0) and that player must lead."},
+    {"id": "R13", "text": "When a play is illegal or malformed and the pile is not empty, then it counts as a pass."},
+    {"id": "R14", "text": "When a play is illegal or malformed and the player was required to lead, then their lowest-numbered card is played as a single."},
+    {"id": "R15", "text": "When a player plays their last card, then they win the deal, deals_won increases by 1, they take 0 penalty, and the rest of the orbit is skipped."},
+    {"id": "R16", "text": "When a deal ends, then each non-winner's penalty increases by card_count plus 1 per card numbered 28-30 in hand; e.g. 3 cards including one two gives 4."},
+    {"id": "R17", "text": "When a non-winner holds 7 or more cards at the end of a deal, then their penalty for that deal is doubled; e.g. 7 cards with no twos gives 14."},
+    {"id": "R18", "text": "When orbit 40 ends during a deal, then every player receives the penalty under R16 and R17 and the match ends."},
+    {"id": "R19", "text": "When the third deal ends, then the match ends."},
+    {"id": "R20", "text": "When the match ends, then the player with the lowest total penalty wins, and players tied for the lowest share the result (a draw)."}
+  ],
+  "offers": [
+    {"question": "Seat's turn (play or pass)", "who": "the acting seat, when the pile is empty", "options": "any single, pair, triple or run made from cards in their hand, written as card numbers; 'pass' is not offered"},
+    {"question": "Seat's turn (play or pass)", "who": "the acting seat, when the pile holds a single or pair", "options": "'pass'; the same kind with a higher highest card; or any triple from their hand (bomb)"},
+    {"question": "Seat's turn (play or pass)", "who": "the acting seat, when the pile holds a triple", "options": "'pass'; or a triple with a higher highest card"},
+    {"question": "Seat's turn (play or pass)", "who": "the acting seat, when the pile holds a run", "options": "'pass'; or a run with a higher highest card"},
+    {"question": "Seat's turn", "who": "seats before the leader in the first orbit of a deal, and all seats after the deal has ended in that orbit", "options": "not asked"}
+  ],
+  "choices": [
+    {"what": "3 players (min = max = suggested = 3)", "why": "The designer fixed 3 seats. The deal arithmetic (3 x 9 + 3 aside = 30) and the A-B-C rotation only work at 3."},
+    {"what": "Strategy at the table", "why": "A thoughtful player tracks played cards and opponents' public card counts, saves triples as bombs, and passes to keep control, while sheding high-penalty cards (twos, a big hand) before someone goes out."},
+    {"what": "No talk step", "why": "The source has no talk. It is a competitive individual game, so messages would add words without anything to agree on."},
+    {"what": "Turns use ask, one seat at a time", "why": "The rules give a fixed turn order, and each player must see the current pile."},
+    {"what": "Answer as free text listing card numbers", "why": "The set of legal combinations changes every turn. Free text plus the illegal-play-as-pass rule covers it faithfully."},
+    {"what": "Seats numbered A=1, B=2, C=3", "why": "This lets the leader and last_player be compared arithmetically."}
+  ],
+  "simplifications": [
+    {"what": "Play legality is checked by a judged referee step", "why": "Validating combination membership, rank equality, runs and kind/value comparison against the pile is too complex for single arithmetic operations. The resulting state changes are still arithmetic."},
+    {"what": "Deal-start steps (shuffle, deal, reset) are separate flat steps each carrying the same 'when' condition", "why": "The engine has no conditional blocks. Each step is individually guarded instead."},
+    {"what": "Lowest penalty wins is expressed as rank_by = 0 - penalty, and a tie at the top is a shared win", "why": "The engine ranks highest-wins and treats a tie at the top as shared. The source's 'draw' becomes a shared result."}
+  ],
+  "unsupported": []
+}
+```
+````

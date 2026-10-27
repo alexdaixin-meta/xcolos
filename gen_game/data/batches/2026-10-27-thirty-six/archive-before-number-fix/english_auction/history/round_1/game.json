@@ -1,0 +1,833 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "english_auction",
+    "name": "Budgeted English Auction Series",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 3
+    },
+    "blurb": "Six items, three sealed bidding turns each, private values and a 30-coin budget: the highest total of value won minus price paid wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "budget",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "values",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "bid",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_valid",
+        "visible": "ally",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "message",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "first_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "priority_order",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "standing_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leader",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_price",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_pool",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "best_key",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "items",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "item_value_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "item_value_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "item_value_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "item_value_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "item_value_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "item_value_6",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "value_sum",
+        "visible": "public",
+        "type": "number",
+        "initial": 48
+      },
+      {
+        "key": "starting_budget",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "starting_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "min_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "min_raise",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "bidding_turns_per_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "no_leader_code",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pass_code",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tiebreak_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting budgets and scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "budget",
+            "value": {
+              "calc": "starting_budget"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "starting_score"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal the private values",
+      "do": [
+        {
+          "set": {
+            "key": "value_pool",
+            "value": {
+              "calc": "[item_value_1, item_value_2, item_value_3, item_value_4, item_value_5, item_value_6]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.values + [[v for v in value_pool if v not in you.values][min(int(uniform(0, len(value_pool) - len(you.values))), len(value_pool) - len(you.values) - 1)]]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.values + [[v for v in value_pool if v not in you.values][min(int(uniform(0, len(value_pool) - len(you.values))), len(value_pool) - len(you.values) - 1)]]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.values + [[v for v in value_pool if v not in you.values][min(int(uniform(0, len(value_pool) - len(you.values))), len(value_pool) - len(you.values) - 1)]]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.values + [[v for v in value_pool if v not in you.values][min(int(uniform(0, len(value_pool) - len(you.values))), len(value_pool) - len(you.values) - 1)]]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.values + [[v for v in value_pool if v not in you.values][min(int(uniform(0, len(value_pool) - len(you.values))), len(value_pool) - len(you.values) - 1)]]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.values + [[v for v in value_pool if v not in you.values][min(int(uniform(0, len(value_pool) - len(you.values))), len(value_pool) - len(you.values) - 1)]]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_pool",
+            "value": []
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "your private values",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "values",
+        "budget",
+        "score"
+      ],
+      "text": "Your private values for items 1 to 6 (in item order), your budget and your score:"
+    },
+    {
+      "use": "update",
+      "label": "the table is ready",
+      "do": [
+        {
+          "set": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "no_leader_code"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_price",
+            "value": 0
+          }
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "open",
+      "label": "the round opens",
+      "do": [
+        {
+          "set": {
+            "key": "first_seat",
+            "value": {
+              "calc": "((round - 1) % len(players)) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "priority_order",
+            "value": {
+              "calc": "[p.seat for p in players if p.seat >= first_seat] + [p.seat for p in players if p.seat < first_seat]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "no_leader_code"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": {
+              "calc": "pass_code"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_valid",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "message",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "open",
+      "label": "the item is up",
+      "to": "all",
+      "text": "Item {round} is on sale. Priority order: {priority_order}. Budgets [seat, budget]: {[[p.seat, p.budget] for p in players]}. Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "store": "message",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Item {round} is on sale. Write one short message to the table. Everyone writes at the same time; messages bind nobody."
+    },
+    {
+      "use": "poll",
+      "phase": "bidding",
+      "label": "bidding turn 1",
+      "to": {
+        "where": "you.budget >= min_bid"
+      },
+      "answer": {
+        "type": "number",
+        "min": 0,
+        "max": {
+          "calc": "you.budget"
+        }
+      },
+      "store": "bid",
+      "text": "Bidding turn 1 of {bidding_turns_per_round} on item {round}. Answer 0 to pass, or a whole-number bid of at least {min_bid} and no more than your budget. Bids are sealed until all are in. The highest valid bid becomes the standing bid; equal highest bids go to the seat earliest in the priority order {priority_order}."
+    },
+    {
+      "use": "update",
+      "phase": "bidding",
+      "label": "turn 1 resolves",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": {
+              "calc": "int(you.bid)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_valid",
+            "value": {
+              "calc": "you.bid >= min_bid and you.bid <= you.budget"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "best_key",
+            "value": {
+              "calc": "max([p.bid * tiebreak_multiplier + (len(players) - 1 - ((p.seat - first_seat) % len(players))) for p in players if p.bid_valid] + [0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "max([p.seat for p in players if p.bid_valid and p.bid * tiebreak_multiplier + (len(players) - 1 - ((p.seat - first_seat) % len(players))) == best_key] + [no_leader_code])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": {
+              "calc": "max([p.bid for p in players if p.bid_valid] + [0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": {
+              "calc": "pass_code"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "bidding",
+      "label": "standing bid after turn 1",
+      "when": {
+        "calc": "leader != no_leader_code"
+      },
+      "to": "all",
+      "text": "Standing bid {standing_bid} by seat {leader}."
+    },
+    {
+      "use": "tell",
+      "phase": "bidding",
+      "label": "no bid after turn 1",
+      "when": {
+        "calc": "leader == no_leader_code"
+      },
+      "to": "all",
+      "text": "No bid."
+    },
+    {
+      "use": "poll",
+      "phase": "bidding",
+      "label": "bidding turn 2",
+      "to": {
+        "where": "you.budget >= standing_bid + min_raise"
+      },
+      "answer": {
+        "type": "number",
+        "min": 0,
+        "max": {
+          "calc": "you.budget"
+        }
+      },
+      "store": "bid",
+      "text": "Bidding turn 2 of {bidding_turns_per_round} on item {round}. Standing bid {standing_bid}, leader seat {leader} (0 means none). Answer 0 to pass, or a whole-number bid of at least the standing bid plus {min_raise} and no more than your budget; any lower bid counts as a pass. The leader may bid too. Equal highest bids go to the seat earliest in the priority order {priority_order}."
+    },
+    {
+      "use": "update",
+      "phase": "bidding",
+      "label": "turn 2 resolves",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": {
+              "calc": "int(you.bid)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_valid",
+            "value": {
+              "calc": "you.bid >= standing_bid + min_raise and you.bid >= min_bid and you.bid <= you.budget"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "best_key",
+            "value": {
+              "calc": "max([p.bid * tiebreak_multiplier + (len(players) - 1 - ((p.seat - first_seat) % len(players))) for p in players if p.bid_valid] + [0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "max([p.seat for p in players if p.bid_valid and p.bid * tiebreak_multiplier + (len(players) - 1 - ((p.seat - first_seat) % len(players))) == best_key] + [no_leader_code])"
+            },
+            "if": {
+              "calc": "any(p.bid_valid for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": {
+              "calc": "max([p.bid for p in players if p.bid_valid] + [0])"
+            },
+            "if": {
+              "calc": "any(p.bid_valid for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": {
+              "calc": "pass_code"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "bidding",
+      "label": "standing bid after turn 2",
+      "when": {
+        "calc": "leader != no_leader_code"
+      },
+      "to": "all",
+      "text": "Standing bid {standing_bid} by seat {leader}."
+    },
+    {
+      "use": "tell",
+      "phase": "bidding",
+      "label": "no bid after turn 2",
+      "when": {
+        "calc": "leader == no_leader_code"
+      },
+      "to": "all",
+      "text": "No bid."
+    },
+    {
+      "use": "poll",
+      "phase": "bidding",
+      "label": "bidding turn 3",
+      "to": {
+        "where": "you.budget >= standing_bid + min_raise"
+      },
+      "answer": {
+        "type": "number",
+        "min": 0,
+        "max": {
+          "calc": "you.budget"
+        }
+      },
+      "store": "bid",
+      "text": "Bidding turn 3 of {bidding_turns_per_round} (the last) on item {round}. Standing bid {standing_bid}, leader seat {leader} (0 means none). Answer 0 to pass, or a whole-number bid of at least the standing bid plus {min_raise} and no more than your budget; any lower bid counts as a pass. The leader may bid too. Equal highest bids go to the seat earliest in the priority order {priority_order}."
+    },
+    {
+      "use": "update",
+      "phase": "bidding",
+      "label": "turn 3 resolves",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": {
+              "calc": "int(you.bid)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_valid",
+            "value": {
+              "calc": "you.bid >= standing_bid + min_raise and you.bid >= min_bid and you.bid <= you.budget"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "best_key",
+            "value": {
+              "calc": "max([p.bid * tiebreak_multiplier + (len(players) - 1 - ((p.seat - first_seat) % len(players))) for p in players if p.bid_valid] + [0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "max([p.seat for p in players if p.bid_valid and p.bid * tiebreak_multiplier + (len(players) - 1 - ((p.seat - first_seat) % len(players))) == best_key] + [no_leader_code])"
+            },
+            "if": {
+              "calc": "any(p.bid_valid for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": {
+              "calc": "max([p.bid for p in players if p.bid_valid] + [0])"
+            },
+            "if": {
+              "calc": "any(p.bid_valid for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "bidding",
+      "label": "final standing bid",
+      "when": {
+        "calc": "leader != no_leader_code"
+      },
+      "to": "all",
+      "text": "Final standing bid {standing_bid} by seat {leader}."
+    },
+    {
+      "use": "tell",
+      "phase": "bidding",
+      "label": "no final bid",
+      "when": {
+        "calc": "leader == no_leader_code"
+      },
+      "to": "all",
+      "text": "No bid; item {round} goes unsold."
+    },
+    {
+      "use": "update",
+      "phase": "resolution",
+      "label": "the item is resolved",
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == leader and you.budget >= standing_bid"
+            },
+            "key": "score",
+            "value": {
+              "calc": "you.values[round - 1] - standing_bid"
+            },
+            "if": {
+              "calc": "leader != no_leader_code"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == leader and you.budget >= standing_bid"
+            },
+            "key": "budget",
+            "value": {
+              "calc": "-standing_bid"
+            },
+            "if": {
+              "calc": "leader != no_leader_code"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_price",
+            "value": {
+              "calc": "standing_bid"
+            },
+            "if": {
+              "calc": "leader != no_leader_code"
+            },
+            "text": "Item {round} sold to seat {leader} for {standing_bid}."
+          }
+        },
+        {
+          "set": {
+            "key": "last_price",
+            "value": 0,
+            "if": {
+              "calc": "leader == no_leader_code"
+            },
+            "text": "Item {round} unsold."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolution",
+      "label": "advance the round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "resolution",
+      "label": "after the last item",
+      "when": {
+        "calc": "round > rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round > rounds"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 6,
+    "rounds_max": 6,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "There are {items} items, auctioned one per round in a known order: item 1 in round 1, and so on to item {items} in round {rounds}. Before round 1, each player is privately dealt the six values {item_value_1}, {item_value_2}, {item_value_3}, {item_value_4}, {item_value_5} and {item_value_6} in a random order: one value per item, each value used exactly once. Each player sees only their own values. Every player's values sum to {value_sum}. Each player starts with a budget of {starting_budget} coins and a score of {starting_score}. Seats are numbered 1 to N.\n\nPRIORITY. In round r, the tie-break priority goes to seat ((r - 1) mod N) + 1 first, then the following seats in increasing order, wrapping around (with 3 players, round 2's order is 2, 3, 1). The priority order is announced at the start of the round.\n\nEACH ROUND (one item):\n1. The item number, the priority order, and every player's remaining budget and score are announced. Budgets and scores are public.\n2. Talk: every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Messages bind nobody.\n3. Bidding turn 1: every player at the same time either submits a whole-number bid of at least {min_bid} or passes (answers 0). A bid is valid only if it does not exceed the bidder's remaining budget; an invalid bid counts as a pass. If at least one valid bid was made, the highest becomes the standing bid and its bidder becomes the leader. Equal highest bids go to the player earliest in this round's priority order. If no valid bid was made, there is no standing bid and no leader.\n4. The standing bid and the leader are announced, or that there is no bid.\n5. Bidding turn 2: every player at the same time either passes (0) or submits a whole-number bid. To be valid, the bid must be at least the standing bid plus {min_raise} (at least {min_bid} if there is no standing bid) and must not exceed the bidder's remaining budget; otherwise it counts as a pass. The leader may also bid, though they need not. If any valid bid was made, the highest becomes the new standing bid and its bidder the new leader, with ties broken by priority. If nobody makes a valid bid, the standing bid and leader stay as they were. A player whose budget is below the lowest valid bid is not asked and passes.\n6. The standing bid and the leader are announced.\n7. Bidding turn 3: same as turn 2.\n8. The final standing bid and the leader are announced.\n9. Resolution: if there is a leader, that player wins the item. They pay the standing bid from their budget, and their score changes by (their private value for this item minus the standing bid), which may be negative (value 7 bought at 10 gives -3). The price is announced, but the winner's value stays private. If there is no leader, the item goes unsold, nobody pays and nobody scores for it.\n10. Advance to the next round. After round {rounds} the game ends.\n\nUnspent coins are worth nothing at the end. Scores count only item values won minus prices paid. After round {rounds}, the player with the highest score wins; players level at the highest score share the win (a draw)."
+}

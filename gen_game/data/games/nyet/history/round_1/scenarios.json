@@ -1,0 +1,1383 @@
+[
+  {
+    "name": "At game start every seat has score 0, lone_tricks 0 and last_win 0",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red",
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        },
+        "2": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        },
+        "3": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        }
+      },
+      "game": {
+        "round": 0
+      }
+    },
+    "rule_text": "When the game starts, then each of the 3 players has score 0, lone_tricks 0 and last_win 0."
+  },
+  {
+    "name": "Round 1 is a veto round: tokens choose trump and Lone, no trick and no score",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 3,
+        "options_include": "First"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        },
+        "2": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        },
+        "3": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        }
+      }
+    },
+    "rule_text": "When round is 1, 7, 13, 19, 25 or 31, then it is a veto round; every other round is a trick round."
+  },
+  {
+    "name": "Round 7 is a veto round: old hands are emptied, 5 cards are dealt to each seat, the Lone gets 6 and the deck keeps 8",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 6
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "Red 1"
+          ],
+          "score": 3
+        },
+        "2": {
+          "hand": [
+            "Red 2"
+          ],
+          "score": 4
+        },
+        "3": {
+          "hand": [
+            "Red 3"
+          ],
+          "score": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 3,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": "First"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 7,
+        "trump": "Blue",
+        "lone_seat": 3
+      },
+      "lens": {
+        "game": {
+          "deck": 8
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 5
+          },
+          "3": {
+            "hand": 6
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "score": 3
+        },
+        "2": {
+          "score": 4
+        },
+        "3": {
+          "score": 3
+        }
+      }
+    },
+    "rule_text": "When a veto round starts, then all hands are emptied, the 24-card deck is rebuilt, each player receives 5 private cards, 1 card becomes the public widow, and 8 cards remain hidden in deck."
+  },
+  {
+    "name": "Tokens left over from a previous deal are cleared at the start of a veto round",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 30,
+        "trump_tokens": [
+          "Yellow",
+          "Green"
+        ],
+        "lone_tokens": [
+          "First"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "First"
+      },
+      {
+        "seat": 1,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 2,
+        "options_include": "Green"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 31,
+        "trump": "Blue",
+        "lone_seat": 1
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "Yellow"
+        },
+        {
+          "seat": 3,
+          "option": "First"
+        },
+        {
+          "seat": 1,
+          "option": "Yellow"
+        }
+      ]
+    },
+    "rule_text": "When a veto round starts, then trump_tokens and lone_tokens are empty."
+  },
+  {
+    "name": "Deal 3 veto order is 3, 1, 2 (seat 3 places first and is the First Lone box)",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 12
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 2,
+        "options_include": "Second"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 13,
+        "trump": "Red",
+        "lone_seat": 3
+      }
+    },
+    "rule_text": "When deal is 1 or 4, then the veto order is seats 1, 2, 3; when deal is 2 or 5, it is 2, 3, 1; when deal is 3 or 6, it is 3, 1, 2."
+  },
+  {
+    "name": "Deal 5 veto order is 2, 3, 1: a token on First makes seat 3 (Second) the Lone",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 24
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red"
+      },
+      {
+        "seat": 3,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": "First"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 25,
+        "trump": "Yellow",
+        "lone_seat": 3
+      }
+    },
+    "rule_text": "When deal is 1 or 4, then the veto order is seats 1, 2, 3; when deal is 2 or 5, it is 2, 3, 1; when deal is 3 or 6, it is 3, 1, 2."
+  },
+  {
+    "name": "Deal 4 trump order is Blue, Red, Yellow, Green: vetoing Blue and Red gives Yellow",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 18
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Third"
+      },
+      {
+        "seat": 2,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 19,
+        "trump": "Yellow",
+        "lone_seat": 1
+      }
+    },
+    "rule_text": "When deal is 1 or 5, then trump_order is Red, Yellow, Green, Blue; when deal is 2 or 6, it is Yellow, Green, Blue, Red; when deal is 3, it is Green, Blue, Red, Yellow; when deal is 4, it is Blue, Red, Yellow, Green."
+  },
+  {
+    "name": "Veto talk is collected and the veto round still completes",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 2,
+        "options_include": "Green"
+      },
+      {
+        "seat": 3,
+        "options_include": "Third"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1,
+        "trump": "Red",
+        "lone_seat": 1
+      }
+    },
+    "rule_text": "When the veto round talk happens, then all 3 players submit one short message at once, and all messages are shown to everyone only after all are in."
+  },
+  {
+    "name": "A box that already holds a token is not offered again",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 3,
+        "options_include": "Second"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": "Green",
+        "lone_seat": 1
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Red"
+        },
+        {
+          "seat": 3,
+          "option": "Red"
+        },
+        {
+          "seat": 3,
+          "option": "Yellow"
+        }
+      ]
+    },
+    "rule_text": "When a player places a Nyet token, then it goes on exactly one empty box, and the player sees all tokens already placed."
+  },
+  {
+    "name": "Once the LONE line holds a token, no other LONE box is offered",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "First"
+      },
+      {
+        "seat": 2,
+        "options_include": "Red"
+      },
+      {
+        "seat": 3,
+        "options_include": "Yellow"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": "Green",
+        "lone_seat": 2
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Second"
+        },
+        {
+          "seat": 2,
+          "option": "Third"
+        },
+        {
+          "seat": 3,
+          "option": "Second"
+        },
+        {
+          "seat": 3,
+          "option": "Third"
+        }
+      ]
+    },
+    "rule_text": "When lone_tokens already holds a token, then no further token may be placed on the LONE line this deal."
+  },
+  {
+    "name": "With two trump boxes still empty, neither is withheld as a last box",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 3,
+        "options_include": "Green"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": "Blue",
+        "lone_seat": 1
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "Green"
+        },
+        {
+          "seat": 3,
+          "option": "Blue"
+        }
+      ]
+    },
+    "rule_text": "When a box is the last empty box of its line, then no token may be placed on it."
+  },
+  {
+    "name": "Trump is the first colour of the line without a token (Yellow and Blue vetoed in deal 1 gives Red)",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 2,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 3,
+        "options_include": "Second"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": "Red",
+        "lone_seat": 1
+      }
+    },
+    "rule_text": "When all 3 tokens are placed, then trump is the first colour in trump_order without a token."
+  },
+  {
+    "name": "The Lone is the seat at the first LONE box without a token (Third vetoed gives seat 1)",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Third"
+      },
+      {
+        "seat": 3,
+        "options_include": "Yellow"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": "Green",
+        "lone_seat": 1
+      }
+    },
+    "rule_text": "When all 3 tokens are placed, then the Lone is the seat of the first of First, Second, Third without a token, and the other two seats are the Pair."
+  },
+  {
+    "name": "The Lone takes the widow and holds 6 cards; the Pair hold 5",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "First"
+      },
+      {
+        "seat": 2,
+        "options_include": "Red"
+      },
+      {
+        "seat": 3,
+        "options_include": "Yellow"
+      }
+    ],
+    "expect": {
+      "game": {
+        "lone_seat": 2,
+        "trump": "Green"
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 6
+          },
+          "3": {
+            "hand": 5
+          }
+        },
+        "game": {
+          "deck": 8
+        }
+      }
+    },
+    "rule_text": "When the Lone is chosen, then the widow is added to the Lone's hand, giving 6 cards, and the Lone leads the first trick."
+  },
+  {
+    "name": "The leader plays first and sets the led colour; seat 3 leads Blue and seat 1's Blue 5 wins",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 3
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 1",
+            "Blue 5"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Yellow 6",
+            "Yellow 2"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Blue 3",
+            "Red 4"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "Blue 3"
+      },
+      {
+        "seat": 1,
+        "options_include": "Blue 5"
+      },
+      {
+        "seat": 2,
+        "options_include": "Yellow 6"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2,
+        "trick_winner": 1
+      },
+      "players": {
+        "1": {
+          "score": 1,
+          "last_win": 2
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 1
+        }
+      }
+    },
+    "rule_text": "When a trick is played, then the leader plays first, then the next seat clockwise, then the third seat, each seeing the cards already played."
+  },
+  {
+    "name": "A seat holding the led colour must follow it",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 6",
+            "Yellow 1"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Green 1"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2",
+            "Blue 6"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 6"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 3,
+          "option": "Red 2"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "Blue 6"
+        },
+        {
+          "seat": 1,
+          "option": "Yellow 1"
+        }
+      ],
+      "game": {
+        "trick_winner": 1
+      }
+    },
+    "rule_text": "When a player holds a card of led_colour, then they must play a card of led_colour; otherwise they may play any card in hand."
+  },
+  {
+    "name": "A low trump beats the highest card of the led colour",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 1"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 6"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Green 1",
+            "Blue 6"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 6"
+      },
+      {
+        "seat": 3,
+        "options_include": "Green 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trick_winner": 3
+      },
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 0,
+          "lone_tricks": 0
+        },
+        "3": {
+          "score": 1,
+          "last_win": 2
+        }
+      }
+    },
+    "rule_text": "When any trump is played in a trick, then the highest trump wins; otherwise the highest card of led_colour wins."
+  },
+  {
+    "name": "An off-colour non-trump card cannot win; the highest card of the led colour wins",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 1"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 3"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Blue 6"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "Blue 6"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trick_winner": 2
+      },
+      "players": {
+        "2": {
+          "score": 2,
+          "lone_tricks": 1,
+          "last_win": 2
+        },
+        "1": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When any trump is played in a trick, then the highest trump wins; otherwise the highest card of led_colour wins."
+  },
+  {
+    "name": "The Lone wins a trick: +2 score and +1 lone_tricks",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 1",
+            "Yellow 1"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Green 1"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2",
+            "Blue 6"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trick_winner": 2
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "lone_tricks": 0
+        },
+        "2": {
+          "score": 2,
+          "lone_tricks": 1,
+          "last_win": 2
+        },
+        "3": {
+          "score": 0,
+          "lone_tricks": 0
+        }
+      }
+    },
+    "rule_text": "When the Lone wins a trick, then the Lone's score rises by 2 and lone_tricks by 1."
+  },
+  {
+    "name": "A Pair member wins a trick: both Pair members gain 1, the Lone gains nothing",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 6",
+            "Yellow 1"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Green 1"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2",
+            "Blue 6"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 6"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trick_winner": 1
+      },
+      "players": {
+        "1": {
+          "score": 1,
+          "lone_tricks": 0,
+          "last_win": 2
+        },
+        "2": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        },
+        "3": {
+          "score": 1,
+          "lone_tricks": 0,
+          "last_win": 0
+        }
+      }
+    },
+    "rule_text": "When a Pair member wins a trick, then the score of each of the two Pair members rises by 1."
+  },
+  {
+    "name": "The trick winner's last_win is the round and that seat leads the next trick",
+    "rule": "R19",
+    "players": 3,
+    "rounds": 2,
+    "given": {
+      "game": {
+        "round": 1,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 6",
+            "Blue 1"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Yellow 6"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2",
+            "Yellow 2"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 6"
+      },
+      {
+        "seat": 1,
+        "options_include": "Blue 1"
+      },
+      {
+        "seat": 2,
+        "options_include": "Yellow 6"
+      },
+      {
+        "seat": 3,
+        "options_include": "Yellow 2"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 3,
+        "trick_winner": 1
+      },
+      "players": {
+        "1": {
+          "score": 2,
+          "last_win": 3
+        },
+        "2": {
+          "score": 0,
+          "lone_tricks": 0,
+          "last_win": 0
+        },
+        "3": {
+          "score": 2,
+          "last_win": 0
+        }
+      }
+    },
+    "rule_text": "When a player wins a trick, then their last_win is set to the current round number and they lead the next trick of the deal."
+  },
+  {
+    "name": "After the 5th trick the Lone still holds 1 unplayed card",
+    "rule": "R20",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 5,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 1"
+          ]
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Blue 1"
+          ]
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 6,
+        "trick_winner": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 1
+          },
+          "3": {
+            "hand": 0
+          }
+        }
+      },
+      "players": {
+        "2": {
+          "score": 2,
+          "lone_tricks": 1,
+          "last_win": 6
+        }
+      }
+    },
+    "rule_text": "When the 5th trick of a deal ends, then the Lone's 1 remaining card is never played or revealed and is discarded at the next shuffle."
+  },
+  {
+    "name": "The game ends after round 36 and the highest score wins",
+    "rule": "R21",
+    "players": 3,
+    "given": {
+      "game": {
+        "round": 35,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 1"
+          ],
+          "score": 10,
+          "lone_tricks": 0,
+          "last_win": 20
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Blue 1"
+          ],
+          "score": 10,
+          "lone_tricks": 2,
+          "last_win": 25
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2"
+          ],
+          "score": 5,
+          "lone_tricks": 0,
+          "last_win": 10
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 1"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 100020,
+        "2": 120336,
+        "3": 50010
+      },
+      "game": {
+        "round": 36,
+        "trick_winner": 2
+      },
+      "players": {
+        "2": {
+          "score": 12,
+          "lone_tricks": 3,
+          "last_win": 36
+        }
+      }
+    },
+    "rule_text": "When round 36 ends, then the game ends."
+  },
+  {
+    "name": "Tie on score and lone_tricks is broken by the most recent trick win",
+    "rule": "R22",
+    "players": 3,
+    "given": {
+      "game": {
+        "round": 35,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 1"
+          ],
+          "score": 12,
+          "lone_tricks": 3,
+          "last_win": 30
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Blue 1"
+          ],
+          "score": 10,
+          "lone_tricks": 2,
+          "last_win": 25
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2"
+          ],
+          "score": 11,
+          "lone_tricks": 0,
+          "last_win": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 1"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 120330,
+        "2": 120336,
+        "3": 110000
+      },
+      "players": {
+        "1": {
+          "score": 12,
+          "lone_tricks": 3,
+          "last_win": 30
+        },
+        "2": {
+          "score": 12,
+          "lone_tricks": 3,
+          "last_win": 36
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the highest score wins; ties go to most lone_tricks, then highest last_win; players still tied share the win as a draw."
+  },
+  {
+    "name": "Tie on score is broken by lone_tricks",
+    "rule": "R22",
+    "players": 3,
+    "given": {
+      "game": {
+        "round": 35,
+        "trump": "Green",
+        "lone_seat": 2,
+        "leader": 2
+      },
+      "players": {
+        "1": {
+          "role": "pair",
+          "hand": [
+            "Red 6"
+          ],
+          "score": 9,
+          "lone_tricks": 0,
+          "last_win": 20
+        },
+        "2": {
+          "role": "lone",
+          "hand": [
+            "Red 5",
+            "Blue 1"
+          ],
+          "score": 10,
+          "lone_tricks": 4,
+          "last_win": 25
+        },
+        "3": {
+          "role": "pair",
+          "hand": [
+            "Red 2"
+          ],
+          "score": 8,
+          "lone_tricks": 0,
+          "last_win": 10
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Red 5"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "Red 6"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 100036,
+        "2": 100425,
+        "3": 90010
+      },
+      "players": {
+        "1": {
+          "score": 10,
+          "last_win": 36
+        },
+        "2": {
+          "score": 10,
+          "lone_tricks": 4
+        },
+        "3": {
+          "score": 9
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the highest score wins; ties go to most lone_tricks, then highest last_win; players still tied share the win as a draw."
+  }
+]

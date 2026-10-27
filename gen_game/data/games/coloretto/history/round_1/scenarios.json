@@ -1,0 +1,1075 @@
+[
+  {
+    "name": "R1: at setup no turn has been played, the turn counter is 1, all rows are empty and nobody has scored",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "turn": 1
+      },
+      "lens": {
+        "game": {
+          "row_1": 0,
+          "row_2": 0,
+          "row_3": 0
+        }
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "At setup the deck holds 38 cards (7 each of 5 colours plus 3 '+2'), and one random card is face up as top_card."
+  },
+  {
+    "name": "R2: three different Favourites are dealt from the pool of 5, leaving 2, and none is revealed yet",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "favourite_pool": 2
+        }
+      },
+      "players": {
+        "1": {
+          "favourite_revealed": ""
+        },
+        "2": {
+          "favourite_revealed": ""
+        },
+        "3": {
+          "favourite_revealed": ""
+        }
+      }
+    },
+    "rule_text": "At setup each player receives a different random Favourite colour, visible only to that player."
+  },
+  {
+    "name": "R3: a full row cannot be placed on, and placing on an empty open row appends one card",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "active_seat": 1,
+        "row_1": [
+          "red",
+          "red",
+          "red"
+        ],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_2"
+      }
+    ],
+    "expect": {
+      "game": {
+        "turn": 2
+      },
+      "lens": {
+        "game": {
+          "row_1": 3,
+          "row_2": 1
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "place_2"
+        },
+        {
+          "seat": 1,
+          "option": "take_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "place_1"
+        },
+        {
+          "seat": 1,
+          "option": "take_2"
+        },
+        {
+          "seat": 1,
+          "option": "take_3"
+        }
+      ]
+    },
+    "rule_text": "When a player chooses place_k, then the action is legal only if row_k is open and holds fewer than 3 cards; top_card is appended to row_k and a new top_card is drawn from deck."
+  },
+  {
+    "name": "R3: a closed row can be neither placed on nor taken",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "row_1": [
+          "red"
+        ],
+        "row_1_open": false,
+        "takers": 1,
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_2"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "place_1"
+        },
+        {
+          "seat": 1,
+          "option": "take_1"
+        }
+      ]
+    },
+    "rule_text": "When a player chooses place_k, then the action is legal only if row_k is open and holds fewer than 3 cards; top_card is appended to row_k and a new top_card is drawn from deck."
+  },
+  {
+    "name": "R4: taking row 2 (red, blue) on the last turn scores 1+1 plus the Favourite bonus (green count 0 >= third count 0), so 8",
+    "rule": "R4",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "green"
+        },
+        "2": {
+          "favourite": "yellow"
+        },
+        "3": {
+          "favourite": "purple"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [
+          "red",
+          "blue"
+        ],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_2"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 8,
+        "2": 6,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 8
+        },
+        "2": {
+          "score": 6
+        },
+        "3": {
+          "score": 6
+        }
+      },
+      "game": {
+        "turn": 37
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "take_1"
+        },
+        {
+          "seat": 1,
+          "option": "take_3"
+        }
+      ]
+    },
+    "rule_text": "When a player chooses take_k, then the action is legal only if row_k is open and holds at least 1 card; every card in row_k is added to that player's counts, row_k becomes empty and closed, and the player is marked taken."
+  },
+  {
+    "name": "R5: when every open row is full, only take options are offered",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "active_seat": 1,
+        "row_1": [
+          "red",
+          "red",
+          "red"
+        ],
+        "row_2": [
+          "blue",
+          "blue",
+          "blue"
+        ],
+        "row_3": [
+          "green",
+          "green",
+          "green"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "take_1"
+        },
+        {
+          "seat": 1,
+          "option": "take_2"
+        },
+        {
+          "seat": 1,
+          "option": "take_3"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "place_1"
+        },
+        {
+          "seat": 1,
+          "option": "place_2"
+        },
+        {
+          "seat": 1,
+          "option": "place_3"
+        }
+      ]
+    },
+    "rule_text": "When every open row holds 3 cards, then the active player is offered only take options."
+  },
+  {
+    "name": "R6: with only row 1 open and full, the single option is the take of the lowest open row with a card; the score is 1+1+1 with no bonus (yellow 0 < 1)",
+    "rule": "R6",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "yellow"
+        },
+        "2": {
+          "taken": true,
+          "favourite": "red"
+        },
+        "3": {
+          "taken": true,
+          "favourite": "blue"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "takers": 2,
+        "row_1": [
+          "red",
+          "blue",
+          "green"
+        ],
+        "row_2_open": false,
+        "row_3_open": false,
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3
+      ],
+      "standings": {
+        "1": 3,
+        "2": 6,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 3
+        },
+        "2": {
+          "score": 6
+        },
+        "3": {
+          "score": 6
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "take_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "place_1"
+        },
+        {
+          "seat": 1,
+          "option": "place_2"
+        },
+        {
+          "seat": 1,
+          "option": "take_2"
+        }
+      ]
+    },
+    "rule_text": "When a choice is illegal or missing, then it becomes take of the lowest-numbered open row with a card; if there is none, it becomes place on the lowest-numbered open row with room."
+  },
+  {
+    "name": "R7: a seat that has taken this cycle is skipped, so seat 3 acts after seat 1 and seat 2 is never asked",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "takers": 1,
+        "row_2_open": false,
+        "row_1": [],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      },
+      {
+        "seat": 3,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 3,
+          "option": "take_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "place_1"
+        },
+        {
+          "seat": 2,
+          "option": "place_3"
+        },
+        {
+          "seat": 2,
+          "option": "take_1"
+        }
+      ]
+    },
+    "rule_text": "When a player has taken a row this cycle, then that player is never active again until the cycle ends."
+  },
+  {
+    "name": "R8: after seat 1 places, seat 2 is the next active player",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 2,
+    "given": {
+      "game": {
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      },
+      {
+        "seat": 2,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "take_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "place_1"
+        },
+        {
+          "seat": 3,
+          "option": "take_1"
+        },
+        {
+          "seat": 1,
+          "option": "take_1"
+        }
+      ]
+    },
+    "rule_text": "When a place or a non-final take happens, then the next active player is the next seat in order 1,2,3,1 whose taken is false, which may be the same player."
+  },
+  {
+    "name": "R8: when the other two seats have taken, the placing seat is active again",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        },
+        "3": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "takers": 2,
+        "row_2_open": false,
+        "row_3_open": false,
+        "row_1": [],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      },
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "take_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "place_1"
+        },
+        {
+          "seat": 3,
+          "option": "place_1"
+        },
+        {
+          "seat": 2,
+          "option": "take_1"
+        },
+        {
+          "seat": 3,
+          "option": "take_1"
+        }
+      ]
+    },
+    "rule_text": "When a place or a non-final take happens, then the next active player is the next seat in order 1,2,3,1 whose taken is false, which may be the same player."
+  },
+  {
+    "name": "R9: the third take reopens all three rows empty and the last taker stays active",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        },
+        "3": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "takers": 2,
+        "row_1": [
+          "red"
+        ],
+        "row_2": [],
+        "row_3": [],
+        "row_2_open": false,
+        "row_3_open": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      },
+      {
+        "seat": 1,
+        "options_include": "place_2"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "place_2"
+        },
+        {
+          "seat": 1,
+          "option": "place_3"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "place_1"
+        },
+        {
+          "seat": 3,
+          "option": "place_1"
+        },
+        {
+          "seat": 1,
+          "option": "take_2"
+        },
+        {
+          "seat": 1,
+          "option": "take_3"
+        }
+      ]
+    },
+    "rule_text": "When the third player takes in a cycle, then all three rows reopen empty, all taken flags reset to false, and the player who took last stays active."
+  },
+  {
+    "name": "R10: taking two '+2' cards on the last turn gives 4 points plus the bonus (Favourite count 0 >= 0), so 10",
+    "rule": "R10",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "red"
+        },
+        "2": {
+          "favourite": "blue"
+        },
+        "3": {
+          "favourite": "green"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [
+          "plus_two",
+          "plus_two"
+        ],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 10,
+        "2": 6,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 6
+        },
+        "3": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When a '+2' card is taken, then the taker's plus_two rises by 1."
+  },
+  {
+    "name": "R11: the game ends after round 36 and the placed card is discarded; every seat has no cards and scores only the bonus of 6",
+    "rule": "R11",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "red"
+        },
+        "2": {
+          "favourite": "blue"
+        },
+        "3": {
+          "favourite": "green"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2,
+        3
+      ],
+      "standings": {
+        "1": 6,
+        "2": 6,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 6
+        },
+        "2": {
+          "score": 6
+        },
+        "3": {
+          "score": 6
+        }
+      },
+      "game": {
+        "turn": 37
+      }
+    },
+    "rule_text": "When round 36 has been played, then the game ends and cards left in rows are discarded."
+  },
+  {
+    "name": "R12: counts 7, 4 and 3 are worth 28+10+6 = 44 with no bonus (yellow 0 < 3)",
+    "rule": "R12",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "red": 7,
+          "blue": 4,
+          "green": 2,
+          "yellow": 0,
+          "purple": 0,
+          "favourite": "yellow"
+        },
+        "2": {
+          "favourite": "red"
+        },
+        "3": {
+          "favourite": "blue"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [
+          "green"
+        ],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 44,
+        "2": 6,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 44
+        },
+        "2": {
+          "score": 6
+        },
+        "3": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When scoring, then a colour count c is worth c*(c+1)/2 points (0,1,3,6,10,15,21,28 for 0 to 7)."
+  },
+  {
+    "name": "R13: counts 3,3,3 score +18 and the lowest two (2,2) score -3-3, so 12 with no bonus",
+    "rule": "R13",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "red": 3,
+          "blue": 3,
+          "green": 3,
+          "yellow": 2,
+          "purple": 1,
+          "favourite": "yellow"
+        },
+        "2": {
+          "favourite": "red"
+        },
+        "3": {
+          "favourite": "blue"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [
+          "purple"
+        ],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 12,
+        "2": 6,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 12
+        },
+        "2": {
+          "score": 6
+        },
+        "3": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When scoring, then the three highest colour counts score positive and the other two score negative."
+  },
+  {
+    "name": "R14: three '+2' cards add 6 to colour points 3+1+1, so 11 with no bonus (purple 0 < 1)",
+    "rule": "R14",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "red": 2,
+          "blue": 1,
+          "green": 1,
+          "plus_two": 1,
+          "favourite": "purple"
+        },
+        "2": {
+          "favourite": "red"
+        },
+        "3": {
+          "favourite": "blue"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [
+          "plus_two",
+          "plus_two"
+        ],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 11,
+        "2": 6,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 11
+        },
+        "2": {
+          "score": 6
+        },
+        "3": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When scoring, then each '+2' card adds 2 points."
+  },
+  {
+    "name": "R15: a Favourite equal to the third count earns +6 (21); a Favourite below it does not (18)",
+    "rule": "R15",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "red": 4,
+          "blue": 3,
+          "green": 2,
+          "yellow": 2,
+          "purple": 0,
+          "favourite": "yellow"
+        },
+        "2": {
+          "red": 4,
+          "blue": 3,
+          "green": 2,
+          "yellow": 1,
+          "purple": 0,
+          "favourite": "purple"
+        },
+        "3": {
+          "favourite": "green"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [
+          "purple"
+        ],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 21,
+        "2": 18,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 21
+        },
+        "2": {
+          "score": 18
+        },
+        "3": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When the player's Favourite colour count is at least their third-highest colour count, then they gain 6 points."
+  },
+  {
+    "name": "R16: at the end each seat's Favourite is copied to favourite_revealed",
+    "rule": "R16",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "red"
+        },
+        "2": {
+          "favourite": "blue"
+        },
+        "3": {
+          "favourite": "green"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2,
+        3
+      ],
+      "players": {
+        "1": {
+          "favourite_revealed": "red",
+          "score": 6
+        },
+        "2": {
+          "favourite_revealed": "blue",
+          "score": 6
+        },
+        "3": {
+          "favourite_revealed": "green",
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When the game ends, then every player's Favourite is revealed in favourite_revealed."
+  },
+  {
+    "name": "R17: seats 1 and 2 tie on 12 at the top and share the win",
+    "rule": "R17",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "red": 2,
+          "favourite": "blue"
+        },
+        "2": {
+          "red": 3,
+          "favourite": "green"
+        },
+        "3": {
+          "favourite": "yellow"
+        }
+      },
+      "game": {
+        "turn": 36,
+        "active_seat": 1,
+        "row_1": [
+          "red"
+        ],
+        "row_2": [],
+        "row_3": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 12,
+        "2": 12,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "score": 12
+        },
+        "2": {
+          "score": 12
+        },
+        "3": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the highest score wins, and players tied for the highest score draw."
+  }
+]

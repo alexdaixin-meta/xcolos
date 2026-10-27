@@ -1,0 +1,634 @@
+[
+  {
+    "name": "R1: at the start every score is 0 and no round has been played",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        },
+        "4": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 0
+      }
+    },
+    "rule_text": "When the game starts, then every player's score is 0."
+  },
+  {
+    "name": "R2: after one round the round counter is 1 (the dealt cards are random, so they are not asserted)",
+    "rule": "R2",
+    "players": 4,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "bid": 1
+        }
+      }
+    },
+    "rule_text": "When a round starts, then the full 18-card deck (numbers 1-12, two Escapes of power 0, Mermaid 20, Pirate A 30, Pirate B 31, Skull King 40) is shuffled and each player receives exactly 3 cards in their private hand."
+  },
+  {
+    "name": "R3: a 5-player round deals and plays through (the undealt cards are hidden, so they are not asserted)",
+    "rule": "R3",
+    "players": 5,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 5,
+        "options_include": 2,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "5": {
+          "bid": 2
+        }
+      }
+    },
+    "rule_text": "When cards are dealt, then the undealt cards stay in deck and are never revealed that round."
+  },
+  {
+    "name": "R4: each seat's bid is recorded as entered and the bid range 0 to 3 is offered",
+    "rule": "R4",
+    "players": 4,
+    "seed": 4,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 2,
+        "times": 1
+      },
+      {
+        "seat": 4,
+        "options_include": 3,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 0
+        },
+        "2": {
+          "bid": 1
+        },
+        "3": {
+          "bid": 2
+        },
+        "4": {
+          "bid": 3
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 0
+        },
+        {
+          "seat": 1,
+          "option": 3
+        },
+        {
+          "seat": 2,
+          "option": 0
+        },
+        {
+          "seat": 4,
+          "option": 3
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 41
+        },
+        {
+          "seat": 2,
+          "option": 41
+        }
+      ]
+    },
+    "rule_text": "When players bid, then each chooses simultaneously a whole number from 0 to 3, and all bids are revealed only after all are in."
+  },
+  {
+    "name": "R5: the three tricks are played from a random hand (only the bids and the round counter are asserted)",
+    "rule": "R5",
+    "players": 3,
+    "seed": 5,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "bid": 2
+        },
+        "2": {
+          "bid": 1
+        },
+        "3": {
+          "bid": 0
+        }
+      }
+    },
+    "rule_text": "When a trick is played, then each player simultaneously plays one card from their own hand, and that card is removed from the hand and revealed to all."
+  },
+  {
+    "name": "R6: a round with Mermaid/Skull King resolution plays through (the deal is random, so only deal-independent facts are asserted)",
+    "rule": "R6",
+    "players": 5,
+    "seed": 6,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "bid": 1
+        }
+      }
+    },
+    "rule_text": "When both the Mermaid (20) and the Skull King (40) are played in a trick, then the Mermaid's player wins the trick."
+  },
+  {
+    "name": "R7: a highest-card trick round plays through (the deal is random, so only deal-independent facts are asserted)",
+    "rule": "R7",
+    "players": 4,
+    "seed": 7,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 3,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "2": {
+          "bid": 3
+        }
+      }
+    },
+    "rule_text": "When the Mermaid and the Skull King are not both in a trick and some card has power above 0, then the player of the highest-power card wins the trick."
+  },
+  {
+    "name": "R8: a 3-player round plays through (with only 2 Escapes every trick has a winner; only deal-independent facts are asserted)",
+    "rule": "R8",
+    "players": 3,
+    "seed": 8,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "3": {
+          "bid": 1
+        }
+      }
+    },
+    "rule_text": "When every card played in a trick has power 0, then nobody wins the trick and no tricks_won changes."
+  },
+  {
+    "name": "R9: tricks are won during the round and tricks_won is back to 0 after scoring (deal-independent)",
+    "rule": "R9",
+    "players": 3,
+    "seed": 9,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tricks_won": 0
+        },
+        "2": {
+          "tricks_won": 0
+        },
+        "3": {
+          "tricks_won": 0
+        }
+      }
+    },
+    "rule_text": "When a player wins a trick, then their tricks_won increases by 1."
+  },
+  {
+    "name": "R10: a Skull King capture round plays through (the deal is random, so only deal-independent facts are asserted)",
+    "rule": "R10",
+    "players": 5,
+    "seed": 10,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 2,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "3": {
+          "bid": 2
+        }
+      }
+    },
+    "rule_text": "When the Skull King wins a trick, then its player records a bonus of +20 for each Pirate (30 or 31) in that trick."
+  },
+  {
+    "name": "R11: a Mermaid capture round plays through (the deal is random, so only deal-independent facts are asserted)",
+    "rule": "R11",
+    "players": 5,
+    "seed": 11,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "4": {
+          "bid": 1
+        }
+      }
+    },
+    "rule_text": "When the Mermaid wins a trick containing the Skull King, then its player records a +40 bonus."
+  },
+  {
+    "name": "R12: a zero bid is recorded and tricks_won resets after scoring (the trick outcome is random, so it is not asserted)",
+    "rule": "R12",
+    "players": 4,
+    "seed": 12,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 0,
+          "tricks_won": 0
+        }
+      }
+    },
+    "rule_text": "When a player bid 0 and won 0 tricks, then they score +30 for the round."
+  },
+  {
+    "name": "R13: all seats bid 0 and the bids are recorded (the trick outcome is random, so it is not asserted)",
+    "rule": "R13",
+    "players": 3,
+    "seed": 13,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 0
+        },
+        "2": {
+          "bid": 0
+        },
+        "3": {
+          "bid": 0
+        }
+      }
+    },
+    "rule_text": "When a player bid 0 and won 1 or more tricks, then they score -30 for the round."
+  },
+  {
+    "name": "R14: a bid of 1 is recorded (whether it is made depends on the deal, so the score is not asserted)",
+    "rule": "R14",
+    "players": 4,
+    "seed": 14,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "bid": 1,
+          "tricks_won": 0
+        }
+      }
+    },
+    "rule_text": "When a player bid k >= 1 and won exactly k tricks, then they score 20*k plus all bonuses recorded that round."
+  },
+  {
+    "name": "R15: all seats bid 3 and the bids are recorded (the deal decides who makes it, so the score is not asserted)",
+    "rule": "R15",
+    "players": 3,
+    "seed": 15,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 3,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 3,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 3
+        },
+        "2": {
+          "bid": 3
+        },
+        "3": {
+          "bid": 3
+        }
+      }
+    },
+    "rule_text": "When a player bid k >= 1 and won a different number of tricks t, then they score -10*|k - t| and no bonuses."
+  },
+  {
+    "name": "R16: after a round's scoring every tricks_won is reset to 0",
+    "rule": "R16",
+    "players": 4,
+    "seed": 16,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tricks_won": 0
+        },
+        "2": {
+          "tricks_won": 0
+        },
+        "3": {
+          "tricks_won": 0
+        },
+        "4": {
+          "tricks_won": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When a round's scoring ends, then each player's tricks_won, round points and score are announced, and tricks_won and bonus reset to 0."
+  },
+  {
+    "name": "R17: round 8 ends the game and a seat 1000 points ahead wins (one round can change a score by at most +100/-30)",
+    "rule": "R17",
+    "players": 3,
+    "seed": 17,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "score": 1000
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 7
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "round": 8
+      }
+    },
+    "rule_text": "When round 8 has been scored, then the game ends and the highest score wins; players tied for the highest score share the result (a draw)."
+  },
+  {
+    "name": "R17: the game ends after round 8 even with one seat far behind, and the leader wins",
+    "rule": "R17",
+    "players": 4,
+    "seed": 18,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "score": -500
+        },
+        "2": {
+          "score": 600
+        },
+        "3": {
+          "score": 0
+        },
+        "4": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 7
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "game": {
+        "round": 8
+      }
+    },
+    "rule_text": "When round 8 has been scored, then the game ends and the highest score wins; players tied for the highest score share the result (a draw)."
+  },
+  {
+    "name": "R18: a round runs bid and tricks with no talk phase (the round completes)",
+    "rule": "R18",
+    "players": 3,
+    "seed": 19,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "bid": 0
+        }
+      }
+    },
+    "rule_text": "When any phase of the game runs, then there is no talk phase."
+  }
+]

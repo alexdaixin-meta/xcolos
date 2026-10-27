@@ -1,0 +1,1344 @@
+[
+  {
+    "name": "Setup: 6 cards each, 21 left in deck, empty discard row",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "deck_size": 21,
+        "round": 0,
+        "discard_tops": []
+      },
+      "lens": {
+        "game": {
+          "deck": 21
+        },
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          }
+        }
+      }
+    },
+    "rule_text": "When the game starts, the deck has 33 cards (numbers 2-10 in R, B and G, plus two wagers per colour), each player is dealt 6 cards, and 21 remain in deck."
+  },
+  {
+    "name": "Seat 1 takes its turn before seat 2, so seat 2 can pick up seat 1's discard",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R4",
+            "B2",
+            "G4"
+          ]
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R4"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD B3"
+      },
+      {
+        "seat": 2,
+        "options_include": "R4"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "R4"
+        }
+      ],
+      "game": {
+        "discard_tops": [
+          "B3"
+        ],
+        "deck_size": 3,
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When the game starts, seat 1 is chosen at random, and each round seat 1 takes a full turn and then seat 2 does."
+  },
+  {
+    "name": "Playing a higher red number adds it to the red run; lower numbers not offered",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "R2",
+            "B2"
+          ],
+          "top_r": 3,
+          "sum_r": 3,
+          "cnt_r": 1
+        },
+        "2": {
+          "hand": [
+            "G2",
+            "B3",
+            "G6"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY R5"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G2"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "PLAY R5"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "PLAY R2"
+        }
+      ],
+      "players": {
+        "1": {
+          "score": -7
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "deck_size": 2,
+        "discard_tops": [
+          "G2"
+        ]
+      }
+    },
+    "rule_text": "When a player PLAYs a number X of colour c with X > top_c, then X leaves the hand, cnt_c rises by 1, sum_c rises by X and top_c becomes X."
+  },
+  {
+    "name": "A wager on an empty colour doubles its (negative) score; wager on a started colour not offered",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "RW",
+            "BW",
+            "R6"
+          ],
+          "top_b": 4,
+          "sum_b": 4,
+          "cnt_b": 1
+        },
+        "2": {
+          "hand": [
+            "G2",
+            "B3",
+            "G6"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY RW"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G2"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "PLAY RW"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "PLAY BW"
+        }
+      ],
+      "players": {
+        "1": {
+          "score": -41
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a player PLAYs a wager of colour c while top_c = 0, then it leaves the hand, cnt_c rises by 1 and wag_c rises by 1."
+  },
+  {
+    "name": "Illegal plays (low number, late wager) are never offered; the legal play is",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R3",
+            "R8",
+            "BW"
+          ],
+          "top_r": 5,
+          "sum_r": 5,
+          "cnt_r": 1,
+          "top_b": 2,
+          "sum_b": 2,
+          "cnt_b": 1
+        },
+        "2": {
+          "hand": [
+            "G2",
+            "B3",
+            "G6"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY R8"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G2"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "PLAY R8"
+        },
+        {
+          "seat": 1,
+          "option": "DISCARD R3"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "PLAY R3"
+        },
+        {
+          "seat": 1,
+          "option": "PLAY BW"
+        }
+      ],
+      "players": {
+        "1": {
+          "score": -15
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a player attempts a PLAY of a number X <= top_c, or of a wager while top_c > 0, or of a card not in hand, then it is treated as DISCARD of the first card in hand."
+  },
+  {
+    "name": "Discarding replaces the same colour's discard and appends to the row",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ]
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": [
+          "R4",
+          "B5"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "discard_tops": [
+          "B5",
+          "R9",
+          "G3"
+        ],
+        "deck_size": 2
+      }
+    },
+    "rule_text": "When a player DISCARDs X, then X leaves the hand, any card of X's colour already in discard_tops is removed from the game, X is appended to discard_tops, and last_discard becomes X."
+  },
+  {
+    "name": "Drawing from the deck moves one card to hand and lowers deck_size",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ]
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "deck_size": 2,
+        "discard_tops": [
+          "R9",
+          "G3"
+        ]
+      },
+      "lens": {
+        "game": {
+          "deck": 2
+        },
+        "players": {
+          "1": {
+            "hand": 3
+          },
+          "2": {
+            "hand": 3
+          }
+        }
+      }
+    },
+    "rule_text": "When a player draws DECK and the deck is not empty, then one card moves from deck to hand and deck_size falls by 1."
+  },
+  {
+    "name": "Naming a discard top takes it into hand",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ]
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": [
+          "B5"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "B5"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "discard_tops": [
+          "R9",
+          "G3"
+        ],
+        "deck_size": 3
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 3
+          }
+        }
+      }
+    },
+    "rule_text": "When a player names a card in discard_tops other than last_discard, then that card moves from discard_tops to hand."
+  },
+  {
+    "name": "Naming the card just discarded draws from the deck instead",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ]
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "answer": "R9"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "discard_tops": [
+          "R9",
+          "G3"
+        ],
+        "deck_size": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 3
+          }
+        }
+      }
+    },
+    "rule_text": "When a player gives an invalid draw answer or names last_discard, then they draw from DECK."
+  },
+  {
+    "name": "With an empty deck the draw must come from the discard row, excluding one's own discard",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ]
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [],
+        "deck_size": 0,
+        "discard_tops": [
+          "B5"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "B5"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "R9"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "B5"
+        },
+        {
+          "seat": 2,
+          "option": "R9"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "DECK"
+        },
+        {
+          "seat": 2,
+          "option": "DECK"
+        }
+      ],
+      "game": {
+        "discard_tops": [
+          "G3"
+        ],
+        "deck_size": 0
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When the deck is empty, then the player must take a card from discard_tops other than last_discard, and if none exists they draw nothing."
+  },
+  {
+    "name": "last_discard resets after seat 1's draw, so seat 2 may take seat 1's discard",
+    "rule": "R11",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ]
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PLAY G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "R9"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "R9"
+        }
+      ],
+      "game": {
+        "discard_tops": [],
+        "deck_size": 3
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": -12
+        }
+      }
+    },
+    "rule_text": "When a draw step ends, then last_discard is reset to 'none'."
+  },
+  {
+    "name": "Colours with no cards score 0; only the started colour counts",
+    "rule": "R12",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ],
+          "sum_b": 20,
+          "top_b": 10,
+          "cnt_b": 2
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "R7",
+          "R8"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a round ends and a colour has cnt_c = 0, then it scores 0."
+  },
+  {
+    "name": "One wager with numbers totalling 20 scores 10",
+    "rule": "R13",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "B2",
+            "G4",
+            "B6"
+          ],
+          "sum_r": 20,
+          "top_r": 9,
+          "cnt_r": 4,
+          "wag_r": 1
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD B2"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a round ends and a colour has cnt_c >= 1, then it scores (sum_c - 15) * (1 + wag_c), so one wager with numbers totalling 20 scores 10."
+  },
+  {
+    "name": "Fifth card in an expedition adds the 10-point bonus",
+    "rule": "R14",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R6",
+            "B2",
+            "G4"
+          ],
+          "sum_r": 14,
+          "top_r": 5,
+          "cnt_r": 4,
+          "wag_r": 0
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R7"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY R6"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 15
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a round ends and a colour has cnt_c >= 5, then it scores an extra 10 points."
+  },
+  {
+    "name": "Score is the sum of the three colour scores",
+    "rule": "R15",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R2",
+            "B2",
+            "G2"
+          ],
+          "sum_r": 20,
+          "top_r": 10,
+          "cnt_r": 2,
+          "sum_b": 10,
+          "top_b": 10,
+          "cnt_b": 1,
+          "sum_g": 18,
+          "top_g": 10,
+          "cnt_g": 3,
+          "wag_g": 1
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "R7",
+          "B7",
+          "G7",
+          "R6"
+        ],
+        "deck_size": 4,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R2"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 6
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a round ends, then each player's score is the sum of their three colour scores."
+  },
+  {
+    "name": "Seat 1 empties the deck, seat 2 still finishes the round, then the game ends",
+    "rule": "R16",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R9",
+            "B2",
+            "G4"
+          ],
+          "sum_b": 20,
+          "top_b": 10,
+          "cnt_b": 2
+        },
+        "2": {
+          "hand": [
+            "G9",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G10"
+        ],
+        "deck_size": 1,
+        "discard_tops": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD R9"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PLAY G9"
+      },
+      {
+        "seat": 2,
+        "options_include": "R9"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 5,
+        "2": -6
+      },
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": -6
+        }
+      },
+      "game": {
+        "deck_size": 0,
+        "round": 1,
+        "discard_tops": []
+      }
+    },
+    "rule_text": "When a round ends with deck_size = 0, then the game ends, and seat 2 always completes the round first."
+  },
+  {
+    "name": "The game ends after round 20 even with cards left",
+    "rule": "R17",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R2",
+            "B2",
+            "G4"
+          ],
+          "sum_r": 20,
+          "top_r": 10,
+          "cnt_r": 2
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ]
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "B10",
+          "B8",
+          "G8",
+          "B7",
+          "G7",
+          "B6",
+          "G6"
+        ],
+        "deck_size": 10,
+        "discard_tops": [],
+        "round": 19
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD B2"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 5,
+        "2": 0
+      },
+      "game": {
+        "round": 20,
+        "deck_size": 8
+      }
+    },
+    "rule_text": "When round 20 ends, then the game ends."
+  },
+  {
+    "name": "Equal final scores are shared",
+    "rule": "R18",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R2",
+            "B2",
+            "G4"
+          ],
+          "sum_r": 20,
+          "top_r": 10,
+          "cnt_r": 2
+        },
+        "2": {
+          "hand": [
+            "G3",
+            "B3",
+            "R3"
+          ],
+          "sum_b": 20,
+          "top_b": 10,
+          "cnt_b": 2
+        }
+      },
+      "game": {
+        "deck": [
+          "G9",
+          "G10",
+          "B9",
+          "R9"
+        ],
+        "deck_size": 4,
+        "discard_tops": [],
+        "round": 19
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD B2"
+      },
+      {
+        "seat": 1,
+        "options_include": "DECK",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD G3"
+      },
+      {
+        "seat": 2,
+        "options_include": "DECK",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 5,
+        "2": 5
+      },
+      "game": {
+        "round": 20
+      }
+    },
+    "rule_text": "When the game ends, then the higher score wins, and equal scores are a draw."
+  }
+]

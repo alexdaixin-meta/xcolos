@@ -1,0 +1,461 @@
+{
+  "game": "cuttle",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state a player is shown has empty fields (action, chosen_card); hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    "it plays, but part of it does nothing: player attribute `won` is never changed in 3 random matches, so nothing updates it. Steps that name it: start of turn. They never change it: their `when`/`if` may never be true, the `key` may be spelled differently from the attribute, or the value written may equal what it already holds.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup deals 6 cards to each seat and leaves 36 in the draw pile",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The First player acts on turn 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The game stops after turn 40 and the smaller shortfall wins",
+      "passed": false,
+      "failures": [
+        "rule R3 is broken: When the players alternate single turns, the game has at most 40 turns, numbered 1 to 40.",
+        "seat 2 standing: expected -30, got 970",
+        "seat 2 won: expected 0, got 1"
+      ],
+      "trace": "moves played: r1 seat 1: 'draw'. First attribute changes: table draw_pile: [] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table positions: [] -> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40']; table slots: [] -> [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]; table acting_seat: 1 -> 2; seat 2 is_first: False -> True; table pick: '' -> '3'; seat 1 hand: [] -> ['3']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '3' -> '6'; seat 2 hand: [] -> ['6']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '6' -> '9'; seat 1 hand: ['3'] -> ['3', '9']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] .... Final: players {\"seat 1\": {\"is_first\": true, \"hand\": [\"1\", \"4\"], \"hand_count\": 2, \"point_pile\": [], \"point_pile_view\": [], \"points\": 0, \"king_count\": 0, \"threshold\": 32, \"shortfall\": 32, \"won\": 0}, \"seat 2\": {\"is_first\": false, \"hand\": [\"6\", \"J\", \"3\", \"1\", \"10\", \"J\"], \"hand_count\": 6, \"point_pile\": [], \"point_pile_view\": [], \"points\": 0, \"king_count\": 0, \"threshold\": 30, \"shortfall\": 30, \"won\": 1}}; table {\"draw_pile\": [\"1\", \"2\", \"2\", \"2\", \"2\", \"3\", \"3\", \"4\", \"4\", \"4\", \"5\", \"5\", \"5\", \"5\", \"6\", \"6\", \"6\", \"7\", \"7\", \"7\", \"7\", \"8\", \"8\", \"8\", \"8\", \"9\", \"9\", \"9\", \"10\", \"10\", \"J\", \"J\", \"K\", \"K\", \"K\"], \"scrap\": [], \"turn\": 41, \"acting_seat\": 2, \"action\": \"draw\", \"chosen_card\": \"\", \"target_index\": 0, \"draw_count\": 35, \"opp_seat\": 2, \"act_hand\": [\"1\"], \"opp_view\": [], \"opp_pile\": [], \"action_opts\": [\"pass\", \"draw\", \"points\"], \""
+    },
+    {
+      "name": "First player with 1 King has threshold 24",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "First player with 3 Kings has threshold 14",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "First player with 4 Kings has threshold 11",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Second player with 2 Kings has threshold 16",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Second player with 4 Kings has threshold 9",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Acting player at threshold at the start of the turn wins at once",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Draw moves one card from draw pile to hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Draw is not offered with 8 cards in hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Points card goes face down showing only its band",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Scuttle with a higher card removes the target and both go to scrap",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Scuttle with a lower card scraps the attacker and the target stays",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A 10 scuttles an opponent King and raises their threshold",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A Jack steals an opponent point card",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Placing a King lowers the threshold to the next table value",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "With an empty draw pile pass is offered and draw is not",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "An unparseable reply counts as pass and nothing changes",
+      "passed": false,
+      "failures": [
+        "rule R15 is broken: When a reply is illegal or unparseable, then it counts as PASS and nothing changes.",
+        "seat 1 hand: expected 1 items, got 2",
+        "game draw_pile: expected 36 items, got 35"
+      ],
+      "trace": "moves played: r1 seat 1: 'draw'. First attribute changes: table draw_pile: [] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table positions: [] -> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40']; table slots: [] -> [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]; table acting_seat: 1 -> 2; seat 2 is_first: False -> True; table pick: '' -> '3'; seat 1 hand: [] -> ['3']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '3' -> '6'; seat 2 hand: [] -> ['6']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '6' -> '9'; seat 1 hand: ['3'] -> ['3', '9']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] .... Final: players {\"seat 1\": {\"is_first\": true, \"hand\": [\"5\", \"4\"], \"hand_count\": 2, \"point_pile\": [], \"point_pile_view\": [], \"points\": 0, \"king_count\": 0, \"threshold\": 32, \"shortfall\": 32, \"won\": 0}, \"seat 2\": {\"is_first\": false, \"hand\": [\"6\", \"J\", \"3\", \"1\", \"10\", \"J\"], \"hand_count\": 6, \"point_pile\": [], \"point_pile_view\": [], \"points\": 0, \"king_count\": 0, \"threshold\": 30, \"shortfall\": 30, \"won\": 0}}; table {\"draw_pile\": [\"1\", \"2\", \"2\", \"2\", \"2\", \"3\", \"3\", \"4\", \"4\", \"4\", \"5\", \"5\", \"5\", \"5\", \"6\", \"6\", \"6\", \"7\", \"7\", \"7\", \"7\", \"8\", \"8\", \"8\", \"8\", \"9\", \"9\", \"9\", \"10\", \"10\", \"J\", \"J\", \"K\", \"K\", \"K\"], \"scrap\": [], \"turn\": 2, \"acting_seat\": 2, \"action\": \"draw\", \"chosen_card\": \"\", \"target_index\": 0, \"draw_count\": 35, \"opp_seat\": 2, \"act_hand\": [\"5\"], \"opp_view\": [], \"opp_pile\": [], \"action_opts\": [\"pass\", \"draw\", \"points\"], \"c"
+    },
+    {
+      "name": "After turn 40 the smaller shortfall wins",
+      "passed": false,
+      "failures": [
+        "rule R16 is broken: When turn 40 ends with no winner, then the player with the smaller max(threshold - points, 0) wins, and equal shortfalls are a draw.",
+        "seat 2 standing: expected -5, got 995",
+        "seat 2 won: expected 0, got 1"
+      ],
+      "trace": "moves played: r1 seat 2: 'draw'. First attribute changes: table draw_pile: [] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table positions: [] -> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40']; table slots: [] -> [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]; table acting_seat: 1 -> 2; seat 2 is_first: False -> True; table pick: '' -> '3'; seat 1 hand: [] -> ['3']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '3' -> '6'; seat 2 hand: [] -> ['6']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '6' -> '9'; seat 1 hand: ['3'] -> ['3', '9']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] .... Final: players {\"seat 1\": {\"is_first\": true, \"hand\": [\"3\", \"9\", \"K\", \"10\", \"1\", \"1\"], \"hand_count\": 6, \"point_pile\": [\"D10\", \"D10\"], \"point_pile_view\": [\"High\", \"High\"], \"points\": 20, \"king_count\": 0, \"threshold\": 32, \"shortfall\": 12, \"won\": 0}, \"seat 2\": {\"is_first\": false, \"hand\": [\"1\", \"4\"], \"hand_count\": 2, \"point_pile\": [\"D10\", \"D10\", \"D5\"], \"point_pile_view\": [\"High\", \"High\", \"Mid\"], \"points\": 25, \"king_count\": 0, \"threshold\"; table {\"draw_pile\": [\"1\", \"2\", \"2\", \"2\", \"2\", \"3\", \"3\", \"4\", \"4\", \"4\", \"5\", \"5\", \"5\", \"5\", \"6\", \"6\", \"6\", \"7\", \"7\", \"7\", \"7\", \"8\", \"8\", \"8\", \"8\", \"9\", \"9\", \"9\", \"10\", \"10\", \"J\", \"J\", \"K\", \"K\", \"K\"], \"scrap\": [], \"turn\": 41, \"acting_seat\": 1, \"action\": \"draw\", \"chosen_card\": \"\", \"target_index\": 0, \"draw_count\": 35, \"opp_seat\": 1, \"act_hand\": [\"1\"], \"opp_view\": [\"High\", \"High\"], \"opp_pile\": [\"D10\", \"D10\"], \"action_opts\": [\"p"
+    },
+    {
+      "name": "After turn 40 equal shortfalls share the result",
+      "passed": false,
+      "failures": [
+        "rule R16 is broken: When turn 40 ends with no winner, then the player with the smaller max(threshold - points, 0) wins, and equal shortfalls are a draw.",
+        "seat 1 standing: expected -5, got 995",
+        "seat 2 standing: expected -5, got 995"
+      ],
+      "trace": "moves played: r1 seat 2: 'draw'. First attribute changes: table draw_pile: [] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table positions: [] -> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40']; table slots: [] -> [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]; table acting_seat: 1 -> 2; seat 2 is_first: False -> True; table pick: '' -> '3'; seat 1 hand: [] -> ['3']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '3' -> '6'; seat 2 hand: [] -> ['6']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K']; table pick: '6' -> '9'; seat 1 hand: ['3'] -> ['3', '9']; table draw_pile: ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] -> ['1', '1', '1', '1', '2', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '6', '6', '6', '7', '7', '7', '7', '8', '8', '8', '8', '9', '9', '9', '10', '10', '10', '10', 'J', 'J', 'J', 'J', 'K', 'K', 'K', 'K'] .... Final: players {\"seat 1\": {\"is_first\": true, \"hand\": [\"3\", \"9\", \"K\", \"10\", \"1\", \"1\"], \"hand_count\": 6, \"point_pile\": [\"D10\", \"D10\", \"D7\"], \"point_pile_view\": [\"High\", \"High\", \"Mid\"], \"points\": 27, \"king_count\": 0, \"threshold\": 32, \"shortfall\": 5, \"won\": 1}, \"seat 2\": {\"is_first\": false, \"hand\": [\"1\", \"4\"], \"hand_count\": 2, \"point_pile\": [\"D10\", \"D10\", \"D5\"], \"point_pile_view\": [\"High\", \"High\", \"Mid\"], \"points\": 25, \"king_count\": 0,; table {\"draw_pile\": [\"1\", \"2\", \"2\", \"2\", \"2\", \"3\", \"3\", \"4\", \"4\", \"4\", \"5\", \"5\", \"5\", \"5\", \"6\", \"6\", \"6\", \"7\", \"7\", \"7\", \"7\", \"8\", \"8\", \"8\", \"8\", \"9\", \"9\", \"9\", \"10\", \"10\", \"J\", \"J\", \"K\", \"K\", \"K\"], \"scrap\": [], \"turn\": 41, \"acting_seat\": 1, \"action\": \"draw\", \"chosen_card\": \"\", \"target_index\": 0, \"draw_count\": 35, \"opp_seat\": 1, \"act_hand\": [\"1\"], \"opp_view\": [\"High\", \"High\", \"Mid\"], \"opp_pile\": [\"D10\", \"D10\", \"D7\"], \"acti"
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        2
+      ],
+      "results": {
+        "seat 1": 11,
+        "seat 2": 9
+      },
+      "turns_min": 17,
+      "turns_max": 62
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 1": 28,
+      "seat 2": 31,
+      "seats 1 and 2": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "first@seat2": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "last@seat1": {
+        "win": 34,
+        "loss": 25,
+        "draw": 1,
+        "win_rate": 0.58
+      },
+      "last@seat2": {
+        "win": 47,
+        "loss": 12,
+        "draw": 1,
+        "win_rate": 0.8
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 63.0,
+      "prompt_chars_avg": 313,
+      "prompt_chars_max": 431
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 2 players, suggested 2",
+      "why": "The designer fixed the game at two, and the asymmetric thresholds for First and second only make sense head to head."
+    },
+    {
+      "what": "Card codes '1'..'10', 'J', 'K' and point-pile entries 'D<rank>' / 'U<rank>'",
+      "why": "Lists of text codes are needed to track face-down versus face-up cards and their ranks."
+    },
+    {
+      "what": "A separate public point_pile_view beside the private point_pile",
+      "why": "The opponent may see bands and face-up ranks but not face-down ranks, while the owner sees the exact ranks."
+    },
+    {
+      "what": "One turn per round, with acting_seat alternating",
+      "why": "Players take single alternating turns and the turn count is capped at 40."
+    },
+    {
+      "what": "rank_by = won*1000 - shortfall",
+      "why": "An immediate win outranks everything. Otherwise the smaller shortfall ranks higher, and equal values share the win, which models the draw."
+    },
+    {
+      "what": "No talk step",
+      "why": "The source has no communication. Players reason only from bands, the scrap pile and King counts."
+    },
+    {
+      "what": "The King-scuttle and Jack card choices are not asked",
+      "why": "The card used is fixed (a 10 or a J), and a King-scuttle target is just one of the opponent's Kings, which are interchangeable."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The top card of the draw pile is a random card from draw_pile",
+      "why": "The engine draws at random from a list, which is equivalent to a shuffled pile."
+    },
+    {
+      "what": "Placed Kings are tracked only by king_count, not as a list of cards",
+      "why": "Kings have no identity beyond their count. When one is scuttled, a 'K' is appended to scrap."
+    },
+    {
+      "what": "Only legal actions are offered, and any invalid reply becomes PASS",
+      "why": "This follows the rule that an illegal choice counts as PASS and keeps the offers clean."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 3,
+    "attributes": 60,
+    "hidden_elements": 20
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Cuttle is a two-player card race. Players lay point cards toward 21, or fewer if they control Kings. They can scuttle an opponent's point card with a higher card, use one-off and permanent effects such as Jacks that steal, and draw. The previous variation, Scuttle Race, cut it down to point cards, Jacks and Kings, with a 30-round cap and a shortfall tiebreak.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "bad",
+        "evidence": "In Scuttle Race, the greedy policy 'King at once, else highest point card' is near-optimal, not a weak simple policy. Kings could not be answered, so playing one immediately is dominant. Jacks only steal rank 7 or less, so leading with 8 to 10 is safe. The seat moving first makes its third play before the second seat and was estimated to win 60-65% of greedy-vs-greedy games."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "bad",
+        "evidence": "Games ended in rounds 3-6, so the deal decided about 70% or more of results. That deal mainly meant who held Kings (0.36 / 0.43 chance of at least one) and who held 10s (the only answer to a 10). Both seats had little choice beyond greedy play plus 'scuttle if you can'."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "weak",
+        "evidence": "Weak players could score with greedy play. Strong players had almost no further lever: holding back only gave away tempo, and scrap counting changed few decisions."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "bad",
+        "evidence": "All point cards were face up. The only hidden things were the hands and the deck. There was no bluff, no read of the opponent, and multi-round planning hardly mattered in a 3-6 round race."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Totals, thresholds, legality of scuttles and steals, and the shortfall tiebreak are all arithmetic on tracked numbers."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "good",
+        "evidence": "It is turn-based and text-only with no board. Card draws are remove/append operations, and the length is short. One problem: with two draws per round it can exceed one random draw per round unless each turn is counted as an engine round."
+      }
+    ],
+    "problems": [
+      "P1 Seat edge: the first mover's tempo advantage gives about 60-65% wins between equal greedy players.",
+      "P2 Kings cannot be answered, so 'play a King at once' is dominant and the King deal decides games.",
+      "P3 Jacks only steal rank 7 or less, so leading with the highest card is automatically safe and card order is not a decision.",
+      "P4 The race is too short (3-6 rounds), so the deal swamps skill.",
+      "P5 Perfect information about laid points: nothing to infer, no bluff, scuttling is automatic.",
+      "P6 Two random draws per round would exceed the platform limit of one."
+    ],
+    "changes": [
+      {
+        "what": "A 10 may scuttle a King: both go to scrap and the owner's King count drops by 1. Kings also lower the threshold less (by 8/6/4/3 instead of 7/4/3/2).",
+        "why": "Playing a King becomes a timing decision: wait until the opponent's 10s are spent or scrapped. Holding a 10 in reserve becomes a plan.",
+        "fixes": "P2 Kings cannot be answered, so 'play a King at once' is dominant and the King deal decides games."
+      },
+      {
+        "what": "A Jack may steal any point card, of any rank.",
+        "why": "High cards become the best targets, so leading greedily with 10s feeds the opponent's Jacks. Card order becomes a real trade-off.",
+        "fixes": "P3 Jacks only steal rank 7 or less, so leading with the highest card is automatically safe and card order is not a decision."
+      },
+      {
+        "what": "Base threshold raised to 30 (32 for the First player). Both players are dealt 6 cards, and the cap becomes 40 turns.",
+        "why": "About 5+ net plays are needed, and scuttles and steals undo progress. Typical games should last 8+ rounds, so draws and decisions accumulate and the opening deal matters less.",
+        "fixes": "P4 The race is too short (3-6 rounds), so the deal swamps skill."
+      },
+      {
+        "what": "Point cards are laid face down showing only a band: Low 1-4, Mid 5-7, High 8-10. A scuttle names a target and succeeds only if the attacking rank is at least the hidden rank. A failed scuttle scraps the attacker's card and turns the target face up.",
+        "why": "Scuttling becomes a risky read that uses band information and public scrap counting. A player can weigh a safer Mid against a Jack-bait High. A player can also stack Mids, whose exact total the opponent must estimate.",
+        "fixes": "P5 Perfect information about laid points: nothing to infer, no bluff, scuttling is automatic."
+      },
+      {
+        "what": "You win only if you are at or above your threshold at the START of your own turn, so the opponent always gets one turn to answer. The First player's base threshold is 32 against the Second's 30.",
+        "why": "Each crossing gets exactly one reply, whichever seat makes it. The 2-point handicap offsets the First player's half-turn of tempo, worth about half a typical 5-6 point play. The split should be checked by greedy-vs-greedy simulation and the handicap tuned to between 1 and 3 if needed.",
+        "fixes": "P1 Seat edge: the first mover's tempo advantage gives about 60-65% wins between equal greedy players."
+      },
+      {
+        "what": "Each single turn is one engine round (40 turns = 20 per player).",
+        "why": "At most one card is drawn per engine round.",
+        "fixes": "P6 Two random draws per round would exceed the platform limit of one."
+      }
+    ],
+    "keeps": [
+      "The point race to a threshold that Kings lower",
+      "Scuttling an opponent's point card with an equal or higher card",
+      "Jacks stealing point cards",
+      "The choice each turn between drawing and playing, a private hand and a public scrap pile",
+      "Two players"
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "With answerable Kings, unlimited Jacks, hidden ranks and a longer race, greedy play becomes exploitable. Inference about hidden ranks and timing becomes the core skill, all within the limits."
+    },
+    "variation": {
+      "name": "Blind Scuttle",
+      "summary": "A two-player Cuttle race. Point cards are laid face down showing only a rough band, so scuttles and Jack steals are reads. A 10 can knock out a King, and a crossing player must survive one reply from the opponent before winning.",
+      "players": {
+        "min": 2,
+        "max": 2,
+        "suggested": 2
+      },
+      "rules": "DECK: 48 cards.\n- 40 point cards: ranks 1 to 10, four copies of each, no suits.\n- 4 Jacks and 4 Kings.\nShuffle the deck.\n\nBANDS: Every point card has a band. Low is ranks 1-4, Mid is ranks 5-7, High is ranks 8-10.\n\nSETUP:\n- Randomly pick the First player.\n- Deal 6 cards to each player. Hands are private.\n- The other 36 cards are the face-down draw pile.\n- The scrap pile is face up and fully public.\n- Each player has a point pile (starting empty) and a King count (starting 0).\n\nTHRESHOLD:\n- First player: 32 with 0 Kings, 24 with 1, 18 with 2, 14 with 3, 11 with 4.\n- Second player: 30 with 0 Kings, 22 with 1, 16 with 2, 12 with 3, 9 with 4.\n- Points are the sum of the ranks in your point pile.\n- Shortfall is threshold minus points, with a minimum of 0.\n\nTURNS: Players alternate single turns, First player first. There are at most 40 turns in total (20 each), numbered 1 to 40.\n\nSTART OF TURN:\n1. If the acting player's points are at or above their threshold right now, they win immediately.\n2. Otherwise the engine shows everyone the public state:\n   - each point pile as a list of cards, each shown as its band if face down or its rank if face up;\n   - both King counts and thresholds;\n   - the scrap pile;\n   - the draw pile size;\n   - both hand sizes;\n   - the turn number.\n3. The acting player also sees their own hand and the exact ranks of their own face-down cards.\n\nACTION: The acting player chooses exactly one of the following.\n(a) DRAW: Take the top card of the draw pile. Not allowed if you hold 8 cards or the pile is empty.\n(b) POINTS: Place one point card from your hand face down in your point pile. Its band is visible to the opponent.\n(c) SCUTTLE: Choose one point card from your hand and one card in the opponent's point pile. Reveal both.\n   - If your rank is equal to or higher than the target's rank, both go to scrap.\n   - Otherwise your card goes to scrap and the target stays in place, now face up.\n(d) KING-SCUTTLE: Play a 10 from your hand against an opponent's King. Both go to scrap and the opponent's King count falls by 1.\n(e) JACK: Play a Jack from your hand and choose any card in the opponent's point pile. It moves to your point pile face up, and the Jack goes to scrap.\n(f) KING: Place a King from your hand. Your King count rises by 1.\n(g) PASS: Allowed only if you cannot draw.\nAn illegal or unparseable choice counts as PASS.\n\nEND: After turn 40, the player with the smaller shortfall wins. Equal shortfalls are a draw.",
+      "objective": "You win at the start of any of your own turns if your point total is at or above your threshold. If no one has won after turn 40, the smaller shortfall (threshold minus points, minimum 0) wins, and equal shortfalls are a draw.",
+      "expected_effect": "Greedy 'highest card first' now loses to an opponent who Jacks its Highs: each steal is a swing of up to 20 points. Greedy 'King at once' loses its King to a saved 10.\n\nGood players will:\n- mix Mid cards to stay below Jack value;\n- count scrapped 8s-10s to judge whether a High is a 10 before scuttling it;\n- hold a 10 for King defence;\n- time a threshold crossing for when the opponent has no answer left, which can be inferred from their hand size and the scrap pile.\n\nGames should run about 8-15 rounds, so the deal matters less. The one-reply win rule plus the 2-point First-player handicap should bring the seat split close to 50%; confirm by simulation.\n\nTalk is not included: the game has two players, so the talk test does not apply."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 14,
+      "choice_steps_per_round": 1,
+      "attributes": 14,
+      "hidden_elements": 3,
+      "random_draws_per_round": 1,
+      "rounds": 40
+    },
+    "critic": {
+      "rounds": 2,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "fail",
+            "evidence": "THOUGHTLESS POLICIES. (1) Always DRAW, the first option: it never scores. Against any opponent who plays points it loses, so it fails as a strategy, which is fine. (2) Always PASS: illegal while you can draw, so it counts as PASS anyway and loses, which is fine. (3) Greedy G: play a King if held, else the highest point card, else draw. This is the real problem. It is close to the optimal line, not a thoughtless one that sensible play beats.\n\nRACE ARITHMETIC. 40 of 48 cards are point cards, mean rank 5.5. The top three of a 5-card hand are about 8+7+5 = 20, so a typical hand reaches 21 in 3 plays. One King cuts that to 14, i.e. 2 plays.\n- Jacks only steal rank 7 or less. G plays its 8s to 10s first, so a Jack rarely has a target against G.\n- Scuttle is the only defence. To scuttle a 9 you need a 9 or 10. P(at least one of the 8 such cards in 6 cards) = 1 - C(40,6)/C(48,6) = 1 - 0.313 = 0.687. To scuttle a 10 you need a 10: 1 - C(44,6)/C(48,6) = 1 - 0.575 = 0.425.\n- Kings cannot be answered at all: no Queen, no destroy effect, no scuttle of a King. The first King is worth 7 permanent, untouchable points, so a King should always be played at once.\n\nSEAT EDGE, by move order. First plays a high card on turn 1.\n- If Second races, First makes its 3rd play in round 3 before Second's 3rd play, so First wins.\n- If Second scuttles, both have spent one card and one turn. Progress is back to 0-0 and it is First's turn again. First keeps the initiative and Second must answer every play until it runs out of matching high cards.\n- Second's extra 6th card buys roughly one extra scuttle. First's Kings cannot be scuttled.\n- My estimate is that First wins about 60-65% between equal greedy players.\n\nWINNER RULE. Against sensible or random play, G as First almost never loses unless the opponent was dealt Kings or several 10s. Neither seat has a real choice beyond G plus 'scuttle if you can'. No option is strictly dominant in every state, but the King play is dominant and the first seat has a structural edge."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules cover every action and when it is legal:\n- draw: blocked at 8 cards or an empty pile;\n- scuttle: equal or lower rank, no suits needed;\n- Jack: target of rank 7 or less;\n- King;\n- PASS: only when drawing is impossible;\n- illegal choice counts as PASS.\n\nThe win check is correct. Only the acting player can raise their own points or lower their own threshold, so at most one player crosses per turn.\n\nThe game is finite: 30 rounds, then smaller shortfall wins and equal shortfalls draw. The result is arithmetic on public numbers. Thresholds 21/14/10/7/5 have no lookup operation, but a few `if` operations on King count give them.\n\nLimits:\n- 17 steps: per turn, 1 choice, a draw op, points, scuttle (2 removes), Jack (move), King plus threshold recompute, and a win check, about 7-8 per turn. That is tight but under 20.\n- choice steps: 2 of 4.\n- attributes: 14 of 20.\n- hidden elements: the two hands, plus deck order, at most 3.\n- draws: the deck is shuffled once and drawing is a list removal.\n\nTwo players, so no talk question arises. The game needs no board, judge or clock."
+          },
+          "reasoning_over_luck": {
+            "verdict": "fail",
+            "evidence": "The game usually ends by rounds 3-6, so the deal decides most outcomes.\n- Who holds Kings (4 of 48 cards, unanswerable, worth 7/4/3/2 threshold points) and who holds 10s (the only answer to a 10) mostly decides the winner.\n- P(First dealt at least 1 King in 5 cards) = 1 - C(44,5)/C(48,5) = 0.36. P(Second, 6 cards) = 0.43.\n\nWith both players on the intended good line (King at once, high cards, scuttle when able), the result follows from the deal plus the seat edge. My estimate is that 70% or more of results are fixed by the deal and seat.\n\nInference is thin. You can count public scrap to judge whether the opponent can still scuttle a 10, and decide whether to hold a card back. But there is almost no reason to bluff or hold back, because a delay only gives the opponent tempo. A better reasoner is not clearly favoured."
+          },
+          "required_changes": [
+            "Give Kings counterplay: let a 10 scuttle a King (both scrapped, King count -1), or let a Jack discard an opponent's King instead of stealing.",
+            "Remove the seat edge: the First player may not play POINTS or KING on their first turn, or the First player is dealt 4 cards to the Second player's 7. Then show by greedy-vs-greedy calculation that each seat wins close to 50%.",
+            "Let Jacks steal any rank, so leading with high cards is not automatically safe and the choice of card order becomes a real decision.",
+            "Lengthen the race so the deal matters less: base threshold 30 with Kings giving 22/16/12/9, and points cards limited to one POINTS play per turn as now. Then verify by calculation that a typical game lasts 8 or more rounds.",
+            "Add a hidden-information decision that rewards inference, e.g. each point card is played face down and its rank revealed only when scuttled, stolen or at the win check. Scuttling a hidden card then becomes a read of the opponent rather than an automatic response."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Deck: 40 point cards (ranks 1-10 x4, total 220 points, mean 5.5), 4 Jacks, 4 Kings. Hands are 6 each and the hand limit is 8.\n\nVALUE OF ONE TURN, as a change in (my points minus opponent's points), where a King counts as points of threshold removed:\n| Action | My change | Opponent's change | Net swing |\n|---|---|---|---|\n| POINTS rank r | +r | 0 | +r (Low ~2.5, Mid 6, High 9) |\n| SCUTTLE success on target t | 0 (one hand card spent) | -t | +t |\n| SCUTTLE fail | one card lost | target revealed | 0, and gives information |\n| JACK on target t | +t | -t | +2t (up to +20) |\n| KING, 1st/2nd/3rd/4th | threshold -8/-6/-4/-3 (same for both seats) | 0 | +8/+6/+4/+3 |\n| KING-SCUTTLE | spends a 10 (worth +10 as points) | opponent's threshold +3..+8 | 3-8, so worse than placing the 10 except to stop a winning position |\n\nNo action is strictly best:\n- JACK needs a target, and its value depends on what the opponent exposes.\n- Only the first King beats an average card (8 vs 5.5); the 3rd and 4th lose tempo.\n- A successful scuttle is guaranteed only with a 10, or with a counted rank against a known band.\n\nTHOUGHTLESS POLICIES, by the winner rule:\n| Policy | vs sensible play | vs random play |\n|---|---|---|\n| Always first option (DRAW) | Scores 0. At 8 cards DRAW is illegal and becomes PASS. Shortfall stays 32/30, so it LOSES. | Random play places some points, so it usually LOSES. |\n| Always last option (PASS) | PASS is illegal while drawing is possible and counts as PASS anyway: 0 points, LOSES. | LOSES. |\n| Always place your highest card | Exposes High bands. The sensible player Jacks a 9-10 (+18 swing) or scuttles with a 10 on the turn before the greedy player's win check. It loses a meaningful share of games. | Usually wins. This is fine: sensible play beats random. |\n| Always scuttle when able | Every success is a 1-for-1 trade with no gain. The opponent's net placements keep growing, and if the scuttler stops placing, its shortfall stays high. LOSES often. | Mixed results. |\nNo policy never loses.\n\nSEAT EDGE:\n- In a pure race with identical hands, First wins at start of turn 2k+1 if its sum S_k is at least 32. Second wins at turn 2k+2 if its sum T_k is at least 30 and S_k is below 32.\n- First therefore wins only if the crossing of 30 overshoots by 2 or more. With jumps of mean 5.5, that is roughly 55-60%.\n- The defending player always gets one response turn before the win check, and Second sees First's moves first. Both effects pull back toward even.\n- The 2-point threshold gap is about 0.36 card, roughly offsetting half a turn of tempo.\n\nThe hand limit of 8 forces play after at most 2 draws, so turtling is impossible. Both players can realistically win. There is no labelled payoff ordering that contradicts the numbers."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Rules completeness:\n- Every action states its legality conditions: DRAW is barred at 8 cards or an empty pile; PASS is allowed only if you cannot draw; illegal choices become PASS.\n- Scuttle resolution is a single comparison (equal or higher wins). The fail case reveals the target face up.\n- King-scuttle requires a 10 in hand and an opponent King count of at least 1.\n- A Jack moves the target face up into your pile.\n- The win check happens at start of your own turn using current Kings.\n- The end tiebreak (smaller shortfall wins, equal is a draw) covers reaching threshold on turns 39-40.\n\nFiniteness and scoring:\n- The game is finite: a hard 40-turn cap, and the 36-card pile has no reshuffle.\n- It is decided purely by arithmetic on kept numbers (sums, King counts, thresholds).\n\nPlatform fit:\n- No board, clock, judge, trading or binding agreements. It is two players, so talk is correctly absent.\n- There is one choice per turn, so a simultaneous poll is not needed.\n- Each action can be a single step with a `when` condition, and the scuttle uses an `if`. The flat step list is respected.\n\nLimits:\n| Limit | Stated | Allowed |\n|---|---|---|\n| steps_per_round | 14 | 20 |\n| choice_steps_per_round | 1 | 4 |\n| attributes | 14 | 20 |\n| hidden_elements | 3 | 3 |\n| random_draws_per_round | 1 | 1 |\n| rounds | 40 | 40 |\nHidden elements are the hands, the draw order, and face-down ranks. That count is tight but holds if counted by kind. Steps are tight but plausible.\n\nThe repeated-game cooperation clause does not apply: this is a race, not a cooperation dilemma."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Things to infer and act on:\n- Bands of face-down cards narrow a rank to 3-4 values.\n- The scrap pile, face-up cards and your own hand are public or known. Card counting therefore gives exact probabilities, e.g. a 9 scuttling a High card succeeds only if the target is 8 or 9 among the unseen ranks.\n- Hand sizes, the scrap count of Jacks and 10s, and the draw count let you estimate whether the opponent holds a Jack or a 10.\n\nDecisions with real trade-offs:\n- Expose High cards (fast, but Jack bait) or Low/Mid (safe but slow).\n- Hold a Jack or 10 as a last-turn answer, or use it now.\n- Place the first King (+8) but skip low-value later Kings.\n- Time the threshold crossing so that the opponent's single response turn cannot undo it.\n\nChance:\n- Luck sits in the Jack and King distribution. A Jack is worth about 2 average turns, but drawing one costs a turn, and good players can starve it by withholding High cards.\n- Kings are only worth +2.5 above an average card, and only the first one.\n- I estimate chance at about 35-45% of outcomes, comparable to standard Cuttle.\n- Under mutual good play the deal shifts the odds but does not alone fix the winner. Inference about scuttle success, Jack baiting and endgame timing decides close games.\n- A reasoning player is clearly favoured over a greedy or random one, as shown in the policy table."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "The scuttle and Jack scenarios crash inside the game's own bookkeeping: it reads `pile_ranks[target_index - 1]` from a list that does not hold the targeted card, so the lookup is out of range. The unparseable-reply scenario shows the game turning a bad reply into a DRAW (hand grew, draw pile shrank) when the rules say it counts as PASS and nothing changes. Both are faults in the file; the rules are clear and the platform can express them.",
+      "guidance": "1) Scuttle and Jack targeting. Do not depend on a separate `pile_ranks` list that can fall out of step with the real point pile (`point_pile` / `point_pile_view`). Either read the target's rank straight from the actual point-pile list, or make sure every step that changes the pile also updates `pile_ranks` in the same position. Guard every indexed lookup with a `when`/`if` so it only runs when `target_index` is between 1 and the opponent's pile length. Never evaluate the target lookup on turns whose action is not SCUTTLE or JACK. An out-of-range target counts as an illegal choice, which is PASS.\n2) Unparseable or illegal replies. Make PASS the fallback for any reply that does not match a legal option. Do not let the engine default to the first offered option ('draw'). When the reply is invalid, no hand, pile, draw-pile or score attribute may change; only the turn advances.\n3) Afterwards, re-check that SCUTTLE (a >= t: both cards to scrap and the owner's points drop by t; a < t: the attacker goes to scrap and the target turns face up, showing its rank in `point_pile_view`) and JACK (the card moves face up to the actor's pile, both point totals change by its rank, the Jack goes to scrap) update `points`, `threshold` and `shortfall` correctly.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The rules say an illegal or unparseable reply counts as PASS, so nothing should change. When the test sent an unusable reply, the game resolved it to 'draw' and seat 1 drew a card (hand 1 to 2, draw pile 36 to 35). The likely cause is that the offer list is ['draw','points'] with no pass option, so the engine's fallback picked the first legal option.",
+      "guidance": "Make an illegal or unparseable reply resolve to PASS. Always include a 'pass' option and put it first, or make it the explicit default, so the engine's fallback lands on it. Under the rules, choosing pass while drawing is allowed is itself illegal and still counts as PASS, so offering it every turn is harmless. Guard every action branch with `when` conditions so that 'pass', or any reply that does not match a legal action, changes no hand, pile, score or counter. The only exceptions are the normal turn advance and the start-of-turn win check. Also check that a named card or target that is not actually held or present falls through to PASS rather than to another action.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "In three end-of-game scenarios the file sets `won` = 1 for a player whose points (0) are below their threshold (30). So the start-of-turn win check, or an end-of-game step, writes `won` without the arithmetic condition. Separately, an unparseable reply was handled as DRAW (a card moved from the draw pile to the hand) instead of PASS.",
+      "guidance": "1) The `won` flag must only be set by the start-of-turn check. Give that step a `when` condition `points >= threshold` for the acting player. Do not set `won` anywhere else: not at turn 41, not in a final step, not for the player who would have acted next. After turn 40, end the game with `won` left at 0 for both players, so `rank_by` (`won*1000 - shortfall`) decides by the smaller shortfall and equal shortfalls tie. Make sure the turn counter reaching `max_turns` + 1 stops play before any further win check or action runs. 2) The fallback for an illegal or unparseable reply must be PASS, not DRAW. Map a missing or unrecognised action to 'pass' so nothing changes: no draw, no hand or pile changes. Check that `draw` is not the default option and that no draw step runs unconditionally. 3) While there, recompute `threshold` from `is_first` and `king_count` using the parameter attributes, and recompute `shortfall` as max(threshold - points, `shortfall_min`), after every action. Also check that setup sets `is_first` consistently: the trace flips seat 2 to True, but the final state shows seat 1 as First.",
+      "missing": ""
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 14,
+      "choice_steps_per_round": 1,
+      "attributes": 14,
+      "hidden_elements": 3,
+      "random_draws_per_round": 1,
+      "rounds": 40
+    },
+    "measured": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 3,
+      "attributes": 60,
+      "hidden_elements": 20
+    }
+  },
+  "verdict": "needs_review"
+}

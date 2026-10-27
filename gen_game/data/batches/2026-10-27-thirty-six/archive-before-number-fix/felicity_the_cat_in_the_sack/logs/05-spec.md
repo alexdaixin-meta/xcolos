@@ -1,0 +1,217 @@
+# 05 spec
+
+- time: 2026-10-27T16:44:17+00:00 (84.6s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 f135e64fa4d2fd62, reply sha256 e99394ce2a443a68
+
+## Sent
+
+````
+Game: Cat in the Sack: Sealed Stages (Revised)
+Players in the source: 3 to 5
+Suggested table size, chosen by the designer of these rules (keep it): 4
+
+Rules, as filed in the inventory:
+SETUP
+- Each player gets an identical hand of 10 cards: cats worth -8, -5, 3, 5, 8, 11 and 15; a rabbit worth 0; a large dog; and a small dog.
+- One random card is removed from each hand and set aside unseen by everyone. Each player keeps 9 cards in a private hand.
+- Each player starts with 15 mice and 0 cat points. Both numbers are public throughout.
+- Seats are in a fixed order. A random player is the first start player.
+
+EACH ROUND (9 rounds; every player plays exactly one card per round, so every hand is empty after round 9)
+
+1. Fill the sack and talk.
+   - All players, at the same moment, choose one card from their hand and place it face down. The card leaves their hand.
+   - In the same moment, each player writes one short message (at most 30 words). Messages are free text, may claim anything and are not enforced.
+
+2. Lay out the sack.
+   - The sack is laid out in seat order beginning with the start player. Sack card 1 is the start player's card, card 2 belongs to the next player in seat order, and so on.
+   - Everyone knows whose card is in each position. Only the owner knows its face.
+   - All messages are now shown to everyone, labelled with each writer's name.
+
+3. Stage 1.
+   - Sack card 1 is revealed to all. The standing bid is 0 and there is no leader.
+   - All players, at the same moment, write a whole number. 0 means pass; anything else is a bid.
+   - A bid must be at least the standing bid + 1 and at most the player's current mice. An illegal number counts as a pass.
+
+4. Resolve the stage. Apply these rules after every stage, in this order:
+   a. Announce: every bidder's number (bid, or 0 for a pass) is shown to all by name.
+   b. All passed at stage 1: if every player passed, every player gains 2 mice, nobody takes the sack, and it is discarded without being opened. Go to step 9.
+   c. All passed at stage 2 or 3: if every player still in passed, the leader from the previous stage takes the sack at the standing bid and gains no reward. Every other player who passed at this stage gains the reward for this stage. Go to step 7.
+   d. Otherwise:
+      - Each player who passed at this stage leaves the auction for the round and gains mice from the bank: 2 at stage 1, 3 at stage 2, 4 at stage 3.
+      - The standing bid becomes the highest bid made at this stage, and the player who made it is the leader.
+      - If several players made the highest bid, the leader is the first of them in seat order, counting from the player after the start player, with the start player counted last.
+      - The new standing bid, the leader and every player's mice are announced.
+   e. Immediate win: if exactly one player is still in, that player wins the sack at the standing bid just set. Skip the remaining stages and go to step 7.
+
+5. Stage 2.
+   - Played only if two or more players are still in.
+   - Sack card 2 is revealed.
+   - The players still in, at the same moment, pass (0) or bid between the standing bid + 1 and their current mice. An illegal number is a pass.
+   - Resolve as in step 4.
+
+6. Stage 3.
+   - Played only if two or more players are still in.
+   - Sack card 3 is revealed.
+   - The players still in, at the same moment, pass or bid under the same rules.
+   - Resolve as in step 4.
+   - Then, if two or more players are still in, the leader wins the sack at the standing bid, and each player who bid at stage 3 but is not the leader gains 5 mice.
+
+7. Open the sack.
+   - All sack cards are revealed. With 4 or 5 players, cards 4 and 5 are seen for the first time.
+   - Dog rule: if exactly one dog is in the sack, it removes one cat. The large dog removes the highest-valued cat; the small dog removes the lowest-valued cat. If no cat is present, nothing is removed. If both dogs are present, neither has any effect.
+   - All dogs and any removed cat are discarded.
+
+8. Pay and score.
+   - The sack winner pays their winning bid in mice to the bank.
+   - The sack winner adds the total value of the cats remaining in the sack to their cat points. Cat points may go negative. The rabbit is worth 0.
+   - The sack cards are discarded face up, so everyone can see which cards each player has used.
+
+9. Next start player.
+   - The sack winner becomes the start player.
+   - If nobody took the sack, the start player passes to the next seat.
+
+END
+After round 9, each player's score is cat points + mice.
+
+How the winner is decided: The player with the highest score (cat points + mice) wins. If several players tie, the tied player with the most cat points wins. If they are still tied, the game is a draw among them.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Cat in the Sack: Sealed Stages (Revised)",
+  "summary": "Each round every player secretly adds one card to a shared sack and writes a message. The sack is then auctioned over up to three sealed-bid stages, one more card revealed per stage. After 9 rounds the highest cat points + mice wins.",
+  "players": {"min": 3, "max": 5, "suggested": 4},
+  "parameters": {
+    "cat_values": [-8, -5, 3, 5, 8, 11, 15],
+    "rabbit_value": 0,
+    "dogs_per_hand": 2,
+    "hand_size_dealt": 10,
+    "cards_set_aside_per_player": 1,
+    "hand_size_kept": 9,
+    "starting_mice": 15,
+    "starting_cat_points": 0,
+    "rounds": 9,
+    "message_max_words": 30,
+    "max_stages": 3,
+    "pass_reward_stage_1": 2,
+    "pass_reward_stage_2": 3,
+    "pass_reward_stage_3": 4,
+    "all_pass_stage_1_reward": 2,
+    "stage_3_outbid_bonus": 5,
+    "initial_standing_bid": 0,
+    "rank_tiebreak_multiplier": 1000
+  },
+  "attributes": {
+    "player": [
+      {"key": "seat", "type": "number", "visible": "public", "initial": "1..N in fixed seat order", "meaning": "the player's fixed seat number", "observable": false},
+      {"key": "hand", "type": "list", "visible": "ally", "initial": "the 10 identical cards minus one random card set aside (9 cards)", "meaning": "cards the player can still put in the sack; card codes cat_-8, cat_-5, cat_3, cat_5, cat_8, cat_11, cat_15, rabbit, large_dog, small_dog", "observable": false},
+      {"key": "mice", "type": "number", "visible": "public", "initial": 15, "meaning": "the player's mice, used for bidding; counts toward the score", "observable": true},
+      {"key": "cat_points", "type": "number", "visible": "public", "initial": 0, "meaning": "total value of the cats won in sacks; may be negative", "observable": true},
+      {"key": "played_card", "type": "text", "visible": "ally", "initial": "", "meaning": "the card the player put face down in the sack this round", "observable": false},
+      {"key": "message", "type": "text", "visible": "public", "initial": "", "meaning": "the player's message this round (at most 30 words), shown after all are written", "observable": false},
+      {"key": "bid", "type": "number", "visible": "public", "initial": 0, "meaning": "the number written at the current stage; 0 is a pass, and an illegal number is treated as 0", "observable": false},
+      {"key": "in_auction", "type": "bool", "visible": "public", "initial": true, "meaning": "whether the player is still in the auction this round", "observable": false}
+    ],
+    "game": [
+      {"key": "round_number", "type": "number", "visible": "public", "initial": 0, "meaning": "rounds started so far", "observable": false},
+      {"key": "start_seat", "type": "number", "visible": "public", "initial": "a random seat", "meaning": "seat of the current start player", "observable": true},
+      {"key": "set_aside", "type": "list", "visible": "none", "initial": "the one random card removed from each player's 10", "meaning": "the cards set aside unseen at setup", "observable": false},
+      {"key": "sack_owners", "type": "list", "visible": "public", "initial": [], "meaning": "seat owning each sack position, in seat order starting with the start player", "observable": false},
+      {"key": "sack_cards", "type": "list", "visible": "none", "initial": [], "meaning": "card faces in sack position order (each owner knows their own card through played_card)", "observable": false},
+      {"key": "sack_revealed", "type": "list", "visible": "public", "initial": [], "meaning": "sack cards revealed so far, in position order", "observable": false},
+      {"key": "stage", "type": "number", "visible": "public", "initial": 0, "meaning": "current auction stage, 1 to 3", "observable": false},
+      {"key": "standing_bid", "type": "number", "visible": "public", "initial": 0, "meaning": "the current standing bid", "observable": false},
+      {"key": "leader_seat", "type": "number", "visible": "public", "initial": 0, "meaning": "seat of the current leader; 0 means no leader", "observable": false},
+      {"key": "sack_done", "type": "bool", "visible": "public", "initial": false, "meaning": "whether this round's auction is settled", "observable": false},
+      {"key": "sack_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "seat that took the sack this round; 0 means nobody", "observable": false},
+      {"key": "sack_value", "type": "number", "visible": "public", "initial": 0, "meaning": "total value of the cats left in the opened sack after the dog rule", "observable": false},
+      {"key": "discard_pile", "type": "list", "visible": "public", "initial": [], "meaning": "opened sack cards, discarded face up with their owners", "observable": false},
+      {"key": "unopened_pile", "type": "list", "visible": "none", "initial": [], "meaning": "unrevealed cards of sacks discarded without being opened", "observable": false}
+    ]
+  },
+  "setup": [
+    "Each player is given the same 10 cards: cat_-8, cat_-5, cat_3, cat_5, cat_8, cat_11, cat_15, rabbit, large_dog, small_dog.",
+    "One random card is removed from each player's hand and appended to set_aside, unseen by everyone; each hand keeps 9 cards.",
+    "Each player's mice is set to 15 and cat_points to 0; both are public.",
+    "Seats are numbered 1..N in a fixed order, and start_seat is set to a random seat.",
+    "Each player is sent their own state."
+  ],
+  "round": [
+    {"action": "poll", "who": "all players", "answer": "short text, at most 30 words", "effect": "message := the text; nobody sees any message until step 4"},
+    {"action": "poll", "who": "all players", "answer": "one card from own hand", "effect": "played_card := the chosen card; the card is removed from hand; nobody sees another player's choice"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "round_number += 1; sack_owners := seats in seat order beginning with start_seat; sack_cards := each owner's played_card in that order; sack_revealed := []; standing_bid := 0; leader_seat := 0; stage := 1; sack_done := false; sack_winner := 0; sack_value := 0; every in_auction := true; every bid := 0. Announce whose card is in each position."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "broadcast every message labelled by seat: 'Seat {seat} says: {message}'"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "append sack_cards[1] to sack_revealed and announce it; stage := 1"},
+    {"action": "poll", "who": "all players", "answer": "a whole number from 0 to own mice", "effect": "bid := the number; if bid < standing_bid + 1 or bid > mice, then bid := 0 (pass)"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Announce every bid by seat. If every bid = 0: every player's mice += 2, sack_cards are appended to unopened_pile, sack_winner := 0, sack_done := true. Otherwise: every player with bid = 0 sets in_auction := false and mice += 2; standing_bid := highest bid; leader_seat := the first seat with that bid, in seat order from the seat after start_seat with start_seat last; announce standing_bid, leader_seat and everyone's mice; if exactly one player has in_auction = true, then sack_winner := leader_seat and sack_done := true."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "when sack_done = false and count(in_auction) >= 2: stage := 2; append sack_cards[2] to sack_revealed and announce it; bid := 0 for all"},
+    {"action": "poll", "who": "players with in_auction = true, when sack_done = false and stage = 2", "answer": "a whole number from 0 to own mice", "effect": "bid := the number; if bid < standing_bid + 1 or bid > mice, then bid := 0"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "when sack_done = false and stage = 2: announce bids. If every in_auction player bid 0: sack_winner := leader_seat (previous leader, at the current standing_bid, no reward); every in_auction player other than leader_seat gains mice += 3; sack_done := true. Otherwise: each in_auction player with bid 0 sets in_auction := false and mice += 3; standing_bid := highest bid; leader_seat := the first seat with that bid in the tie order; announce standing_bid, leader_seat and mice; if exactly one in_auction remains, then sack_winner := leader_seat and sack_done := true."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "when sack_done = false and count(in_auction) >= 2: stage := 3; append sack_cards[3] to sack_revealed and announce it; bid := 0 for all"},
+    {"action": "poll", "who": "players with in_auction = true, when sack_done = false and stage = 3", "answer": "a whole number from 0 to own mice", "effect": "bid := the number; if bid < standing_bid + 1 or bid > mice, then bid := 0"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "when sack_done = false and stage = 3: announce bids. If every in_auction player bid 0: sack_winner := leader_seat; every in_auction player other than leader_seat gains mice += 4; sack_done := true. Otherwise: each in_auction player with bid 0 sets in_auction := false and mice += 4; standing_bid := highest bid; leader_seat := the first seat with that bid in the tie order; announce standing_bid, leader_seat and mice; if exactly one in_auction remains, then sack_winner := leader_seat and sack_done := true."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "when sack_done = false: sack_winner := leader_seat; every player with bid >= 1 at stage 3 and seat != leader_seat gains mice += 5; sack_done := true"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "when sack_winner != 0: reveal all sack_cards (sack_revealed := sack_cards). Dog rule: if large_dog is in the sack and small_dog is not, remove the highest-valued cat; if small_dog is in the sack and large_dog is not, remove the lowest-valued cat; if no cat is present, nothing is removed; if both dogs are present, neither has any effect. sack_value := sum of the values of the cats remaining (rabbit 0, dogs and removed cats count nothing). The sack_winner pays mice -= standing_bid and gains cat_points += sack_value. All sack cards are appended face up to discard_pile with their owners. Announce the result."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "if sack_winner != 0, then start_seat := sack_winner; otherwise start_seat := the next seat after start_seat (wrapping from N to 1)"},
+    {"action": "check", "who": "all players", "answer": null, "effect": "end the game if round_number >= 9; otherwise continue to the next round"}
+  ],
+  "ending": {
+    "condition": "round_number >= 9",
+    "rank_by": "(you.cat_points + you.mice) * 1000 + you.cat_points",
+    "decided_by": "Each player's score is cat points + mice, and the highest score wins. Among tied players the one with more cat points wins. Players still tied share the win (a draw among them)."
+  },
+  "rules": [
+    {"id": "R1", "text": "At setup, each player has the same 10 cards (cats -8, -5, 3, 5, 8, 11, 15; rabbit 0; large dog; small dog), and one random card from each hand goes to set_aside unseen, leaving 9 cards per hand."},
+    {"id": "R2", "text": "At setup, each player has 15 mice and 0 cat_points, both public, and start_seat is a random seat."},
+    {"id": "R3", "text": "Each round, every player simultaneously chooses one card from their hand; it leaves the hand and becomes their played_card."},
+    {"id": "R4", "text": "Each round, every player writes one message of at most 30 words; all messages are shown to everyone, labelled by seat, only after all are written."},
+    {"id": "R5", "text": "The sack is ordered in seat order beginning with the start player, so sack position 1 is the start player's card; everyone knows the owner of each position."},
+    {"id": "R6", "text": "At stage 1, sack card 1 is revealed to all, the standing bid is 0 and there is no leader."},
+    {"id": "R7", "text": "At each stage, the players still in simultaneously write a number; 0 is a pass, and a bid must be at least standing_bid + 1 and at most the bidder's mice, or it counts as a pass."},
+    {"id": "R8", "text": "After each stage, every player's bid (0 for a pass) is announced by name."},
+    {"id": "R9", "text": "When every player passes at stage 1, then every player gains 2 mice, nobody takes the sack, it is discarded unopened, and play goes to choosing the next start player."},
+    {"id": "R10", "text": "When every player still in passes at stage 2, then the previous leader takes the sack at the standing bid with no reward, and every other passer gains 3 mice."},
+    {"id": "R11", "text": "When every player still in passes at stage 3, then the previous leader takes the sack at the standing bid with no reward, and every other passer gains 4 mice."},
+    {"id": "R12", "text": "When not everyone passed, then each passer leaves the auction for the round and gains 2 mice at stage 1, 3 at stage 2 or 4 at stage 3."},
+    {"id": "R13", "text": "When not everyone passed, then the standing bid becomes the highest bid at that stage, and its bidder becomes the leader."},
+    {"id": "R14", "text": "When several players make the highest bid, then the leader is the first of them in seat order counting from the player after the start player, with the start player last."},
+    {"id": "R15", "text": "After a stage is resolved, the new standing bid, the leader and every player's mice are announced."},
+    {"id": "R16", "text": "When exactly one player remains in after a stage, then that player wins the sack at the standing bid just set and the remaining stages are skipped."},
+    {"id": "R17", "text": "Stage 2 reveals sack card 2 and stage 3 reveals sack card 3, and each is played only if two or more players are still in."},
+    {"id": "R18", "text": "When two or more players are still in after stage 3 is resolved, then the leader wins the sack at the standing bid, and each other player who bid at stage 3 gains 5 mice."},
+    {"id": "R19", "text": "When the sack is opened, all its cards are revealed."},
+    {"id": "R20", "text": "When exactly one dog is in the sack, then the large dog removes the highest-valued cat or the small dog removes the lowest-valued cat; when no cat is present nothing is removed, and when both dogs are present neither has any effect."},
+    {"id": "R21", "text": "The sack winner pays their winning bid in mice and adds the total value of the remaining cats to cat_points, which may go negative; the rabbit is worth 0."},
+    {"id": "R22", "text": "Opened sack cards are discarded face up, so everyone can see which cards each player has used."},
+    {"id": "R23", "text": "When someone took the sack, then the sack winner becomes the start player; otherwise the start player passes to the next seat."},
+    {"id": "R24", "text": "The game ends after round 9, when every hand is empty."},
+    {"id": "R25", "text": "At the end, the highest cat_points + mice wins; a tie goes to the most cat_points, and players still tied draw."}
+  ],
+  "offers": [
+    {"question": "Message for this round", "who": "every seat", "options": "free text of at most 30 words"},
+    {"question": "Card to put in the sack", "who": "every seat", "options": "any card currently in that seat's hand"},
+    {"question": "Stage 1 bid", "who": "every seat", "options": "a whole number from 0 to that seat's mice; 0 is a pass"},
+    {"question": "Stage 2 bid", "who": "seats with in_auction = true, only if two or more are still in", "options": "a whole number from 0 to that seat's mice; 0 or any number at or below the standing bid is a pass; a seat that has left the auction is not asked"},
+    {"question": "Stage 3 bid", "who": "seats with in_auction = true, only if two or more are still in", "options": "a whole number from 0 to that seat's mice; 0 or any number at or below the standing bid is a pass; a seat that has left the auction is not asked"}
+  ],
+  "choices": [
+    {"what": "3 to 5 players, suggested 4", "why": "The designer chose 4, so it is kept. 3 is the least for a sack with three staged reveals and a real auction among rivals. 5 is the most, since a sack of 5 cards fills every position and more seats would leave hidden cards and messages too many to reason about."},
+    {"what": "Talk kept as a simultaneous poll shown to everyone", "why": "The rules require one simultaneous message per round. Players disagree over who should take the sack, so claims about their own card are worth bluffing and worth doubting."},
+    {"what": "Card codes such as cat_15, rabbit, large_dog, small_dog", "why": "The cards need text names so the engine can store and compare them in lists."},
+    {"what": "Tie-break encoded as (cat_points + mice) * 1000 + cat_points", "why": "The ranking must be one expression. Cat points can never exceed 210 in absolute value, so a one-point score difference always outweighs the cat-points term."},
+    {"what": "Unopened sacks go to a hidden unopened_pile", "why": "The rules say such a sack is discarded without being opened, so its unrevealed cards must stay unseen."}
+  ],
+  "simplifications": [
+    {"what": "The message and the card choice are two consecutive polls instead of one combined answer", "why": "A poll gathers one answer. Neither answer is shown until both polls are complete, so they stay simultaneous in effect."},
+    {"what": "Bids are offered as any number from 0 to the bidder's mice, with numbers at or below the standing bid treated as a pass", "why": "This matches the rule that an illegal number counts as a pass, while keeping the offered range simple."},
+    {"what": "'Go to step 7/9' is done with when-conditions on sack_done and sack_winner", "why": "The step list is flat. Skipping single steps by condition gives the same flow."}
+  ],
+  "unsupported": []
+}
+```
+````

@@ -1,0 +1,166 @@
+{
+  "original_summary": "Nyet! is a trick-taking game for 2 to 5 players. Before each hand, players take turns placing veto ('Nyet') tokens on a board of rule options until one option per line survives: first player, discard rule, trump, supertrump and points per trick. Shifting teams then play tricks, scoring tricks plus Loot, and the most total points after 8-10 rounds wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No fixed policy wins. Always vetoing the first box or always playing the lowest legal card loses to players who shape trump and the teams to suit their hand. Seat effects in the veto order are real but rotate. In the previous Trio variation one flaw stood out: almost every token went to the LONE line, so trump defaulted to Red and the trump veto was nearly dead."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Hand strength varies per deal. Over many deals, players gain by reading partners' and opponents' holdings, vetoing trump against weak suits, and choosing when to stand alone. Trick play rewards counting cards and inferring voids. Luck in single deals averages out over 6 or more deals."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Valuing a hand under each possible trump, predicting how others will veto, bluffing in talk, and card-counting with a hidden set-aside pile all leave room to improve. A weak player still wins tricks with good cards."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden, and some cards are never revealed. Every veto token signals something about a hand. Players must infer suit lengths from vetoes and from failures to follow suit, and plan across a 5-trick hand."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Trick winners and scores follow mechanically from the cards played and the surviving rules."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The full game has a 5-line board, multi-player team selection, a Bonus card, supertrump 1s beating trump, Loot and a 60-card deck. That is far beyond the step and attribute limits. The previous cut-down version still exceeded choice steps (8 of 4) and attributes (about 24 of 20)."
+    }
+  ],
+  "problems": [
+    "P1: Too many choice steps. In the flat step list, veto choices (talk plus 3 tokens) and trick choices (Lone discard plus 3 card plays) add up to 8 distinct choice steps against a limit of 4.",
+    "P2: Too many attributes. Four stats per player, 7 separate board boxes and 5 state values come to about 24 against a limit of 20, and the earlier design under-reported this.",
+    "P3: Weak trump veto. Players spent their single token on the LONE line, so trump almost always stayed Red, the first box, and the trump line added little to decide.",
+    "P4: The original's full rule set (supertrump, Loot, Bonus card, team picking, 5 board lines, 60 cards) cannot be built within the limits."
+  ],
+  "changes": [
+    {
+      "what": "Remove the separate Lone discard choice. The Lone keeps all 6 cards (5 dealt plus the Widow) and plays one per trick. The single card left unplayed after the 5th trick is the hidden discard and is never shown.",
+      "why": "This removes a whole choice step but keeps the decision: the Lone still chooses which card to keep back.",
+      "fixes": "P1: Too many choice steps"
+    },
+    {
+      "what": "Use three shared sequential choice slots for both veto tokens and card plays. Slot A is First in a veto round and the leader in a trick round. Slots B and C are the next players clockwise. Each slot's options are computed: legal empty boxes in veto rounds, legal cards in hand in trick rounds. Talk runs only in veto rounds.",
+      "why": "Talk plus 3 shared slots gives exactly 4 choice steps across the whole flat list.",
+      "fixes": "P1: Too many choice steps"
+    },
+    {
+      "what": "Store the Nyet board as one list attribute. Store the current trick as one list, so the led colour comes from its first card. Drop the 'tricks' stat and break ties on score, then lone_tricks, then last_win. Set-aside cards are one list. The Lone's unplayed card simply stays in their hand, so hidden elements fall to 2.",
+      "why": "This brings attributes to 19 and states the count honestly. The tiebreak still almost always produces a unique winner.",
+      "fixes": "P2: Too many attributes"
+    },
+    {
+      "what": "Allow at most one token on the LONE line per veto round. Rotate the order of the TRUMP line each deal, so the default trump changes.",
+      "why": "At least two of the three tokens must now go to the TRUMP line, so trump is genuinely contested. The single LONE token becomes a race that means something different by seat. First tokening 'First' declines to be Lone. Second tokening 'First' claims Lone. Third tokening 'First' forces Second to be Lone. Rotating the trump order stops one colour from being the standing default.",
+      "fixes": "P3: Weak trump veto"
+    },
+    {
+      "what": "Keep the reduced core: 3 players, a 24-card deck, a two-line Nyet board, 1 Lone against a Pair, a Widow, and trump-only trick rules.",
+      "why": "This is the smallest version that keeps veto-to-set-the-rules, shifting teams and trick play, within the limits.",
+      "fixes": "P4: Full rule set cannot be built"
+    }
+  ],
+  "keeps": [
+    "The Nyet mechanic: players set the round's rules by vetoing options, and the leftover option becomes the rule.",
+    "The trump colour is chosen by elimination.",
+    "Teams shift every hand: one player stands alone against a temporary partnership, with an uneven reward for tricks.",
+    "Standard trick taking: follow the led colour if able, and trump beats the led colour.",
+    "Many hands, scored by cumulative points, with the highest total winning."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The veto-then-tricks core fits once the flat-list choice steps are merged into 3 shared slots plus talk, attributes are compressed, and the LONE line is capped so the trump veto matters."
+  },
+  "variation": {
+    "name": "Nyet! Trio (Widow edition, compact)",
+    "summary": "Three players play 6 deals. At the start of each deal they veto options on a two-line board to fix the trump colour and who plays Lone. The Lone takes the Widow and plays 5 tricks against the other two as a Pair. A Lone trick is worth 2 points to the Lone, and a Pair trick is worth 1 point to each Pair member.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "SETUP\n- There are exactly 3 players: P1, P2, P3. Clockwise order is P1 -> P2 -> P3 -> P1.\n- The deck has 24 unique cards: four colours (Red, Yellow, Green, Blue), each numbered 1 to 6.\n- Each player has score, lone_tricks and last_win, all starting at 0.\n- The game lasts 36 rounds: 6 deals of 6 rounds each. Round 1 of each deal (rounds 1, 7, 13, 19, 25, 31) is the VETO round. Rounds 2 to 6 of each deal are TRICK rounds.\n\nVETO ORDER (First, Second, Third)\n- Deals 1 and 4: P1, P2, P3.\n- Deals 2 and 5: P2, P3, P1.\n- Deals 3 and 6: P3, P1, P2.\n\nTRUMP LINE ORDER (rotates each deal)\n- Deal 1: Red, Yellow, Green, Blue.\n- Deal 2: Yellow, Green, Blue, Red.\n- Deal 3: Green, Blue, Red, Yellow.\n- Deal 4: Blue, Red, Yellow, Green.\n- Deal 5: Red, Yellow, Green, Blue.\n- Deal 6: Yellow, Green, Blue, Red.\n\nVETO ROUND\n(1) Shuffle all 24 cards. Deal 5 to each player as a private hand. Turn one of the remaining 9 face up: this is the Widow, which everyone sees. The other 8 are set aside face down and are never revealed. Any cards left in hands from the previous deal are discarded unseen before the shuffle.\n(2) The Nyet board is cleared. It has two lines: the TRUMP line (4 colour boxes, in this deal's order) and the LONE line (3 boxes: First, Second, Third). Announce the Widow and the board.\n(3) Talk: all three players write one short message at the same time, without seeing the others' messages. All messages are then shown to everyone. Talk is not binding.\n(4) First, then Second, then Third each places one Nyet token on one empty box. Each sees the tokens already placed. A token may go on any empty TRUMP box. A token may go on a LONE box only if no token is yet on the LONE line: at most one LONE token per deal. A player may not token the last empty box of a line. There is always at least one legal box.\n(5) Trump is the first untokened box on the TRUMP line, in this deal's order. The Lone is the first untokened box on the LONE line (First, then Second, then Third). The other two players are the Pair.\n(6) The Lone adds the Widow to their hand and holds 6 cards. Announce trump, the Lone and the Pair. The Lone leads the first trick.\n\nTRICK ROUND\n(7) The leader plays one card face up. Then the next player clockwise plays one, then the third player plays one. Each sees the cards already played. The led colour is the colour of the leader's card. A player holding a card of the led colour must play one. A player with none may play any card.\n(8) Winner: if any trump was played, the highest trump wins. Otherwise the highest card of the led colour wins. Cards are unique, so there is always one winner.\n(9) Scoring: if the Lone won, the Lone gains 2 points and 1 lone_trick. If a Pair member won, each Pair member gains 1 point. The winner's last_win is set to the current round number.\n(10) The winner leads the next trick of this deal.\n(11) Announce the cards played, the winner and all scores.\n- After the 5th trick of a deal, the Lone still holds 1 card. It is never played or revealed and is discarded at the next shuffle. Choosing which card to keep back is the Lone's discard.\n\nEND\nAfter round 36, the winner is decided as in the objective.",
+    "objective": "The highest score wins. If players tie, the tied player with the most lone_tricks wins. If still tied, the tied player with the highest last_win wins (the one who won a trick most recently; this is unique unless no tied player has won a trick). If still tied, the game is a draw.",
+    "expected_effect": "Playing Lone pays more than playing in the Pair only when the Lone wins 2 or more of the 5 tricks: 2k against 5-k for each Pair member. Every deal is therefore a judgement of hand strength under each possible trump. Because only one LONE token is allowed, at least two tokens fall on the TRUMP line, so trump is genuinely contested. Each token also signals which colours a player is short in. The single LONE token is a race with a different meaning by seat (decline, claim or force), and the rotations remove seat and default-colour edges. Talk passes both tests. Players disagree about trump, since each wants their own long suit, and about who should be Lone, since each wants to be Lone only with a strong hand and wants a weak rival forced into it. A player who simply follows a proposal such as 'I'll token Red, you token First' can be steered into a bad trump or a losing Lone. The Pair cooperates only temporarily, and each Pair member is still a rival on the overall score, so Pair play involves real tension. No endgame unravelling arises, because this is a competitive trick game rather than a cooperation game."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 4,
+    "attributes": 19,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 36
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "SCORING TABLE PER DEAL. A deal has 5 tricks. Let L be the number of tricks the Lone player wins. The Lone player scores 2L. Each Pair member scores 5-L.\n- L=0: Lone 0, each Pair member 5, difference -5\n- L=1: Lone 2, each Pair member 4, difference -2\n- L=2: Lone 4, each Pair member 3, difference +1\n- L=3: Lone 6, each Pair member 2, difference +4\n- L=4: Lone 8, each Pair member 1, difference +7\n- L=5: Lone 10, each Pair member 0, difference +10\nThe Lone player holds 5 of the 15 live cards, so a naive expectation is L of about 5/3. That gives the Lone player an expected 3.33 and each Pair member 3.33. In expectation, the 2-to-1 point weighting does compensate for being outnumbered.\n\nTHOUGHTLESS POLICIES. Neither of these never loses.\n- 'Always play your highest trump, else your highest card' wins tricks whenever its holder has top trumps. It loses to a player who holds trumps back until the opponents' trumps are spent. It is not dominant.\n- 'Always veto your own Lone box' is not dominant either. Lone has the same expected value, and a strong hand profits from being Lone.\n\nSEAT STRUCTURE. If First vetoes 'First' and Second vetoes 'Second', Third is forced to be Lone. Third cannot block this, because the last LONE box is protected. Third also cannot make itself Lone unless both other boxes are already taken. Third does get the sole say on trump, but only between Red and Yellow. The asymmetry exists, but each player is Third exactly twice, so it evens out across the game.\n\nFAILURE: DRAW RATE UNDER THE WINNER RULE.\n- Pair members score identically in every deal. Two players can only separate in deals where one of them is Lone.\n- Each Lone deal moves the Lone-vs-Pair difference by 3L-5, which is 1 mod 3.\n- When every player is Lone twice (the typical forced-Third pattern), X's total minus Y's total equals 3 \u00d7 (X's total Lone tricks \u2212 Y's total Lone tricks).\n- So X and Y tie exactly when their two-deal Lone trick counts are equal. Each count ranges 0 to 10 and is concentrated around 3 to 4 (sd about 1.5), so a pairwise tie happens roughly 20-25% of the time.\n- A tie for the top score, which is a draw, therefore occurs in roughly 15-20% of games. That is far too many games with no winner, created purely by the scoring arithmetic."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "LIMITS. The design is within the stated limits:\n- steps 14 \u2264 20\n- choice steps 4 \u2264 4 (3 vetoes + 1 simultaneous card play)\n- attributes 12 \u2264 20\n- hidden elements 2 \u2264 3 (hands, set-aside cards)\n- random draws 1 \u2264 1\n- rounds 30 \u2264 40\nThe deal-start steps can be gated with `when` conditions. Veto legality always holds, since the 3 tokens fit within a capacity of 5 (TRUMP takes up to 3, LONE up to 2). Card uniqueness rules out ties. No board, clock or judge is needed.\n\nPROBLEM 1: THE TRICK MECHANIC IS GUTTED. Tricks are played simultaneously, so the led colour is unknown when the others choose. There is also no follow-suit obligation. Leading therefore means almost nothing: the leader's colour only matters if nobody played trump. 'The Lone player leads' and 'the winner leads next' are nearly empty rules, and the original's core trick-taking reasoning is lost.\n\nPROBLEM 2: TALK IS MISSING WHERE PLAYERS CAN ONLY GUESS EACH OTHER. This is a 3-player game with no talk phase.\n- The two Pair members share an identical payoff. In simultaneous play they can only guess whether their partner will spend a trump on the same trick, which wastes trumps.\n- In the veto phase, players genuinely disagree about who should be Lone, which depends on private hand strength. Talk or bluffing there would give real material to reason about.\nWith neither sequential play nor any talk, the coordination is pure guesswork."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "WHAT DECIDES TRICKS. With no follow-suit and simultaneous play, a trick is decided almost entirely by trump holdings. The trump 6 wins whenever it is played, the trump 5 wins unless the 6 meets it, and so on. Your trick total is largely fixed by how many high trumps you were dealt. Play skill is reduced to timing guesses about when the opponents spend their trumps.\n\nWHERE PLAYERS SEPARATE. Pair members gain identically, so individual standings differ only through Lone deals. That is about 2 per player, each a 5-card hand drawn from 24 cards with 9 hidden.\n\nWHAT SKILL CAN DO. The veto lets a player try to take Lone with a strong hand. But nobody except Third can secure or refuse Lone with certainty, and Third has the least choice.\n\nGOOD PLAY ON ALL SIDES. When everyone plays well (keeps strong-hand players Lone, holds trumps sensibly), the result reduces to whose two Lone hands had more high trumps. I estimate 60% or more of outcomes are decided by the deal.\n\nINFERENCE. There is some: reading hand strength from veto choices, and counting played trumps. But the simultaneous-play structure leaves little way to act on it."
+        },
+        "required_changes": [
+          "Make each deal 6 rounds: one veto-only round followed by 5 trick rounds. That gives 36 rounds, within the 40 limit. In trick rounds, play sequentially (leader first, then clockwise) with a follow-suit obligation: you must follow the led colour if able, otherwise you may play anything. This uses 3 choice steps and restores leading, voids and card-reading.",
+          "Add one simultaneous public free-text talk step before the veto tokens are placed in the veto round. Players disagree about who should be Lone, so claims and bluffs about hand strength become part of the inference. Optionally give the Pair a one-message private channel before the first trick.",
+          "Replace the draw rule with arithmetic tiebreaks: first most total tricks won while Lone, then most tricks won overall. Keep a per-player 'lone_tricks' and 'tricks' attribute beside the score. Alternatively, award the Lone player 2L+1 instead of 2L, which breaks the mod-3 structure that makes ties common.",
+          "Let the Lone player discard 1 card and draw 1 from the 9 set-aside cards after the veto, in the same round's single random draw. This lets a skilful Lone player shape the hand and reduces pure deal luck."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "PER-DEAL PAYOFF. Each deal has 5 tricks. If the Lone player wins k of them, Lone scores 2k and each Pair member scores 5-k.\n\n| k | Lone | each Pair | result |\n|---|------|-----------|--------|\n| 0 | 0 | 5 | Pair ahead |\n| 1 | 2 | 4 | Pair ahead |\n| 2 | 4 | 3 | Lone ahead |\n| 3 | 6 | 2 | Lone ahead |\n| 4 | 8 | 1 | Lone ahead |\n| 5 | 10 | 0 | Lone ahead |\n\n- Every trick hands out exactly 2 points, whoever wins it, so neither side gets a built-in bonus.\n- The break-even is k = 5/3. That equals the naive share: the Lone card is highest of 3 about 1/3 of the time, so 5 x 1/3 = 1.67 tricks.\n- The Lone gains from the Widow, the discard and the opening lead. The Pair gains from two cards per trick and from not caring which of them wins. These roughly offset, as in Skat-style 1-vs-2 games, so both roles can win.\n- Pair members always score the same within a deal. Their incentives are fully aligned against the Lone, and no pair member gains by helping the Lone, because a Lone trick gives the Lone +2 and the helper 0.\n\nTHOUGHTLESS POLICIES (winner rule: highest total, then lone_tricks, then tricks, then last_win).\n- Always play the first legal card: a sensible opponent saves trumps and ducks, and wins more tricks. It loses to sensible play and is about even against random play. It is not unbeatable.\n- Always token the first box (Red): it only changes which colour is trump. Hands are random, so it gives no systematic gain.\n- Always token the LONE line: covered under seat analysis below.\n- No option wins or draws against every opponent action. A card play never secures a trick against a higher card or a trump. No veto choice guarantees points.\n\nSEAT ANALYSIS of the LONE line (First, Second, Third; 3 tokens; the last empty box cannot be tokened).\n- If everyone wants Lone: First is the default, so First tokens TRUMP. Second tokens First, making Second Lone. Third tokens Second, making Third Lone.\n- If everyone avoids Lone: First tokens First, making Second Lone. Second tokens Second, making Third Lone. Third cannot token the last box.\n- In both pure cases Third ends up Lone, so Third has an edge whichever way Lone value lies. The veto order rotates, and each player is Third in exactly 2 of 6 deals, so the seat edge cancels over the game.\n- The tie-breaks almost never leave a draw.\n- Both players can realistically win, and no strictly dominant option or never-lose policy exists."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "WHAT WORKS.\n- The rules are complete for every situation. Follow-suit, a void, trump beating the led colour, unique cards, the lead, the discard, the Widow and the illegal last-box token are all covered.\n- The game is finite: 36 rounds, scored purely by arithmetic.\n- Talk is simultaneous and placed well. Players disagree about trump and who becomes Lone, and a proposal like 'token Second' can be a trap.\n- Hidden elements total 3: hands, the 8 set-aside cards and the Lone discard. That is within the limit of 3.\n- There is one shuffle per veto round, so 1 random draw.\n- No board, judge or clock is needed.\n\nFAIL 1: CHOICE STEPS. The engine's step list is flat. Veto rounds and trick rounds run in the same list, gated by `when` conditions, so all choice steps in the list count toward one round.\n- Veto choices: talk, First's token, Second's token, Third's token = 4.\n- Trick choices: Lone discard, lead card, 2nd card, 3rd card = 4.\n- That is 8 distinct choice steps, against a limit of 4.\n- The stated count of 4 counts only one round type. Nothing in the design merges the two sets.\n\nFAIL 2: ATTRIBUTES are under-counted.\n- Per-player stats: 4 x 3 = 12.\n- Tokens on 7 board boxes: 7.\n- Trump, Lone id, current leader, led colour and the Widow: 5.\n- That is about 24, against a limit of 20. The design claims 18.\n\nSTEPS. Steps (about 8 veto + about 8 trick = about 16) fit within 20, so step count itself is fine."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT THERE IS TO INFER.\n- Opponents' hands: 5 cards each, 24 in the deck.\n- The 9 unseen cards: 8 set aside plus the discard. This blocks perfect counting, so play requires probabilistic inference.\n- Signals: what each veto token implies about that player's hand, and what the Lone likely discarded.\n\nACTIONS THAT USE THAT INFERENCE.\n- Veto choices.\n- The Lone's discard. It can void a colour, which lets the Lone ruff later.\n- Pair coordination: ducking when the partner is winning, and overtaking the Lone with the lowest winning card.\n- Lead choice.\n\nLUCK.\n- The deal matters a lot within a single deal: the trump count among 6 trumps.\n- Over 6 deals (30 tricks), with each player Lone twice, deal luck averages out partly.\n- Role assignment is controlled by the veto order, not by chance.\n\nWHEN EVERYONE PLAYS WELL.\n- The winner depends on hand strength, but card play still swings tricks: ducking, ruffing, and the discard creating voids.\n- The deal does not alone decide the result.\n- Estimated chance share is about 40-50%, similar to Skat or Hearts. A strong player is clearly favoured over 36 rounds.\n\nWEAKNESS (not fatal).\n- When tokens go to the LONE line, trump defaults to Red with no veto on the TRUMP line.\n- This removes some veto reasoning, but trick play still carries the skill."
+        },
+        "required_changes": [
+          "Bring choice steps to 4 or fewer across the flat list by dropping the separate discard choice. The Lone keeps all 6 cards, and the one card left unplayed after 5 tricks is the discard.",
+          "Reuse three generic sequential choice slots for both veto tokens and card plays. The options for each slot come from a computed list: empty legal boxes in veto rounds, the legal cards in hand in trick rounds.",
+          "Together these give: talk (veto rounds only, via `when`) plus 3 shared choice slots = 4.",
+          "Bring attributes to 20 or fewer, and restate the count honestly. Encode the 7 Nyet boxes as one list attribute or one bitmask number instead of 7 separate attributes, and derive led colour from the leader's played card rather than storing it.",
+          "Optional, to strengthen the veto: give each player a second token, or forbid more than one token per player on the LONE line, so the TRUMP line is genuinely contested instead of defaulting to Red."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Payoff per deal (5 tricks), with k = tricks the Lone wins. Lone gets 2k; each Pair member gets 5-k.\n\n| k | Lone | each Pair member | result |\n|---|---|---|---|\n| 0 | 0 | 5 | Lone -5 |\n| 1 | 2 | 4 | Lone -2 |\n| 2 | 4 | 3 | Lone +1 |\n| 3 | 6 | 2 | Lone +4 |\n| 4 | 8 | 1 | Lone +7 |\n| 5 | 10 | 0 | Lone +10 |\n\nBreak-even is E[k] = 5/3. Against the Pair's 10 cards, the Lone has 6 cards (keeping the best 5) and the opening lead. That makes the Lone a modest favourite with a strong or long-trump hand and a loser with a weak one. So whether to be Lone is a real, hand-dependent bet, not a fixed gain.\n\nThe two Pair members always score identically within a deal. Every Pair trick is +1 for them and 0 for the Lone. Their interests are aligned and there is no incentive to throw tricks to the Lone.\n\nThoughtless policies:\n- (a) Always token the first empty TRUMP box: First, Second and Third token boxes 1, 2, 3. Trump becomes box 4 and First is Lone regardless of hand. Against sensible players who steer trump and Lone toward their hands, this loses on average.\n- (b) Always token LONE First when legal: the policy hands the Lone role to Second whatever the hands. It is not dominant.\n- (c) Always play the highest legal card: it wastes high trumps on tricks a partner already holds and loses to sensible play. Against random play it wins often but not always, because the cards dealt matter.\n\nNo veto or play option is best whatever opponents do. The LONE line has real counterplay: Second or Third can token First to move the Lone to Second, so First cannot lock the role.\n\nSeat balance: each player is First, Second and Third in the veto exactly twice (deals 1/4, 2/5, 3/6). The trump line order is irrelevant to seat because hands are random. Position in trick order follows who the Lone is and who wins, so it is symmetric over deals.\n\nAll three players can realistically win. The tiebreaks (lone_tricks, then last_win, which is unique per trick) make a draw rare."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete.\n\nDeal: 5 cards each plus a public Widow; 8 cards stay hidden.\n\nVeto mechanics:\n- 3 tokens are placed sequentially; each placer sees earlier tokens.\n- At most one LONE token is allowed, so the LONE line never reaches its last box.\n- If all 3 tokens go on TRUMP, 1 of 4 boxes remains. 'Always a legal box' therefore holds.\n- Trump is the first untokened box; the Lone is the first untokened LONE box. Both are deterministic.\n\nTrick play:\n- The Lone leads trick 1, and each trick's winner leads the next.\n- Follow colour if able; otherwise play any card.\n- The highest trump wins, else the highest card of the led colour. Unique cards give a unique winner.\n- The Lone ends with 1 unplayed card, and this is defined.\n\nScoring and the winner are arithmetic on the kept attributes (score, lone_tricks, last_win). Follow-colour legality is a referee-checkable rule.\n\nLimits are within bounds: 16 of 20 steps, 4 of 4 choice steps (talk plus 3 veto tokens), 19 of 20 attributes, 2 of 3 hidden elements, 1 of 1 random draws per round (the shuffle, in veto rounds only), 36 of 40 rounds. The game needs no board, clock, trading or binding agreements.\n\nTalk is present only before the veto. It is simultaneous, and players genuinely disagree about trump and who becomes Lone, so it fits the platform's guidance. Talk is absent during tricks, where the Pair already shares a goal.\n\nThe game has a fixed length, but it is not an iterated-dilemma structure, so there is no late-round defection collapse."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The deal matters within a deal: 5-card hands from a 24-card deck. Over 6 deals and 30 tricks, though, decisions dominate. The skill levers are:\n- Judging one's hand against the visible Widow to decide whether to seek or deny the Lone role. Being Lone is a +/- swing of several points per deal.\n- Using trump tokens to steer trump toward one's long colour or away from an opponent's.\n- Inferring opponents' holdings from their tokens, their talk and the colours they fail to follow.\n- Choosing the Lone's held-back card.\n- Pair cooperation in play without communication: second hand low, saving trumps for the Lone's leads.\n\nWith all players playing well, the Lone role goes to whoever has the best hand for it. Outcomes then depend on hand-reading and card play, not on the deal alone. A bad deal can be mitigated by refusing the Lone role and defending.\n\nEstimate: roughly 35-45% chance in a single deal, falling to about 25-30% over the whole game. A strong reasoner is clearly favoured."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

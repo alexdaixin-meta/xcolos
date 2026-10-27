@@ -1,0 +1,905 @@
+# 05 scenarios
+
+- time: 2026-10-27T22:12:21+00:00 (46.6s)  model: claude-opus-5-5
+- system prompt: [system/6dcf03e1-scenarios.md](system/6dcf03e1-scenarios.md) (sha256 6dcf03e15fe36c21)
+- sent sha256 eb23af0eed6136c9, reply sha256 c637786b8eac5076
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Witch's Brew: Claims",
+  "summary": "Over 3 sets of N rounds, players secretly hold 3 of 6 roles. Each round a leader names a role, holders choose at once to contest or yield, and the last contester clockwise takes the strong reward.",
+  "players": {
+    "min": 3,
+    "max": 5,
+    "suggested": 4
+  },
+  "parameters": {
+    "num_sets": 3,
+    "roles_per_hand": 3,
+    "role_count": 6,
+    "witch_strong": 5,
+    "witch_weak": 2,
+    "raven_keeper_strong": 6,
+    "raven_keeper_weak": 0,
+    "alchemist_strong": 4,
+    "alchemist_weak": 1,
+    "druid_strong": 3,
+    "druid_weak": 2,
+    "herb_hag_strong": 2,
+    "herb_hag_weak": 1,
+    "thief_steal": 3,
+    "thief_weak": 1,
+    "starting_score": 0,
+    "overtaken_reward": 0
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Total points. It may go below 0 because of the Thief.",
+        "observable": true
+      },
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "The roles this player holds in the current set: 3 chosen at the start of the set, each removed once led or responded to.",
+        "observable": false
+      },
+      {
+        "key": "response",
+        "type": "text",
+        "visible": "public",
+        "initial": "none",
+        "meaning": "This round's response: contest, yield, or none (the player is the leader or does not hold the named role). It is shown to everyone at the reveal.",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "set_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "The current set, from 1 to 3.",
+        "observable": false
+      },
+      {
+        "key": "round_in_set",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "The round within the current set, from 1 to N.",
+        "observable": false
+      },
+      {
+        "key": "round_count",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Rounds completed so far.",
+        "observable": false
+      },
+      {
+        "key": "leader_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "The seat leading this round.",
+        "observable": false
+      },
+      {
+        "key": "named_role",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "The role named by the leader this round.",
+        "observable": true
+      },
+      {
+        "key": "led_list",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "The roles already led in the current set.",
+        "observable": false
+      },
+      {
+        "key": "leader_holds",
+        "type": "bool",
+        "visible": "none",
+        "initial": false,
+        "meaning": "Whether the named role was in the leader's hand when it was named.",
+        "observable": false
+      },
+      {
+        "key": "final_claimant",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "The seat that ends up with the claim this round.",
+        "observable": false
+      },
+      {
+        "key": "thief_target",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "The seat robbed by a strong Thief reward this round.",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Seats are numbered 1 to N clockwise, with N from 3 to 5.",
+    "Every player's score is set to 0.",
+    "set_number = 1, round_in_set = 1, round_count = 0, and led_list is empty."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When round_in_set == 1: empty every player's hand (roles left unused from the previous set are lost) and empty led_list."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "One of the 20 combinations of 3 different roles from {Witch, Raven Keeper, Alchemist, Druid, Herb Hag, Thief}",
+      "effect": "When round_in_set == 1: set each player's hand to the 3 roles in the chosen combination. Hands stay private (ally)."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Set leader_seat = ((set_number - 1) + (round_in_set - 1)) mod N + 1 and set every player's response to 'none'. Announce: 'Seat {leader_seat} leads this round.'"
+    },
+    {
+      "action": "ask",
+      "who": "seat leader_seat",
+      "answer": "One role from {Witch, Raven Keeper, Alchemist, Druid, Herb Hag, Thief} that is not in led_list",
+      "effect": "Set named_role to the chosen role and append it to led_list. Set leader_holds = (named_role is in the leader's hand). Announce the named role."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "Short text message",
+      "effect": "Broadcast to all: 'Seat {seat} says: {value}'. Nothing binds."
+    },
+    {
+      "action": "poll",
+      "who": "each player other than leader_seat whose hand contains named_role",
+      "answer": "contest | yield",
+      "effect": "Set response to 'contest' or 'yield'. Players who do not hold the role keep 'none' (an automatic pass)."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Reveal every seat's response, which shows who held named_role."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "If any player's response == 'contest', set final_claimant to the contester with the largest (seat - leader_seat) mod N. Otherwise set final_claimant = leader_seat."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Strong reward. If final_claimant != leader_seat or leader_holds is true, then: if named_role is not Thief, final_claimant's score += that role's strong value (Witch 5, Raven Keeper 6, Alchemist 4, Druid 3, Herb Hag 2). If named_role is Thief, set thief_target to the seat other than final_claimant with the highest score (ties go to the smallest (seat - final_claimant) mod N), then final_claimant's score += 3 and thief_target's score -= 3. If final_claimant == leader_seat and leader_holds is false, nobody gets the strong reward. The overtaken leader and overtaken contesters get 0."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Weak reward: every player with response == 'yield' gets score += the weak value of named_role (Witch 2, Raven Keeper 0, Alchemist 1, Druid 2, Herb Hag 1, Thief 1)."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Remove named_role from the hand of leader_seat (if held) and from the hand of every player whose response != 'none'."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "round_count += 1 and round_in_set += 1. If round_in_set > N, set round_in_set = 1 and set_number += 1. Announce all scores."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "End the game if round_count >= 3 * N; otherwise continue."
+    }
+  ],
+  "ending": {
+    "condition": "round_count >= 3 * N",
+    "rank_by": "you.score",
+    "decided_by": "Each player's total score. The highest total wins, and players tied for the highest share the result (the source calls this a draw)."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "When the game starts, every player has score 0."
+    },
+    {
+      "id": "R2",
+      "text": "When round_in_set is 1, every player simultaneously chooses exactly 3 different roles, and these become their hand, replacing any roles left from the previous set."
+    },
+    {
+      "id": "R3",
+      "text": "When a new set begins, led_list is emptied."
+    },
+    {
+      "id": "R4",
+      "text": "When round r of set k is played, the leader is seat ((k-1)+(r-1)) mod N + 1, so set 1 starts with seat 1, set 2 with seat 2 and set 3 with seat 3."
+    },
+    {
+      "id": "R5",
+      "text": "When the leader names a role, it must not already be in led_list; it may be a role the leader does not hold, and it is appended to led_list."
+    },
+    {
+      "id": "R6",
+      "text": "When the role is named, every player submits one short message simultaneously, and all messages are then shown to everyone."
+    },
+    {
+      "id": "R7",
+      "text": "When a non-leader holds the named role, they must choose contest or yield simultaneously with the other holders; non-holders and the leader have response 'none'."
+    },
+    {
+      "id": "R8",
+      "text": "When responses are in, all responses are revealed to everyone."
+    },
+    {
+      "id": "R9",
+      "text": "When at least one player contests, the final claimant is the contester furthest clockwise from the leader (largest (seat - leader) mod N); otherwise the final claimant is the leader."
+    },
+    {
+      "id": "R10",
+      "text": "When the final claimant is not the leader, or is the leader and holds the named role, they gain the strong reward: Witch 5, Raven Keeper 6, Alchemist 4, Druid 3, Herb Hag 2."
+    },
+    {
+      "id": "R11",
+      "text": "When the final claimant is the leader and the leader does not hold the named role, nobody gains the strong reward."
+    },
+    {
+      "id": "R12",
+      "text": "When the strong Thief reward is given, the claimant gains 3 and the other player with the highest score loses 3 (ties go to the first tied seat clockwise after the claimant), and a score may go below 0."
+    },
+    {
+      "id": "R13",
+      "text": "When the leader or a contester is overtaken by a later contester, they gain 0 points."
+    },
+    {
+      "id": "R14",
+      "text": "When a player yields, they gain the weak reward: Witch 2, Raven Keeper 0, Alchemist 1, Druid 2, Herb Hag 1, Thief 1."
+    },
+    {
+      "id": "R15",
+      "text": "When a round resolves, the named role is removed from the leader's hand (if held) and from the hand of every player who contested or yielded."
+    },
+    {
+      "id": "R16",
+      "text": "When round_count reaches 3*N, the game ends, and the highest score wins, with tied top scores sharing the result."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Choose roles for the set (when round_in_set == 1)",
+      "who": "all players",
+      "options": "Any of the 20 combinations of 3 different roles from Witch, Raven Keeper, Alchemist, Druid, Herb Hag, Thief"
+    },
+    {
+      "question": "Name a role",
+      "who": "seat leader_seat",
+      "options": "Every role not in led_list, whether held or not"
+    },
+    {
+      "question": "Talk",
+      "who": "all players",
+      "options": "One short free-text message"
+    },
+    {
+      "question": "Respond to the named role",
+      "who": "each non-leader seat holding named_role",
+      "options": "A holder other than the leader: contest, yield. The leader and non-holders are not asked."
+    }
+  ],
+  "choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "The designer chose 4 and the source range is 3 to 5. Three is the minimum so that claim order and contest bluffing matter; more than 5 would exceed the 6 roles, which could run out within a set."
+    },
+    {
+      "what": "Hand choice offered as one pick from the 20 three-role combinations",
+      "why": "This guarantees exactly 3 different roles in a single simultaneous answer."
+    },
+    {
+      "what": "Talk kept as a simultaneous poll, broadcast to all",
+      "why": "The rules specify simultaneous messages. Players disagree about who should claim, so bluffing about holdings is meaningful."
+    },
+    {
+      "what": "Leader formula ((set_number-1)+(round_in_set-1)) mod N + 1",
+      "why": "This matches 'set k starts with player k' and clockwise passing; with 3 players set 3 starts with player 3."
+    },
+    {
+      "what": "Thief tie-break uses the first tied seat clockwise from the final claimant",
+      "why": "The final claimant is the one using the Thief's reward."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for the top score is a shared win rather than a declared draw",
+      "why": "The engine has no separate draw; tied top players share the win."
+    },
+    {
+      "what": "Roles left in a hand at the end of a set are discarded by emptying hands at the start of the next set",
+      "why": "This has the same effect as losing them at the end of the set."
+    }
+  ],
+  "unsupported": []
+}
+
+OBSERVABLE (the only attributes you may assert on): player: score, response; table: named_role.
+
+YOUR PREVIOUS REPLY WAS REFUSED. Here it is:
+```json
+[
+  {
+    "name": "Every player starts with score 0",
+    "rule": "R1",
+    "players": 4,
+    "rounds": 0,
+    "expect": {
+      "standings": {"1": 0, "2": 0, "3": 0, "4": 0},
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 0}, "4": {"score": 0}}
+    }
+  },
+  {
+    "name": "At the start of a set hands are chosen and the set's first round plays (role choice by chance, only the named role is asserted)",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Thief"]}, "2": {"hand": ["Thief"]}, "3": {"hand": ["Thief"]}},
+      "game": {"set_number": 1, "round_in_set": 1, "led_list": []}
+    },
+    "rules": [{"seat": 1, "options_include": "Druid"}],
+    "expect": {"game": {"named_role": "Druid"}}
+  },
+  {
+    "name": "A new set empties led_list, so a role led in the previous set can be named again",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {"set_number": 2, "round_in_set": 1, "led_list": ["Witch", "Druid", "Thief"]}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}],
+    "expect": {"game": {"named_role": "Witch"}}
+  },
+  {
+    "name": "Set 3 round 1 with 4 players is led by seat 3",
+    "rule": "R4",
+    "players": 4,
+    "rounds": 1,
+    "given": {"game": {"set_number": 3, "round_in_set": 1, "led_list": []}},
+    "rules": [{"seat": 3, "options_include": "Druid"}],
+    "expect": {
+      "game": {"named_role": "Druid"},
+      "offered": [{"seat": 3, "option": "Druid"}],
+      "not_offered": [{"seat": 1, "option": "Druid"}, {"seat": 2, "option": "Druid"}, {"seat": 4, "option": "Druid"}]
+    }
+  },
+  {
+    "name": "A role already led cannot be named, and the leader may name a role they do not hold",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Alchemist", "Thief"]}, "2": {"hand": ["Herb Hag", "Thief"]}, "3": {"hand": ["Raven Keeper", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": ["Witch"]}
+    },
+    "rules": [{"seat": 2, "options_include": "Druid"}],
+    "expect": {
+      "game": {"named_role": "Druid"},
+      "not_offered": [{"seat": 2, "option": "Witch"}],
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "After the role is named everyone talks, and the round still resolves normally",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Thief", "Druid"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Thief", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Alchemist"}],
+    "expect": {
+      "game": {"named_role": "Alchemist"},
+      "players": {"1": {"score": 0}, "2": {"score": 4}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "Only a non-leader holder is asked to contest or yield",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Alchemist", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Witch", "Druid"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Alchemist"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "offered": [{"seat": 1, "option": "contest"}, {"seat": 1, "option": "yield"}],
+      "not_offered": [{"seat": 2, "option": "contest"}, {"seat": 2, "option": "yield"}, {"seat": 3, "option": "contest"}, {"seat": 3, "option": "yield"}],
+      "players": {"1": {"response": "yield", "score": 1}, "2": {"response": "none", "score": 4}, "3": {"response": "none", "score": 0}}
+    }
+  },
+  {
+    "name": "Responses are revealed: one contester claims, one yielder gets the weak reward",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Druid", "Thief"]}, "2": {"hand": ["Alchemist", "Witch"]}, "3": {"hand": ["Druid", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Druid"}, {"seat": 1, "options_include": "contest"}, {"seat": 3, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "contest", "score": 3}, "2": {"response": "none", "score": 0}, "3": {"response": "yield", "score": 2}}
+    }
+  },
+  {
+    "name": "With two contesters the one furthest clockwise from the leader claims",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Witch", "Druid"]}, "3": {"hand": ["Witch", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}, {"seat": 1, "options_include": "contest"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"response": "contest", "score": 5}, "2": {"score": 0}, "3": {"response": "contest", "score": 0}}
+    }
+  },
+  {
+    "name": "A non-leader contester claims Raven Keeper and gains 6",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Raven Keeper", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Raven Keeper"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"response": "contest", "score": 6}}
+    }
+  },
+  {
+    "name": "Leader names a role they do not hold and the only holder yields: no strong reward, the yielder gets the weak 2",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Herb Hag", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "yield", "score": 2}, "2": {"score": 0}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "Thief claimed by a contester robs the highest other score, the tie going to the first seat clockwise, and a score goes below 0",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"score": 2, "hand": ["Witch", "Druid"]}, "2": {"score": 2, "hand": ["Alchemist", "Druid"]}, "3": {"score": 0, "hand": ["Thief", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Thief"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"score": -1}, "2": {"score": 2}, "3": {"score": 3}}
+    }
+  },
+  {
+    "name": "Thief claimed by the leader holding it: the tie between seats 1 and 3 goes to seat 3, first clockwise after seat 2",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"score": 1, "hand": ["Witch", "Druid"]}, "2": {"score": 5, "hand": ["Thief", "Druid"]}, "3": {"score": 1, "hand": ["Herb Hag", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Thief"}],
+    "expect": {
+      "players": {"1": {"score": 1}, "2": {"score": 8}, "3": {"score": -2}}
+    }
+  },
+  {
+    "name": "A leader holding Herb Hag overtaken by a contester gains 0, and the claimant gains 2",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Druid"]}, "2": {"hand": ["Herb Hag", "Druid"]}, "3": {"hand": ["Herb Hag", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Herb Hag"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"response": "contest", "score": 2}}
+    }
+  },
+  {
+    "name": "Two yielders of Druid each gain 2 while the leader holding it gains 3",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Druid", "Thief"]}, "2": {"hand": ["Druid", "Alchemist"]}, "3": {"hand": ["Druid", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Druid"}, {"seat": 1, "options_include": "yield"}, {"seat": 3, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "yield", "score": 2}, "2": {"score": 3}, "3": {"response": "yield", "score": 2}}
+    }
+  },
+  {
+    "name": "Yielding Raven Keeper gives 0 points",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Raven Keeper", "Thief"]}, "2": {"hand": ["Druid", "Alchemist"]}, "3": {"hand": ["Herb Hag", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Raven Keeper"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "yield", "score": 0}, "2": {"score": 0}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "The named role leaves the hands of the leader and the responder, and a non-holder's hand is unchanged",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Alchemist", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Witch", "Druid"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Alchemist"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "lens": {"players": {"1": {"hand": 1}, "2": {"hand": 1}, "3": {"hand": 2}}}
+    }
+  },
+  {
+    "name": "The last round ends the game and the highest score wins",
+    "rule": "R16",
+    "players": 3,
+    "given": {
+      "players": {"1": {"score": 10, "hand": ["Thief"]}, "2": {"score": 8, "hand": ["Witch"]}, "3": {"score": 9, "hand": ["Thief"]}},
+      "game": {"set_number": 3, "round_in_set": 3, "round_count": 8, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}],
+    "expect": {
+      "winner": 2,
+      "standings": {"1": 10, "2": 13, "3": 9},
+      "players": {"1": {"score": 10}, "2": {"score": 13}, "3": {"score": 9}}
+    }
+  },
+  {
+    "name": "Tied top scores at the end share the win",
+    "rule": "R16",
+    "players": 3,
+    "given": {
+      "players": {"1": {"score": 10, "hand": ["Thief"]}, "2": {"score": 5, "hand": ["Witch"]}, "3": {"score": 9, "hand": ["Thief"]}},
+      "game": {"set_number": 3, "round_in_set": 3, "round_count": 8, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}],
+    "expect": {
+      "winner": [1, 2],
+      "standings": {"1": 10, "2": 10, "3": 9}
+    }
+  }
+]
+```
+
+Why it was refused: scenario 1: needs `rules` (what each seat answers, by option name)
+Correct it: change what the problem requires and keep the rest. Reply in the same format as before, complete, and nothing else.
+````
+
+## Reply
+
+````
+```json
+[
+  {
+    "name": "Every player starts with score 0 (a round where nobody holds the named role leaves every score at its starting value)",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Alchemist", "Herb Hag"]}, "3": {"hand": ["Raven Keeper", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Druid"}],
+    "expect": {
+      "standings": {"1": 0, "2": 0, "3": 0},
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "At the start of a set hands are chosen and the set's first round plays (role choice by chance, only the named role is asserted)",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Thief"]}, "2": {"hand": ["Thief"]}, "3": {"hand": ["Thief"]}},
+      "game": {"set_number": 1, "round_in_set": 1, "led_list": []}
+    },
+    "rules": [{"seat": 1, "options_include": "Druid"}],
+    "expect": {"game": {"named_role": "Druid"}}
+  },
+  {
+    "name": "A new set empties led_list, so a role led in the previous set can be named again",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {"set_number": 2, "round_in_set": 1, "led_list": ["Witch", "Druid", "Thief"]}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}],
+    "expect": {"game": {"named_role": "Witch"}}
+  },
+  {
+    "name": "Set 3 round 2 with 4 players is led by seat 4",
+    "rule": "R4",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Alchemist", "Herb Hag"]}, "3": {"hand": ["Raven Keeper", "Witch"]}, "4": {"hand": ["Thief", "Alchemist"]}},
+      "game": {"set_number": 3, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 4, "options_include": "Druid"}],
+    "expect": {
+      "game": {"named_role": "Druid"},
+      "offered": [{"seat": 4, "option": "Druid"}],
+      "not_offered": [{"seat": 1, "option": "Druid"}, {"seat": 2, "option": "Druid"}, {"seat": 3, "option": "Druid"}],
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 0}, "4": {"score": 0}}
+    }
+  },
+  {
+    "name": "A role already led cannot be named, and the leader may name a role they do not hold",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Alchemist", "Thief"]}, "2": {"hand": ["Herb Hag", "Thief"]}, "3": {"hand": ["Raven Keeper", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": ["Witch"]}
+    },
+    "rules": [{"seat": 2, "options_include": "Druid"}],
+    "expect": {
+      "game": {"named_role": "Druid"},
+      "not_offered": [{"seat": 2, "option": "Witch"}],
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "After the role is named everyone talks, and the round still resolves normally",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Thief", "Druid"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Thief", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Alchemist"}],
+    "expect": {
+      "game": {"named_role": "Alchemist"},
+      "players": {"1": {"score": 0}, "2": {"score": 4}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "Only a non-leader holder is asked to contest or yield",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Alchemist", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Witch", "Druid"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Alchemist"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "offered": [{"seat": 1, "option": "contest"}, {"seat": 1, "option": "yield"}],
+      "not_offered": [{"seat": 2, "option": "contest"}, {"seat": 2, "option": "yield"}, {"seat": 3, "option": "contest"}, {"seat": 3, "option": "yield"}],
+      "players": {"1": {"response": "yield", "score": 1}, "2": {"response": "none", "score": 4}, "3": {"response": "none", "score": 0}}
+    }
+  },
+  {
+    "name": "Responses are revealed: one contester claims, one yielder gets the weak reward",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Druid", "Thief"]}, "2": {"hand": ["Alchemist", "Witch"]}, "3": {"hand": ["Druid", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Druid"}, {"seat": 1, "options_include": "contest"}, {"seat": 3, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "contest", "score": 3}, "2": {"response": "none", "score": 0}, "3": {"response": "yield", "score": 2}}
+    }
+  },
+  {
+    "name": "With two contesters the one furthest clockwise from the leader claims",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Witch", "Druid"]}, "3": {"hand": ["Witch", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}, {"seat": 1, "options_include": "contest"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"response": "contest", "score": 5}, "2": {"score": 0}, "3": {"response": "contest", "score": 0}}
+    }
+  },
+  {
+    "name": "A non-leader contester claims Raven Keeper and gains 6",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Raven Keeper", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Raven Keeper"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"response": "contest", "score": 6}}
+    }
+  },
+  {
+    "name": "Leader names a role they do not hold and the only holder yields: no strong reward, the yielder gets the weak 2",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Herb Hag", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "yield", "score": 2}, "2": {"score": 0}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "Thief claimed by a contester robs the highest other score, the tie going to the first seat clockwise, and a score goes below 0",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"score": 2, "hand": ["Witch", "Druid"]}, "2": {"score": 2, "hand": ["Alchemist", "Druid"]}, "3": {"score": 0, "hand": ["Thief", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Thief"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"score": -1}, "2": {"score": 2}, "3": {"score": 3}}
+    }
+  },
+  {
+    "name": "Thief claimed by the leader holding it: the tie between seats 1 and 3 goes to seat 3, first clockwise after seat 2",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"score": 1, "hand": ["Witch", "Druid"]}, "2": {"score": 5, "hand": ["Thief", "Druid"]}, "3": {"score": 1, "hand": ["Herb Hag", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Thief"}],
+    "expect": {
+      "players": {"1": {"score": 1}, "2": {"score": 8}, "3": {"score": -2}}
+    }
+  },
+  {
+    "name": "A leader holding Herb Hag overtaken by a contester gains 0, and the claimant gains 2",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Witch", "Druid"]}, "2": {"hand": ["Herb Hag", "Druid"]}, "3": {"hand": ["Herb Hag", "Alchemist"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Herb Hag"}, {"seat": 3, "options_include": "contest"}],
+    "expect": {
+      "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"response": "contest", "score": 2}}
+    }
+  },
+  {
+    "name": "Two yielders of Druid each gain 2 while the leader holding it gains 3",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Druid", "Thief"]}, "2": {"hand": ["Druid", "Alchemist"]}, "3": {"hand": ["Druid", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Druid"}, {"seat": 1, "options_include": "yield"}, {"seat": 3, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "yield", "score": 2}, "2": {"score": 3}, "3": {"response": "yield", "score": 2}}
+    }
+  },
+  {
+    "name": "Yielding Raven Keeper gives 0 points",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Raven Keeper", "Thief"]}, "2": {"hand": ["Druid", "Alchemist"]}, "3": {"hand": ["Herb Hag", "Witch"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Raven Keeper"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "players": {"1": {"response": "yield", "score": 0}, "2": {"score": 0}, "3": {"score": 0}}
+    }
+  },
+  {
+    "name": "The named role leaves the hands of the leader and the responder, and a non-holder's hand is unchanged",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {"1": {"hand": ["Alchemist", "Thief"]}, "2": {"hand": ["Alchemist", "Druid"]}, "3": {"hand": ["Witch", "Druid"]}},
+      "game": {"set_number": 1, "round_in_set": 2, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Alchemist"}, {"seat": 1, "options_include": "yield"}],
+    "expect": {
+      "lens": {"players": {"1": {"hand": 1}, "2": {"hand": 1}, "3": {"hand": 2}}}
+    }
+  },
+  {
+    "name": "The last round ends the game and the highest score wins",
+    "rule": "R16",
+    "players": 3,
+    "given": {
+      "players": {"1": {"score": 10, "hand": ["Thief"]}, "2": {"score": 8, "hand": ["Witch"]}, "3": {"score": 9, "hand": ["Thief"]}},
+      "game": {"set_number": 3, "round_in_set": 3, "round_count": 8, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}],
+    "expect": {
+      "winner": 2,
+      "standings": {"1": 10, "2": 13, "3": 9},
+      "players": {"1": {"score": 10}, "2": {"score": 13}, "3": {"score": 9}}
+    }
+  },
+  {
+    "name": "Tied top scores at the end share the win",
+    "rule": "R16",
+    "players": 3,
+    "given": {
+      "players": {"1": {"score": 10, "hand": ["Thief"]}, "2": {"score": 5, "hand": ["Witch"]}, "3": {"score": 9, "hand": ["Thief"]}},
+      "game": {"set_number": 3, "round_in_set": 3, "round_count": 8, "led_list": []}
+    },
+    "rules": [{"seat": 2, "options_include": "Witch"}],
+    "expect": {
+      "winner": [1, 2],
+      "standings": {"1": 10, "2": 10, "3": 9}
+    }
+  }
+]
+```
+````

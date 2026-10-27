@@ -1,0 +1,165 @@
+{
+  "original_summary": "Love Letter is a 2-4 player card game played with 16 cards. Each player holds one hidden card, draws a second each turn and discards one, applying its effect: guessing, peeking, comparing, protecting, forcing a discard or swapping hands. A hand ends when one player is left or the deck runs out, and the winner of the hand gains a token. The match is played to a token target.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "In the original, no simple policy wins. 'Always discard the lower card' loses to Guard guesses and Baron comparisons. 'Always guess Guard-rank 2' is easily exploited. However, the starting player keeps going first after each win, so a winner snowballs. In the previous variation, alternating starts fixed that, but the hand-1 starter was random. With a hand count that could be odd, one player could get one more start than the other: a small built-in edge."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The original awards one token per hand, so a single lucky Guard guess on turn 1 is worth the same as a hand won through careful deduction. Hands are short and swingy. The stake mechanic in the previous variation (a secret stake of 1-3 set after seeing your card) lets a skilled player bet big on strong hands and small on weak ones. That moves the weight toward judgement. It is kept."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Weak players still win hands through the draw. Strong players improve through card counting with 5 cards revealed, posterior Guard guesses, reading what a stake says about an opponent's card, Handmaid timing and King/Prince tactics. It is not solved."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "The core of the game is inference about one hidden card. You combine the public discards, the 5 revealed cards, Priest and Baron information and the opponent's stake to estimate their hand, then guess, compare or protect."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Eliminations, showdown ranks, discard-sum tie-breaks and token totals are all arithmetic. The original's 'most recently on a date' starter rule is the only non-arithmetic element. It was removed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is turn-based, text-only and has no board. The previous variation fit every limit except one. In the first round of hand 1 it used two random operations: the shuffle and a random choice of starter. That exceeds random_draws_per_round = 1 and contradicts its stated complexity. Its match length, up to 39 turns, is within 40 rounds."
+    }
+  ],
+  "problems": [
+    "The previous variation used two random operations in the first round (the shuffle and a random choice of the hand-1 starter), breaking the limit of 1 random draw per round.",
+    "Ending the match at the first hand that reaches 32 turns could leave an odd number of hands, so one seat (decided at random) started one more hand than the other: a small seat edge.",
+    "Original only: the 'most recently on a date' starter rule is not arithmetic, and winner-starts-next-hand snowballs the leader.",
+    "Original only: a flat one token per hand lets a single lucky early Guard guess count as much as a deduced win, which weakens skill sensitivity."
+  ],
+  "changes": [
+    {
+      "what": "Hand 1 is always started by Player A, a fixed seat. The starter then alternates every hand. No random choice of starter remains.",
+      "why": "The shuffle is then the only random operation in any round, so random_draws_per_round truly equals 1.",
+      "fixes": "The previous variation used two random operations in the first round (the shuffle and a random choice of the hand-1 starter), breaking the limit of 1 random draw per round."
+    },
+    {
+      "what": "The match ends only at the end of an even-numbered hand, specifically the first even-numbered hand after which 24 or more turns have been played in total. The threshold drops from 32 to 24 so the worst case still fits in 40 rounds: at most 23 turns, plus an odd hand of up to 8, plus an even hand of up to 8, gives 39.",
+      "why": "Because starts alternate and the hand count is always even, each player starts exactly half the hands. Giving hand 1 to a fixed seat then creates no edge.",
+      "fixes": "Ending the match at the first hand that reaches 32 turns could leave an odd number of hands, so one seat (decided at random) started one more hand than the other: a small seat edge."
+    },
+    {
+      "what": "Keep alternating starters instead of winner-starts, and give hand 1 to a fixed seat instead of using the dating rule.",
+      "why": "This removes the non-arithmetic rule and the snowball.",
+      "fixes": "Original only: the 'most recently on a date' starter rule is not arithmetic, and winner-starts-next-hand snowballs the leader."
+    },
+    {
+      "what": "Keep the secret simultaneous stake of 1-3 per player, set after each player sees their own card. The hand's pot is the sum of the two stakes.",
+      "why": "Hands won on a strong read with a high stake are worth more than lucky low-stake hands. Each stake also leaks information the opponent can reason about.",
+      "fixes": "Original only: a flat one token per hand lets a single lucky early Guard guess count as much as a deduced win, which weakens skill sensitivity."
+    }
+  ],
+  "keeps": [
+    "The 16-card deck with its ranks and effects: Guard, Priest, Baron, Handmaid, Prince, King, Countess, Princess.",
+    "The two-player setup: burn 1 card unseen and reveal 5 cards as out of play (5 rather than the original's 3), so each player holds 1 hidden card and draws to 2 each turn.",
+    "The forced Countess discard and Princess self-elimination.",
+    "Showdown by rank with the discard-sum tie-break.",
+    "Winning hands to gain tokens of affection, with most tokens winning the match."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The previous variation was sound except for the extra random draw and a small parity edge. Both are fixed with a fixed hand-1 seat and an even-hand ending, and everything stays within limits."
+  },
+  "variation": {
+    "name": "Love Letter: Sealed Stakes",
+    "summary": "This is two-player Love Letter. Before each hand's play, both players secretly stake 1-3 tokens' worth on their card, and the winner of the hand takes the pot. Starters alternate, the match always has an even number of hands, and it ends after the first even-numbered hand at which 24 or more turns have been played.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "PLAYERS: Player A and Player B.\n\nCARDS (16):\n- 5 Guard (rank 1)\n- 2 Priest (rank 2)\n- 2 Baron (rank 3)\n- 2 Handmaid (rank 4)\n- 2 Prince (rank 5)\n- 1 King (rank 6)\n- 1 Countess (rank 7)\n- 1 Princess (rank 8)\n\nMATCH STATE: Both players start the match with 0 tokens. Token totals are always public. The match publicly counts turns played (starting at 0) and hands played (starting at 0).\n\nSTARTING A HAND (happens at the start of the first turn of each new hand):\n1. Add 1 to the hand count. Shuffle all 16 cards. This is the only random event; it happens at most once per turn.\n2. Burn the top card: set it aside face down, unseen by anyone.\n3. Reveal the next 5 cards face up as out of play. Both players see them.\n4. Deal 1 card face down to each player as their hand. Each player sees only their own card. 8 cards remain in the draw deck.\n5. Clear both players' protection, elimination flag, discard pile and discard sum (each discard sum becomes 0).\n6. Starting player: Player A starts odd-numbered hands (1, 3, 5, ...). Player B starts even-numbered hands (2, 4, 6, ...).\n7. STAKE: each player looks at their own card. Both then choose, at the same moment and in secret, a stake of 1, 2 or 3. Both stakes are then revealed to both players. The pot for this hand is stake A plus stake B, so it is between 2 and 6.\n\nA TURN (players alternate within a hand, beginning with that hand's starting player; every turn adds 1 to the turn count):\n1. If the active player is protected, their protection ends now.\n2. The active player draws the top card of the deck and now holds 2 cards. Only they see them.\n3. The active player chooses one of their 2 cards to discard face up. The card's rank is added to their discard sum.\n   - If one of the 2 cards is the Countess and the other is the King or a Prince, they must discard the Countess.\n   - They may discard the Princess, but that eliminates them.\n4. The discarded card's effect applies:\n   - Guard: if the opponent is not protected, the active player names one rank from 2 to 8. If the opponent's card has that rank, the opponent is eliminated. If the opponent is protected, no rank is named and nothing happens.\n   - Priest: if the opponent is not protected, the active player privately sees the opponent's card.\n   - Baron: if the opponent is not protected, both players privately see each other's card. The player with the lower rank is eliminated. If the ranks are equal, nothing happens.\n   - Handmaid: the active player is protected until the start of their own next turn. While a player is protected, the opponent's discards have no effect on them.\n   - Prince: the active player chooses a player, either themself or the opponent. They may choose the opponent only if the opponent is not protected; otherwise they must choose themself. The chosen player discards their hand card face up without applying its effect, and its rank is added to their discard sum. If that card is the Princess, the chosen player is eliminated. Otherwise the chosen player draws the top card of the deck, or takes the burned card if the deck is empty.\n   - King: if the opponent is not protected, the two players swap hand cards.\n   - Countess: no effect.\n   - Princess: the active player is eliminated.\n5. Announce publicly:\n   - the card discarded;\n   - any rank named;\n   - any Prince target and the card it discarded;\n   - any elimination, together with the eliminated player's hand card;\n   - whether a swap happened.\n   Cards seen privately through a Priest or Baron are not announced.\n\nEND OF A HAND (checked at the end of every turn):\n- If a player is eliminated, the other player wins the hand.\n- Otherwise, if the draw deck is empty, both players reveal their cards. The higher rank wins. If the ranks are equal, the higher discard sum wins. If the sums are also equal, nobody wins the hand.\n- Otherwise the hand continues with the other player's turn.\n- When a hand ends, its winner gains tokens equal to the pot. If nobody wins, no tokens are given.\n- A hand lasts at most 8 turns.\n\nEND OF THE MATCH (checked whenever a hand ends):\n- If the hand count is even and 24 or more turns have been played in total, the match ends.\n- Otherwise a new hand starts on the next turn.\n- The match therefore always has an even number of hands, each player starts exactly half of them, and it ends by turn 39 at the latest.",
+    "objective": "When the match ends, the player with more tokens wins. Equal token totals are a draw.",
+    "expected_effect": "The starter edge is now exactly balanced, because the hand count is always even and starts alternate. Hand 1 needs no random choice, so every round has at most one random event, the shuffle. A match typically runs 4-6 hands. Play centres on inference about the opponent's single hidden card from discards, revealed cards, Priest and Baron peeks, and the opponent's stake. Stake sizing rewards accurate self-assessment and punishes predictable staking: always staking 3 risks big losses on weak cards, while always staking 1 forfeits value on strong ones, and either can lose. The game is zero-sum with two players, so no talk phase is needed and endgame unravelling does not apply."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 4,
+    "attributes": 15,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 39
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Card counts: 5 Guard, 2 Priest, 2 Baron, 2 Handmaid, 1 King, 1 Countess, 1 Princess = 14. Per hand: 1 burned, 3 revealed, 2 dealt, 8 in the deck. That gives 8 turns, 4 draws each, and the deck empties after the second player's 4th turn.\n\nThoughtless policies under the WINNER RULE (first to 3 tokens):\n(a) Always discard the drawn card. You discard the Princess whenever you draw it, and you never improve your hand. You lose any hand where you draw the Princess (in play with probability 10/14 at about 1/2 per player). You lose every showdown where the opponent drew higher. Not unbeaten.\n(b) Always discard the held (first) card. Same exposure to self-elimination when the held card is the Princess. Not unbeaten.\n(c) Always discard the lower card and always guess 8 with a Guard. This is a reasonable heuristic, not a dominant one. A sensible opponent who keeps the Princess loses to it only when the Guard hits. A sensible opponent holding a Baron with a low card, or using Priest information, beats it. It still loses hands, for example on a Baron against a higher card or a blind 8-guess that misses (miss rate about 8/9 when the opponent does not hold the Princess). Not unbeaten.\n(d) Always guess 2 (the most common non-Guard rank, 2 of the 9 non-Guard cards). Hit rate given an unknown non-Guard opponent card is about 2/9. If the opponent holds a Guard (about 5/14), it cannot hit at all. Not unbeaten.\n\nNo discard is strictly dominant. The Countess is forced only alongside the King. The Handmaid trades tempo for safety. The Baron is good only with a high card. The King is good only if your card is worse.\n\nSeat edge: the starter acts first (first Guard/Baron strike). The non-starter takes the last turn and gets more public information. Discard counts are equal (4 each), so the discard-sum tiebreak is not seat-biased. Hand 1 starter is random and the loser starts later hands, a mild catch-up rule. Both players can realistically win. No labelled payoff ordering exists to check."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules cover every case:\n- A forced Countess with the King (the Prince is removed, so the original 'King or Prince' clause correctly shrinks).\n- Discarding the Princess means self-elimination.\n- A protected target blocks Guard, Priest, Baron and King.\n- A Baron tie does nothing.\n- The deck-empty check comes at the end of a turn, after the 8th draw.\n- The tie chain is rank, then discard sum, then no token.\n- The starting player is defined for hand 1, after a won hand and after a no-token hand.\n- The cap resolution is defined.\n- Guard guesses exclude 1 and 5. Rank 5 is absent, so the list 2,3,4,6,7,8 is exact.\n\nThe game is finite (40-turn cap) and decided by arithmetic: token counts, rank comparison and discard sums.\n\nLimits, taking a round to be one turn:\n- steps 16 \u2264 20, with the hand setup carried as individual steps with `when new hand` conditions, which the engine allows and which is not block substitution.\n- choice steps 2 \u2264 4 (discard, Guard guess).\n- attributes 16 \u2264 20.\n- hidden elements: deck order/burn and two hands, \u2264 3.\n- random draws 1 per round (the shuffle at hand start, with draws as list removals).\n- rounds 40 \u2264 40.\n\nPriest and Baron peeks use the private channel. With two players no talk phase is needed, and there is no cooperation dilemma to test.\n\nOne factual error in the text: 'cannot be reached in normal play because \u2026 the match [lasts] at most 5 hands' is false. A no-token hand (equal rank and equal discard sum) makes a 6th hand possible, so the cap can bind, for example at 2\u20132 late in the match. The cap rule handles this (resolve at deck-empty, then compare tokens), so play is still well defined. The sentence should be corrected."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "There is real inference:\n- reading the 3 revealed cards and the public discards;\n- Priest then Guard for a certain kill;\n- timing a Baron only with a high card;\n- inferring a held Princess from a player who keeps a card;\n- King-swap reads.\n\nBut chance dominates for three reasons.\n\n1. The Princess is in play in 10/14 of hands. Its holder wins every Baron and every showdown. With the Prince removed, the only counters are a correct Guard guess of 8 or the single King. A blind 8-guess hits about 1/9 per Guard, and there are 5 Guards, some burned or revealed. So the player dealt or drawing the Princess wins that hand an estimated 65\u201375% of the time regardless of skill. In the 4/14 of hands without the Princess, the Countess or King plays a similar role.\n2. Single-card hands, 4 draws each, and Guard guesses at 2/9 to 1/9 make each hand roughly 60\u201370% draw-determined. My estimate is that a strong player wins about 55\u201360% of hands against a weak one.\n3. The match is cut from first-to-7 (original 2p) to first-to-3, at most 5 decisive hands. A 57% per-hand edge becomes only about 60\u201362% in a best-of-5.\n\nIf both play the intended strategy (keep high cards, Priest then Guard, Baron only when high), the hand usually goes to whoever is dealt or draws the Princess, so the deal decides. The better reasoner is not clearly favoured, and chance alone often decides the match."
+        },
+        "required_changes": [
+          "Restore Prince-type counterplay to the Princess. Replace one Guard with a Prince (rank 5, if the opponent is not protected: the opponent discards their card without effect and takes the burned card, and discarding the Princess this way eliminates them). Extend the Countess rule to 'King or Prince'. This gives a sensible player a way to beat a dealt Princess.",
+          "Lengthen the match within the 40-turn cap. Raise the target to 4 tokens, and remove 4 cards face up instead of 3 so the deck holds 7 cards (hands of at most 7 turns, typically about 4\u20135 because of eliminations). Keep the existing cap resolution: deck-empty showdown, then more tokens wins, equal tokens is a draw.",
+          "Correct the false claim that the 40-turn cap cannot be reached. State that no-token hands or long hands can reach it, and that the cap rule then decides.",
+          "Optional, to reward inference over the deal: award 2 tokens instead of 1 for a hand won by a correct Guard guess, with the target raised accordingly, so reading the opponent counts for more than holding the top card at showdown."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "STAKE DECISION. Tokens go only to the hand winner, so A's expected token lead from one hand is (2p-1)(sA+sB), where p is A's chance of winning the hand given what A knows (draws ignored). Table for A's expected lead, with B staking 2: p=0.2 gives -1.8 / -2.4 / -3.0 for sA = 1 / 2 / 3; p=0.5 gives 0 / 0 / 0; p=0.8 gives +1.8 / +2.4 / +3.0. Raising your stake helps when p>0.5 and hurts when p<0.5, so no stake is strictly better whatever happens. Stake 2 is only EV-optimal at p=0.5, but it is useful for concealment. Choosing a stake also leaks hand strength: a 3 points to a high card and helps the opponent's Guard guess. That gives a real bluff-versus-value trade-off.\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (more tokens wins).\n- Always stake 3: it wins large pots on lucky hands and loses large pots on unlucky ones. It never protects a weak card. A sensible player stakes 1 when weak and 3 when strong, so in a typical 6-7 hand match the always-3 player loses whenever card luck is even. It can lose.\n- Always stake 1: it caps gains on strong hands, so it trails a sensible player in the same way. It can lose.\n- Always discard the first or the higher card: this discards the Princess (self-elimination), throws away the King and Prince, and keeps Guards. It loses most hands.\n- Always discard the lower card: this keeps high cards for showdown. But Guards only hit when the right rank is named, and with 5 of 16 cards revealed a reasoning player guesses well. It also never uses the Baron on purpose. It loses to sensible play and roughly breaks even against random play.\nNo policy never loses. Both players can win.\nSEAT. Within a hand the starter draws first and gets the first Guard shot. The starter alternates by hand, which offsets this. Because hand lengths vary (2-8 turns, with the match ending at the first hand end at or after turn 32), the hand count can be odd, giving the hand-1 starter one extra start. This edge is small, roughly a few percent of one hand. Information is symmetric. The game is not labelled as any payoff structure, so there is no mislabelled ordering to check. It is zero-sum with no cooperation element, so the 'never behind' cooperation test does not apply."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "RULES. The card count checks: 16 - 1 burned - 5 revealed - 2 dealt = 8 deck cards. The deck can never be empty at the start of a turn. If a Prince on turn 7 takes the last deck card, the end-of-turn check triggers a showdown. A Prince on turn 8 takes the burned card. So 'at most 8 turns per hand' holds, and the match ends by turn 39.\nAll effects are specified, including the protected cases (Prince must self-target if the opponent is protected), the Countess rule, Princess discard, showdown, tie-break by discard sum, and no-winner ties. Public and private information is spelled out. The game is finite and decided by token arithmetic. There is no board, clock or judge. The stake is correctly a simultaneous secret choice. Two players means no talk phase is needed. The game is zero-sum, so the repeated-cooperation test is not relevant.\nLIMITS.\n- Steps: 18 of 20.\n- Choice steps: stake, discard, and Guard guess / Prince target, giving 3 or 4 of 4.\n- Attributes: 14 of 20.\n- Hidden elements: 2 hands plus deck order with the burned card as its tail, giving 3 of 3.\n- Rounds: 39-40 of 40.\nVIOLATION. random_draws_per_round is limited to 1. The first round of hand 1 needs two random operations: the shuffle in step 1, and step 6, 'in hand 1 it is chosen at random'. That breaks the stated limit. The stated complexity (random_draws_per_round: 1) does not match the rules as written."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance is substantial. Base two-player Love Letter swings on the deal and on lucky Guard hits, so roughly half of a single hand's result is luck. Skill still has clear levers.\n(1) Card counting: 5 revealed cards, public discards and announced Prince or elimination cards narrow the opponent's possible cards, often to 2-3 ranks. That makes Guard guesses and Baron timing inferential.\n(2) Priest and Baron reveals give exact knowledge to exploit next turn, with Guard certainty and King decisions.\n(3) The stake layer rewards hand evaluation: stake high when p>0.5 and low otherwise. The opponent's stake also signals their card, so it can be read and bluffed.\nAll of this lets a skilled player win big pots and lose small ones, amplifying a per-hand edge of about 55-60% into an estimated 65-70% match-win rate over the 6-7 hands that 32+ turns typically produce.\nWith two equally good players the deal breaks the tie, as in any card game, but no hidden type or single draw predetermines the winner. Good play overturns bad deals through Guard inference, Handmaid timing and low stakes on weak cards. Overall chance accounts for roughly 35-45% of the match result, so the reasoner is clearly favoured."
+        },
+        "required_changes": [
+          "Playable: remove the second random operation in the first round. Derive the hand-1 starter from the shuffle already performed, for example: 'the player who starts hand 1 is player A if the burned card's rank is odd, otherwise player B', resolved at match end or kept hidden until needed. Or give the hand-1 start to a fixed seat. Then random_draws_per_round truly stays at 1 and matches the stated complexity.",
+          "Optional, for balance: to remove the small odd-hand-count starter edge, end the match only after a hand that leaves both players with an equal number of starts, for example 'the match ends at the end of the first even-numbered hand that ends with 32 or more turns played'. Then raise the turn bound and rounds accordingly, keeping them at or under 40, or lower 32 to 28."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "STAKE DECISION. Each player stakes 1-3 and the winner takes pot = sA+sB. Let p = A's chance of winning the hand given the cards. A's expected token lead from the hand is (2p-1)(sA+sB). Table of A's expected lead:\n| sA \\ sB | 1 | 2 | 3 |\n| 1 | 2(2p-1) | 3(2p-1) | 4(2p-1) |\n| 2 | 3(2p-1) | 4(2p-1) | 5(2p-1) |\n| 3 | 4(2p-1) | 5(2p-1) | 6(2p-1) |\nIf p>0.5, stake 3 is best whatever B stakes. If p<0.5, stake 1 is best. No stake is better for every card. The stake also signals the card (a stake of 3 suggests Princess or Countess), which the opponent can exploit with a Guard guess. So bluffing has a real cost and a real point.\n\nTHOUGHTLESS POLICIES under the winner rule (more tokens wins):\n- Always stake 3: it cannot lose by itself, since the hand is still played out. Against a sensible opponent who stakes 1 when weak and 3 when strong, it pays the full pot on its bad hands. Its expected lead is negative against sensible play and about zero against random play. It does not win or draw almost every time.\n- Always stake 1: it gives up value on strong hands. It loses on average to sensible play.\n- Always discard the first card: this sometimes discards the Princess and is eliminated at once. It loses to sensible and to random play.\n- Always discard the drawn card: it plays blind and loses to Baron and Guard inference.\nNo policy never loses.\n\nSEATS. The starting player alternates (A odd hands, B even hands). The match always ends on an even hand count, so each seat starts exactly half the hands. Information is symmetric: the stakes are simultaneous and all discards are public. The game is zero-sum on tokens, so both players can realistically win. There is no labelled payoff ordering to check."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "WHAT WORKS.\n- The rules are mostly complete. The Countess constraint, a Prince with an empty deck (takes the burned card, at most once per turn), Baron ties, protection and discard-sum ties are all covered.\n- Termination works: 8 cards are in the deck and every turn draws at least 1, so a hand lasts at most 8 turns. The worst case is a hand ending at turn 23 with an even count, then two more 8-turn hands, giving turn 39. So rounds = 39 is at most 40.\n- Choice steps: stake, discard, Guard rank and Prince target make 4, which is at most 4.\n- One shuffle per hand, so at most 1 random draw per round.\n- With 2 players, no talk is fine.\n\nWHAT FAILS: the limits are understated.\n(1) Steps. The first turn of a hand must carry the whole setup and a full turn in one round.\nSetup is about 8 steps: hand count and shuffle, burn, reveal 5, deal 2, clear about 8 attributes, set the starter, the stake poll with reveal, and the pot calculation.\nThe turn is about 15-16 steps: end protection, draw, discard choice with the forced Countess and the discard sum, Guard name, Guard check, Priest, Baron compare and eliminate, Handmaid, Prince target, Prince resolve (discard, Princess check, draw or burn), King swap, Princess, announcement, end-of-hand check with token award, and match-end check.\nThat is about 23-24 steps, above the limit of 20. The stated 18 is not credible.\n(2) Hidden elements. Hand A, hand B, the burned card and the hidden deck order are 4 separate hidden elements, above the limit of 3."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "THERE IS REAL INFERENCE. 5 face-up cards plus your own leave about 9-10 unknown cards. Card counting, Priest and Baron knowledge, and reading stakes all feed Guard guesses and Baron timing.\n\nBUT CHANCE DOMINATES.\n- Length: hands average about 4-5 turns, so a 24-39 turn match is only about 6-8 hands.\n- Swings: each hand moves up to 6 tokens, so 2-3 hands decide the match.\n- Early luck: a first-turn Guard guess hits about 15-20% of the time against a non-Guard card. The starting deal alone often decides a Baron. Swapping the King blindly is a coin flip.\n- Equal strategies: if both players use the same good strategy (card counting, stake 3 when p>0.5, stake 1 otherwise), stake choices mirror each other. The winner of each hand is then set by the deal and the draw order, and with about 6 hands those outcomes decide the match.\n- Estimate: chance decides about 55-65% of results. A strong player beats a weak one perhaps 60-65% of the time over this short match. That is not clearly favoured enough, and the stakes, which multiply the pot by up to 3, increase variance rather than let skill overcome it."
+        },
+        "required_changes": [
+          "Playable, steps: bring the per-round step count to 20 or fewer. Do the setup without consuming a full turn's steps, for example: reveal 3 instead of 5, merge clearing into one reset operation, and compute the pot inside the stake step. Then recount honestly. Alternatively, cut card effects, for example remove the Priest and the King, to save at least 4 steps.",
+          "Playable, hidden elements: reduce them to at most 3. Merge the burned card into the hidden deck, so it is the bottom card taken when the deck is empty, or drop the burn entirely.",
+          "Reasoning over luck, folding: add a fold option to the stake poll. A stake of 0 concedes the hand; the opponent gains 1 token, and the remaining steps of the hand are skipped by `when` conditions. Good hand reading then avoids lucky big pots.",
+          "Reasoning over luck, variance: cap the pot at 4 (stake 1 or 2 only) so one lucky hand cannot swing the match.",
+          "Reasoning over luck, Guard: make the Guard less of a lottery. Allow it only if at least one card has been discarded this hand, or require two Guard hits, or score a Guard hit as winning the hand for only half the pot.",
+          "Reasoning over luck, evidence: show by simulation or argument that a card-counting, stake-reading player beats a random-but-legal player in at least 75% of matches."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

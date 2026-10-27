@@ -1,0 +1,764 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "bidder_s_choice",
+    "name": "Bidder's Choice: Sealed Pool",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 3
+    },
+    "blurb": "Six rounds of open talk and sealed bids for six objects that each player values privately; coins left plus own values decides."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "holdings",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "holdings_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_a",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_b",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_c",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_d",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_e",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_f",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "value_bag",
+        "visible": "ally",
+        "type": "list",
+        "initial": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          14
+        ]
+      },
+      {
+        "key": "message",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "bid",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_key",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "fallback_pick",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pool",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F"
+        ]
+      },
+      {
+        "key": "top_key",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "top_count",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winner_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "taken_object",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "starting_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "object_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "value_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "value_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "value_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "value_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "value_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "value_6",
+        "visible": "public",
+        "type": "number",
+        "initial": 14
+      },
+      {
+        "key": "value_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 44
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "talk_max_words",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "min_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tiebreak_key_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "min_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "max_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "suggested_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting table",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "starting_coins"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "holdings",
+            "value": {
+              "calc": "[]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "holdings_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "pool",
+            "value": {
+              "calc": "['A', 'B', 'C', 'D', 'E', 'F']"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "value_bag",
+            "value": {
+              "calc": "[value_1, value_2, value_3, value_4, value_5, value_6]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal the private values",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "value_a",
+            "value": {
+              "calc": "you.value_bag[min(int(uniform(0, len(you.value_bag))), len(you.value_bag) - 1)]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "value_bag",
+            "value": {
+              "calc": "you.value_a"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "value_b",
+            "value": {
+              "calc": "you.value_bag[min(int(uniform(0, len(you.value_bag))), len(you.value_bag) - 1)]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "value_bag",
+            "value": {
+              "calc": "you.value_b"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "value_c",
+            "value": {
+              "calc": "you.value_bag[min(int(uniform(0, len(you.value_bag))), len(you.value_bag) - 1)]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "value_bag",
+            "value": {
+              "calc": "you.value_c"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "value_d",
+            "value": {
+              "calc": "you.value_bag[min(int(uniform(0, len(you.value_bag))), len(you.value_bag) - 1)]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "value_bag",
+            "value": {
+              "calc": "you.value_d"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "value_e",
+            "value": {
+              "calc": "you.value_bag[min(int(uniform(0, len(you.value_bag))), len(you.value_bag) - 1)]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "value_bag",
+            "value": {
+              "calc": "you.value_e"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "value_f",
+            "value": {
+              "calc": "you.value_bag[0]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "value_bag",
+            "value": {
+              "calc": "you.value_f"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "your private values",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "coins",
+        "holdings",
+        "value_a",
+        "value_b",
+        "value_c",
+        "value_d",
+        "value_e",
+        "value_f"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "announce",
+      "label": "a new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "winner_seat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "taken_object",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "message",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "the announcement",
+      "to": "all",
+      "text": "Round {round} of {rounds}. Objects still in the pool: {pool}. Coins and holdings [seat, coins, holdings]: {[[p.seat, p.coins, p.holdings] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 40
+      },
+      "store": "message",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one message to the table, at most {talk_max_words} words (words beyond that are dropped). Everyone writes at the same time; all messages are then shown to everyone. Messages are not binding and may be false."
+    },
+    {
+      "use": "poll",
+      "phase": "bid",
+      "label": "sealed bid",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_bid"
+        },
+        "max": {
+          "calc": "you.coins"
+        }
+      },
+      "store": "bid",
+      "text": "Round {round}: submit a sealed bid, a whole number from {min_bid} up to your current coins. A missing or invalid bid counts as 0. Highest bid wins; ties go to the tied bidder holding the fewest objects; if still tied there is no sale."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "find the winner",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_key",
+            "value": {
+              "calc": "you.bid * tiebreak_key_multiplier + (object_count - you.holdings_count)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "fallback_pick",
+            "value": {
+              "calc": "sorted([[-(you.value_a if x == 'A' else you.value_b if x == 'B' else you.value_c if x == 'C' else you.value_d if x == 'D' else you.value_e if x == 'E' else you.value_f), x] for x in pool])[0][1] if len(pool) > 0 else ''"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_key",
+            "value": {
+              "calc": "max([p.bid_key for p in players])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_count",
+            "value": {
+              "calc": "count(p.bid_key == top_key for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "winner_seat",
+            "value": {
+              "calc": "[p.seat for p in players if p.bid_key == top_key][0] if top_count == 1 and len(pool) > 0 else 0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the winner pays",
+      "when": {
+        "calc": "winner_seat != 0"
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "winner_seat"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-[p.bid for p in players if p.seat == winner_seat][0]"
+            },
+            "if": {
+              "calc": "[p.coins - p.bid for p in players if p.seat == winner_seat][0] >= 0"
+            },
+            "text": "Seat {player} wins the round and pays the bid."
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "resolve",
+      "label": "pick an object",
+      "when": {
+        "calc": "winner_seat != 0"
+      },
+      "to": {
+        "where": "you.seat == winner_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "game": "pool"
+        }
+      },
+      "verify": {
+        "bind": "picked"
+      },
+      "text": "You won round {round}. Name one object still in the pool: {pool}. If you give no valid answer you receive the pool object with your highest own value."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the object changes hands",
+      "when": {
+        "calc": "winner_seat != 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "taken_object",
+            "value": {
+              "calc": "$picked if $picked in pool else [p.fallback_pick for p in players if p.seat == winner_seat][0]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pool",
+            "value": {
+              "calc": "taken_object"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "winner_seat"
+            },
+            "key": "holdings",
+            "value": {
+              "calc": "taken_object"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "winner_seat"
+            },
+            "key": "holdings_count",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "reveal",
+      "label": "the reveal",
+      "when": {
+        "calc": "winner_seat != 0"
+      },
+      "to": "all",
+      "text": "Round {round} bids [seat, bid]: {[[p.seat, p.bid] for p in players]}. Winner: seat {winner_seat}, who took object {taken_object}. Pool now: {pool}."
+    },
+    {
+      "use": "tell",
+      "phase": "reveal",
+      "label": "the reveal, no sale",
+      "when": {
+        "calc": "winner_seat == 0"
+      },
+      "to": "all",
+      "text": "Round {round} bids [seat, bid]: {[[p.seat, p.bid] for p in players]}. No sale: nobody pays and no object is taken. Pool: {pool}."
+    },
+    {
+      "use": "update",
+      "phase": "final",
+      "label": "final scoring",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "pool",
+            "value": {
+              "calc": "[]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "you.coins + (you.value_a if 'A' in you.holdings else 0) + (you.value_b if 'B' in you.holdings else 0) + (you.value_c if 'C' in you.holdings else 0) + (you.value_d if 'D' in you.holdings else 0) + (you.value_e if 'E' in you.holdings else 0) + (you.value_f if 'F' in you.holdings else 0)"
+            }
+          }
+        }
+      ],
+      "text": "Round {rounds} is over. Objects left in the pool are discarded."
+    },
+    {
+      "use": "tell",
+      "phase": "final",
+      "label": "values revealed",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "to": "all",
+      "text": "All values [seat, A, B, C, D, E, F]: {[[p.seat, p.value_a, p.value_b, p.value_c, p.value_d, p.value_e, p.value_f] for p in players]}. Final scores [seat, coins, holdings, score]: {[[p.seat, p.coins, p.holdings, p.score] for p in players]}."
+    },
+    {
+      "use": "check",
+      "phase": "final",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score",
+      "reveal": [
+        "value_a",
+        "value_b",
+        "value_c",
+        "value_d",
+        "value_e",
+        "value_f"
+      ],
+      "text": "Winner: {result}. Final scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 6,
+    "rounds_max": 6,
+    "actions_max": 500,
+    "deadline_s": 120
+  },
+  "rules": "SETUP. There are 3 to 5 players. Every player starts with {starting_coins} coins and no objects. The pool holds six objects: A, B, C, D, E, F. Each player privately receives the six values {value_1}, {value_2}, {value_3}, {value_4}, {value_5} and {value_6}, one value per object, in an independent random order for each player. Every player's values therefore total {value_total}. A player sees only his own values.\n\nROUNDS. The game lasts exactly {rounds} rounds. Each round:\n1) ANNOUNCE. The round number, the objects still in the pool, every player's coins and every player's holdings are shown to all.\n2) TALK. Every player writes one message of at most {talk_max_words} words at the same time, without seeing the others. Any words beyond the {talk_max_words}th are dropped. Then all messages are shown to everyone. Messages are not binding and may be false.\n3) BID. Every player at the same time submits a sealed bid: a whole number from {min_bid} up to his current coins. A bid that is missing, not a whole number, negative, or above his current coins counts as 0.\n4) WINNER. The highest bid wins. If several players share the highest bid, the one among them holding the fewest objects wins. If several of those also hold equally few objects, there is NO SALE this round: nobody pays, no object leaves the pool, and the round still counts as played.\n5) PAY AND PICK. If there is a winner, he pays his bid, so his coins decrease by his bid. He then names one object still in the pool. That object leaves the pool and is added to his holdings. If he names no object still in the pool, or gives no answer, he receives instead the remaining object with the highest of his own values (ties: earliest letter). A player may win any number of rounds.\n6) REVEAL. All bids, the winner (or 'no sale') and the object taken are announced to all.\n\nEND. After round {rounds}, any objects still in the pool are discarded. Each player's final score = his remaining coins + the sum of HIS OWN values for the objects he holds. All values are then revealed. The player with the highest final score wins. If two or more players share the highest final score, they share the result (a draw among them)."
+}

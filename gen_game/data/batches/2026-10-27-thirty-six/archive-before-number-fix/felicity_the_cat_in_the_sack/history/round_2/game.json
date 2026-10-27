@@ -1,0 +1,980 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "felicity_the_cat_in_the_sack",
+    "name": "Cat in the Sack: Two-Stage Auction",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Each round everyone secretly drops a card into a shared sack, then bids mice in two sealed stages for a sack only partly revealed."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "played_card",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "aside_pick",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "mice",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "cat_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "effective_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "in_auction",
+        "visible": "public",
+        "type": "bool",
+        "initial": true
+      }
+    ],
+    "game": [
+      {
+        "key": "set_aside",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "start_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "round_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "sack_owners",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "sack_cards",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "sack_revealed",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "discard_pile",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "standing_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leader_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bidder_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "sack_done",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "sack_winner",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winning_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "sack_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "sack_cats",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "dog_count",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "dog_removed",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "starting_hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "set_aside_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "hand_size_after_setup",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "starting_mice",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "starting_cat_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "stage1_pass_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "stage2_loser_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "stage1_min_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "cat_minus8_value",
+        "visible": "public",
+        "type": "number",
+        "initial": -8
+      },
+      {
+        "key": "cat_minus5_value",
+        "visible": "public",
+        "type": "number",
+        "initial": -5
+      },
+      {
+        "key": "cat_3_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "cat_5_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "cat_8_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "cat_11_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "cat_15_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "rabbit_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "large_dog_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "small_dog_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "dogs_needed_for_dog_rule",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "tiebreak_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 1000
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "deal the hands",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "set cards aside",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "aside_pick",
+            "value": {
+              "calc": "you.hand[min(len(you.hand) - 1, int(uniform(0, len(you.hand))))]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.aside_pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "set_aside",
+            "value": {
+              "calc": "[p.aside_pick for p in players]"
+            }
+          }
+        }
+      ],
+      "text": "One card from each hand has been set aside face down. Each hand now holds {hand_size_after_setup} cards."
+    },
+    {
+      "use": "update",
+      "label": "starting mice and points",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "mice",
+            "value": {
+              "calc": "starting_mice"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "cat_points",
+            "value": {
+              "calc": "starting_cat_points"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "choose the start player",
+      "do": [
+        {
+          "set": {
+            "key": "start_seat",
+            "value": {
+              "calc": "min(len(players), max(1, int(uniform(1, len(players) + 1))))"
+            }
+          }
+        }
+      ],
+      "text": "Seat {start_seat} is the start player."
+    },
+    {
+      "use": "update",
+      "label": "round counter",
+      "do": [
+        {
+          "set": {
+            "key": "round_number",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "new round",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "effective_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "in_auction",
+            "value": true
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "leader_seat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "bidder_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "sack_done",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "sack_winner",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "winning_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "sack_value",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "sack_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "sack_revealed",
+            "value": []
+          }
+        }
+      ],
+      "text": "A new round begins. Seat {start_seat} is the start player."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "play a card",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "played_card",
+      "text": "Choose one card from your hand to put face down into the sack. Only you will know which card it is until the sack is taken."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "form the sack",
+      "do": [
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.played_card"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_owners",
+            "value": {
+              "calc": "[p.seat for p in players if p.seat >= start_seat] + [p.seat for p in players if p.seat < start_seat]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_cards",
+            "value": {
+              "calc": "[p.played_card for p in players if p.seat >= start_seat] + [p.played_card for p in players if p.seat < start_seat]"
+            }
+          }
+        }
+      ],
+      "text": "The sack is formed. Positions are owned, in order, by seats {sack_owners}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table. Talk is not binding and bluffing is allowed."
+    },
+    {
+      "use": "update",
+      "phase": "stage1",
+      "label": "reveal sack card 1",
+      "do": [
+        {
+          "append": {
+            "key": "sack_revealed",
+            "value": {
+              "calc": "sack_cards[0]"
+            }
+          }
+        }
+      ],
+      "text": "Stage 1: sack card 1 (seat {start_seat}'s card) is revealed. Revealed so far: {sack_revealed}. The standing bid is {standing_bid}."
+    },
+    {
+      "use": "poll",
+      "phase": "stage1",
+      "label": "stage 1 bid",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "stage1_min_bid"
+        },
+        "max": {
+          "calc": "you.mice"
+        }
+      },
+      "store": "bid",
+      "broadcast": {
+        "to": "all",
+        "text": "Stage 1: seat {seat} bids {value}."
+      },
+      "text": "Stage 1. Write a whole number from 0 to your mice. 0 is a pass: you gain {stage1_pass_bonus} mice and are out of this round's auction. If you bid and nobody else does, you win the sack at your bid; if two or more bid, the highest bid becomes the standing bid and stage 2 follows."
+    },
+    {
+      "use": "update",
+      "phase": "stage1",
+      "label": "stage 1 resolution",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.bid <= stage1_min_bid or you.bid > you.mice"
+            },
+            "key": "in_auction",
+            "value": false,
+            "text": "Seat {player} passes and gains {stage1_pass_bonus} mice."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "not you.in_auction"
+            },
+            "key": "mice",
+            "value": {
+              "calc": "stage1_pass_bonus"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "bidder_count",
+            "value": {
+              "calc": "len([p for p in players if p.in_auction])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_done",
+            "value": true,
+            "if": {
+              "calc": "bidder_count == 0"
+            },
+            "text": "Nobody bid. Nobody takes the sack and its cards are discarded."
+          }
+        },
+        {
+          "set": {
+            "key": "start_seat",
+            "value": {
+              "calc": "start_seat % len(players) + 1"
+            },
+            "if": {
+              "calc": "bidder_count == 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_winner",
+            "value": {
+              "calc": "min([p.seat for p in players if p.in_auction])"
+            },
+            "if": {
+              "calc": "bidder_count == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "winning_bid",
+            "value": {
+              "calc": "sum([p.bid for p in players if p.in_auction])"
+            },
+            "if": {
+              "calc": "bidder_count == 1"
+            },
+            "text": "Only one player bid: seat {sack_winner} wins the sack at {winning_bid} mice."
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": {
+              "calc": "max([p.bid for p in players if p.in_auction])"
+            },
+            "if": {
+              "calc": "bidder_count >= 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader_seat",
+            "value": {
+              "calc": "[p.seat for p in players if p.in_auction and p.bid == standing_bid and (p.seat - start_seat - 1 + len(players)) % len(players) == min([(q.seat - start_seat - 1 + len(players)) % len(players) for q in players if q.in_auction and q.bid == standing_bid])][0]"
+            },
+            "if": {
+              "calc": "bidder_count >= 2"
+            },
+            "text": "Two or more players bid. The standing bid is {standing_bid}, held by seat {leader_seat}."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "stage2",
+      "label": "reveal sack card 2",
+      "when": {
+        "calc": "bidder_count >= 2"
+      },
+      "do": [
+        {
+          "append": {
+            "key": "sack_revealed",
+            "value": {
+              "calc": "sack_cards[1]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.in_auction"
+            },
+            "key": "bid",
+            "value": 0
+          }
+        }
+      ],
+      "text": "Stage 2: sack card 2 is revealed. Revealed so far: {sack_revealed}. Standing bid {standing_bid}, leader seat {leader_seat}."
+    },
+    {
+      "use": "poll",
+      "phase": "stage2",
+      "label": "stage 2 bid",
+      "when": {
+        "calc": "bidder_count >= 2"
+      },
+      "to": {
+        "where": "you.in_auction and you.mice >= standing_bid + 1"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "standing_bid + 1"
+        },
+        "max": {
+          "calc": "you.mice"
+        },
+        "or": [
+          "0"
+        ]
+      },
+      "store": "bid",
+      "broadcast": {
+        "to": "all",
+        "text": "Stage 2: seat {seat} writes {value}."
+      },
+      "text": "Stage 2. The standing bid is {standing_bid}, held by seat {leader_seat}. Answer 0, or a whole number from one above {standing_bid} up to your mice. If you are the leader, 0 means hold: your bid stays at {standing_bid}. For anyone else, 0 means you drop out with no bid. The highest bid wins; on a tie the leader wins if tied, otherwise the first tied seat after the start player. Every other player still in gains {stage2_loser_bonus} mice."
+    },
+    {
+      "use": "update",
+      "phase": "stage2",
+      "label": "stage 2 resolution",
+      "when": {
+        "calc": "bidder_count >= 2"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "effective_bid",
+            "value": {
+              "calc": "(standing_bid if int(you.bid) == 0 else int(you.bid)) if you.seat == leader_seat else (int(you.bid) if (you.in_auction and int(you.bid) > standing_bid and int(you.bid) <= you.mice) else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "winning_bid",
+            "value": {
+              "calc": "max([p.effective_bid for p in players])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_winner",
+            "value": {
+              "calc": "leader_seat if [p.effective_bid for p in players if p.seat == leader_seat][0] == winning_bid else [p.seat for p in players if p.effective_bid == winning_bid and (p.seat - start_seat - 1 + len(players)) % len(players) == min([(q.seat - start_seat - 1 + len(players)) % len(players) for q in players if q.effective_bid == winning_bid])][0]"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.in_auction and you.seat != sack_winner"
+            },
+            "key": "mice",
+            "value": {
+              "calc": "stage2_loser_bonus"
+            },
+            "text": "Seat {player} loses stage 2 and gains {stage2_loser_bonus} mice."
+          }
+        }
+      ],
+      "text": "Stage 2 is settled: seat {sack_winner} wins the sack with a bid of {winning_bid}."
+    },
+    {
+      "use": "update",
+      "phase": "take",
+      "label": "taking the sack",
+      "when": {
+        "calc": "sack_winner != 0"
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "sack_winner"
+            },
+            "key": "mice",
+            "value": {
+              "calc": "-winning_bid"
+            },
+            "if": {
+              "calc": "[p.mice for p in players if p.seat == sack_winner][0] >= winning_bid"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_revealed",
+            "value": {
+              "calc": "sack_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_cats",
+            "value": {
+              "calc": "[cat_minus8_value if c == 'cat_-8' else (cat_minus5_value if c == 'cat_-5' else (cat_3_value if c == 'cat_3' else (cat_5_value if c == 'cat_5' else (cat_8_value if c == 'cat_8' else (cat_11_value if c == 'cat_11' else cat_15_value))))) for c in sack_cards if c not in ['rabbit', 'large_dog', 'small_dog']]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "dog_count",
+            "value": {
+              "calc": "len([c for c in sack_cards if c == 'large_dog' or c == 'small_dog'])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "dog_removed",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dog_removed",
+            "value": {
+              "calc": "max(sack_cats) if max(sack_cats) > 0 else min(sack_cats)"
+            },
+            "if": {
+              "calc": "dog_count == dogs_needed_for_dog_rule and len(sack_cats) > 0 and 'large_dog' in sack_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "dog_removed",
+            "value": {
+              "calc": "min(sack_cats) if min(sack_cats) < 0 else min([v for v in sack_cats if v > 0])"
+            },
+            "if": {
+              "calc": "dog_count == dogs_needed_for_dog_rule and len(sack_cats) > 0 and 'small_dog' in sack_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_value",
+            "value": {
+              "calc": "sum(sack_cats) - dog_removed + rabbit_value * len([c for c in sack_cards if c == 'rabbit']) + large_dog_value * len([c for c in sack_cards if c == 'large_dog']) + small_dog_value * len([c for c in sack_cards if c == 'small_dog'])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "sack_winner"
+            },
+            "key": "cat_points",
+            "value": {
+              "calc": "sack_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "start_seat",
+            "value": {
+              "calc": "sack_winner"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_done",
+            "value": true
+          }
+        }
+      ],
+      "text": "Seat {sack_winner} pays {winning_bid} mice and takes the sack: {sack_revealed}. After the dog rule it is worth {sack_value} cat points. Seat {sack_winner} is the new start player."
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "end of round",
+      "do": [
+        {
+          "set": {
+            "key": "discard_pile",
+            "value": {
+              "calc": "discard_pile + sack_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "sack_cards",
+            "value": []
+          }
+        },
+        {
+          "adjust": {
+            "key": "round_number",
+            "value": 1
+          }
+        }
+      ],
+      "text": "Round {round_number} of {rounds} is over. Standings [seat, mice, cat_points]: {[[p.seat, p.mice, p.cat_points] for p in players]}."
+    },
+    {
+      "use": "sync",
+      "phase": "end",
+      "label": "your state",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand",
+        "mice",
+        "cat_points"
+      ],
+      "text": "Where you stand:"
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "after the last round",
+      "when": {
+        "calc": "round_number >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round_number >= rounds"
+      },
+      "rank_by": "(you.cat_points + you.mice) * 1000 + you.cat_points",
+      "text": "Winner: {result}. Final [seat, score, cat_points, mice]: {[[p.seat, p.cat_points + p.mice, p.cat_points, p.mice] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 9,
+    "rounds_max": 9,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "CARDS. Every player starts with the same {starting_hand_size} cards: cat_-8, cat_-5, cat_3, cat_5, cat_8, cat_11, cat_15 (cats, worth their number), rabbit (worth {rabbit_value}, not a cat), large_dog and small_dog (worth 0).\n\nSETUP. One random card is removed from each player's hand into the face-down set-aside pile, which nobody sees. Each hand now has {hand_size_after_setup} cards. Hands are private. Each player has {starting_mice} mice and {starting_cat_points} cat points; both are public. The start player is chosen at random; this is the only time it is randomised. The game lasts {rounds} rounds.\n\nEACH ROUND.\n1. PLAY. Every player's bid is reset to 0 and everyone is in the auction. Every player simultaneously chooses one card from their hand. It leaves their hand and becomes their played card, which is private.\n2. SACK. The sack holds one card per seat, in seat order beginning with the start player and continuing to the next higher seat, wrapping from the last seat to seat 1. Everyone knows which seat owns each position, but only the owner knows their own card.\n3. TALK. Every player simultaneously writes one short message without seeing the others; then all messages are shown with names. Talk is not binding; bluffing is allowed.\n4. STAGE 1. Sack card 1 (the start player's card) is revealed to all. The standing bid is 0. Every player simultaneously writes a whole number from 0 to their mice. A bid of 0 is a pass.\n5. STAGE 1 RESOLUTION. All bids are announced by name. Each passer gains {stage1_pass_bonus} mice and is out of the auction this round. If no one bid, nobody takes the sack: its cards are discarded, the start player moves to the next seat, and the round ends. If exactly one player bid, that player wins the sack at once at their bid and there is no stage 2. Otherwise the standing bid becomes the highest bid and the leader is the player with that bid; ties go to the first tied seat in seat order starting from the seat after the start player.\n6. STAGE 2. Sack card 2 is revealed to all. Each player still in simultaneously writes 0 or a whole number from the standing bid + 1 to their mice (a player who cannot reach standing bid + 1 is not asked and counts as 0). For the leader, 0 means hold: their effective bid stays the standing bid; a number above the standing bid is their new effective bid. For any other player, a number above the standing bid is their effective bid; 0 means they drop out with no effective bid.\n7. STAGE 2 RESOLUTION. All stage-2 numbers are announced by name. The winner is the player with the highest effective bid. If tied, the leader wins if they are among the tied players; otherwise the first tied seat in seat order starting from the seat after the start player wins. Every other player still in at stage 2 gains {stage2_loser_bonus} mice.\n8. TAKING THE SACK. The winner pays their winning bid in mice to the bank. All sack cards are revealed. Dog rule: if exactly {dogs_needed_for_dog_rule} dog is in the whole sack, it removes one cat. The large dog removes the highest positive cat; if there is no positive cat, it removes the most negative cat. The small dog removes the most negative cat; if there is no negative cat, it removes the lowest positive cat. If there is no cat at all, nothing happens. If there are zero or two dogs, nothing is removed. The sack value is the sum of the remaining cat values; the rabbit and dogs count 0. The winner adds the sack value to their cat points (it may be negative). The winner becomes the start player. All sack cards are then discarded.\n\nEND. After round {rounds}, each player's score is cat points + mice. The highest score wins. If players tie, the one with more cat points among them wins. If still tied, it is a draw between them and they share the win."
+}

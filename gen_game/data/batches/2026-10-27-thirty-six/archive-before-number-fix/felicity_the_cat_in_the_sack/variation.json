@@ -1,0 +1,150 @@
+{
+  "original_summary": "Felicity the Cat in the Sack is a 3-5 player bluffing auction. Each player secretly adds one card to a face-down 'sack' each round. The sack is revealed card by card while players bid open-outcry, and passing earns escalating mice. Dogs remove one cat if exactly one dog is in the sack. After 9 rounds, cat points plus remaining mice decide the winner.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Always-pass collects only small mouse cards and gives its own good cats to others. Always-bid-high goes broke and buys negative sacks. Seat order rotates to the sack winner. No simple policy dominates."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "All hands are dealt from the same 10-card set and only one card per hand is set aside, so luck is small. Reading which cards opponents still hold, choosing which card to sacrifice, and pricing a partly revealed sack decide the result."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Novices can still score by passing for mice and buying cheap positive sacks. Experts can count cards, bluff with their own contribution and time when to bid."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "The hidden sack contents, the hidden hands and the unseen set-aside cards all force inference. Card counting over 9 rounds is a multi-round plan."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Score is the sum of cat values plus mice. The dog rule is deterministic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "Open-outcry clockwise bidding with a card revealed after each pass is a long, variable chain of turns. The escalating mouse cards depend on pass order. The previous build also failed on poll ranges, pass bonuses, sole-bidder awards and setup overwriting scenario hands."
+    }
+  ],
+  "problems": [
+    "Open-ended clockwise raising with a reveal after each pass creates an unbounded, order-dependent loop of steps that the flat step list cannot express.",
+    "Escalating mouse cards (2,3,4,6) depend on the order of passing, which disappears once bidding is simultaneous.",
+    "Previous build: the stage-1 poll did not offer every whole number from 0 to the player's own mice.",
+    "Previous build: stage-1 passers did not gain their bonus or leave the auction.",
+    "Previous build: a sole stage-1 bidder was not awarded the sack, so payment, the dog rule, cat points and start seat were never applied.",
+    "Previous build: setup re-dealt full hands over hands supplied by a test scenario, and the sack order from start_seat was not respected.",
+    "If passers are paid even when nobody bids, an all-pass table guarantees everyone free mice and a draw.",
+    "Too many state attributes once every number is kept as a parameter (the limit is 20).",
+    "The original dog rule wording ('lowest negative if no positive') is ambiguous."
+  ],
+  "changes": [
+    {
+      "what": "Replace open-outcry bidding with exactly two simultaneous sealed stages. Stage 1 bids after the first sack card is shown. Stage 2 bids after the second card is shown, and only players still in may take part.",
+      "why": "Gives a bounded, flat step list while keeping 'bid on a partly revealed sack'.",
+      "fixes": "Open-ended clockwise raising with a reveal after each pass creates an unbounded, order-dependent loop of steps that the flat step list cannot express."
+    },
+    {
+      "what": "Fixed pass bonuses: 2 mice for passing in stage 1 and 3 mice for passing in stage 2, both stored as parameters.",
+      "why": "Keeps the 'passing pays, and later passing pays more' feel without needing a pass order.",
+      "fixes": "Escalating mouse cards (2,3,4,6) depend on the order of passing, which disappears once bidding is simultaneous."
+    },
+    {
+      "what": "State the stage-1 poll explicitly: a simultaneous poll offering every whole number from 0 up to that player's own current mice, stored in bid. State the stage-2 poll the same way: 0 plus every number from standing_bid+1 up to the player's mice, offered only to players with in_auction=true.",
+      "why": "Matches what the tests check.",
+      "fixes": "Previous build: the stage-1 poll did not offer every whole number from 0 to the player's own mice."
+    },
+    {
+      "what": "Bidders are the players with bid > 0. Each stage-1 passer gets in_auction=false and gains stage1_pass_bonus, but only if at least one player bid.",
+      "why": "Makes passing an explicit, tested step, and stops an all-pass table from farming free mice.",
+      "fixes": "Previous build: stage-1 passers did not gain their bonus or leave the auction."
+    },
+    {
+      "what": "Add an explicit sole-bidder branch. When exactly one player bid, that player becomes sack_winner at their bid, stage 2 is skipped, and the shared award steps (pay, dog rule, add sack_value, set start_seat) run.",
+      "why": "Ensures the award always happens.",
+      "fixes": "Previous build: a sole stage-1 bidder was not awarded the sack, so payment, the dog rule, cat points and start seat were never applied."
+    },
+    {
+      "what": "Deal hands only as normal initial setup, never over supplied state. Build sack_owners as every seat from start_seat upward, wrapping round, and fill sack_cards with each owner's played_card in that order.",
+      "why": "Gives a deterministic, testable sack order and lets scenario tests supply hands.",
+      "fixes": "Previous build: setup re-dealt full hands over hands supplied by a test scenario, and the sack order from start_seat was not respected."
+    },
+    {
+      "what": "When nobody bids in stage 1, nobody gains mice, the sack is discarded and start_seat moves to the next seat.",
+      "why": "All-pass now earns nothing, so it cannot coast to a draw. Someone who bids 1 takes the sack and beats it.",
+      "fixes": "If passers are paid even when nobody bids, an all-pass table guarantees everyone free mice and a draw."
+    },
+    {
+      "what": "Trim attributes to 20. Reuse bid for both stages. Store the price to pay in standing_bid. Drop the discard pile (clear sack_cards instead). Keep 3 number parameters.",
+      "why": "Fits the complexity limit while keeping every rule number as a parameter.",
+      "fixes": "Too many state attributes once every number is kept as a parameter (the limit is 20)."
+    },
+    {
+      "what": "Dog rule made exact: with exactly one dog in the sack, the large dog removes the cat with the highest value and the small dog removes the cat with the lowest value. With 0 or 2+ dogs nothing is removed.",
+      "why": "Gives unambiguous arithmetic.",
+      "fixes": "The original dog rule wording ('lowest negative if no positive') is ambiguous."
+    }
+  ],
+  "keeps": [
+    "Identical 10-card hands (cats -8,-5,3,5,8,11,15, rabbit, large dog, small dog) with one random card set aside unseen from each.",
+    "15 starting mice and 9 rounds, so every hand card is played.",
+    "A face-down sack built from one card per player, revealed partly during bidding.",
+    "Passing pays mice from the bank, and the winner pays the bank.",
+    "The large/small dog removal rule when exactly one dog is present.",
+    "The winner of a sack becomes the next start player.",
+    "Score is cats plus mice, with ties broken by cat points."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The game is already a strong hidden-information auction. It needs a bounded two-stage sealed bidding structure and explicit, testable steps."
+  },
+  "variation": {
+    "name": "Cat in the Sack: Two Peeks",
+    "summary": "3-5 players each secretly add a card to a sack every round. After the first card is shown, everyone bids at once, and passers take 2 mice. If two or more bid, a second card is shown and those still in bid again, with stage-2 passers taking 3 mice. The winner pays and takes the cats, and dogs may remove one cat. After 9 rounds, cats plus mice decide the winner.",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "rules": "PARAMETERS (table attributes): starting_mice=15, stage1_pass_bonus=2, stage2_pass_bonus=3. The game lasts 9 rounds.\n\nCARDS: cat_-8, cat_-5, cat_3, cat_5, cat_8, cat_11, cat_15 (each worth its number), rabbit (worth 0), large_dog, small_dog (worth 0; see the dog rule).\n\nATTRIBUTES.\n- Per player: hand (private list), played_card (private until revealed), mice (public), cat_points (public), bid (public after each poll), in_auction (public).\n- Table: set_aside (hidden list), start_seat, round_number, sack_owners, sack_cards (hidden), sack_revealed (public), standing_bid, leader_seat, bidder_count, sack_winner, sack_value.\n\nR1 SETUP (normal initial setup only; do not replace any hands, mice or other state a scenario supplies): Each player's hand is the 10 cards above. One card is chosen at random from each hand and moved to set_aside, unseen by everyone, leaving 9 cards per hand.\n\nR2 SETUP: Each player has mice=starting_mice and cat_points=0. round_number=0. start_seat is chosen at random once.\n\nEACH ROUND:\n\nR3 RESET AND PLAY: round_number increases by 1. Every player gets bid=0 and in_auction=true. Set standing_bid=0, leader_seat=0, bidder_count=0, sack_winner=0, sack_value=0, sack_revealed=[]. Then all players simultaneously choose one card from their own hand; it moves to played_card and the hand shrinks by 1.\n\nR4 BUILD THE SACK: sack_owners lists every seat starting at start_seat, ascending and wrapping round (for example, start_seat 3 of 4 gives [3,4,1,2]). sack_cards holds each owner's played_card in that same order.\n\nR5 FIRST PEEK: sack_cards[1] (the start seat's card) is appended to sack_revealed and shown to all.\n\nR6 STAGE 1 POLL: Simultaneously, each player chooses a whole number from 0 up to their own current mice, inclusive. The choice is stored in bid. A bid of 0 is a pass.\n\nR7 COUNT: bidder_count = the number of players with bid > 0. standing_bid = the highest bid. leader_seat = the player with the highest bid; ties go to whichever comes first in sack_owners. Every player with bid=0 gets in_auction=false. If bidder_count is at least 1, every player with bid=0 also gains stage1_pass_bonus mice.\n\nR8 NO BIDDERS (only when bidder_count=0): Nobody gains anything. sack_cards is cleared, and start_seat advances to the next seat (after the last seat comes seat 1). Steps R9 to R14 are skipped this round.\n\nR9 SOLE BIDDER (only when bidder_count=1): sack_winner=leader_seat, and the price is standing_bid (that player's bid). Stage 2 (R10 to R12) does not happen. Go to R13.\n\nR10 SECOND PEEK (only when bidder_count is at least 2): sack_cards[2] is appended to sack_revealed and shown to all.\n\nR11 STAGE 2 POLL (only when bidder_count is at least 2): Simultaneously, each player with in_auction=true chooses 0 or any whole number from standing_bid+1 up to their own current mice. A player with mice at or below standing_bid may only choose 0. The choice replaces bid.\n\nR12 STAGE 2 RESOLUTION (only when bidder_count is at least 2):\n- If any in-auction player bid more than 0, sack_winner is the one with the highest bid (ties go to whichever comes first in sack_owners), and standing_bid becomes that bid.\n- Otherwise sack_winner=leader_seat, and the price stays at the stage-1 standing_bid.\n- Every in-auction player who chose 0 in stage 2 and is not sack_winner gains stage2_pass_bonus mice.\n\nR13 AWARD (whenever there is a sack_winner):\n- The sack_winner pays standing_bid mice to the bank.\n- Dog rule: if exactly one dog is among sack_cards, the large dog removes the cat with the highest value, or the small dog removes the cat with the lowest value. If there are no cats, nothing is removed. With 0 or 2 dogs, nothing is removed.\n- sack_value = the sum of the values of the remaining cats (rabbit and dogs count 0), and is added to the winner's cat_points.\n- All sack_cards are then shown and cleared.\n\nR14 NEXT START: start_seat becomes sack_winner.\n\nR15 END: After round 9, each player's score = cat_points + mice.",
+    "objective": "The highest score (cat_points + mice) wins. If tied, the higher cat_points wins. If still tied, it is a draw among the tied players.",
+    "expected_effect": "Every round, players must price a sack they see only one or two cards of. They do this by counting which cards each opponent has already played, guessing what the start player contributed, and deciding whether to sacrifice a negative cat or dog into a sack they expect to lose. Passing is a real alternative, but it only pays when someone else bids, and it gives away your own card. Always-pass ends near 33 and loses to anyone who buys a few good sacks cheaply. Always-bid-max goes broke in round 1 and can be stuck with negative cats. Talk is left out: every claim about your own card would be unverifiable, and the hidden-card bluff already happens through what you play and bid. That keeps the build small."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 3,
+    "attributes": 20,
+    "hidden_elements": 3,
+    "random_draws_per_round": 0,
+    "rounds": 9
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "CARD ECONOMY. Cat sum per full hand: -8-5+3+5+8+11+15 = 29, spread over 10 cards (2.9 per card). Each player plays 9 cards, so a 4-player game puts about 4x26 = 104 cat points into 9 sacks, less what dogs remove: roughly 85 points, or about 9 to 12 per sack. Total mice: 60 at the start plus pass bonuses from the bank (+2 per stage-1 passer, +3 per stage-2 passer) whenever at least one player bids.\n\nPER-ROUND OUTCOMES (4 players, a sack worth V, price p):\n| role | mice change | cat change |\n|---|---|---|\n| stage-1 passer, someone bids | +2 | 0 |\n| stage-2 passer, not the winner | +3 | 0 |\n| winner | -p | +V (after dog) |\n| nobody bids | 0 | 0 |\n\nTHOUGHTLESS POLICIES under the winner rule (highest cat_points + mice):\n(a) Always pass. At most 15 + 9x2 = 33 points and 0 cats. The passer also gives away about 26 cat points of his own cards to the others, roughly 9 each for 3 opponents. A sensible player who wins 2 sacks worth about 12 at a price of about 5 (+14), and earns about 2.5 in the other 7 rounds (+17.5), scores about 46. That beats 33, so always-pass loses to sensible play. Against random bidders it also tends to lose, because they win sacks containing his positive cards.\n(b) Always bid the maximum. Round 1: pays 15 for a sack worth about 11 (net -4), then has 0 mice and can only pass. Total about 11 + 8x2 = 27. Loses to sensible play and to always-pass.\n(c) Always bid 1 in stage 1, then 0 in stage 2. Earns +3 instead of +2 when outbid. But when it is the sole bidder it must buy a sack after seeing only one card. Negative sacks are common because players dump -8 and -5 into sacks they expect others to win, so a sack with cat_-8 + cat_-5 + rabbit costs it 13 points. Not dominant; it loses to bidders who read the first peek.\n(d) Always the first or last card. The card is a private choice with no fixed order, so this is not a coherent dominant line.\n\nNo bid or card option is strictly better against every opponent action, and no simple policy never loses.\n\nSEAT EDGE. The start seat wins ties, but its card is the one shown publicly, which costs it information. Start passes to the sack winner, so the tie edge rotates and is minor. All players can realistically win.\n\nThe labelled payoffs are consistent: pass bonuses are smaller than typical sack surplus, so buying sacks is the main way to score."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULE COMPLETENESS.\n- Every branch is defined: bidder_count 0 (R8, start seat advances), 1 (R9, sole bidder pays own bid), and 2 or more (R10 to R12).\n- Ties in stages 1 and 2 go to the earliest seat in sack_owners.\n- A player with mice at or below standing_bid can only choose 0 in stage 2.\n- Dog cases are covered: one dog, two dogs, no cats.\n- 9 cards over 9 rounds empties every hand exactly, so the game is finite.\n- The score and the tiebreaks (cat_points, then a draw) are pure arithmetic.\n\nPLATFORM LIMITS.\n| limit | game | max |\n|---|---|---|\n| steps_per_round | 18 | 20 |\n| choice_steps_per_round | 3 (card, stage-1 bid, stage-2 bid) | 4 |\n| attributes | 20 (6 per-player + 11 table + 3 parameters) | 20 (at the limit) |\n| hidden_elements | 3 (hands, played/sack cards, set_aside) | 3 |\n| random_draws_per_round | 0 (randomness only at setup) | 1 |\n| rounds | 9 | 40 |\n\nAll choices are simultaneous polls. No board, judge or clock is needed.\n\nTALK. There is none. This is acceptable: it is a competitive sealed auction in which players' interests conflict and any promise would be non-binding and unenforceable. The information to reason about (peeks, card counting) is already in the game state, so talk would only add words. There is no repeated-cooperation end-game problem, because the game is not a cooperation dilemma."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT IS RANDOM. Only two things: the setup discard and the first start seat.\n- The discard swing per player is at most about 23 points (losing cat_15 versus losing cat_-8). However, each player's own discard enters sacks others may win, so it is diluted.\n- Each player knows their own discard by elimination, which is private information.\n\nWHAT CAN BE INFERRED.\n- Card counting: all sack cards are shown at R13, so remaining hands shrink publicly.\n- Reading the two peeks.\n- Predicting dumping: a player who expects to lose will play cat_-8 or cat_-5.\n- Timing dogs to strip a rival's high cat.\n- Bid shading in a sealed first-price stage, choosing between a low stage-1 bid and raising in stage 2.\n\nEQUAL GOOD PLAY. When all players play well, results depend on these choices and on bid margins, not on the deal alone. Chance is estimated at about 20 to 30 percent of the outcome. A reasoner who counts cards and avoids buying dumped sacks is clearly favoured over random or thoughtless bidders, as the policy tests in the balanced check show."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

@@ -1,0 +1,605 @@
+[
+  {
+    "name": "Game starts with every score 0 and round 0",
+    "rule": "R1",
+    "players": 4,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        },
+        "4": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 0
+      }
+    },
+    "rule_text": "When the game starts, every player's score is 0 and round is 0."
+  },
+  {
+    "name": "Round start increments round from a given value (trick outcomes random, only round asserted)",
+    "rule": "R2",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5
+      }
+    },
+    "rule_text": "When a round starts, round increases by 1, and every player's tricks_won is set to 0, bonus to 0 and hand to empty, while revealed is set to empty."
+  },
+  {
+    "name": "Fresh deck each round: round 1 reveals exactly 3 cards (which cards is random)",
+    "rule": "R3",
+    "players": 4,
+    "rounds": 1,
+    "seed": 2,
+    "default": "first",
+    "given": {
+      "game": {
+        "revealed": [],
+        "deck": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "lens": {
+        "game": {
+          "revealed": 3
+        }
+      }
+    },
+    "rule_text": "When a round starts, deck is reset to the 18 cards [1..12, 0, 0, 20, 30, 31, 40]."
+  },
+  {
+    "name": "Deal gives 3 cards, so the round plays through and 3 cards are revealed (cards random)",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 1,
+    "seed": 3,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "lens": {
+        "game": {
+          "revealed": 3
+        }
+      }
+    },
+    "rule_text": "When cards are dealt, each player receives exactly 3 random cards from deck into their private hand, and those cards are removed from deck."
+  },
+  {
+    "name": "Reveal leaves exactly 3 public cards with 3 players (cards random)",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "seed": 4,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "revealed": 3
+        }
+      }
+    },
+    "rule_text": "When cards are revealed, 3 further random cards move from deck to the public revealed list, are out of play this round, and leave 3 hidden cards in deck with 4 players or 6 with 3 players."
+  },
+  {
+    "name": "Reveal leaves exactly 3 public cards with 4 players (cards random)",
+    "rule": "R5",
+    "players": 4,
+    "rounds": 1,
+    "seed": 5,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "revealed": 3
+        }
+      }
+    },
+    "rule_text": "When cards are revealed, 3 further random cards move from deck to the public revealed list, are out of play this round, and leave 3 hidden cards in deck with 4 players or 6 with 3 players."
+  },
+  {
+    "name": "Bids are stored as answered and only 0 to 3 are offered",
+    "rule": "R6",
+    "players": 4,
+    "rounds": 1,
+    "seed": 6,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3,
+        "answer": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "answer": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 2,
+        "answer": 2
+      },
+      {
+        "seat": 4,
+        "options_include": 1,
+        "answer": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 3
+        },
+        "2": {
+          "bid": 0
+        },
+        "3": {
+          "bid": 2
+        },
+        "4": {
+          "bid": 1
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 0
+        },
+        {
+          "seat": 1,
+          "option": 3
+        },
+        {
+          "seat": 4,
+          "option": 0
+        },
+        {
+          "seat": 4,
+          "option": 3
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 4
+        },
+        {
+          "seat": 2,
+          "option": 4
+        }
+      ]
+    },
+    "rule_text": "When bidding, all players answer at the same time with exactly 0, 1, 2 or 3, and the answer is stored as bid."
+  },
+  {
+    "name": "Bids are public after the poll",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "seed": 7,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "answer": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 2,
+        "answer": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 1
+        },
+        "2": {
+          "bid": 2
+        },
+        "3": {
+          "bid": 0
+        }
+      }
+    },
+    "rule_text": "When all bids are in, every player's bid is shown to everyone."
+  },
+  {
+    "name": "Playing cards over a round completes it (cards random, round asserted)",
+    "rule": "R8",
+    "players": 4,
+    "rounds": 1,
+    "seed": 8,
+    "default": "last",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When a trick is played, every player at the same time chooses one card from their own hand, and that card is removed from hand and stored as played."
+  },
+  {
+    "name": "All played cards shown; round completes (outcome random)",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "seed": 9,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When all cards of a trick are chosen, every played card is shown to everyone together."
+  },
+  {
+    "name": "Mermaid capture bonus cannot exceed the score lead; dominant seat still wins (deal random)",
+    "rule": "R10",
+    "players": 4,
+    "seed": 10,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 9
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 200
+        },
+        "3": {
+          "score": 0
+        },
+        "4": {
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "game": {
+        "round": 10
+      }
+    },
+    "rule_text": "When the played cards include both the Mermaid (20) and the Skull King (40), the Mermaid's player wins the trick even if a Pirate (30 or 31) was played, and gains bonus +10."
+  },
+  {
+    "name": "Highest power wins tricks; round completes (outcome random)",
+    "rule": "R11",
+    "players": 4,
+    "rounds": 1,
+    "seed": 11,
+    "default": "last",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When the played cards do not include both the Mermaid and the Skull King, the player with the highest played power wins the trick (for example 31 beats 30, and 1 beats an Escape at 0)."
+  },
+  {
+    "name": "Trick wins are counted each round (outcome random, round asserted)",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "seed": 12,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When a player wins a trick, their tricks_won increases by 1."
+  },
+  {
+    "name": "Three tricks per round then next round (two rounds played)",
+    "rule": "R13",
+    "players": 4,
+    "rounds": 2,
+    "seed": 13,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "When the round is played, exactly 3 tricks are played, so each player plays all 3 cards in hand."
+  },
+  {
+    "name": "Max gain per round is 40, so a 100-point lead in the last round decides the winner",
+    "rule": "R14",
+    "players": 3,
+    "seed": 14,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 9
+      },
+      "players": {
+        "1": {
+          "score": 100
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "round": 10
+      }
+    },
+    "rule_text": "When a player's tricks_won equals their bid after the third trick (including bid 0 with 0 tricks), their score increases by 30 + bonus (for example bid 1, won 1, bonus 10 gives +40)."
+  },
+  {
+    "name": "Max loss per round is 30, so a seat 100 ahead stays ahead (deal random)",
+    "rule": "R15",
+    "players": 4,
+    "seed": 15,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 9
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 100
+        },
+        "4": {
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 3,
+        "answer": 3
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "game": {
+        "round": 10
+      }
+    },
+    "rule_text": "When a player's tricks_won differs from their bid after the third trick, their score decreases by 10 \u00d7 |bid \u2212 tricks_won| and the bonus is lost (for example bid 3, won 1 gives \u221220)."
+  },
+  {
+    "name": "Game does not end before round 10",
+    "rule": "R16",
+    "players": 4,
+    "rounds": 1,
+    "seed": 16,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 6
+      }
+    },
+    "rule_text": "When round equals 10 after scoring, the game ends; otherwise a new round starts."
+  },
+  {
+    "name": "Game ends after round 10's scoring",
+    "rule": "R16",
+    "players": 3,
+    "seed": 17,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 9
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 150
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "game": {
+        "round": 10
+      }
+    },
+    "rule_text": "When round equals 10 after scoring, the game ends; otherwise a new round starts."
+  },
+  {
+    "name": "Highest final score wins (lead too large for one random round)",
+    "rule": "R17",
+    "players": 4,
+    "seed": 18,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 9
+      },
+      "players": {
+        "1": {
+          "score": 300
+        },
+        "2": {
+          "score": 50
+        },
+        "3": {
+          "score": 50
+        },
+        "4": {
+          "score": 50
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "round": 10
+      }
+    },
+    "rule_text": "When the game ends, the player with the highest score wins, and players tied at the highest score share the top place."
+  }
+]

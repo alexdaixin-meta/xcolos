@@ -1,0 +1,139 @@
+{
+  "original_summary": "Decrypto is a team word game. Each team privately holds four numbered keywords. Each round a rotating Encryptor gives three meaning-based clues for a secret 3-digit code so that teammates can decode it while the opposing team, who see only the public clue history, try to intercept it; teams race to 2 Interceptions or away from 2 Miscommunications.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "bad",
+      "evidence": "In the previous build every match, random or thoughtless, ended as a four-seat draw: first@seat1, last@seat1 and the others all drew 60 of 60. The token race is symmetric and both teams trip the same trigger in lockstep. Interception needs an exact 3-digit hit (1 in 24 at random), so random teams almost never intercept, both rack up Miscommunications, and the draw rule fires. Nothing a player chose moved the result."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "In the tabletop game, skill (clues that are clear to teammates and obscure to rivals, and reading the opponents' clue history) dominates. In the built version, all-or-nothing exact-code scoring and a shared draw trigger meant better guessing almost never changed the token count, so skill could not show."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Pitching clues at the right obscurity, tracking which clue themes have leaked for each keyword number, and spotting an opponent's code habits can improve almost without limit. A weak team can still decode its own clues."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Keywords are hidden from the opponents. Intercepting requires inferring the keyword behind each number from the accumulating clue history, and encrypting requires modelling what the teammate knows versus what the rivals can infer."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "weak",
+      "evidence": "The token outcomes are arithmetic, but the core rule that clues point 'by meaning only, never by spelling or position' needs a judge. The platform cannot decide whether a clue relates to its keyword."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is text-only and turn-based. However, its variable team sizes, sequential announce order, open-ended length until a token race resolves, and judge-dependent clue legality all strain the engine. The token race also produced only draws."
+    }
+  ],
+  "problems": [
+    "P1: The symmetric token race (2 Interceptions win, 2 Miscommunications lose) makes both teams hit the same trigger together, so every match drew: choices did not change the result.",
+    "P2: Scoring is all-or-nothing on the exact 3-digit code, so better-than-random guessing almost never moves the score and skill cannot be seen.",
+    "P3: There is no tiebreak, so equal token counts always end in a draw.",
+    "P4: The clue rule 'by meaning only' needs a judge and cannot be checked by arithmetic.",
+    "P5: A random code card per team per round needs two random draws per round, above the platform limit. It also adds luck without adding a decision.",
+    "P6: Open-ended length and sequential announcing (White first, Black's intercept announced first) give an order asymmetry and an unpredictable game length.",
+    "P7: Interception and decoding are worth the same token weight, so the encryptor's core tension (be clear to the teammate, opaque to rivals) is not sharply priced."
+  ],
+  "changes": [
+    {
+      "what": "Replace the token race with a fixed 8-round game in which teams earn points every round, and the higher team total wins.",
+      "why": "Every round's guesses now move the score, so totals diverge and results vary with play instead of collapsing into a shared trigger.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Score guesses position by position. A decode earns 1 point per correctly placed digit plus 1 bonus for the exact code (max 4). An interception earns 1 point per correctly placed digit plus 2 bonus for the exact code (max 5).",
+      "why": "Partial credit rewards better-than-random inference every round. The larger exact-interception bonus makes leaking a whole code costly, which prices the clear-versus-obscure tension.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Break ties first by total exact interceptions, then by total exact decodes; only then is the game a draw.",
+      "why": "Ties now go to the team that showed more inference, so draws are rare.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Use only arithmetic clue checks: one word, 2-20 letters, does not contain and is not contained in any of the team's own keywords (ignoring case), and does not repeat any earlier clue by either team. An invalid clue set makes that team's decode score 0 and gives the opponents 3 points.",
+      "why": "The meaning check is removed. Clue legality is computable, and breaking the rules has a fixed, arithmetic cost.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The Encryptor chooses the team's secret code from the 24 possible codes, instead of drawing a code card.",
+      "why": "This removes the per-round random draws. It also adds a decision: a predictable code pattern (always the first code) is intercepted from the public history, so code choice becomes opponent modelling.",
+      "fixes": "P5"
+    },
+    {
+      "what": "Make every step simultaneous: both Encryptors choose codes, both write clues, then all four players guess at once. Fix the game at 4 players, two teams of 2, with roles alternating each round.",
+      "why": "This removes the read-first and announce-first order advantage, gives every seat the same position, and makes the length fixed and short.",
+      "fixes": "P6"
+    },
+    {
+      "what": "In each guess step, each team's Decoder decodes the own team's clues while that team's Encryptor intercepts the opponents' clues. Interceptions score nothing in round 1, as in the original.",
+      "why": "Every player has a reasoning task each round. Separating the two jobs makes the cost of a leaky clue (opponent points) and the value of a clear clue (own points) directly comparable.",
+      "fixes": "P7"
+    }
+  ],
+  "keeps": [
+    "Two teams, each privately holding four numbered keywords that the other team never sees.",
+    "A rotating Encryptor who gives three one-word clues for a 3-digit code made of distinct digits 1-4.",
+    "Teammates decode while opponents try to intercept, using the public history of clues and revealed codes.",
+    "No clue may ever be reused.",
+    "No interception scoring in round 1.",
+    "True codes are revealed after each round, so the clue history becomes a growing puzzle for the opponents.",
+    "The central tension: be clear to your partner, opaque to your rivals."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Decrypto's hidden keywords and interception inference fit the platform well. The draw-only result came from the symmetric all-or-nothing token race, which per-position scoring, a fixed length and a tiebreak fix."
+  },
+  "variation": {
+    "name": "Decrypto: Points Race",
+    "summary": "Two teams of two hide four keywords each. Each round, an Encryptor chooses a secret 3-digit code and gives three one-word clues for it. Teammates score by decoding the code, and opponents score more for intercepting it. After 8 rounds the higher team total wins.",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "SETUP. Four players: seats 1 and 2 form team Red, seats 3 and 4 form team Blue. Eight distinct keywords are drawn at random from a fixed list of 40 common nouns. The first four go to Red, numbered 1-4; the next four go to Blue, numbered 1-4. Each team's keywords are shown only to that team's two players. Each team starts with 0 points, 0 exact interceptions and 0 exact decodes. A public history lists, for each team and each past round, its three clues and its revealed true code.\n\nCODES. A code is three different digits from 1-4 in order. There are 24 codes, offered in this order: 123, 124, 132, 134, 142, 143, 213, 214, 231, 234, 241, 243, 312, 314, 321, 324, 341, 342, 412, 413, 421, 423, 431, 432.\n\nROLES. In odd rounds, seats 1 and 3 are Encryptors and seats 2 and 4 are Decoders. In even rounds, the roles swap.\n\nEACH ROUND (8 rounds):\n1. Roles for the round are announced.\n2. Code choice (simultaneous, secret): each Encryptor chooses one of the 24 codes for their team. No one else sees it.\n3. Clues (simultaneous): each Encryptor writes three clues, one per digit of the code in order. Clue 1 should point to the team keyword numbered by the first digit, and so on.\n4. Clue check. A clue is valid only if all of these hold: it is a single word with no spaces; it is 2-20 letters long; ignoring case, it does not contain any of the team's own four keywords and is not contained in any of them; it is not identical, ignoring case, to any clue either team has given in an earlier round. A team with any invalid clue this round is marked invalid.\n5. All six clues are shown to everyone.\n6. Guesses (simultaneous): each Decoder chooses one of the 24 codes as a decode of their own team's clues. Each Encryptor chooses one of the 24 codes as an interception of the opposing team's clues.\n7. Decode scoring, for each team that is not invalid: the team gains 1 point for each position (first, second, third) where the Decoder's guess matches the team's true code. If all three match, the team gains 1 more point and 1 exact decode. A team marked invalid gains 0 decode points this round.\n8. Interception scoring, rounds 2-8 only: each team gains 1 point for each position where its Encryptor's interception matches the opposing team's true code. If all three match, the team gains 2 more points and 1 exact interception. In round 1 interceptions score nothing.\n9. Invalid penalty: if a team is marked invalid, the opposing team gains 3 points.\n10. Both true codes, all guesses and all points gained are announced, and the clues and codes are added to the public history.\n\nNo other talk is allowed. The clues are the only communication.\n\nEND. After round 8 the game ends.",
+    "objective": "The team with more points after round 8 wins, and both of its players win. If points are tied, the team with more exact interceptions wins. If still tied, the team with more exact decodes wins. If still tied, the game is a draw.",
+    "expected_effect": "Scores now diverge every round, so random play gives varied winners and choices decide results. A thoughtless policy that always picks the first code (123) and always guesses 123 decodes perfectly, but from round 2 a thinking opponent intercepts it exactly for 5 points a round while decoding its own varied codes for 3-4. The thoughtless team falls about 4 points behind per round, so it loses; the same holds for always-last. Strong teams vary their codes, give clues tied to their private keywords but phrased away from earlier themes for the same number, and mine the opponents' history to intercept. The larger exact-interception bonus punishes transparent clues, and decode points punish over-obscure ones. Talk is left out: the two teams are strictly opposed, and teammates sharing information outside the clues would remove the puzzle."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 3,
+    "attributes": 18,
+    "hidden_elements": 2,
+    "random_draws_per_round": 0,
+    "rounds": 8
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Per-round scoring for one team: decode gives 1 per matching position plus a +1 bonus for an exact match (exact = 4). Interception, rounds 2-8, gives 1 per matching position plus +2 for exact (exact = 5). An invalid clue gives the opponent +3. A guess that ignores the clues, against a code spread evenly over the 24, matches each position with probability 1/4: expected 0.75 position points, and an exact match comes 1/24 of the time. So a blind decode is worth about 0.79 and a blind intercept about 0.83.\n\nThoughtless policies, worked per round and over 8 rounds:\n(a) 'Always first' team (code 123, decode 123, intercept 123). Its decodes always match: 4\u00d78 = 32. Its intercepts are blind: about 0.83\u00d77 = 5.8. Total about 37.8. Its code is public from round 1, so a sensible opponent intercepts it exactly in rounds 2-8: 5\u00d77 = 35. The opponent also decodes, at about 3-4 per round: 24-32. Opponent total 59-67. The 'always first' team loses.\n(b) 'Always first' against a random team. The random team scores about 0.79\u00d78 + 0.83\u00d77 \u2248 12.1, while the 'always first' team scores 32 plus about 5.8. 'Always first' wins, which is the expected result against noise.\n(c) 'Always first' against 'always first'. Both score 32 + 35 = 67. Tied on interceptions (7 each) and on exact decodes (8 each), so the game is a draw.\n(d) 'Always last' (432) is symmetric to (a) and also loses to sensible play.\n(e) Deliberately meaningless clues with a random code. The team's own decode drops to about 0.79 a round, so it trails a team that decodes at 3+ a round, even if that team leaks some interceptions.\n(f) Clues that announce the digits openly (for example 'first'). The own team gains 4, but the opponent gains 5 in rounds 2-8, a net -1 a round.\n\nSo no policy is strictly better whatever the opponent does, and no thoughtless policy avoids a loss: (a) and (d) lose to sensible play. The central trade-off is real: clearer clues raise your decode (up to 4) but also raise the opponent's intercept (up to 5). With 'higher total wins', this keeps the tension the original game had between Miscommunication and Interception. Seats are symmetric: codes, clues and guesses are all simultaneous, odd and even rounds swap roles identically for both teams, and the history is public to both. No seat has an edge from move order or information, and both teams can realistically win.",
+          "notes": "The tiebreakers run interceptions, then exact decodes, then draw, which is consistent with the payoff weights (interception is valued above decoding)."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules are complete. Setup draws 8 keywords from a fixed list of 40. Codes are an explicit list of 24. The role rotation is given. All three choices are simultaneous: code, clues, and the guess poll of all four players. Scoring is pure arithmetic on stored values: positional matches, bonuses, and the +3 for an invalid team.\n\nThe clue check is mechanical: no spaces, length 2-20, case-insensitive substring tests against the team's own keywords, and a comparison against the stored list of earlier clues. A referee can rule on it, and scores stay calculated.\n\nThe game is finite at 8 rounds, with a complete tiebreak chain ending in a draw.\n\nPlatform limits:\n- steps 14 \u2264 20\n- choice steps 3 \u2264 4\n- attributes 18 \u2264 20: 3 team counters \u00d72, 2 codes, 2 decodes, 2 intercepts, 2 invalid flags, plus clue and history slots\n- hidden element kinds 2 \u2264 3: team keyword hands and secret codes\n- random draws per round 0 \u2264 1 (the keyword deal happens once, at setup)\n- rounds 8 \u2264 40\n\nNothing needs a board, a clock, trading or a binding agreement.\n\nTalk is correctly excluded. In-team talk would destroy the clue mechanism. Cross-team talk has no disagreement to exploit, because the game is purely competitive and the clues are the communication. Clues are written simultaneously, so neither team can react to the other's clues.\n\nThe repeated-game cooperation test does not apply: the teams are fixed opponents with no cooperative option.\n\nMinor wording point: '2-20 letters long' does not explicitly say letters only. Writing 'letters A-Z only' would remove the doubt. Any digit-based clue is readable by the opponent and so self-punishing (see f), so this does not break play."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The only chance element is the setup keyword deal. Codes are chosen, not drawn, and the guesses are reasoned. Estimated chance share of the result is about 10-15%: some keyword sets are easier to clue than others, but both teams face the same 40-word pool.\n\nWhat decides the result:\n- writing clues your teammate can decode but the opponent cannot\n- building, from the public history, a model of which clue themes map to which number for the opponent\n- modelling the opponent Encryptor's code-choice biases (for example, favouring 123 or avoiding repeats)\n- inferring your teammate's clue style\n\nAll of these are inference and opponent-modelling tasks, and each has a direct way to act on it through the code choice and the two guesses.\n\nWhen both teams play well, decodes run at about 3-4 a round. Interceptions rise over rounds 4-8 as the history grows, and the winner is whoever manages the clarity/secrecy trade-off better. That is skill, not the deal. A player who reasons well beats a random one by about 50 points over the game (about 64 vs about 12), far outside any chance swing."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

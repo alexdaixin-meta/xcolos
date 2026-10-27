@@ -1,0 +1,1251 @@
+[
+  {
+    "name": "Setup: 24-card deck, empty bought lists, VP values all 3",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 24
+        },
+        "players": {
+          "1": {
+            "bought": 0,
+            "hand": 0
+          },
+          "2": {
+            "bought": 0,
+            "hand": 0
+          },
+          "3": {
+            "bought": 0,
+            "hand": 0
+          }
+        }
+      },
+      "game": {
+        "vp_red": 3,
+        "vp_blue": 3,
+        "vp_green": 3,
+        "round": 0
+      },
+      "players": {
+        "1": {
+          "bought_red": 0,
+          "bought_blue": 0,
+          "bought_green": 0
+        }
+      }
+    },
+    "rule_text": "When the game starts, the deck holds 24 cards: Red, Blue and Green each 1,1,2,2,3,4, Gold 2,2,3,3, and 2 Church. Each player has 4 Gold, and the Red, Blue and Green VP values are each 3."
+  },
+  {
+    "name": "Round 5 with 3 players makes seat 2 active",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 4,
+        "deck": [
+          "red-1",
+          "blue-2"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "red-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5,
+        "active_seat": 2,
+        "lot": "blue-2"
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "red-1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "red-1"
+        },
+        {
+          "seat": 3,
+          "option": "red-1"
+        }
+      ]
+    },
+    "rule_text": "When round r begins, the active seat is ((r-1) mod player_count)+1, so round 1 is seat 1."
+  },
+  {
+    "name": "Round start removes 2 cards from the deck, only the active seat is offered them",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "red-1",
+          "red-2",
+          "blue-1",
+          "blue-2"
+        ]
+      }
+    },
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 1,
+        "options_include": "red-2"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 2,
+          "drawn": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "red-1"
+        },
+        {
+          "seat": 2,
+          "option": "red-2"
+        },
+        {
+          "seat": 2,
+          "option": "blue-1"
+        },
+        {
+          "seat": 2,
+          "option": "blue-2"
+        },
+        {
+          "seat": 3,
+          "option": "red-1"
+        },
+        {
+          "seat": 3,
+          "option": "red-2"
+        },
+        {
+          "seat": 3,
+          "option": "blue-1"
+        },
+        {
+          "seat": 3,
+          "option": "blue-2"
+        }
+      ]
+    },
+    "rule_text": "When a round begins, 2 cards are removed from the deck, and only the active player sees them."
+  },
+  {
+    "name": "A kept red-3 goes to the hand and scores Red at the end",
+    "rule": "R4",
+    "players": 3,
+    "given": {
+      "game": {
+        "round": 11,
+        "deck": [
+          "red-3",
+          "blue-2"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "red-3"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 4,
+        "2": 4,
+        "3": 3004
+      },
+      "lens": {
+        "players": {
+          "3": {
+            "hand": 1
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "vp": 0
+        },
+        "2": {
+          "vp": 0
+        },
+        "3": {
+          "vp": 3
+        }
+      }
+    },
+    "rule_text": "When the active player keeps a colour card of value v, it goes into their private hand and adds v to their kept sum for that colour."
+  },
+  {
+    "name": "A kept gold-3 adds 3 gold at once",
+    "rule": "R5",
+    "players": 3,
+    "given": {
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-3",
+          "green-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-3"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 4,
+        "2": 4,
+        "3": 7
+      },
+      "players": {
+        "1": {
+          "vp": 0
+        },
+        "2": {
+          "vp": 0
+        },
+        "3": {
+          "vp": 0
+        }
+      }
+    },
+    "rule_text": "When the active player keeps a Gold card of value v, their gold increases by v immediately."
+  },
+  {
+    "name": "A kept Church is played the same round",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "church",
+          "red-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "church"
+      },
+      {
+        "seat": 1,
+        "options_include": "blue+1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "vp_blue": 4,
+        "vp_red": 3,
+        "vp_green": 3,
+        "lot": "red-1"
+      },
+      "players": {
+        "1": {
+          "church_choice": "blue+1"
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "blue+1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "blue+1"
+        },
+        {
+          "seat": 3,
+          "option": "blue+1"
+        }
+      ]
+    },
+    "rule_text": "When the active player keeps a Church card, they play it at step 9 that round."
+  },
+  {
+    "name": "The card not kept becomes the lot",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "green-4",
+          "red-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "lot": "green-4",
+        "sale_price": 0
+      }
+    },
+    "rule_text": "When a card is kept, the other drawn card becomes the public lot."
+  },
+  {
+    "name": "The talk step runs and the round continues normally",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "green-2",
+          "blue-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "blue-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1,
+        "lot": "green-2"
+      }
+    },
+    "rule_text": "When the talk step runs, every player including the active player sends one message at once, and all messages are shown to everyone."
+  },
+  {
+    "name": "Only non-active seats bid, from 0 up to their gold",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "3": {
+          "gold": 2
+        }
+      },
+      "game": {
+        "deck": [
+          "green-2",
+          "blue-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "blue-1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": 4
+        },
+        {
+          "seat": 2,
+          "option": 0
+        },
+        {
+          "seat": 3,
+          "option": 2
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 5
+        },
+        {
+          "seat": 3,
+          "option": 3
+        },
+        {
+          "seat": 1,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "When bidding, every non-active player at once bids a whole number from 0 to their current gold, and the active player does not bid."
+  },
+  {
+    "name": "The sole highest bidder pays and takes the lot",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "red-1",
+          "blue-2"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "sale_price": 3,
+        "lot": "blue-2"
+      },
+      "players": {
+        "2": {
+          "bought": [
+            "blue-2"
+          ],
+          "bought_blue": 2
+        },
+        "3": {
+          "bought": [],
+          "bought_blue": 0
+        }
+      }
+    },
+    "rule_text": "When exactly one player has the highest bid and it is at least 1, that player pays the bid from their gold to the active player's gold and takes the lot."
+  },
+  {
+    "name": "Tied top bids: lot discarded, nobody pays",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "red-1",
+          "blue-2"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "sale_price": 0
+      },
+      "lens": {
+        "game": {
+          "discard": 1
+        },
+        "players": {
+          "2": {
+            "bought": 0
+          },
+          "3": {
+            "bought": 0
+          }
+        }
+      },
+      "players": {
+        "2": {
+          "bought_blue": 0
+        },
+        "3": {
+          "bought_blue": 0
+        }
+      }
+    },
+    "rule_text": "When the highest bid is tied or all bids are 0, nobody pays and the lot is discarded."
+  },
+  {
+    "name": "All bids 0: lot discarded",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "red-1",
+          "green-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "sale_price": 0
+      },
+      "lens": {
+        "game": {
+          "discard": 1
+        },
+        "players": {
+          "2": {
+            "bought": 0
+          },
+          "3": {
+            "bought": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When the highest bid is tied or all bids are 0, nobody pays and the lot is discarded."
+  },
+  {
+    "name": "A won green-3 is public and adds 3 to bought_green",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "red-1",
+          "green-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "sale_price": 1
+      },
+      "players": {
+        "3": {
+          "bought": [
+            "green-3"
+          ],
+          "bought_green": 3
+        },
+        "2": {
+          "bought_green": 0
+        }
+      }
+    },
+    "rule_text": "When a colour lot of value v is won, it is public in the winner's bought cards and adds v to their bought sum for that colour."
+  },
+  {
+    "name": "A won gold-2 adds 2 gold to the winner (seen in the final standings)",
+    "rule": "R13",
+    "players": 3,
+    "given": {
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "red-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 5,
+        "2": 4,
+        "3": 3005
+      },
+      "players": {
+        "1": {
+          "bought": [
+            "gold-2"
+          ],
+          "vp": 0
+        },
+        "3": {
+          "vp": 3
+        }
+      }
+    },
+    "rule_text": "When a Gold lot of value v is won, the winner's gold increases by v."
+  },
+  {
+    "name": "A won Church is played by the buyer that round",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "church",
+          "red-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "green-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "vp_green": 2,
+        "sale_price": 1
+      },
+      "players": {
+        "2": {
+          "bought": [
+            "church"
+          ],
+          "church_choice": "green-1"
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "green-1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "green-1"
+        },
+        {
+          "seat": 3,
+          "option": "green-1"
+        }
+      ]
+    },
+    "rule_text": "When a Church lot is won, the winner plays it at step 9 that round."
+  },
+  {
+    "name": "The sale price is made public",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "red-2",
+          "blue-4"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "red-2"
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "sale_price": 2,
+        "lot": "blue-4"
+      },
+      "players": {
+        "2": {
+          "bought": [
+            "blue-4"
+          ]
+        }
+      }
+    },
+    "rule_text": "When the auction resolves, the sale price, or that the lot was discarded, is announced."
+  },
+  {
+    "name": "Two Church plays on the same colour both apply, capped at 5",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "vp_red": 4,
+        "deck": [
+          "church",
+          "church"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "church"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "red+1"
+      },
+      {
+        "seat": 2,
+        "options_include": "red+1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "vp_red": 5,
+        "vp_blue": 3,
+        "vp_green": 3
+      },
+      "players": {
+        "1": {
+          "church_choice": "red+1"
+        },
+        "2": {
+          "church_choice": "red+1"
+        }
+      }
+    },
+    "rule_text": "When players gained a Church card this round, each chooses at once one colour and +1 or -1. All changes apply, each VP value is limited to 1-5, and a colour may receive two changes."
+  },
+  {
+    "name": "Two Church plays lower a colour by 2",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "church",
+          "church"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "church"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "red-1"
+      },
+      {
+        "seat": 2,
+        "options_include": "red-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "vp_red": 1,
+        "vp_blue": 3,
+        "vp_green": 3
+      }
+    },
+    "rule_text": "When players gained a Church card this round, each chooses at once one colour and +1 or -1. All changes apply, each VP value is limited to 1-5, and a colour may receive two changes."
+  },
+  {
+    "name": "A played Church choice is revealed publicly with the new value",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "church",
+          "blue-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "church"
+      },
+      {
+        "seat": 1,
+        "options_include": "green+1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "vp_green": 4
+      },
+      "players": {
+        "1": {
+          "church_choice": "green+1"
+        },
+        "2": {
+          "church_choice": ""
+        }
+      }
+    },
+    "rule_text": "When a Church card is played, it and the chosen change are revealed, and the new VP values are announced."
+  },
+  {
+    "name": "The game ends after round 12 with the deck empty",
+    "rule": "R18",
+    "players": 3,
+    "given": {
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "gold-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-3"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 4,
+        "2": 4,
+        "3": 7
+      },
+      "lens": {
+        "game": {
+          "deck": 0
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rule_text": "When round 12 ends, the game ends and the deck is empty."
+  },
+  {
+    "name": "Kept plus bought: total 5 beats total 4 and takes Red",
+    "rule": "R19",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "kept_red": 4,
+          "hand": [
+            "red-4"
+          ]
+        },
+        "2": {
+          "kept_red": 2,
+          "hand": [
+            "red-2"
+          ],
+          "bought": [
+            "red-3"
+          ],
+          "bought_red": 3
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "gold-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-2"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 4,
+        "2": 3004,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "vp": 0
+        },
+        "2": {
+          "vp": 3
+        },
+        "3": {
+          "vp": 0
+        }
+      }
+    },
+    "rule_text": "When scoring a colour, each player's total is their kept plus bought values in it, and the sole highest total gains that colour's VP value."
+  },
+  {
+    "name": "A tie for most Blue splits its 3 VP as 1.5 each",
+    "rule": "R20",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "kept_blue": 3,
+          "hand": [
+            "blue-3"
+          ]
+        },
+        "2": {
+          "bought": [
+            "blue-3"
+          ],
+          "bought_blue": 3
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "gold-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-2"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 1504,
+        "2": 1504,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "vp": 1.5
+        },
+        "2": {
+          "vp": 1.5
+        },
+        "3": {
+          "vp": 0
+        }
+      }
+    },
+    "rule_text": "When several players tie for the highest total in a colour, they split its VP value equally, and fractions are allowed."
+  },
+  {
+    "name": "Colours nobody holds score for no one",
+    "rule": "R21",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "kept_red": 1,
+          "hand": [
+            "red-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "gold-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-2"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 3004,
+        "2": 4,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "vp": 3
+        },
+        "2": {
+          "vp": 0
+        },
+        "3": {
+          "vp": 0
+        }
+      }
+    },
+    "rule_text": "When every player has 0 in a colour, that colour scores for no one."
+  },
+  {
+    "name": "Gold scores no VP",
+    "rule": "R22",
+    "players": 3,
+    "given": {
+      "players": {
+        "2": {
+          "gold": 20
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "gold-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-2"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 4,
+        "2": 20,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "vp": 0
+        },
+        "2": {
+          "vp": 0
+        },
+        "3": {
+          "vp": 0
+        }
+      }
+    },
+    "rule_text": "When scoring, Gold scores no VP."
+  },
+  {
+    "name": "A VP tie is won by the seat with more leftover gold",
+    "rule": "R23",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "kept_red": 2,
+          "hand": [
+            "red-2"
+          ]
+        },
+        "2": {
+          "kept_red": 2,
+          "hand": [
+            "red-2"
+          ],
+          "gold": 7
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "gold-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-2"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 1504,
+        "2": 1507,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "vp": 1.5
+        },
+        "2": {
+          "vp": 1.5
+        },
+        "3": {
+          "vp": 0
+        }
+      }
+    },
+    "rule_text": "When VP totals tie for first, the tied player with more leftover gold wins; if gold also ties, those players draw."
+  },
+  {
+    "name": "A tie on both VP and gold shares the win",
+    "rule": "R23",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "kept_red": 2,
+          "hand": [
+            "red-2"
+          ]
+        },
+        "2": {
+          "kept_red": 2,
+          "hand": [
+            "red-2"
+          ]
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "gold-2",
+          "gold-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "gold-2"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 1504,
+        "2": 1504,
+        "3": 6
+      },
+      "players": {
+        "1": {
+          "vp": 1.5
+        },
+        "2": {
+          "vp": 1.5
+        }
+      }
+    },
+    "rule_text": "When VP totals tie for first, the tied player with more leftover gold wins; if gold also ties, those players draw."
+  }
+]

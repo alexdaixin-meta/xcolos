@@ -1,0 +1,1381 @@
+[
+  {
+    "name": "Full deck holds 30 cards at setup",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "full_deck": 30
+        }
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "madness": 0,
+          "retained": []
+        },
+        "2": {
+          "score": 0,
+          "madness": 0,
+          "retained": []
+        }
+      },
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "The deck has 30 cards: 5 suits (Ruins, Idols, Deep, Stars, Shore) of 6 cards each, 4 plain and 2 with a madness icon '*'."
+  },
+  {
+    "name": "Six rounds played reach round 6 (tide 2 started), no madness end possible",
+    "rule": "R2",
+    "players": 2,
+    "seed": 2,
+    "default": "first",
+    "rounds": 6,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 6,
+        "madness_end": 0
+      }
+    },
+    "rule_text": "The game has 15 rounds in 3 tides: rounds 1-5 are tide 1, rounds 6-10 tide 2, rounds 11-15 tide 3."
+  },
+  {
+    "name": "Tide start deals 5 each from a fresh 30-card deck (deck 20 after the deal, hands 4 after one pick and swap)",
+    "rule": "R3",
+    "players": 2,
+    "seed": 3,
+    "default": "first",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Deep",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Stars",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 20
+        },
+        "players": {
+          "1": {
+            "hand": 4
+          },
+          "2": {
+            "hand": 4
+          }
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When a tide starts (rounds 1, 6, 11), then the deck is the 30 cards minus all retained cards, and each player is dealt a private hand of 5 drawn from it; the rest are unused that tide."
+  },
+  {
+    "name": "Tide 2 deck excludes the retained cards (28 minus 10 dealt = 18)",
+    "rule": "R3",
+    "players": 2,
+    "seed": 4,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Idols-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Deep",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Stars",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 18
+        },
+        "players": {
+          "1": {
+            "hand": 4
+          },
+          "2": {
+            "hand": 4
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Idols-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 6
+      }
+    },
+    "rule_text": "When a tide starts (rounds 1, 6, 11), then the deck is the 30 cards minus all retained cards, and each player is dealt a private hand of 5 drawn from it; the rest are unused that tide."
+  },
+  {
+    "name": "Both seats are offered the 5 suits as Obsession at tide start",
+    "rule": "R4",
+    "players": 2,
+    "seed": 5,
+    "default": "first",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Stars"
+      },
+      {
+        "seat": 2,
+        "options_include": "Shore"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Ruins"
+        },
+        {
+          "seat": 1,
+          "option": "Shore"
+        },
+        {
+          "seat": 2,
+          "option": "Idols"
+        },
+        {
+          "seat": 2,
+          "option": "Deep"
+        }
+      ]
+    },
+    "rule_text": "When a tide starts, then each player secretly chooses one of the 5 suits as their Obsession, hidden from the opponent until the tide is scored."
+  },
+  {
+    "name": "One round moves one card from hand to tableau for each seat",
+    "rule": "R5",
+    "players": 2,
+    "seed": 6,
+    "default": "first",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "tableau": 1,
+            "hand": 4
+          },
+          "2": {
+            "tableau": 1,
+            "hand": 4
+          }
+        }
+      }
+    },
+    "rule_text": "When a round is played, then both players simultaneously move one card from their own hand to their tableau, face down."
+  },
+  {
+    "name": "After four rounds each hand holds 1 card and each tableau 4",
+    "rule": "R6",
+    "players": 2,
+    "seed": 7,
+    "default": "first",
+    "rounds": 4,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 1,
+            "tableau": 4
+          },
+          "2": {
+            "hand": 1,
+            "tableau": 4
+          }
+        }
+      }
+    },
+    "rule_text": "When the picks of rounds 1-4 of a tide are made, then the two players swap their remaining hands, so hands hold 5, 4, 3, 2, 1 cards."
+  },
+  {
+    "name": "Fifth round takes the last card: hands empty, one card retained, tableau cleared",
+    "rule": "R7",
+    "players": 2,
+    "seed": 8,
+    "default": "first",
+    "rounds": 5,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0,
+            "retained": 1,
+            "tableau": 0
+          },
+          "2": {
+            "hand": 0,
+            "retained": 1,
+            "tableau": 0
+          }
+        }
+      },
+      "game": {
+        "round": 5,
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When the fifth round of a tide is played, then each player's hand has exactly 1 card and that card is the forced pick."
+  },
+  {
+    "name": "Tide 1 ends and is scored and revealed without a madness end",
+    "rule": "R8",
+    "players": 2,
+    "seed": 9,
+    "default": "first",
+    "rounds": 5,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Shore",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Deep",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5,
+        "madness_end": 0
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "retained": 1
+          },
+          "2": {
+            "retained": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a tide ends (rounds 5, 10, 15), then both tableaus, retained cards and Obsessions are revealed to both players."
+  },
+  {
+    "name": "Madness gains the icons in the tableau plus retained (2 each, equal so no bonus)",
+    "rule": "R9",
+    "players": 2,
+    "seed": 10,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1",
+            "Idols*-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Deep*-1",
+            "Stars*-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "players": {
+        "1": {
+          "madness": 2,
+          "score": 4
+        },
+        "2": {
+          "madness": 2,
+          "score": 4
+        }
+      },
+      "game": {
+        "round": 15,
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When a tide ends, then each player adds the number of '*' cards among their 5 drafted cards plus retained cards to their madness total."
+  },
+  {
+    "name": "Set points: 3 Ruins plus 2 Idols scores 9; 4 Deep plus 1 Stars scores 11",
+    "rule": "R10",
+    "players": 2,
+    "seed": 11,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1",
+            "Ruins-2",
+            "Ruins-3",
+            "Idols-1",
+            "Idols-2"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Deep-1",
+            "Deep-2",
+            "Deep-3",
+            "Deep-4",
+            "Stars-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 999,
+        "2": 1199
+      },
+      "players": {
+        "1": {
+          "score": 9,
+          "madness": 0
+        },
+        "2": {
+          "score": 11,
+          "madness": 0
+        }
+      },
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When a tide ends, then each suit in a player's tide tableau scores 0/1/3/6/10 points for 0/1/2/3/4-or-more cards."
+  },
+  {
+    "name": "Obsession doubles: seat 1 retains all 6 Ruins and obsesses Ruins (20 pts), outscoring anything seat 2 can draft whatever the cards",
+    "rule": "R11",
+    "players": 2,
+    "seed": 12,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1",
+            "Ruins-2",
+            "Ruins-3",
+            "Ruins-4",
+            "Ruins*-1",
+            "Ruins*-2"
+          ]
+        },
+        "2": {
+          "retained": []
+        }
+      },
+      "game": {
+        "round": 10
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ruins"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "round": 15,
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When a suit is the player's Obsession for that tide, then its set points are doubled (e.g., 3 cards score 12)."
+  },
+  {
+    "name": "Plus 1 point per madness card (equal icons, no bonus)",
+    "rule": "R12",
+    "players": 2,
+    "seed": 13,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1",
+            "Ruins*-2"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Idols*-1",
+            "Idols*-2",
+            "Idols-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "players": {
+        "1": {
+          "score": 5,
+          "madness": 2
+        },
+        "2": {
+          "score": 8,
+          "madness": 2
+        }
+      },
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When a tide ends, then a player scores +1 point per madness card in their tide tableau."
+  },
+  {
+    "name": "Four different suits add 4 points; three suits do not",
+    "rule": "R13",
+    "players": 2,
+    "seed": 14,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1",
+            "Idols-1",
+            "Deep-1",
+            "Stars-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Ruins-2",
+            "Idols-2",
+            "Deep-2"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "score": 8
+        },
+        "2": {
+          "score": 3
+        }
+      },
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When a player's tide tableau contains at least 4 different suits, then that player scores +4 points."
+  },
+  {
+    "name": "Seat with more icons is offered the bonus and takes +4 points; the other seat is not offered it",
+    "rule": "R14",
+    "players": 2,
+    "seed": 15,
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1",
+            "Idols-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Deep-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "score": 7,
+          "madness": 1
+        },
+        "2": {
+          "score": 1,
+          "madness": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "reduce_madness_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "gain_4_points"
+        },
+        {
+          "seat": 2,
+          "option": "reduce_madness_1"
+        }
+      ]
+    },
+    "rule_text": "When one player has strictly more madness icons than the other in their tide tableau, then that player privately chooses +4 points or madness total -1."
+  },
+  {
+    "name": "Bonus seat chooses madness -1 instead of points",
+    "rule": "R14",
+    "players": 2,
+    "seed": 16,
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1",
+            "Idols-1"
+          ],
+          "madness": 5
+        },
+        "2": {
+          "retained": [
+            "Deep-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "reduce_madness_1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "score": 3,
+          "madness": 5
+        },
+        "2": {
+          "score": 1,
+          "madness": 0
+        }
+      },
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When one player has strictly more madness icons than the other in their tide tableau, then that player privately chooses +4 points or madness total -1."
+  },
+  {
+    "name": "Equal icons: nobody is offered the madness bonus",
+    "rule": "R15",
+    "players": 2,
+    "seed": 17,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Idols*-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "players": {
+        "1": {
+          "score": 2,
+          "madness": 1
+        },
+        "2": {
+          "score": 2,
+          "madness": 1
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "gain_4_points"
+        },
+        {
+          "seat": 2,
+          "option": "gain_4_points"
+        },
+        {
+          "seat": 1,
+          "option": "reduce_madness_1"
+        },
+        {
+          "seat": 2,
+          "option": "reduce_madness_1"
+        }
+      ]
+    },
+    "rule_text": "When both players have equal madness icons in their tide tableaus, then nobody gets the madness bonus."
+  },
+  {
+    "name": "Taking points leaves seat 1 at madness 9: it loses at the madness check",
+    "rule": "R16",
+    "players": 2,
+    "seed": 18,
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1"
+          ],
+          "madness": 8
+        },
+        "2": {
+          "retained": [
+            "Idols-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "players": {
+        "1": {
+          "madness": 9
+        },
+        "2": {
+          "madness": 0
+        }
+      },
+      "game": {
+        "madness_end": 1
+      }
+    },
+    "rule_text": "When, after the madness bonus, exactly one player has madness total 9 or more, then the game ends immediately and that player loses."
+  },
+  {
+    "name": "Reducing madness to 8 after the bonus avoids the loss",
+    "rule": "R16",
+    "players": 2,
+    "seed": 19,
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1"
+          ],
+          "madness": 8
+        },
+        "2": {
+          "retained": [
+            "Idols-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "reduce_madness_1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "madness": 8,
+          "score": 2
+        },
+        "2": {
+          "madness": 0,
+          "score": 1
+        }
+      },
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When, after the madness bonus, exactly one player has madness total 9 or more, then the game ends immediately and that player loses."
+  },
+  {
+    "name": "Madness far over 9 ends the game at the end of tide 1 (any cards dealt)",
+    "rule": "R16",
+    "players": 2,
+    "seed": 20,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "madness": 20
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "game": {
+        "round": 5,
+        "madness_end": 1
+      }
+    },
+    "rule_text": "When, after the madness bonus, exactly one player has madness total 9 or more, then the game ends immediately and that player loses."
+  },
+  {
+    "name": "Both at 9 or more: higher madness loses",
+    "rule": "R17",
+    "players": 2,
+    "seed": 21,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "madness": 10
+        },
+        "2": {
+          "madness": 9
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "reduce_madness_1",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "reduce_madness_1",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "players": {
+        "1": {
+          "madness": 10
+        },
+        "2": {
+          "madness": 9
+        }
+      },
+      "game": {
+        "madness_end": 1
+      }
+    },
+    "rule_text": "When both players have madness 9 or more at a madness check, then the game ends and the one with the higher madness total loses; equal totals are a draw."
+  },
+  {
+    "name": "Both at 9 or more with equal madness: draw (shared)",
+    "rule": "R17",
+    "players": 2,
+    "seed": 22,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "madness": 9,
+          "score": 50
+        },
+        "2": {
+          "madness": 9
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "reduce_madness_1",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "reduce_madness_1",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "game": {
+        "madness_end": 1
+      }
+    },
+    "rule_text": "When both players have madness 9 or more at a madness check, then the game ends and the one with the higher madness total loses; equal totals are a draw."
+  },
+  {
+    "name": "End of tide 2 adds one retained card; the earlier retained card is not offered",
+    "rule": "R18",
+    "players": 2,
+    "seed": 23,
+    "default": "first",
+    "rounds": 5,
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Idols-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Deep",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Stars",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "retained": 2,
+            "tableau": 0
+          },
+          "2": {
+            "retained": 2,
+            "tableau": 0
+          }
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Ruins-1"
+        },
+        {
+          "seat": 2,
+          "option": "Idols-1"
+        }
+      ],
+      "game": {
+        "round": 10,
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When tide 1 or tide 2 ends without a madness loss, then each player simultaneously chooses 1 card drafted that tide to retain face up permanently, and the other drafted cards return to the deck."
+  },
+  {
+    "name": "Retained cards count for sets, icons, +1 per icon and the 4-suit bonus",
+    "rule": "R19",
+    "players": 2,
+    "seed": 24,
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins*-1",
+            "Ruins-1",
+            "Idols-1",
+            "Deep-1",
+            "Stars-1"
+          ]
+        },
+        "2": {
+          "retained": []
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "score": 15,
+          "madness": 1
+        },
+        "2": {
+          "score": 0,
+          "madness": 0
+        }
+      },
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When a card is retained, then it counts in every later tide tableau for set points, madness icons, the +1 per madness card and the 4-suit bonus."
+  },
+  {
+    "name": "Tide 3 end keeps retained unchanged and asks no retain choice",
+    "rule": "R20",
+    "players": 2,
+    "seed": 25,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1"
+          ]
+        },
+        "2": {
+          "retained": [
+            "Idols-1"
+          ]
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "players": {
+        "1": {
+          "retained": [
+            "Ruins-1"
+          ],
+          "score": 1
+        },
+        "2": {
+          "retained": [
+            "Idols-1"
+          ],
+          "score": 1
+        }
+      },
+      "game": {
+        "round": 15,
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When tide 3 ends, then no card is retained."
+  },
+  {
+    "name": "After tide 3 the higher score wins",
+    "rule": "R21",
+    "players": 2,
+    "seed": 26,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 20
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When tide 3 is scored and no one lost to madness, then the higher score wins; on tied scores the lower madness total wins; if both are tied, the game is a draw."
+  },
+  {
+    "name": "Tied score: lower madness wins",
+    "rule": "R21",
+    "players": 2,
+    "seed": 27,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "score": 10,
+          "madness": 3
+        },
+        "2": {
+          "score": 10,
+          "madness": 5
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When tide 3 is scored and no one lost to madness, then the higher score wins; on tied scores the lower madness total wins; if both are tied, the game is a draw."
+  },
+  {
+    "name": "Tied score and madness: shared win",
+    "rule": "R21",
+    "players": 2,
+    "seed": 28,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "score": 10,
+          "madness": 4
+        },
+        "2": {
+          "score": 10,
+          "madness": 4
+        }
+      },
+      "game": {
+        "round": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gain_4_points",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "gain_4_points",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "game": {
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When tide 3 is scored and no one lost to madness, then the higher score wins; on tied scores the lower madness total wins; if both are tied, the game is a draw."
+  },
+  {
+    "name": "Huge score lead wins after a full tide 3 whatever the cards",
+    "rule": "R21",
+    "players": 2,
+    "seed": 29,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "score": 1000
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 10
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ruins",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Idols",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "round": 15,
+        "madness_end": 0
+      }
+    },
+    "rule_text": "When tide 3 is scored and no one lost to madness, then the higher score wins; on tied scores the lower madness total wins; if both are tied, the game is a draw."
+  }
+]

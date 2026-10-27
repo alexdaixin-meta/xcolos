@@ -1,0 +1,161 @@
+# 37 spec
+
+- time: 2026-10-27T17:08:34+00:00 (47.5s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 b68db796e93681bd, reply sha256 31b680ad5d05a62d
+
+## Sent
+
+````
+Game: Sealed Escalation: Three-Way Dollar Auction
+Players in the source: 3 to 3
+Suggested table size, chosen by the designer of these rules (keep it): 3
+
+Rules, as filed in the inventory:
+R1 Setup. Every player has coins = 100, prize_points = 0, committed = 0, max_raise = 0, raise_amt = 0, current_value = 0 and final_score = 0. The table has auction = 0, top_bid = 0, top_count = 0 and auction_winner = 'none'. The table prize_deck is [10, 15, 20, 25, 30, 40].
+
+R2 Deal. At setup each player's values is set to an independent random shuffle of prize_deck, a list of 6 entries summing to 140. A player's values list is visible only to that player. Two players may hold the same value for the same auction.
+
+R3 Round start. There are 6 rounds, and one round is one auction. At the start of a round:
+- auction increases by 1.
+- Every player's committed becomes 0.
+- Each player's current_value becomes the entry of their values at position auction, counting from 1.
+- Each player is told privately their current_value.
+- Everyone is told the auction number and every player's coins and prize_points.
+
+R4 Talk. Everyone writes one short message at the same time. All messages are then shown to everyone. Messages bind no one.
+
+R5 Bound. Immediately before each raise stage, each player's max_raise is set to that same player's coins minus that same player's committed.
+
+R6 Raise stages. Each auction has exactly 3 raise stages. In each stage all players choose at the same moment.
+- Each player's options are exactly the whole numbers from 0 to their own max_raise. For example, 0..100 with coins 100 and committed 0; 0..55 with coins 85 and committed 30; 0..10 with coins 40 and committed 30.
+- The choice is stored in raise_amt.
+- Immediately after the stage, each player's committed increases by their raise_amt.
+- Everyone is then told every player's committed.
+
+R7 Limit. A player's committed can never exceed their coins within one auction. This is guaranteed by R5 and R6.
+
+R8 Resolution. After the third stage:
+- top_bid = the largest committed among players.
+- top_count = the number of players whose committed equals top_bid.
+- Every player's coins decreases by their committed.
+- If top_count = 1 and top_bid ≥ 1, the player with committed = top_bid adds their own current_value to prize_points, and auction_winner = that player. Otherwise auction_winner = 'none' and no one gains prize_points.
+- Everyone is told the auction_winner and top_bid.
+
+R9 End. After auction 6, each player's final_score = coins + prize_points. The game ends.
+
+How the winner is decided: The player with the highest final_score (coins left plus prize points) wins. If two or more players tie for the highest final_score, the game is a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Sealed Escalation: Three-Way Dollar Auction",
+  "summary": "Three players hold 6 sealed all-pay auctions. Each auction has 3 simultaneous raise stages, everyone pays what they committed, and a unique top bidder gains their private value for the prize; the final score is coins left plus prize points.",
+  "players": {"min": 3, "max": 3, "suggested": 3},
+  "parameters": {
+    "starting_coins": 100,
+    "auctions": 6,
+    "raise_stages_per_auction": 3,
+    "prize_value_1": 10,
+    "prize_value_2": 15,
+    "prize_value_3": 20,
+    "prize_value_4": 25,
+    "prize_value_5": 30,
+    "prize_value_6": 40,
+    "prize_values_total": 140,
+    "min_raise": 0,
+    "min_winning_bid": 1,
+    "unique_top_required_count": 1
+  },
+  "attributes": {
+    "player": [
+      {"key": "coins", "type": "number", "visible": "public", "initial": 100, "meaning": "Coins the player still holds. Every committed coin is paid, win or lose.", "observable": true},
+      {"key": "prize_points", "type": "number", "visible": "public", "initial": 0, "meaning": "Sum of the current_value of every auction this player won outright.", "observable": true},
+      {"key": "committed", "type": "number", "visible": "public", "initial": 0, "meaning": "Total raised by this player in the current auction. It is reset to 0 at the start of each auction and announced after each stage.", "observable": true},
+      {"key": "max_raise", "type": "number", "visible": "ally", "initial": 0, "meaning": "Upper bound of this player's raise in the coming stage: coins minus committed.", "observable": false},
+      {"key": "raise_amt", "type": "number", "visible": "ally", "initial": 0, "meaning": "The raise chosen in the latest stage.", "observable": false},
+      {"key": "current_value", "type": "number", "visible": "ally", "initial": 0, "meaning": "This player's private value for the current auction's prize: values at position auction.", "observable": false},
+      {"key": "values", "type": "list", "visible": "ally", "initial": "independent random shuffle of prize_deck", "meaning": "This player's private prize values for auctions 1 to 6, in order.", "observable": false},
+      {"key": "final_score", "type": "number", "visible": "public", "initial": 0, "meaning": "coins + prize_points, set after auction 6.", "observable": true}
+    ],
+    "game": [
+      {"key": "auction", "type": "number", "visible": "public", "initial": 0, "meaning": "Number of the current auction, from 1 to 6.", "observable": true},
+      {"key": "top_bid", "type": "number", "visible": "public", "initial": 0, "meaning": "Largest committed among players at the resolution of the auction.", "observable": true},
+      {"key": "top_count", "type": "number", "visible": "public", "initial": 0, "meaning": "Number of players whose committed equals top_bid.", "observable": false},
+      {"key": "auction_winner", "type": "text", "visible": "public", "initial": "none", "meaning": "Seat that won the last auction, or 'none'.", "observable": true},
+      {"key": "prize_deck", "type": "list", "visible": "none", "initial": [10, 15, 20, 25, 30, 40], "meaning": "The six prize values that each player's values list is shuffled from.", "observable": false}
+    ]
+  },
+  "setup": [
+    "Every player gets coins = 100, prize_points = 0, committed = 0, max_raise = 0, raise_amt = 0, current_value = 0 and final_score = 0.",
+    "The table gets auction = 0, top_bid = 0, top_count = 0, auction_winner = 'none' and prize_deck = [10, 15, 20, 25, 30, 40].",
+    "Each player's values is set to an independent random shuffle of prize_deck (6 entries summing to 140), visible only to that player. Two players may hold the same value for the same auction.",
+    "Each player is privately sent their values list."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "effect": "auction += 1. For every player: committed = 0; current_value = values[auction], counting from 1."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "Each player is told privately their current_value."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce the auction number and every player's coins and prize_points."},
+    {"action": "poll", "who": "all players", "answer": "short text message", "effect": "Messages are collected at once, then broadcast {\"to\": \"all\", \"text\": \"Seat {seat} says: {value}\"}. No state changes, and messages bind no one."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Stage 1 bound: each player's max_raise = coins - committed."},
+    {"action": "poll", "who": "all players", "answer": "whole number from 0 to own max_raise", "effect": "Stage 1: the choice is stored in raise_amt, and no one sees a choice until all are in."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Each player's committed += raise_amt."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce every player's committed after stage 1."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Stage 2 bound: each player's max_raise = coins - committed."},
+    {"action": "poll", "who": "all players", "answer": "whole number from 0 to own max_raise", "effect": "Stage 2: the choice is stored in raise_amt."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Each player's committed += raise_amt."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce every player's committed after stage 2."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Stage 3 bound: each player's max_raise = coins - committed."},
+    {"action": "poll", "who": "all players", "answer": "whole number from 0 to own max_raise", "effect": "Stage 3: the choice is stored in raise_amt."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Each player's committed += raise_amt."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce every player's committed after stage 3."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "top_bid = max over players of committed. top_count = count of players with committed = top_bid. Every player: coins -= committed. If top_count = 1 and top_bid >= 1: the player with committed = top_bid gets prize_points += current_value, and auction_winner = that seat. Otherwise auction_winner = 'none'."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce auction_winner and top_bid."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When auction = 6: each player's final_score = coins + prize_points."},
+    {"action": "check", "who": "all players", "answer": null, "effect": "End the game if auction >= 6; otherwise start the next round."}
+  ],
+  "ending": {
+    "condition": "auction >= 6",
+    "rank_by": "you.final_score",
+    "decided_by": "Each player's standing is final_score = coins left + prize points. The highest final_score wins, and players tied at the top share the win (the source calls this a draw)."
+  },
+  "rules": [
+    {"id": "R1", "text": "At setup every player has coins = 100, prize_points = 0, committed = 0, max_raise = 0, raise_amt = 0, current_value = 0 and final_score = 0, and the table has auction = 0, top_bid = 0, top_count = 0, auction_winner = 'none' and prize_deck = [10, 15, 20, 25, 30, 40]."},
+    {"id": "R2", "text": "At setup each player's values is an independent shuffle of [10, 15, 20, 25, 30, 40], summing to 140, visible only to that player; two players may hold the same value in the same position."},
+    {"id": "R3", "text": "At the start of each round, auction increases by 1, every committed becomes 0, and each player's current_value becomes values[auction] (1-based), told to that player privately."},
+    {"id": "R4", "text": "At the start of each round, everyone is told the auction number and every player's coins and prize_points."},
+    {"id": "R5", "text": "Each round, all players write one short message at the same time, and all messages are then shown to everyone; no message changes any attribute."},
+    {"id": "R6", "text": "Immediately before each of the 3 raise stages, each player's max_raise = coins - committed (for example coins 85 and committed 30 give max_raise 55)."},
+    {"id": "R7", "text": "In each raise stage, all players choose at once a whole number from 0 to their own max_raise, stored in raise_amt; then committed += raise_amt and every committed is announced."},
+    {"id": "R8", "text": "A player's committed never exceeds their coins within an auction (with coins 40 and committed 30, the stage options are 0 to 10)."},
+    {"id": "R9", "text": "After the third stage, top_bid = the largest committed and top_count = the number of players with committed = top_bid."},
+    {"id": "R10", "text": "After the third stage, every player's coins decreases by their committed, whether they won or not."},
+    {"id": "R11", "text": "When top_count = 1 and top_bid >= 1, the player with committed = top_bid adds their current_value to prize_points and becomes auction_winner (for example committed 30, 20, 10 with current_value 25 gives that player prize_points +25 and coins -30)."},
+    {"id": "R12", "text": "When top_count >= 2 or top_bid = 0, auction_winner = 'none' and no one gains prize_points, but every player still pays their committed (for example committed 20, 20, 5: no winner, and the coins fall by 20, 20 and 5)."},
+    {"id": "R13", "text": "After each auction, everyone is told auction_winner and top_bid."},
+    {"id": "R14", "text": "After auction 6, each player's final_score = coins + prize_points and the game ends."},
+    {"id": "R15", "text": "The player with the highest final_score wins; players tied at the highest final_score share the win."}
+  ],
+  "offers": [
+    {"question": "Talk message each round", "who": "all seats at once", "options": "any short text message"},
+    {"question": "Raise stage 1, 2 or 3", "who": "all seats at once", "options": "every whole number from 0 to that seat's max_raise = coins - committed (a seat with 0 coins left is offered only 0)"}
+  ],
+  "choices": [
+    {"what": "3 players (min 3, max 3)", "why": "The designer fixed the size at 3 and the game is built as a three-way dollar auction. The minimum is 3 because with 2 it collapses to a simple duel with no third bidder to exploit a war of attrition. The maximum stays 3 because the design and name are three-way."},
+    {"what": "Strategy check", "why": "Because the auction is all-pay and ties win nothing, a thoughtful player reads the committed totals between stages and drops out before over-paying. They save coins for their high-value auctions, use talk to bluff low interest or to propose rotations, and exploit two rivals tying each other out. Talk is kept because players' private values conflict, so following a proposal can cost a player."},
+    {"what": "Talk as a simultaneous poll broadcast to all", "why": "The rules say everyone writes at the same time and all messages are then shown, so order of speaking does not matter."},
+    {"what": "The three raise stages are written out explicitly rather than with repeat", "why": "This avoids a stage counter the rules never mention, and each stage's bound, poll, update and announcement stay visible."},
+    {"what": "auction_winner stores the winning seat number as text", "why": "The rules say auction_winner = that player and otherwise 'none'."},
+    {"what": "Each player is sent their full values list at setup", "why": "The rules say values is visible to its owner; current_value is also told each round as R3 requires."}
+  ],
+  "simplifications": [
+    {"what": "A tie for the highest final_score is a shared win rather than a separate draw result", "why": "The engine ranks by one expression and players level at the top share the win, which is equivalent to the source's draw."},
+    {"what": "The message 'everyone is told every player's committed' after each stage is an announcement, with committed kept public", "why": "During a poll no answer is seen until all are in, so making committed public only reveals the totals after each stage, as the rules require."}
+  ],
+  "unsupported": []
+}
+```
+````

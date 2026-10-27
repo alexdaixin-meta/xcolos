@@ -1,0 +1,179 @@
+{
+  "original_summary": "Love Letter is a 2-4 player card game with a 16-card deck ranked 1 (Guard) to 8 (Princess). Each turn you draw to two cards and discard one, applying its effect (guess, peek, compare, protect, force a discard, swap). A hand ends when one player remains or the deck runs out, and the highest card wins. Winning a hand earns a token, and the first player to a set number of tokens wins the game.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy dominates. Always discarding the higher card throws away strong showdown cards. Always discarding the lower card walks into Barons and Guards. Always guessing the same rank with a Guard hits about 1 time in 7. In the earlier variation, always raising is punished by an opponent who accepts with strong cards, and always folding gives away every raised hand. Seat order is balanced because the starter alternates."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Card counting, Priest information and reading discards improve Guard and Baron play. Many hands are still settled by the deal: being dealt the Princess, a lucky turn-1 Guard, or a Baron comparison fixed at the deal. The earlier variation fit only about 6-8 hands into 40 rounds and could triple the stake, so a skilled player won the match only about 60-65% of the time."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Exact counting, inferring a hand from what an opponent chose to keep, Guard guessing that uses the guesses already announced, and well-timed bluff raises all leave room to improve. A novice still wins hands through the deal."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden. The deck and out-of-play cards allow counting. Discards and kept cards reveal likely holdings. A raise is a signal that can be read or bluffed."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Every effect and the showdown are rank comparisons, and the winner comes from adding up points. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is turn-based text with no board, but the earlier variation sat at every limit (19 steps, 4 choices, about 20 attributes, 3 hidden elements). It also had a blocking bug: hands were never cleared between hands, so the second hand started with 2 cards per player."
+    }
+  ],
+  "problems": [
+    "P1 Blocking bug: players' hands are not cleared when a new hand is dealt, so the second hand starts with too many cards and contradicts the 16-card count.",
+    "P2 Too few hands fit in 40 rounds (about 6-8), so the deal decides the match far more than skill does.",
+    "P3 The raise triples the stake, so one or two lucky stake-3 hands decide the match.",
+    "P4 It is ambiguous whether the Guard's named rank is public, which changes what can be inferred.",
+    "P5 The design sits at or over the platform limits: 19 steps, about 20 attributes, and 3 hidden elements (hands, deck order, burned card).",
+    "P6 Bookkeeping attributes the rules do not need (raised_this_hand, raiser, hands_won) push the attribute count to the limit."
+  ],
+  "changes": [
+    {
+      "what": "The new-hand setup step first empties both hands (any card still held returns to the pool), then rebuilds the 16-card deck and deals 1 card to each player.",
+      "why": "Every hand starts from exactly 16 cards with one card per player.",
+      "fixes": "P1 Blocking bug"
+    },
+    {
+      "what": "Five cards (not 3) go face up out of play. This leaves 9 cards in the deck after the deal, of which 8 can be drawn.",
+      "why": "Hands become shorter (about 3-5 turns), so roughly 9-11 hands fit in 40 rounds. There is also more public information for counting.",
+      "fixes": "P2 Too few hands"
+    },
+    {
+      "what": "The raise lifts the stake from 1 to 2 only. A fold gives the raiser 1 point.",
+      "why": "A raised hand is worth at most double, so no single hand can swing the match. Bluffing and calling remain worthwhile.",
+      "fixes": "P3 Raise variance"
+    },
+    {
+      "what": "The Guard's named rank is announced to both players, along with whether it hit.",
+      "why": "A missed guess becomes public information, as in the original game.",
+      "fixes": "P4 Guard ambiguity"
+    },
+    {
+      "what": "The burned card is replaced by a reserve card: the bottom card of the deck, which is never drawn normally. The hand goes to showdown once only the reserve (or nothing) is left. A Prince redraw may take the reserve.",
+      "why": "The burn's role (one unknown card, and a card for a late Prince) is kept, but it becomes part of the deck order. Hidden elements drop from 3 to 2.",
+      "fixes": "P5 Limits"
+    },
+    {
+      "what": "Steps are merged (shuffle and deal in one step, pass turn and game end in one step).",
+      "why": "This brings the count down to 17 steps.",
+      "fixes": "P5 Limits"
+    },
+    {
+      "what": "raised_this_hand, raiser and hands_won are removed. A raise is allowed only while the stake is 1, and a fold always pays the active player, because the response happens in the raiser's own round. Equal points is a draw.",
+      "why": "Attributes drop to 17 without changing any decision.",
+      "fixes": "P6 Bookkeeping attributes"
+    }
+  ],
+  "keeps": [
+    "The 16-card Love Letter deck with its original ranks, counts and effects (Guard through Princess, Countess rule, Princess self-elimination).",
+    "Draw one, discard one, and apply the effect even if it hurts you.",
+    "Hands end by elimination or by the deck running out, with the highest rank winning the showdown.",
+    "Hidden one-card hands, face-up discards and public out-of-play cards for card counting (from the 2-player original).",
+    "A short repeated series of hands where hand wins accumulate."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The game's inference (counting, reading discards, Guard guessing, raise bluffs) is real. Its faults were a bug, too few hands, too much variance, and sitting at the limits, and all of these are fixable within the limits."
+  },
+  "variation": {
+    "name": "Love Letter: Short Hands",
+    "summary": "Two-player Love Letter on a thinner deck: 5 cards face up out of play and one hidden reserve card. Hands are short, so about 10 are played in 40 turns. Each hand offers one chance to raise the stake to 2, which the opponent may accept or answer by folding. The player with more points wins.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "CARDS (16, stored once as full_deck): 5 Guard (rank 1), 2 Priest (2), 2 Baron (3), 2 Handmaid (4), 2 Prince (5), 1 King (6), 1 Countess (7), 1 Princess (8).\n\nSTATE\n- Each player has: hand (private, seen only by its owner), discards (public list), points (start 0), protected (public, 0/1) and eliminated (public, 0/1).\n- The table shows: out_of_play (public list), deck_count (public, always the number of cards in the deck), stake, active seat, starter seat (starts as seat 1) and round number.\n- Hidden bookkeeping: deck order, new_hand (starts 1), folded, current_discard and guard_guess.\n- The bottom card of the deck is the RESERVE. It is never drawn at the start of a turn.\n\nROUND: one round is one turn by the active player. The game lasts exactly 40 rounds. The steps run in order every round. A step marked 'when' runs only if its condition holds.\n\n1. NEW HAND (when new_hand = 1):\n- Empty both players' hands and discards, and clear out_of_play.\n- Copy full_deck into the deck and shuffle it. This is the only random event in a round.\n- Move the top 5 cards face up into out_of_play.\n- Deal 1 card to each player's hand. The deck now holds 9 cards.\n- Set protected = 0 and eliminated = 0 for both players, stake = 1 and folded = 0.\n- The active seat becomes the starter seat. Set new_hand = 0.\n\n2. START OF TURN: set the active player's protected to 0. The active player draws the top card of the deck, so they hold 2 cards.\n\n3. DISCARD (choice, active player): 'Choose one of your two cards to discard.'\n\n4. RESOLVE DISCARD: if the active player holds the Countess together with a King or a Prince, the Countess is discarded whatever was chosen. The card goes onto the player's discards and becomes current_discard. Everyone is told 'Seat X discards CARD'.\n\n5. GUARD GUESS (choice, when current_discard is a Guard and the opponent is not protected): the active player names a rank from 2 to 8. The named rank is announced to both players.\n\n6. GUARD CHECK (when step 5 ran): if the opponent's card has the named rank, the opponent is eliminated and everyone is told 'Hit: CARD'. Otherwise everyone is told 'Miss'.\n\n7. PRIEST (when current_discard is a Priest and the opponent is not protected): only the active player is told the opponent's card.\n\n8. BARON (when current_discard is a Baron and the opponent is not protected): the two hand cards are compared. The holder of the lower rank is eliminated and their card is announced. On equal ranks nothing happens and nothing is revealed.\n\n9. HANDMAID (when current_discard is a Handmaid): the active player becomes protected (until their next turn starts).\n\n10. PRINCE DISCARD (when current_discard is a Prince): the target is the opponent, or the active player if the opponent is protected. The target discards their hand card face up with no effect, and it is announced. If it is the Princess, the target is eliminated.\n\n11. PRINCE REDRAW (when step 10 ran and the target is not eliminated): the target takes the top card of the deck. This may be the reserve if it is the only card left.\n\n12. KING (when current_discard is a King and the opponent is not protected): the two players swap hand cards.\n\n13. PRINCESS (when current_discard is the Princess): the active player is eliminated.\n\n14. RAISE (choice, active player; only when stake = 1, nobody is eliminated, deck_count >= 2 and the opponent has at least one card in their discards): 'Raise this hand's stake to 2, or pass?'\n\n15. RESPONSE (choice, opponent; when a raise was just made): 'Accept (the stake becomes 2) or fold?' On accept, stake = 2. On fold, folded = 1.\n\n16. HAND END. Apply the first of these that holds:\n- (a) If folded = 1, the active player gains 1 point.\n- (b) Otherwise, if a player is eliminated, the other player gains points equal to the stake.\n- (c) Otherwise, if deck_count <= 1 or this is round 40, there is a showdown. Both hand cards are revealed and the higher rank gains points equal to the stake. On equal ranks nobody scores.\nIf (a), (b) or (c) applied, set new_hand = 1 and switch the starter seat to the other seat.\n\n17. PASS TURN AND GAME END:\n- If new_hand = 1, the active seat becomes the starter seat. Otherwise the opponent becomes the active player.\n- After round 40 the game ends.\n\nDECK CHECK: after the deal the deck holds 9 cards. A hand goes to showdown whenever 1 or 0 cards remain at the end of a turn. So every turn starts with at least 2 cards in the deck, the draw always leaves at least the reserve, and a Prince redraw always has a card to take.",
+    "objective": "After exactly 40 rounds (a hand still running in round 40 is settled by showdown in that round), the player with more points wins. Equal points is a draw.",
+    "expected_effect": "With 8 drawable cards and 5 known out of play, hands last about 3-5 turns, so about 9-11 hands are played instead of 6-8. More hands and a stake capped at 2 should let a counting, discard-reading player win noticeably more often, an estimated 65-72% of matches against a naive player. Fewer unknown cards make counting and Guard guessing sharper. The raise stays as a bluff-and-call decision. Showdown luck within a hand remains, but no single hand decides the match. No talk phase: this is a two-player game."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 17,
+    "choice_steps_per_round": 4,
+    "attributes": 17,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "MAIN DECISION, RESPONSE TO A RAISE. Let p be the responder's chance of winning the hand at stake 2. Each option is scored as the change in their lead over the opponent. Fold: the opponent gains 1, so -1. Accept: +2 if they win, -2 if they lose, so 4p-2. Accept is better when p > 0.25. Fold is therefore right only with a near-hopeless hand, such as a revealed weak card against a known strong one. Neither option dominates.\n\nRAISE DECISION, made before drawing while holding one card. Raise gives the result 2*(2p'-1) and pass gives 1*(2p'-1), where p' is the raiser's win chance. Raise is better only when p' > 0.5, so neither option is strictly better.\n\nTHOUGHTLESS POLICIES under the winner rule (first to 5 points):\n- Always fold: loses every hand the opponent raises. An always-raise opponent wins 1 point per hand and reaches 5 points after 5 hands, so this policy loses.\n- Always raise: against an accepting opponent, every hand is a coin flip at stake 2 weighted by card play. Against a sensible player it wins only in proportion to its card play. It loses whenever it is out-played, so it does not avoid losing.\n- Always pass: the opponent still controls the stake and can raise on good cards. Its result depends entirely on play, and it is exploitable.\n- Always accept: this is close to sensible play, since p > 0.25 is almost always true. It does not win automatically.\nNo policy wins or draws almost every time.\n\nSEAT: the starting seat alternates every hand. The starter gets the first raise option with less information, because no discards have been seen yet. The second seat can raise only if the starter passed, and has then seen one discard. These effects roughly offset each other. The odd/even number of hands within the 40-round cap gives at most a small edge. Both players can realistically win."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "1. DECK BOOKKEEPING BUG. deck_count starts at 10 and drops only at step 4 (DRAW). A Prince makes its target draw the top card of the deck, but deck_count is not decremented. After any Prince, deck_count is larger than the real deck size. The real deck can then empty while deck_count > 0. The next DRAW step takes from an empty deck, which the rules do not define. The end-of-hand reveal also triggers late or not at all. The burned-card fallback covers the Prince only, not the DRAW step.\n2. FOLD SKIPS THE GAME-END CHECK. A fold ends the hand and 'the rest of this turn is skipped'. Step 9 is part of the rest of the turn. A player who reaches 5 points through a fold therefore does not 'win immediately'. If the fold happens in round 40, the after-round-40 comparison is skipped as well.\n3. STEP BUDGET. The designer claims exactly 20 steps. HAND START alone needs about 6-7 steps: copy, shuffle, burn, reveal 3, deal 2, clear flags, set stake, set seat. The turn then needs: clear protection, raise, response, fold scoring, draw, discard, Countess override, announce, Guard (guess plus check), Priest message, Baron compare and eliminate, Handmaid, Prince (target selection, discard, Princess check, draw or burned card), King swap, Princess, the deck-empty reveal with its tie-break on discard sums, scoring, active switch and game end. This is clearly more than 20 steps, so the limit of 20 is exceeded.\n4. Choice steps (raise, response, discard, Guard guess) total 4, which is at the limit and acceptable. Hidden elements (hands, deck) total 2, which is acceptable. Attributes 19 is acceptable if accurate.\n5. Talk: this is a two-player game, so talk is not required. The raise acts as an implicit signal."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Love Letter has real inference: counting cards against the 3 face-up cards and the discards, using Guard guesses, acting on Priest information, and timing the Baron. The raise and fold adds a bluffing layer. However, the variation sharply increases the effect of chance.\n- If sensible players accept almost every raise (p > 0.25 is almost always true), most hands are played at stake 2. Reaching 5 points then takes only 3 hand wins, compared with 7 tokens in the original two-player game.\n- Suppose a skilled player wins 60% of individual hands, which is generous for two-player Love Letter, where the burn card, the initial deal and early Baron or Guard hits are largely luck. Their chance of winning a race to 3 hand wins is 0.6^3*(1 + 3*0.4 + 6*0.16) = 0.216*3.16 \u2248 0.68.\n- So the weaker player wins about a third of games. At 55% per hand the figure is about 0.59, close to a coin flip.\n- The raise decision itself is made before the draw, holding one card, with only the 3 out-of-play cards as information. p' is therefore close to 0.5 in most situations, and the stake mainly doubles variance rather than rewarding inference.\n- With both players following the intended good strategy (raise on strong cards, accept almost always), the winner is largely decided by who is dealt the high card or the early Guard or Baron hit in about 3 short hands.\nChance alone decides the winner too often."
+        },
+        "required_changes": [
+          "Playable: make every card leaving the deck decrement deck_count, including the Prince's replacement draw. Alternatively, compute deck_count as the length of the deck list. Define DRAW so that, if the deck is empty, the hand ends immediately with a showdown.",
+          "Playable: state that the GAME END CHECK (step 9) runs even when a fold skips the rest of the turn. A fold that brings a player to 5 points, or that happens in round 40, must then be scored as a game end.",
+          "Playable: re-count the steps honestly and bring them to 20 or fewer. For example, fold the out_of_play reveal and burn into one list operation, merge the protection checks into the conditions of each effect step, and drop the discard-sum tie-break in favour of 'tie = nobody wins'. Otherwise simplify the card effects.",
+          "Reasoning over luck: lengthen the race so skill can accumulate. Use first to 9 points, or make the stake raise to 2 only after the DRAW, so the raiser decides with two cards and has seen a discard.",
+          "Reasoning over luck: make the fold option meaningful so the raise is a real bluffing decision. For example, the folder concedes 1 point while an accepted raise is worth 3. Alternatively, allow a raise only once per hand per player and after at least one discard by each player, so that the raise and response decisions use inferred information about the opponent's hand rather than a single blind card."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "RESPONSE DECISION. After a raise, folding gives the raiser +1, a differential of -1 for the responder. Accepting with win chance p (ties ignored) is worth +3p - 3(1-p) = 6p - 3. Accept when 6p - 3 > -1, so when p > 1/3. Correct play depends on the responder's card and on what the raiser's discards reveal, so bluffing and calling are both live.\n\nTHOUGHTLESS POLICIES, judged by the WINNER RULE:\n(1) Always fold: concedes 1 point and 1 hand for every raise. Against an opponent who raises at every chance, it never wins a hand that reaches step 15, and it loses.\n(2) Always accept: plays every hand at stake 3, which is pure Love Letter at triple stakes. It loses to an opponent who raises only with high cards (Princess, Countess, King) and passes otherwise, because that opponent picks favourable stakes. It does not avoid losing.\n(3) Always raise: a sensible responder folds with Guard or Priest (p well under 1/3 when the raiser's discards suggest strength) and accepts with high cards. The raiser then plays many stake-3 hands from behind and does not win almost every time.\n(4) Always pass: gives up stake control. It can still win hands, but it loses to selective raising.\n(5) Always discard the first card: frequently throws away good cards, and the Princess when she sits in the first slot. It clearly loses.\nNo option is strictly better whatever the opponent does, and no policy never loses.\n\nSEATS. The starter cannot raise on turn 1 because the opponent has no discards yet, so the second seat gets the first raise chance. The starter seat alternates every hand, so this evens out. One residual asymmetry: who is active in round 40 depends on history, but it is not systematically tied to seat 1. Both players can realistically win."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "LIMITS. 19 steps (max 20), 4 choice steps (discard, Guard guess, raise, response; max 4), 19 attributes (about 20 with full_deck, at the limit), hidden elements = hands + deck order + burned card = 3 (max 3; the design says 2), 1 random draw per round, 40 rounds. Inside the limits, with no board, judge or clock needed. Two players, so no talk is needed, and private Priest info uses the private channel.\n\nDECK-EMPTY CLAIM, checked. After the deal the deck holds 16 - 1 - 3 - 2 = 10 cards. Whenever a draw at step 3, or a Prince redraw at step 12, empties the deck, step 17(c) forces a showdown in that same round. A Prince on an empty deck uses the burned card. So step 3 never meets an empty deck. This holds.\n\nBLOCKING BUG. Step 2 copies all 16 cards of full_deck into the deck and deals 1 card to each player. It clears discards, protected and eliminated, but it never clears the players' HANDS. At every hand end (fold, elimination or showdown) each player still holds a card; step 17 only reveals or announces it. The next hand therefore starts with 2 cards per player, plus a third at the draw, and with 18 physical cards in play. That contradicts the 16-card count and the two-card choice prompt in step 4. A model with only these words cannot play the second hand.\n\nMinor ambiguity: the Guard guess is listed as hidden bookkeeping, so it is unclear whether the opponent hears the named rank. That changes what can be inferred."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "HAND COUNT. A 2-player Love Letter hand lasts at most 10 turns and typically about 5 to 7, because Guards (5 of 16 cards) and Barons end hands early. Forty rounds therefore give only about 6 to 8 hands. The original plays to 7 tokens, roughly 10 to 13 hands, precisely to wash out luck.\n\nVARIANCE. The raise triples the stake of some hands, so the match result is often decided by one or two stake-3 hands.\n\nESTIMATE. A skilled player wins perhaps 55-60% of individual hands. Many results are driven purely by the deal: a turn-1 Guard hits about 1 time in 7 blind, Baron outcomes are set by the deal, and some hands are dealt the Princess. Over about 7 hands with weights of 1 or 3, the skilled player wins the match only about 60-65% of the time, so chance alone often decides it.\n\nGOOD PLAY BOTH SIDES. When both follow card-counting and raise-when-p-is-high, the winner is decided almost entirely by which hands are dealt strong cards, especially those dealt strong cards in raised hands.\n\nINFERENCE AVAILABLE. Inference exists (card counting from out_of_play and discards, Priest info, reading raises) and can be acted on through Guard guesses and the raise/fold decision. But too few hands are played for it to show reliably."
+        },
+        "required_changes": [
+          "Step 2: before dealing, clear both players' hands (and treat any card still held as returned to the pool), so every hand starts with exactly 16 cards and one card per player.",
+          "Increase the number of hands that fit in 40 rounds, for example by moving 5 cards (not 3) face up into out_of_play. This leaves an 8-card deck, which shortens hands to about 4-5 turns, gives about 9-10 hands, and adds public information for card counting.",
+          "Reduce single-hand variance: cap the raised stake at 2 instead of 3, or alternatively score only hands won (stake as a tiebreak), so one lucky raised hand cannot decide the match.",
+          "State explicitly that the Guard's named rank is announced to both players, as in the original, so the guess and its miss are usable public information."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "STAKE AND FOLD MATH. Folding gives the raiser +1, so it costs the responder exactly what losing a stake-1 hand costs (net -1). If the responder accepts with win chance p, their net is 2(2p-1). Accepting beats folding when 4p-2 > -1, that is when p > 1/4. The raiser compares passing, worth 2q-1 (q = their own showdown edge), with raising, worth +1 if the opponent folds and 2(2q-1) if they accept. Raising therefore pays when strong or as a bluff against a player who folds too often. This is a genuine bet/call/fold decision.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (net points per hand):\n- Always raise vs a sensible responder (accepts when p > 1/4): weak raises get called and lose 2. The policy loses over about 9 hands.\n- Always accept vs a sensible raiser (raises when strong, sometimes bluffs): pays 2 on most strong raises. Loses.\n- Always fold: concedes +1 on every raise, and the opponent can raise every eligible turn. Loses heavily.\n- Never raise: plays plain stake-1 Love Letter against someone who extracts +2 on strong hands. Loses on average, though it can win some games through card luck.\n- Always discard the first-listed card: ignores Princess safety and can discard the Princess (self-elimination, -1). Loses to sensible play and roughly breaks even or worse against random play.\n- No option is strictly dominant. Guard and Baron value depend on what the opponent holds, Handmaid timing depends on the threats, and the King swap depends on the card you hold.\n\nSEAT EDGE. In a full hand of 8 turns the starter takes turns 1, 3, 5, 7 and the other player takes 2, 4, 6, 8. The showdown fires after the second player's 4th turn, because 9 cards minus 8 draws leaves 1. Draws are equal. The starter seat alternates every hand, so over about 8 to 10 hands in 40 rounds the start count differs by at most 1. The second player also cannot raise on turn 1, since the raise needs an opponent discard. That restriction applies symmetrically in alternate hands.\n\nBoth players can realistically win. Draws (equal points) are possible but not dominant, because hands pay 1 or 2 and 0 only on showdown ties.",
+          "required_changes_note": "none"
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "LIMITS. Steps: 17 (limit 20). Choice steps: 4, namely 3 (discard), 5 (guard guess), 14 (raise) and 15 (response) (limit 4). Attributes: per-player 5 + table 6 + bookkeeping 5 + full_deck = 17 (limit 20). Hidden elements: hands and deck order = 2 (limit 3). Random draws: 1, the shuffle in step 1 only (limit 1). Rounds: 40 (limit 40).\n\nDECK FLOW CHECKED. The deal leaves 9 cards in the deck. Each turn draws 1, and a Prince redraws 1 more. The hand ends when the deck holds 1 card or fewer at the end of a turn. So every turn starts with at least 2 cards, and a Prince redraw on a 2-card turn takes the reserve, leaving 0 and triggering a showdown. No turn ever draws from an empty deck.\n\nEDGE CASES COVERED.\n- Protected opponent: Guard, Priest, Baron and King do nothing; a Prince targets self.\n- Princess hit by a Prince: the target is eliminated with no redraw.\n- Countess: forced discard.\n- Elimination: only one player can be eliminated per turn, so the 16(b) branch is unambiguous.\n- Round 40: a hand still running is settled by forced showdown.\n- Fold: 16(a).\n\nOne small looseness: the order in which a hand's two cards are listed is not stated. This only affects the label 'first option', not the rules.\n\nENGINE FIT. Everything is arithmetic on kept numbers, with no judge, board or clock, and all choices are single-player turns. With 2 players and zero-sum interests, omitting talk is correct. Cooperation after betrayal does not apply because the game is strictly competitive."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT THERE IS TO INFER. Five cards are face up out of play, more than the original's 3. All discards are public, and Guard guesses, Baron results and Prince discards are announced. A well-reasoning player can therefore narrow the opponent's card to 2 or 3 ranks by mid-hand. Example: with 3 Guards visible out of play and the Princess unseen, a Guard naming 8 or the best remaining rank often hits at 30-50%, against about 14% for a random guess (1 of 7 ranks).\n\nWHAT THERE IS TO ACT ON.\n- Guard target choice.\n- Baron only when your remaining card is likely higher.\n- Keeping the Princess away from Prince exposure.\n- Handmaid timing.\n- The raise/fold layer, which rewards modelling the opponent's hand strength from their discards and bluffing frequency.\n\nCHANCE SHARE. Individual hands are heavily luck-driven: a dealt Princess or a lucky Guard can decide a hand. Estimate about 60% luck per hand. Across about 8 to 10 hands with stakes of 1 to 2, a skilled player should win roughly 65-70% of games against a careless one.\n\nWHEN BOTH PLAY WELL. The result is decided by a mix of the deal and the betting reads, not by the deal alone. Good play overcomes bad deals by folding weak hands cheaply (-1 instead of -2) and pressing strong ones (+2)."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

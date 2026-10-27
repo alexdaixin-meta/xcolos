@@ -1,0 +1,913 @@
+[
+  {
+    "name": "Setup: deck holds 20 cards, removed holds 13",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 20,
+          "removed": 13
+        }
+      }
+    },
+    "rule_text": "When the game is set up, the deck holds 20 distinct cards from 3..35 and the other 13 sit in the hidden removed list."
+  },
+  {
+    "name": "Setup: each player starts with 11 chips, empty tableau, 0 card points",
+    "rule": "R2",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 11,
+          "tableau": [],
+          "card_points": 0
+        },
+        "2": {
+          "chips": 11,
+          "tableau": [],
+          "card_points": 0
+        },
+        "3": {
+          "chips": 11,
+          "tableau": [],
+          "card_points": 0
+        },
+        "4": {
+          "chips": 11,
+          "tableau": [],
+          "card_points": 0
+        }
+      }
+    },
+    "rule_text": "When the game starts, each player has chips = 11, an empty tableau and card_points = 0; chips are visible only to their owner."
+  },
+  {
+    "name": "Setup: no card on offer, empty pot, nothing burned",
+    "rule": "R3",
+    "players": 3,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      }
+    ],
+    "expect": {
+      "game": {
+        "current_card": 0,
+        "pot": 0,
+        "burned": []
+      }
+    },
+    "rule_text": "When the game starts, current_card = 0, pot = 0, lap_count = 0, lead_seat = 1 and burned is empty."
+  },
+  {
+    "name": "Round start with no card draws the only deck card and keeps the pot",
+    "rule": "R4",
+    "players": 4,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "current_card": 0,
+        "pot": 3,
+        "deck": [
+          17
+        ],
+        "lap_count": 0,
+        "lead_seat": 1,
+        "burned": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PAY",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PAY",
+        "times": "all"
+      },
+      {
+        "seat": 4,
+        "options_include": "PAY",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "current_card": 17,
+        "pot": 7
+      },
+      "players": {
+        "1": {
+          "chips": 10
+        },
+        "2": {
+          "chips": 10
+        },
+        "3": {
+          "chips": 10
+        },
+        "4": {
+          "chips": 10
+        }
+      },
+      "lens": {
+        "game": {
+          "deck": 0
+        }
+      }
+    },
+    "rule_text": "When a round starts with current_card = 0 and a non-empty deck, then one card moves from deck to current_card, lap_count becomes 0 and the pot is unchanged."
+  },
+  {
+    "name": "Round start with a card already on offer draws nothing",
+    "rule": "R4b",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 2,
+        "deck": [
+          5,
+          6
+        ],
+        "lap_count": 1,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tableau": [
+            20
+          ],
+          "chips": 13,
+          "card_points": 20
+        }
+      },
+      "game": {
+        "current_card": 0,
+        "pot": 0
+      },
+      "lens": {
+        "game": {
+          "deck": 2
+        }
+      }
+    },
+    "rule_text": "When a round starts with current_card != 0, then no card is drawn and the same card and pot continue."
+  },
+  {
+    "name": "A seat with chips is offered both TAKE and PAY",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 0,
+        "deck": [
+          5,
+          6
+        ],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "TAKE"
+        },
+        {
+          "seat": 1,
+          "option": "PAY"
+        }
+      ]
+    },
+    "rule_text": "When an offer is made, then the seat is offered TAKE, and also PAY only if its chips >= 1."
+  },
+  {
+    "name": "Paying costs 1 chip and raises the pot by 1",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 0,
+        "deck": [
+          5,
+          6
+        ],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 10
+        },
+        "2": {
+          "chips": 12,
+          "tableau": [
+            20
+          ]
+        }
+      },
+      "game": {
+        "pot": 0,
+        "current_card": 0
+      }
+    },
+    "rule_text": "When a seat PAYs, then its chips fall by 1 and the pot rises by 1."
+  },
+  {
+    "name": "Taking 11 between held 10 and 12 merges the runs",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "tableau": [
+            10,
+            12
+          ],
+          "card_points": 22
+        }
+      },
+      "game": {
+        "current_card": 11,
+        "pot": 0,
+        "deck": [
+          30,
+          31
+        ],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tableau": [
+            10,
+            12,
+            11
+          ],
+          "card_points": 10,
+          "chips": 11
+        }
+      }
+    },
+    "rule_text": "When a seat TAKEs card c, then c is appended to its tableau and card_points changes by c, minus (c+1) if c+1 was already held, minus c if c-1 was already held."
+  },
+  {
+    "name": "Taker collects the pot and no further offers are made",
+    "rule": "R8",
+    "players": 4,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 1,
+        "deck": [
+          5,
+          6
+        ],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 2,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 3,
+        "options_include": "TAKE"
+      },
+      {
+        "seat": 4,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 10
+        },
+        "2": {
+          "chips": 10
+        },
+        "3": {
+          "chips": 14,
+          "tableau": [
+            20
+          ],
+          "card_points": 20
+        },
+        "4": {
+          "chips": 11,
+          "tableau": []
+        }
+      },
+      "game": {
+        "pot": 0,
+        "current_card": 0
+      },
+      "not_offered": [
+        {
+          "seat": 4,
+          "option": "TAKE"
+        }
+      ]
+    },
+    "rule_text": "When a seat TAKEs, then its chips rise by the pot, the pot becomes 0, current_card becomes 0, lead_seat becomes that seat, and no further offers are made that round."
+  },
+  {
+    "name": "Offers go clockwise from the lead seat (lead 3: 3, 4, 1)",
+    "rule": "R9",
+    "players": 4,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 0,
+        "deck": [
+          5,
+          6
+        ],
+        "lap_count": 0,
+        "lead_seat": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 4,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 13,
+          "tableau": [
+            20
+          ]
+        },
+        "2": {
+          "chips": 11,
+          "tableau": []
+        },
+        "3": {
+          "chips": 10
+        },
+        "4": {
+          "chips": 10
+        }
+      },
+      "game": {
+        "pot": 0,
+        "current_card": 0
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "TAKE"
+        }
+      ]
+    },
+    "rule_text": "When offer k is made, then it goes to the seat k-1 places clockwise from lead_seat, for k = 1..N, and only while current_card != 0."
+  },
+  {
+    "name": "A seat with 0 chips may only TAKE",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 0,
+          "tableau": [],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "current_card": 20,
+        "pot": 4,
+        "deck": [
+          5,
+          6
+        ],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tableau": [
+            20
+          ],
+          "chips": 4,
+          "card_points": 20
+        },
+        "2": {
+          "chips": 11
+        },
+        "3": {
+          "chips": 11
+        }
+      },
+      "game": {
+        "pot": 0,
+        "current_card": 0
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "PAY"
+        }
+      ]
+    },
+    "rule_text": "When a seat with 0 chips is offered the card, then its only option is TAKE."
+  },
+  {
+    "name": "First full lap of pays keeps the card and grows the pot",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 0,
+        "deck": [
+          5,
+          6
+        ],
+        "lap_count": 0,
+        "lead_seat": 1,
+        "burned": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PAY",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PAY",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "current_card": 20,
+        "pot": 3,
+        "burned": []
+      },
+      "players": {
+        "1": {
+          "chips": 10
+        },
+        "2": {
+          "chips": 10
+        },
+        "3": {
+          "chips": 10
+        }
+      },
+      "lens": {
+        "game": {
+          "deck": 2
+        }
+      }
+    },
+    "rule_text": "When all N seats pay in a round and lap_count becomes 1, then the card, pot and lead_seat stay the same for the next round."
+  },
+  {
+    "name": "Second full lap burns the card, keeps the pot, and the next round starts at seat 2",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "rounds": 2,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 3,
+        "deck": [
+          5
+        ],
+        "lap_count": 1,
+        "lead_seat": 1,
+        "burned": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY",
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "TAKE",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PAY",
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PAY",
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": "TAKE",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 10,
+        "2": 11,
+        "3": 10
+      },
+      "game": {
+        "burned": [
+          20
+        ],
+        "current_card": 0,
+        "pot": 0
+      },
+      "players": {
+        "1": {
+          "chips": 10,
+          "tableau": []
+        },
+        "2": {
+          "chips": 16,
+          "tableau": [
+            5
+          ],
+          "card_points": 5
+        },
+        "3": {
+          "chips": 10,
+          "tableau": []
+        }
+      }
+    },
+    "rule_text": "When all N seats pay and lap_count becomes 2, then the card is appended to burned, current_card becomes 0, the pot is kept and lead_seat moves one seat clockwise."
+  },
+  {
+    "name": "Game ends when the deck is empty and the last card is taken",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "game": {
+        "current_card": 20,
+        "pot": 2,
+        "deck": [],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3
+      ],
+      "standings": {
+        "1": -7,
+        "2": 11,
+        "3": 11
+      },
+      "players": {
+        "1": {
+          "chips": 13,
+          "card_points": 20,
+          "tableau": [
+            20
+          ]
+        }
+      },
+      "game": {
+        "current_card": 0,
+        "pot": 0
+      }
+    },
+    "rule_text": "When the deck is empty and current_card = 0 at the end check, then the game ends."
+  },
+  {
+    "name": "Game ends after round 40 even with cards left",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "tableau": [
+            30
+          ],
+          "card_points": 30
+        }
+      },
+      "game": {
+        "round_number": 39,
+        "current_card": 20,
+        "pot": 0,
+        "deck": [
+          5,
+          6,
+          7
+        ],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 2,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 3,
+        "options_include": "PAY"
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3
+      ],
+      "standings": {
+        "1": -20,
+        "2": 10,
+        "3": 10
+      },
+      "players": {
+        "1": {
+          "chips": 10
+        },
+        "2": {
+          "chips": 10
+        },
+        "3": {
+          "chips": 10
+        }
+      },
+      "game": {
+        "current_card": 20,
+        "pot": 3
+      }
+    },
+    "rule_text": "When 40 rounds have been played, then the game ends."
+  },
+  {
+    "name": "Chips left in the pot at the end belong to no one",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 3
+        }
+      },
+      "game": {
+        "current_card": 20,
+        "pot": 5,
+        "deck": [],
+        "lap_count": 1,
+        "lead_seat": 1,
+        "burned": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 2,
+        "options_include": "PAY"
+      },
+      {
+        "seat": 3,
+        "options_include": "PAY"
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3
+      ],
+      "standings": {
+        "1": 2,
+        "2": 10,
+        "3": 10
+      },
+      "players": {
+        "1": {
+          "chips": 2
+        },
+        "2": {
+          "chips": 10
+        },
+        "3": {
+          "chips": 10
+        }
+      },
+      "game": {
+        "pot": 8,
+        "burned": [
+          20
+        ],
+        "current_card": 0
+      }
+    },
+    "rule_text": "When the game ends, then each final score is card_points minus chips, and chips left in the pot belong to no one."
+  },
+  {
+    "name": "Lowest final score (card points minus chips) wins",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 5,
+          "tableau": [
+            10
+          ],
+          "card_points": 10
+        },
+        "2": {
+          "chips": 2,
+          "tableau": [],
+          "card_points": 0
+        },
+        "3": {
+          "chips": 11,
+          "tableau": [
+            20
+          ],
+          "card_points": 20
+        }
+      },
+      "game": {
+        "current_card": 3,
+        "pot": 0,
+        "deck": [],
+        "lap_count": 0,
+        "lead_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -8,
+        "2": 2,
+        "3": -9
+      },
+      "players": {
+        "1": {
+          "card_points": 13,
+          "chips": 5
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the player with the lowest final score wins, and players tied for lowest share the result."
+  }
+]

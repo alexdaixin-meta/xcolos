@@ -1,0 +1,1710 @@
+# 23 scenarios
+
+- time: 2026-10-27T18:38:49+00:00 (89.4s)  model: claude-opus-5-5
+- system prompt: [system/8e9a17ed-scenarios.md](system/8e9a17ed-scenarios.md) (sha256 8e9a17ed7c2a08b3)
+- sent sha256 6feae5e9a3d16aea, reply sha256 3fdf0e2b624c2ba1
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Diamonds: Three-Hand Vault",
+  "summary": "A three-player trick-taking game over 3 hands of 7 tricks. Winning tricks, and playing off-suit, trigger suit actions that move crystals into your showroom (worth 1 each) and your vault (worth 2 each).",
+  "players": {
+    "min": 3,
+    "max": 3,
+    "suggested": 3
+  },
+  "parameters": {
+    "deck_size": 32,
+    "suits": 4,
+    "ranks_per_suit": 8,
+    "lowest_rank": 1,
+    "highest_rank": 8,
+    "hands": 3,
+    "tricks_per_hand": 7,
+    "total_rounds": 21,
+    "cards_dealt_per_player": 7,
+    "cards_set_aside": 11,
+    "cards_passed_per_player": 1,
+    "cards_per_trick": 3,
+    "crystals_per_action": 1,
+    "zero_trick_diamond_actions": 2,
+    "vault_weight": 2,
+    "showroom_weight": 1,
+    "starting_showroom": 0,
+    "starting_vault": 0,
+    "rank_tiebreak_multiplier": 1000
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "Cards held, as text such as 'D7' (suit letter D/H/S/C, then rank 1-8). Shown to the owner sorted by suit D,H,S,C, then by ascending rank.",
+        "observable": false
+      },
+      {
+        "key": "pass_card",
+        "type": "text",
+        "visible": "ally",
+        "initial": "",
+        "meaning": "The card this player chose to pass left at the start of the hand.",
+        "observable": false
+      },
+      {
+        "key": "played_card",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "The card this player played to the current trick.",
+        "observable": false
+      },
+      {
+        "key": "showroom",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Crystals in the showroom, always displayed.",
+        "observable": true
+      },
+      {
+        "key": "vault",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Crystals in the vault. It is left out of score summaries, but every change to it is announced.",
+        "observable": true
+      },
+      {
+        "key": "tricks_won",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Tricks won this hand. Reset to 0 at the start of each hand.",
+        "observable": false
+      },
+      {
+        "key": "won_diamonds",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "Diamond cards won this hand. Reset each hand.",
+        "observable": false
+      },
+      {
+        "key": "won_hearts",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "Heart cards won this hand. Reset each hand.",
+        "observable": false
+      },
+      {
+        "key": "won_spades",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "Spade cards won this hand. Reset each hand.",
+        "observable": false
+      },
+      {
+        "key": "won_clubs",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "Club cards won this hand. Reset each hand.",
+        "observable": false
+      },
+      {
+        "key": "score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Final score: 2 * vault + showroom, computed at the end of hand 3.",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "type": "list",
+        "visible": "none",
+        "initial": "all 32 cards D1..D8, H1..H8, S1..S8, C1..C8",
+        "meaning": "The undealt deck during dealing.",
+        "observable": false
+      },
+      {
+        "key": "set_aside",
+        "type": "list",
+        "visible": "none",
+        "initial": [],
+        "meaning": "The 11 cards left after the deal, unseen for the hand.",
+        "observable": false
+      },
+      {
+        "key": "hand_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Current hand, from 1 to 3.",
+        "observable": true
+      },
+      {
+        "key": "trick_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Current trick within the hand, from 1 to 7.",
+        "observable": false
+      },
+      {
+        "key": "rounds_played",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Tricks completed in total, from 0 to 21.",
+        "observable": false
+      },
+      {
+        "key": "dealer_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Dealer this hand (equals hand_number).",
+        "observable": false
+      },
+      {
+        "key": "leader_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 2,
+        "meaning": "Seat that leads the current trick.",
+        "observable": false
+      },
+      {
+        "key": "led_suit",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "Suit letter of the led card.",
+        "observable": false
+      },
+      {
+        "key": "trick_cards",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "Cards played to the current trick, in play order.",
+        "observable": false
+      },
+      {
+        "key": "trick_winner",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Seat that won the current trick.",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Seats 1, 2 and 3 sit clockwise; the left of seat s is seat (s mod 3) + 1.",
+    "Every player's showroom and vault start at 0, and score at 0.",
+    "Set hand_number = 1, trick_number = 1, rounds_played = 0, dealer_seat = 1."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "table",
+      "answer": null,
+      "effect": "When trick_number == 1: deck = all 32 cards; set_aside = []; every player's hand = []; dealer_seat = hand_number; leader_seat = (dealer_seat mod 3) + 1; reset each player's tricks_won, won_diamonds, won_hearts, won_spades and won_clubs to 0. Announce the new hand and its dealer."
+    },
+    {
+      "action": "initialize",
+      "who": "all players",
+      "answer": null,
+      "effect": "When trick_number == 1: deal 7 cards to each player, each one a random draw removed from deck and appended to that player's hand. Then move the remaining 11 deck cards to set_aside."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "When trick_number == 1: each player privately sees their own hand, sorted by suit D,H,S,C and then by ascending rank."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "one card from your own hand",
+      "effect": "When trick_number == 1: store the answer in pass_card. Nobody sees another player's choice."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When trick_number == 1: at once, for each seat s, remove pass_card from s.hand and append it to the hand of seat (s mod 3) + 1. Each receiver is told privately which card they received; the third player is not told."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "When trick_number == 1: each player sees their updated sorted hand."
+    },
+    {
+      "action": "update",
+      "who": "table",
+      "answer": null,
+      "effect": "trick_cards = []; every played_card = ''."
+    },
+    {
+      "action": "ask",
+      "who": "seat leader_seat",
+      "answer": "any card from your hand",
+      "effect": "Remove the card from hand; played_card = the card; append it to trick_cards; led_suit = its suit letter. Announce the card to all."
+    },
+    {
+      "action": "ask",
+      "who": "seat (leader_seat mod 3) + 1",
+      "answer": "a card from your hand of led_suit if you hold one, otherwise any card from your hand",
+      "effect": "Remove the card from hand; played_card = the card; append it to trick_cards; announce it to all."
+    },
+    {
+      "action": "update",
+      "who": "seat (leader_seat mod 3) + 1",
+      "answer": null,
+      "effect": "If that seat's played_card suit != led_suit, the seat takes the action of the played card's suit (see rules R14-R17) at once. Announce the action and its result."
+    },
+    {
+      "action": "ask",
+      "who": "seat ((leader_seat + 1) mod 3) + 1",
+      "answer": "a card from your hand of led_suit if you hold one, otherwise any card from your hand",
+      "effect": "Remove the card from hand; played_card = the card; append it to trick_cards; announce it to all."
+    },
+    {
+      "action": "update",
+      "who": "seat ((leader_seat + 1) mod 3) + 1",
+      "answer": null,
+      "effect": "If that seat's played_card suit != led_suit, the seat takes the action of the played card's suit at once. Announce the action and its result."
+    },
+    {
+      "action": "update",
+      "who": "table",
+      "answer": null,
+      "effect": "trick_winner = the seat whose played_card has suit == led_suit and the highest rank. The winner gets tricks_won += 1, and for each suit, won_<suit> += the count of that suit in trick_cards. The winner then takes the action of led_suit once. Announce the winner, the action and its result."
+    },
+    {
+      "action": "update",
+      "who": "table",
+      "answer": null,
+      "effect": "When trick_number == 7, end of hand, resolved in order: for suit in Diamonds, Hearts, Spades, Clubs, if exactly one player has the strictly highest won_<suit>, that player takes that suit's action once. Then each player with tricks_won == 0 takes the Diamonds action twice (vault += 2). Announce every action."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When trick_number == 7 and hand_number == 3: score = 2 * vault + showroom. Announce scores and vaults."
+    },
+    {
+      "action": "update",
+      "who": "table",
+      "answer": null,
+      "effect": "rounds_played += 1. If trick_number == 7, then hand_number += 1 and trick_number = 1; otherwise trick_number += 1 and leader_seat = trick_winner."
+    },
+    {
+      "action": "check",
+      "who": "table",
+      "answer": null,
+      "effect": "End the game if rounds_played >= 21; otherwise continue."
+    }
+  ],
+  "ending": {
+    "condition": "rounds_played >= 21",
+    "rank_by": "you.score * 1000 + you.vault",
+    "decided_by": "Highest score (2 * vault + showroom) after 3 hands wins. A tie on score is broken by more vault crystals. Players still tied share the win, which is the draw."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "When the game starts, every player's showroom and vault are 0."
+    },
+    {
+      "id": "R2",
+      "text": "When a hand starts, all 32 cards are shuffled, each player receives 7 cards into their hand, and the other 11 go to set_aside, unseen."
+    },
+    {
+      "id": "R3",
+      "text": "When a hand starts, each player simultaneously passes exactly 1 card from their hand to the seat on their left, and the third player is not told which card was passed."
+    },
+    {
+      "id": "R4",
+      "text": "When a hand starts, every player's tricks_won and won_diamonds, won_hearts, won_spades and won_clubs are reset to 0."
+    },
+    {
+      "id": "R5",
+      "text": "In hand h, the dealer is seat h (hand 1: seat 1, hand 2: seat 2, hand 3: seat 3)."
+    },
+    {
+      "id": "R6",
+      "text": "On trick 1 of a hand, the seat left of the dealer leads; on later tricks, the previous trick's winner leads."
+    },
+    {
+      "id": "R7",
+      "text": "When the leader plays a card, its suit becomes led_suit, and the other two players then play in clockwise order."
+    },
+    {
+      "id": "R8",
+      "text": "When a player holds a card of led_suit, they may only play a card of led_suit."
+    },
+    {
+      "id": "R9",
+      "text": "When a non-leader holds no card of led_suit, they may play any card, and they immediately take that card's suit action before the next player plays."
+    },
+    {
+      "id": "R10",
+      "text": "When all 3 cards are played, the highest-ranked card of led_suit wins the trick, and an off-suit card never wins."
+    },
+    {
+      "id": "R11",
+      "text": "When a player wins a trick, their tricks_won increases by 1, and each won_<suit> increases by the number of that suit among the 3 trick cards."
+    },
+    {
+      "id": "R12",
+      "text": "When a player wins a trick, they take the action of led_suit once and lead the next trick."
+    },
+    {
+      "id": "R13",
+      "text": "When the Diamonds action is taken, the taker's vault increases by 1 from the supply."
+    },
+    {
+      "id": "R14",
+      "text": "When the Hearts action is taken, the taker's showroom increases by 1 from the supply."
+    },
+    {
+      "id": "R15",
+      "text": "When the Spades action is taken and the taker's showroom >= 1, their showroom decreases by 1 and their vault increases by 1; when their showroom is 0, nothing happens."
+    },
+    {
+      "id": "R16",
+      "text": "When the Clubs action is taken, 1 crystal moves from the opponent with the largest showroom into the taker's showroom; if both opponents' showrooms are 0, nothing happens."
+    },
+    {
+      "id": "R17",
+      "text": "When the Clubs action is taken and both opponents tie for the largest showroom (above 0), the crystal is taken from the tied opponent seated first clockwise after the taker."
+    },
+    {
+      "id": "R18",
+      "text": "When trick 7 of a hand ends, for each suit in the order Diamonds, Hearts, Spades, Clubs, the single player with strictly the most won cards of that suit takes that suit's action once; if the top count is tied, nobody takes it."
+    },
+    {
+      "id": "R19",
+      "text": "When trick 7 of a hand ends, after the suit-majority actions, each player with tricks_won == 0 takes the Diamonds action twice (vault += 2)."
+    },
+    {
+      "id": "R20",
+      "text": "When hand 3 ends (after 21 tricks), each player's score = 2 * vault + showroom, and the game ends."
+    },
+    {
+      "id": "R21",
+      "text": "When the game ends, the highest score wins; a tie is broken by the larger vault; players still tied share the win as a draw."
+    },
+    {
+      "id": "R22",
+      "text": "When a card is played or a suit action resolves, the card and the action's result are announced to all players, and showroom counts are always public."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Pass a card (start of each hand)",
+      "who": "all players simultaneously",
+      "options": "every card currently in your own hand (7 cards)"
+    },
+    {
+      "question": "Lead a card",
+      "who": "seat leader_seat",
+      "options": "every card in your hand"
+    },
+    {
+      "question": "Follow to the trick",
+      "who": "the second and third seats clockwise from the leader",
+      "options": "if you hold at least one card of led_suit: only your cards of led_suit; otherwise: every card in your hand"
+    }
+  ],
+  "choices": [
+    {
+      "what": "Exactly 3 players, suggested 3",
+      "why": "The designer fixed the game at 3. Seat-based dealer rotation, passing left and the Clubs tie-break all assume 3 seats."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player chooses when to void a suit so that off-suit plays trigger Diamonds or Clubs actions. They track opponents' showrooms to time Clubs and Spades, and weigh winning suit majorities against deliberately taking zero tricks for the +2 vault bonus."
+    },
+    {
+      "what": "No talk step",
+      "why": "The source rules include no table talk, and adding it would add a mechanic."
+    },
+    {
+      "what": "Cards encoded as text 'D7', 'H3', and so on",
+      "why": "The suit letter and rank can then be read arithmetically to find led_suit and the trick winner."
+    },
+    {
+      "what": "Rank expression score * 1000 + vault",
+      "why": "No score can reach 1000 in 21 tricks, so this ranks by score first and vault second. Equal values share the win, which matches the source's draw."
+    },
+    {
+      "what": "Final scores computed in a step when hand 3's trick 7 ends",
+      "why": "The source scores only at the end of hand 3."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "Vault is declared public",
+      "why": "The source leaves vaults out of summaries, but every vault change is announced to everyone, so vaults are fully trackable. Public visibility gives the same information."
+    },
+    {
+      "what": "The trick is played as three separate ask steps addressed by seat expressions relative to leader_seat, each follower's ask followed by an update for an off-suit action",
+      "why": "The engine's step list is flat. This keeps clockwise order from a variable leader and resolves each off-suit action before the next player plays."
+    },
+    {
+      "what": "Start-of-hand dealing and passing run as steps guarded by trick_number == 1",
+      "why": "One round is one trick, so the hand-start steps run only on the first trick of each hand."
+    },
+    {
+      "what": "Won cards are tracked only as per-suit counts, not as a pile of cards",
+      "why": "The rules use won cards only through their per-suit counts."
+    }
+  ],
+  "unsupported": []
+}
+
+OBSERVABLE (the only attributes you may assert on): player: showroom, vault, score; table: hand_number.
+
+YOUR PREVIOUS REPLY WAS REFUSED. Here it is:
+```json
+[
+  {
+    "name": "Showroom and vault start at 0 for every player",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1}
+    }
+  },
+  {
+    "name": "Deal: 7 cards each, 11 set aside (after one trick each hand holds 6, whatever the random deal)",
+    "rule": "R2",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "expect": {
+      "lens": {
+        "game": {"set_aside": 11, "deck": 0},
+        "players": {"1": {"hand": 6}, "2": {"hand": 6}, "3": {"hand": 6}}
+      },
+      "game": {"hand_number": 1}
+    }
+  },
+  {
+    "name": "Each player passes exactly one card left: hands stay 7 before trick 1, so 6 after it (independent of the deal)",
+    "rule": "R3",
+    "players": 3,
+    "seed": 2,
+    "rounds": 1,
+    "default": "last",
+    "expect": {
+      "lens": {"players": {"1": {"hand": 6}, "2": {"hand": 6}, "3": {"hand": 6}}}
+    }
+  },
+  {
+    "name": "A new hand starts cleanly from leftover per-hand counts (hand 2 trick 1; only deal-independent facts are asserted)",
+    "rule": "R4",
+    "players": 3,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {"tricks_won": 5, "won_diamonds": 4, "won_hearts": 3},
+        "2": {"tricks_won": 2, "won_spades": 2},
+        "3": {"tricks_won": 0, "won_clubs": 6}
+      },
+      "game": {"hand_number": 2, "trick_number": 1, "rounds_played": 7}
+    },
+    "expect": {
+      "game": {"hand_number": 2},
+      "lens": {
+        "game": {"set_aside": 11},
+        "players": {"1": {"hand": 6}, "2": {"hand": 6}, "3": {"hand": 6}}
+      }
+    }
+  },
+  {
+    "name": "After trick 7 of hand 2 the game moves on to hand 3; the Hearts trick and the Hearts majority both go to seat 3",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H2"], "tricks_won": 1, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "2": {"hand": ["H1"], "tricks_won": 1, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["H4"], "tricks_won": 1, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 2, "trick_number": 7, "rounds_played": 13, "dealer_seat": 2, "leader_seat": 3}
+    },
+    "expect": {
+      "game": {"hand_number": 3},
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 2, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The winner of a trick leads the next one",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {"hand": ["D1", "D3"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D2", "H2"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D8", "H5"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "D1"},
+      {"seat": 2, "options_include": "D2"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 1}
+      }
+    }
+  },
+  {
+    "name": "After the lead, play goes clockwise: seat 3 plays its Heart before seat 1 plays its Club",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C1"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["S5"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["H1"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 1, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "A player holding the led suit must follow it",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H3", "S1"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["H2", "D8"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["H7", "C4"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "H3"}
+    ],
+    "expect": {
+      "not_offered": [{"seat": 2, "option": "D8"}, {"seat": 3, "option": "C4"}],
+      "offered": [{"seat": 2, "option": "H2"}, {"seat": 3, "option": "H7"}],
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "A void follower may play any card and its suit action resolves before the next player plays",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D4"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["H6", "S3"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 2, "options_include": "H6"}
+    ],
+    "expect": {
+      "offered": [{"seat": 2, "option": "S3"}, {"seat": 2, "option": "H6"}],
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The highest card of the led suit wins; a higher off-suit card does not",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S2"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["S3"], "showroom": 2, "vault": 0},
+        "3": {"hand": ["H8"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 1, "vault": 1},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Won cards count by suit, every card in the trick included (seen through the end-of-hand majorities)",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C5"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "2": {"hand": ["C6"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["H2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 7, "rounds_played": 6, "leader_seat": 1}
+    },
+    "expect": {
+      "game": {"hand_number": 2},
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 2, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The trick winner takes the led suit's action exactly once",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D7"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D5"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D6"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The Diamonds action (an off-suit Diamond) adds 1 to the vault",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S4"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D2"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["S1"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 1},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The Hearts action (an off-suit Heart) adds 1 to the showroom",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H5"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D1"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D3"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 3}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 1, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 1}
+      }
+    }
+  },
+  {
+    "name": "Spades action with showroom >= 1 moves one crystal from the showroom to the vault",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S6"], "showroom": 3, "vault": 0},
+        "2": {"hand": ["S2"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["S3"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Spades action with an empty showroom does nothing",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H1"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["H3"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["S7"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 1, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action takes 1 crystal from the opponent with the largest showroom",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C8"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["C1"], "showroom": 3, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 1, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 1, "vault": 0},
+        "2": {"showroom": 2, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action does nothing when both opponents' showrooms are 0",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C8"], "showroom": 2, "vault": 0},
+        "2": {"hand": ["C1"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action with tied opponents takes from the first one clockwise after the taker (taker seat 2, so seat 3)",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C3"], "showroom": 2, "vault": 0},
+        "2": {"hand": ["C7"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 2, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 0},
+        "2": {"showroom": 1, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action with tied opponents, taker seat 3, takes from seat 1",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C1"], "showroom": 3, "vault": 0},
+        "2": {"hand": ["C2"], "showroom": 3, "vault": 0},
+        "3": {"hand": ["C8"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 3}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 0},
+        "2": {"showroom": 3, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "End-of-hand suit majorities: a strict leader takes the suit action, a tied suit gives nothing",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 3, "won_hearts": 0, "won_spades": 1, "won_clubs": 0, "showroom": 1, "vault": 0},
+        "2": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 3, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 2, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 7, "rounds_played": 6, "leader_seat": 1}
+    },
+    "expect": {
+      "game": {"hand_number": 2},
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 1}
+      }
+    }
+  },
+  {
+    "name": "A player who took no tricks in the hand gains 2 vault at the end of the hand",
+    "rule": "R19",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D2"], "tricks_won": 0, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "2": {"hand": ["D5"], "tricks_won": 3, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["D6"], "tricks_won": 3, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 7, "rounds_played": 6, "leader_seat": 2}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 2},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 2}
+      }
+    }
+  },
+  {
+    "name": "After the last trick of hand 3, score = 2*vault + showroom and the game ends",
+    "rule": "R20",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 3},
+        "2": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 4, "vault": 1},
+        "3": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 2}
+      },
+      "game": {"hand_number": 3, "trick_number": 7, "rounds_played": 20, "dealer_seat": 3, "leader_seat": 1}
+    },
+    "expect": {
+      "winner": 1,
+      "standings": {"1": 12005, "2": 6001, "3": 4002},
+      "players": {
+        "1": {"showroom": 2, "vault": 5, "score": 12},
+        "2": {"showroom": 4, "vault": 1, "score": 6},
+        "3": {"showroom": 0, "vault": 2, "score": 4}
+      }
+    }
+  },
+  {
+    "name": "A tie on score is broken by the larger vault",
+    "rule": "R21",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 0},
+        "2": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 3},
+        "3": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 4, "vault": 0}
+      },
+      "game": {"hand_number": 3, "trick_number": 7, "rounds_played": 20, "dealer_seat": 3, "leader_seat": 1}
+    },
+    "expect": {
+      "winner": 2,
+      "standings": {"1": 6002, "2": 6003, "3": 4000},
+      "players": {
+        "1": {"score": 6, "vault": 2},
+        "2": {"score": 6, "vault": 3},
+        "3": {"score": 4, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Players level on both score and vault share the win",
+    "rule": "R21",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 0},
+        "2": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 2},
+        "3": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 3, "trick_number": 7, "rounds_played": 20, "dealer_seat": 3, "leader_seat": 1}
+    },
+    "expect": {
+      "winner": [1, 2],
+      "standings": {"1": 6002, "2": 6002, "3": 0},
+      "players": {
+        "1": {"score": 6, "vault": 2, "showroom": 2},
+        "2": {"score": 6, "vault": 2, "showroom": 2},
+        "3": {"score": 0, "vault": 0, "showroom": 0}
+      }
+    }
+  },
+  {
+    "name": "Suit action results show in the public showroom and vault counts",
+    "rule": "R22",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S5"], "showroom": 1, "vault": 0},
+        "2": {"hand": ["H4"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D3"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 1, "vault": 0},
+        "3": {"showroom": 0, "vault": 1}
+      }
+    }
+  }
+]
+```
+
+Why it was refused: scenario 1: needs `rules` (what each seat answers, by option name); scenario 2: needs `rules` (what each seat answers, by option name); scenario 3: needs `rules` (what each seat answers, by option name); scenario 4: needs `rules` (what each seat answers, by option name); scenario 5: needs `rules` (what each seat answers, by option name); scenario 7: needs `rules` (what each seat answers, by option name); scenario 10: needs `rules` (what each seat answers, by option name); scenario 11: needs `rules` (what each seat answers, by option name); scenario 12: needs `rules` (what each seat answers, by option name); scenario 13: needs `rules` (what each seat answers, by option name); scenario 14: needs `rules` (what each seat answers, by option name); scenario 15: needs `rules` (what each seat answers, by option name); scenario 16: needs `rules` (what each seat answers, by option name); scenario 17: needs `rules` (what each seat answers, by option name); scenario 18: needs `rules` (what each seat answers, by option name); scenario 19: needs `rules` (what each seat answers, by option name); scenario 20: needs `rules` (what each seat answers, by option name); scenario 21: needs `rules` (what each seat answers, by option name); scenario 22: needs `rules` (what each seat answers, by option name); scenario 23: needs `rules` (what each seat answers, by option name); scenario 24: needs `rules` (what each seat answers, by option name); scenario 25: needs `rules` (what each seat answers, by option name); scenario 26: needs `rules` (what each seat answers, by option name)
+Correct it: change what the problem requires and keep the rest. Reply in the same format as before, complete, and nothing else.
+````
+
+## Reply
+
+````
+```json
+[
+  {
+    "name": "Showroom and vault start at 0 for every player",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {"seat": 1, "options_include": "D1", "times": "all"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1}
+    }
+  },
+  {
+    "name": "Deal: 7 cards each, 11 set aside (after one trick each hand holds 6, whatever the random deal)",
+    "rule": "R2",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {"seat": 1, "options_include": "D1", "times": "all"},
+      {"seat": 2, "options_include": "D2", "times": "all"},
+      {"seat": 3, "options_include": "D3", "times": "all"}
+    ],
+    "expect": {
+      "lens": {
+        "game": {"set_aside": 11, "deck": 0},
+        "players": {"1": {"hand": 6}, "2": {"hand": 6}, "3": {"hand": 6}}
+      },
+      "game": {"hand_number": 1}
+    }
+  },
+  {
+    "name": "Each player passes exactly one card left: hands stay 7 before trick 1, so 6 after it (independent of the deal)",
+    "rule": "R3",
+    "players": 3,
+    "seed": 2,
+    "rounds": 1,
+    "default": "last",
+    "rules": [
+      {"seat": 1, "options_include": "C8", "times": "all"},
+      {"seat": 2, "options_include": "C7", "times": "all"},
+      {"seat": 3, "options_include": "C6", "times": "all"}
+    ],
+    "expect": {
+      "lens": {"players": {"1": {"hand": 6}, "2": {"hand": 6}, "3": {"hand": 6}}}
+    }
+  },
+  {
+    "name": "A new hand starts cleanly from leftover per-hand counts (hand 2 trick 1; only deal-independent facts are asserted)",
+    "rule": "R4",
+    "players": 3,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {"tricks_won": 5, "won_diamonds": 4, "won_hearts": 3},
+        "2": {"tricks_won": 2, "won_spades": 2},
+        "3": {"tricks_won": 0, "won_clubs": 6}
+      },
+      "game": {"hand_number": 2, "trick_number": 1, "rounds_played": 7}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "H1", "times": "all"},
+      {"seat": 2, "options_include": "H2", "times": "all"},
+      {"seat": 3, "options_include": "H3", "times": "all"}
+    ],
+    "expect": {
+      "game": {"hand_number": 2},
+      "lens": {
+        "game": {"set_aside": 11},
+        "players": {"1": {"hand": 6}, "2": {"hand": 6}, "3": {"hand": 6}}
+      }
+    }
+  },
+  {
+    "name": "After trick 7 of hand 2 the game moves on to hand 3; the Hearts trick and the Hearts majority both go to seat 3",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H2"], "tricks_won": 1, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "2": {"hand": ["H1"], "tricks_won": 1, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["H4"], "tricks_won": 1, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 2, "trick_number": 7, "rounds_played": 13, "dealer_seat": 2, "leader_seat": 3}
+    },
+    "rules": [
+      {"seat": 3, "options_include": "H4"},
+      {"seat": 1, "options_include": "H2"},
+      {"seat": 2, "options_include": "H1"}
+    ],
+    "expect": {
+      "game": {"hand_number": 3},
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 2, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The winner of a trick leads the next one",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {"hand": ["D1", "D3"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D2", "H2"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D8", "H5"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "D1"},
+      {"seat": 1, "options_include": "D3"},
+      {"seat": 2, "options_include": "D2"},
+      {"seat": 2, "options_include": "H2"},
+      {"seat": 3, "options_include": "D8"},
+      {"seat": 3, "options_include": "H5"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 1}
+      }
+    }
+  },
+  {
+    "name": "After the lead, play goes clockwise: seat 3 plays its Heart before seat 1 plays its Club",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C1"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["S5"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["H1"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "rules": [
+      {"seat": 2, "options_include": "S5"},
+      {"seat": 3, "options_include": "H1"},
+      {"seat": 1, "options_include": "C1"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 1, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "A player holding the led suit must follow it",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H3", "S1"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["H2", "D8"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["H7", "C4"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "H3"},
+      {"seat": 2, "options_include": "H2"},
+      {"seat": 3, "options_include": "H7"}
+    ],
+    "expect": {
+      "not_offered": [{"seat": 2, "option": "D8"}, {"seat": 3, "option": "C4"}],
+      "offered": [{"seat": 2, "option": "H2"}, {"seat": 3, "option": "H7"}],
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "A void follower may play any card and its suit action resolves before the next player plays",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D4"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["H6", "S3"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "D4"},
+      {"seat": 2, "options_include": "H6"},
+      {"seat": 3, "options_include": "C2"}
+    ],
+    "expect": {
+      "offered": [{"seat": 2, "option": "S3"}, {"seat": 2, "option": "H6"}],
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The highest card of the led suit wins; a higher off-suit card does not",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S2"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["S3"], "showroom": 2, "vault": 0},
+        "3": {"hand": ["H8"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "S2"},
+      {"seat": 2, "options_include": "S3"},
+      {"seat": 3, "options_include": "H8"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 1, "vault": 1},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Won cards count by suit, every card in the trick included (seen through the end-of-hand majorities)",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C5"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "2": {"hand": ["C6"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["H2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 7, "rounds_played": 6, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "C5"},
+      {"seat": 2, "options_include": "C6"},
+      {"seat": 3, "options_include": "H2"}
+    ],
+    "expect": {
+      "game": {"hand_number": 2},
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 2, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The trick winner takes the led suit's action exactly once",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D7"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D5"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D6"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "rules": [
+      {"seat": 2, "options_include": "D5"},
+      {"seat": 3, "options_include": "D6"},
+      {"seat": 1, "options_include": "D7"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The Diamonds action (an off-suit Diamond) adds 1 to the vault",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S4"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D2"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["S1"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "S4"},
+      {"seat": 2, "options_include": "D2"},
+      {"seat": 3, "options_include": "S1"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 0, "vault": 1},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "The Hearts action (an off-suit Heart) adds 1 to the showroom",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H5"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["D1"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D3"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 3}
+    },
+    "rules": [
+      {"seat": 3, "options_include": "D3"},
+      {"seat": 1, "options_include": "H5"},
+      {"seat": 2, "options_include": "D1"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 1, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 1}
+      }
+    }
+  },
+  {
+    "name": "Spades action with showroom >= 1 moves one crystal from the showroom to the vault",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S6"], "showroom": 3, "vault": 0},
+        "2": {"hand": ["S2"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["S3"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "S6"},
+      {"seat": 2, "options_include": "S2"},
+      {"seat": 3, "options_include": "S3"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Spades action with an empty showroom does nothing",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["H1"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["H3"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["S7"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "rules": [
+      {"seat": 2, "options_include": "H3"},
+      {"seat": 3, "options_include": "S7"},
+      {"seat": 1, "options_include": "H1"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 0},
+        "2": {"showroom": 1, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action takes 1 crystal from the opponent with the largest showroom",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C8"], "showroom": 0, "vault": 0},
+        "2": {"hand": ["C1"], "showroom": 3, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 1, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "C8"},
+      {"seat": 2, "options_include": "C1"},
+      {"seat": 3, "options_include": "C2"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 1, "vault": 0},
+        "2": {"showroom": 2, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action does nothing when both opponents' showrooms are 0",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C8"], "showroom": 2, "vault": 0},
+        "2": {"hand": ["C1"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "C8"},
+      {"seat": 2, "options_include": "C1"},
+      {"seat": 3, "options_include": "C2"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 0},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action with tied opponents takes from the first one clockwise after the taker (taker seat 2, so seat 3)",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C3"], "showroom": 2, "vault": 0},
+        "2": {"hand": ["C7"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["C2"], "showroom": 2, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 2}
+    },
+    "rules": [
+      {"seat": 2, "options_include": "C7"},
+      {"seat": 3, "options_include": "C2"},
+      {"seat": 1, "options_include": "C3"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 0},
+        "2": {"showroom": 1, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Clubs action with tied opponents, taker seat 3, takes from seat 1",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["C1"], "showroom": 3, "vault": 0},
+        "2": {"hand": ["C2"], "showroom": 3, "vault": 0},
+        "3": {"hand": ["C8"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 3}
+    },
+    "rules": [
+      {"seat": 3, "options_include": "C8"},
+      {"seat": 1, "options_include": "C1"},
+      {"seat": 2, "options_include": "C2"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 2, "vault": 0},
+        "2": {"showroom": 3, "vault": 0},
+        "3": {"showroom": 1, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "End-of-hand suit majorities: a strict leader takes the suit action, a tied suit gives nothing",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 3, "won_hearts": 0, "won_spades": 1, "won_clubs": 0, "showroom": 1, "vault": 0},
+        "2": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 3, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 2, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 7, "rounds_played": 6, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "D1"},
+      {"seat": 2, "options_include": "D2"},
+      {"seat": 3, "options_include": "D8"}
+    ],
+    "expect": {
+      "game": {"hand_number": 2},
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 1, "vault": 1}
+      }
+    }
+  },
+  {
+    "name": "A player who took no tricks in the hand gains 2 vault at the end of the hand",
+    "rule": "R19",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["D2"], "tricks_won": 0, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "2": {"hand": ["D5"], "tricks_won": 3, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0},
+        "3": {"hand": ["D6"], "tricks_won": 3, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 7, "rounds_played": 6, "leader_seat": 2}
+    },
+    "rules": [
+      {"seat": 2, "options_include": "D5"},
+      {"seat": 3, "options_include": "D6"},
+      {"seat": 1, "options_include": "D2"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 2},
+        "2": {"showroom": 0, "vault": 0},
+        "3": {"showroom": 0, "vault": 2}
+      }
+    }
+  },
+  {
+    "name": "After the last trick of hand 3, score = 2*vault + showroom and the game ends",
+    "rule": "R20",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 3},
+        "2": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 4, "vault": 1},
+        "3": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 2}
+      },
+      "game": {"hand_number": 3, "trick_number": 7, "rounds_played": 20, "dealer_seat": 3, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "D8"},
+      {"seat": 2, "options_include": "D1"},
+      {"seat": 3, "options_include": "D2"}
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {"1": 12005, "2": 6001, "3": 4002},
+      "players": {
+        "1": {"showroom": 2, "vault": 5, "score": 12},
+        "2": {"showroom": 4, "vault": 1, "score": 6},
+        "3": {"showroom": 0, "vault": 2, "score": 4}
+      }
+    }
+  },
+  {
+    "name": "A tie on score is broken by the larger vault",
+    "rule": "R21",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 0},
+        "2": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 3},
+        "3": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 4, "vault": 0}
+      },
+      "game": {"hand_number": 3, "trick_number": 7, "rounds_played": 20, "dealer_seat": 3, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "D8"},
+      {"seat": 2, "options_include": "D1"},
+      {"seat": 3, "options_include": "D2"}
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {"1": 6002, "2": 6003, "3": 4000},
+      "players": {
+        "1": {"score": 6, "vault": 2},
+        "2": {"score": 6, "vault": 3},
+        "3": {"score": 4, "vault": 0}
+      }
+    }
+  },
+  {
+    "name": "Players level on both score and vault share the win",
+    "rule": "R21",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {"hand": ["D8"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 0},
+        "2": {"hand": ["D1"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 2, "vault": 2},
+        "3": {"hand": ["D2"], "tricks_won": 2, "won_diamonds": 0, "won_hearts": 0, "won_spades": 0, "won_clubs": 0, "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 3, "trick_number": 7, "rounds_played": 20, "dealer_seat": 3, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "D8"},
+      {"seat": 2, "options_include": "D1"},
+      {"seat": 3, "options_include": "D2"}
+    ],
+    "expect": {
+      "winner": [1, 2],
+      "standings": {"1": 6002, "2": 6002, "3": 0},
+      "players": {
+        "1": {"score": 6, "vault": 2, "showroom": 2},
+        "2": {"score": 6, "vault": 2, "showroom": 2},
+        "3": {"score": 0, "vault": 0, "showroom": 0}
+      }
+    }
+  },
+  {
+    "name": "Suit action results show in the public showroom and vault counts",
+    "rule": "R22",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {"hand": ["S5"], "showroom": 1, "vault": 0},
+        "2": {"hand": ["H4"], "showroom": 0, "vault": 0},
+        "3": {"hand": ["D3"], "showroom": 0, "vault": 0}
+      },
+      "game": {"hand_number": 1, "trick_number": 2, "rounds_played": 1, "leader_seat": 1}
+    },
+    "rules": [
+      {"seat": 1, "options_include": "S5"},
+      {"seat": 2, "options_include": "H4"},
+      {"seat": 3, "options_include": "D3"}
+    ],
+    "expect": {
+      "players": {
+        "1": {"showroom": 0, "vault": 1},
+        "2": {"showroom": 1, "vault": 0},
+        "3": {"showroom": 0, "vault": 1}
+      }
+    }
+  }
+]
+```
+````

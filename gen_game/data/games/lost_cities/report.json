@@ -1,0 +1,426 @@
+{
+  "game": "lost_cities",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state a player is shown has empty fields (wager, card_a_colour, card_b_colour, fate_first); hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    "it plays, but part of it does nothing: game attribute `card_table` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state a player is shown has empty fields (wager, card_a_colour, card_b_colour); hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup: 27-card deck, all expeditions and burials at 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Odd round 1 gives priority to seat 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Even round 2 gives priority to seat 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "One round draws two cards, so the deck shrinks from 27 to 25",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Both seats are offered a Wager colour in round 5",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "No Wager is asked outside round 5",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Priority seat picks, then the other seat picks the other card",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Second seat naming the taken card gets nothing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Red 7 on red_top 3 raises the top to 7 and the sum by 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Red 7 on an empty Red gives top 7 and sum 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Red 5 on red_top 7 is buried for +3 burial",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A card equal to the top is buried too",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Choosing NONE changes nothing for the player",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Untaken cards leave the game and do not return to the deck",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After the round both players' public tops, sums and burials show the placements",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Empty Wager colour scores -15, other empty colours score 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Non-empty expedition base is sum minus 10",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Wager colour doubles the base, negative or positive",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sum of 25 or more adds 10 after doubling",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Score is the three colour scores minus burial",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Equal final scores share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Full 12-round game with no picks ends after round 12 with 3 cards left and empty Wagers at -15 each",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        2
+      ],
+      "results": {
+        "seat 1": 15,
+        "seat 2": 5
+      },
+      "turns_min": 26,
+      "turns_max": 26
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 1": 33,
+      "seat 2": 27
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 38,
+        "loss": 22,
+        "draw": 0,
+        "win_rate": 0.63
+      },
+      "first@seat2": {
+        "win": 41,
+        "loss": 19,
+        "draw": 0,
+        "win_rate": 0.68
+      },
+      "last@seat1": {
+        "win": 9,
+        "loss": 51,
+        "draw": 0,
+        "win_rate": 0.15
+      },
+      "last@seat2": {
+        "win": 8,
+        "loss": 50,
+        "draw": 2,
+        "win_rate": 0.14
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 26.0,
+      "prompt_chars_avg": 285,
+      "prompt_chars_max": 336
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 2 players, suggested 2",
+      "why": "The designer fixed the table at 2. The draft is a head-to-head contest over a shared row, and the second pick depends on reading the one opponent."
+    },
+    {
+      "what": "No talk step",
+      "why": "The rules include no talk, and with two players in direct competition a message would add nothing the rules ask for."
+    },
+    {
+      "what": "Cards stored as 'Colour-Value' strings in the deck, split into card_a/card_b colour and value attributes when drawn",
+      "why": "This lets placement and scoring be done by plain arithmetic comparisons on numbers."
+    },
+    {
+      "what": "The second player is still offered the taken card",
+      "why": "The rules say that naming the taken card counts as NONE, so the option exists and is resolved to NONE."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player times the Wager against the cards already seen in rounds 1 to 4. They also deny the opponent high cards, avoid burials that cost 3, and take NONE rather than bury a card."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The 'shuffle once, take the top two' draw is done as two random draws from the deck list each round",
+      "why": "The engine draws at random from a list. This is equivalent to drawing from the top of a shuffled deck."
+    },
+    {
+      "what": "Removed and buried cards are not kept in a discard list",
+      "why": "The rules take them out of the game and never refer to them again. Only the burial counter matters."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 3,
+    "attributes": 41,
+    "hidden_elements": 10
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Lost Cities is a two-player card game. Players play cards from a private hand into rising columns of five colours, called expeditions. Each started column costs 20 points, wager cards multiply a column's result, and players draw from a shared deck or from discard piles. The higher total over three rounds wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "No simple policy wins. Always discarding scores 0 and loses to any player who builds two good columns. Always playing scatters columns that each cost -20. Seat order alternates over three rounds. The previous variation kept this: always LEAVE scored -10, and always TAKE caused many burials."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "In the original, skill matters through hand management, timing and denial, but draw luck is large. In the previous variation the two dealt Backed colours differed with probability 2/3. Each player's score then depended mainly on the arrival order of their own colour, which swung Backed scores by 20 to 60 points. Denial and inference were worth only a few points."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "A weak player can still score with one or two columns. A strong player keeps gaining through when to commit, which cards to hold back and what to deny. The game is not solved."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "The original has hidden hands and an unknown deck, and players infer the opponent's columns from discards. The previous variation reduced this to guessing a dealt colour that played out mostly independently of the opponent."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Scoring is pure arithmetic: sums, a cost per column, multipliers and a bonus."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "The original needs five colours, 60 cards, hands of 8 and discard piles that can be redrawn, which is far over the attribute limits. The previous variation undercounted its own attributes: it claimed 16 when the real count was 24, over the limit of 20. It also left its step count unverified."
+      }
+    ],
+    "problems": [
+      "P1: The previous variation's attribute count (24) exceeded the limit of 20, and its step count was unverified.",
+      "P2: Order luck dominated. Each player passively accepted one card at a time in the order it arrived, so the arrival order of their own colour decided their score.",
+      "P3: Independently dealt Backed colours usually differed. This made the two players' games nearly separate, so interaction and denial were thin.",
+      "P4: The dealt hidden type acted as a lottery. Who got the colour that happened to arrive in the friendlier order decided the winner when both played well.",
+      "P5: The 7 deck cards that were never revealed, plus seeing only one card at a time, left planning with little to work on."
+    ],
+    "changes": [
+      {
+        "what": "Track only top value and sum per player and colour, and drop the card count. Replace the 4-card bonus with a bonus for a column sum of 25 or more. Store each revealed card as a single attribute such as 'Red 7'.",
+        "why": "This brings the attribute count to 19, and the steps per round are written out at 16.",
+        "fixes": "P1: The previous variation's attribute count (24) exceeded the limit of 20, and its step count was unverified."
+      },
+      {
+        "what": "Each round, reveal a public row of 2 cards. The priority player picks one card or none, then the other player picks from what is left. There are 12 rounds and 24 of the 27 cards are shown.",
+        "why": "A shared draft makes order luck hit both players alike. The question becomes which card to take and which to leave the opponent, not whether one's own colour arrives kindly.",
+        "fixes": "P2: Order luck dominated. Each player passively accepted one card at a time in the order it arrived, so the arrival order of their own colour decided their score."
+      },
+      {
+        "what": "Replace the dealt Backed colour with a secret Wager. At the start of round 5, after 8 cards have been seen and drafted, both players choose one colour to double, at the same moment and in secret.",
+        "why": "The hidden element becomes a decision made with information, like playing a wager card in Lost Cities. It is no longer a random gift. Each player must also read and hide which colour is doubled.",
+        "fixes": "P4: The dealt hidden type acted as a lottery. Who got the colour that happened to arrive in the friendlier order decided the winner when both played well."
+      },
+      {
+        "what": "All colours are open to both players, and denying a card means taking it into your own column or burying it at -3.",
+        "why": "Every pick both builds your columns and denies the opponent's. Players compete for the same colours, so guessing the opponent's Wager matters.",
+        "fixes": "P3: Independently dealt Backed colours usually differed. This made the two players' games nearly separate, so interaction and denial were thin."
+      },
+      {
+        "what": "Show 2 cards per round and leave only 3 cards unseen. The deck composition is public.",
+        "why": "Players can count what remains in each colour and plan their rising sequences.",
+        "fixes": "P5: The 7 deck cards that were never revealed, plus seeing only one card at a time, left planning with little to work on."
+      }
+    ],
+    "keeps": [
+      "Expeditions are columns of strictly rising values in each colour.",
+      "Each started column has a fixed cost, so committing to a colour is a risk.",
+      "A wager doubles one colour's result, positive or negative.",
+      "A bonus rewards a long, deep expedition.",
+      "Denying the opponent cards they need, and inferring their plan from what they take.",
+      "Two players and a shared deck."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The core of rising columns, commitment cost and wager fits inside the limits once the game becomes a 2-card draft with a secret wager chosen during play."
+    },
+    "variation": {
+      "name": "Lost Cities: Wager Draft",
+      "summary": "Two players draft from a shared public row of 2 cards into rising Red, Blue and Green expeditions. At round 5 each player secretly wagers on one colour, which doubles that colour's result. Every pick both builds your columns and denies your rival.",
+      "players": {
+        "min": 2,
+        "max": 2,
+        "suggested": 2
+      },
+      "rules": "SETUP\n1. The deck has 27 cards: Red, Blue and Green, each with one card of every value from 2 to 10. It is shuffled once, face down. Both players know this composition.\n2. Each player has three expeditions, one per colour. Each starts empty and is tracked by its top value (0 when empty) and its sum. Each player also has a Burial penalty starting at 0. All of these are public.\n\nEACH ROUND (12 rounds)\n3. Priority belongs to seat 1 in odd rounds and to seat 2 in even rounds. This is announced.\n4. The top two cards of the deck are turned face up as Card A and Card B. Their colours and values are shown to both players.\n5. WAGER, at the start of round 5 only, before step 4's cards are revealed:\n   - Both players secretly and at the same moment name one colour: Red, Blue or Green. This is their Wager.\n   - The Wager cannot be changed and stays hidden until the end.\n6. The priority player chooses A, B or NONE.\n7. If they chose a card, they receive it and place it (see step 10).\n8. The other player is told what was chosen. They then choose A, B or NONE. Naming the card already taken counts as NONE.\n9. If they chose a card, they receive it and place it.\n10. Placement is mandatory:\n   - If the card's value is higher than the top value of that player's expedition in its colour (any card beats an empty expedition), it is added. Its value is added to the sum, and it becomes the new top value.\n   - Otherwise the card is buried: it is removed from the game and that player's Burial penalty rises by 3.\n11. Cards in the row that no one took are removed from the game.\n12. Both choices, where each card went, and all expedition states and Burial penalties are announced.\n\nAfter round 12, the 3 cards left in the deck are never revealed.\n\nFINAL SCORING, for each player and each colour\n13. An empty expedition scores 0. However, if the empty expedition is in the player's Wager colour, it scores -15.\n14. Otherwise, the base is the sum minus 10.\n15. If the colour is the player's Wager colour, the base is doubled. Negative bases are doubled too.\n16. Add 10 if the expedition's sum is 25 or more.\n17. A player's total is the sum of their three colour scores minus their Burial penalty.\n18. Wagers are revealed and the totals are compared.",
+      "objective": "After round 12, the player with the higher total wins. Equal totals are a draw.",
+      "expected_effect": [
+        "Order luck becomes shared. Both players see the same 2-card rows and priority alternates 6 and 6, so a lucky run of cards is contested rather than gifted to one player.",
+        "Rounds 1 to 4 are positioning. Players decide which colours to open and what to leave the opponent.",
+        "The round 5 Wager is a real decision with real information. Players must ask whether to double their strongest column or a colour the rival seems to neglect.",
+        "After round 5, each player infers the rival's Wager from their takes and weighs denial against building. A player may bluff interest in a colour at a real cost.",
+        "Talk is absent. With two players and only one winner there is nothing to negotiate.",
+        "Simple policies all lose to sensible play:",
+        "  Always NONE scores -15 from the empty Wager colour.",
+        "  Always taking A buries often and opens every colour at its cost.",
+        "  Always taking the highest card blocks your own rising sequences."
+      ]
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 3,
+      "attributes": 19,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "critic": {
+      "rounds": 2,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Seats: priority alternates, so each seat has priority in 10 of the 20 rounds. Seat 1 holds it in round 1, but the deck is face down and both see the same card, so neither seat has an information edge. Neither player has a structural edge.\n\nPer-round decision (P = player with priority, N = the other):\n- TAKE/TAKE: P gets the card.\n- TAKE/LEAVE: the taker gets it.\n- LEAVE/LEAVE: the card is removed.\nA card is worth +value (doubled if Backed, with -6 per started colour) if it fits, and -4 if it must be buried. Neither TAKE nor LEAVE is strictly better: a card that fits is a gain, a card that does not fit is a -4 loss.\n\nThoughtless policies, using the winner rule:\n(a) Always LEAVE. Total is -10, since the Backed colour stays empty. A sensible opponent takes only cards that fit and are 7 or higher, finishes positive, and wins. Always LEAVE loses.\n(b) Always TAKE. It receives every card in its 10 priority rounds and every card the opponent leaves, about 15 cards, roughly 5 per colour. The expected number of records in a random order of 5 is H5 = 2.28, so about 7 cards fit and about 8 are buried, costing -32. The fitting cards sum to about 50, giving 50 - 18 = 32 across three bases, plus about +10 from Backed doubling, for a total near +10. The sensible opponent takes only fitting cards in its own priority rounds and deliberately leaves bad cards, which the always-taker must bury. The sensible player ends around +15 to +30, so always TAKE loses most games.\n(c) Always TAKE against random (50%) play. The random player gets about 5 cards, about 4 of which fit, for a total near 0 to +10 with a risk of -10. The result is close and either player can win, so this is not a never-lose policy.\n\nNo policy wins or draws regardless of what the opponent does, and both players can realistically win."
+          },
+          "playable": {
+            "verdict": "fail",
+            "evidence": "The rules themselves are complete and finite:\n- Simultaneous TAKE/LEAVE poll.\n- Deterministic resolution and placement.\n- Arithmetic scoring.\n- Fixed 20 rounds.\nNothing needs a board, clock, judge, trading or binding agreements. Talk is correctly absent: two players, no shared interest to negotiate.\n\nHowever, the stated complexity is wrong.\n- Attributes. The game must track, per player and colour, top value, sum and count: 3 x 3 x 2 = 18. Adding two Burial penalties makes 20. Adding two Backed colours makes 22, and the revealed card's colour and value add 24. The designer states 16. That figure is not credible, and the real count exceeds the attribute limit of 20.\n- Steps. Placement needs, for each of 2 possible recipients and 3 colours, a fits/does-not-fit branch: updates to top, sum and count, or burial +4. Together with the reveal, priority and poll steps, this makes 10 steps per round very tight. That figure is also unverified."
+          },
+          "reasoning_over_luck": {
+            "verdict": "fail",
+            "evidence": "With independent Backed colours, the two Backed colours differ with probability 2/3. In that case each player mostly takes cards in its own Backed colour. Contesting a card costs the blocker -4, or forces it into a bad column. Interaction is therefore thin, and each player's score is driven by the random arrival order of its own Backed colour. About 6.7 of that colour's 9 cards are revealed, and 7 deck cards are never seen.\n\nSwing from order alone:\n- If the Backed colour's 10 arrives first, the best play is to take it and stop, scoring (10 - 6) x 2 = 8.\n- If the colour arrives roughly ascending, for example 4, 6, 8, 9, 10, then 37 - 6 = 31, doubled to 62, plus 10, gives 72.\n- In typical orders, an online increasing selection from 6 to 7 random cards gets about 3 cards. Even so, Backed scores spread by roughly 20 to 60 points depending on order.\n\nThe remaining decisions are small by comparison: opponent inference about Backed colour, and when to deny a card at -4. Those decisions are worth a few points per game. When both players play well, the winner is mostly whoever's Backed colour happened to arrive in the friendlier order, which is chance and not reasoning. The inference element exists but cannot overcome a variance of this size."
+          },
+          "required_changes": [
+            "Recount and declare complexity honestly. Cut attributes to at most 20, for example by dropping 'count' and replacing the 4+ bonus with a sum threshold (bonus if sum >= 25), or by dropping the top-value attribute and enforcing a fixed ascending rule another way. Confirm that steps per round stay at or below 20 once placement into 3 colours for 2 possible recipients is written out.",
+            "Reduce order luck. Reveal a public row of 2 to 3 cards each round, with the priority player choosing first and the other choosing from the rest (a sequential draft). Alternatively, show the next card as lookahead. Either way, planning around the order replaces passive acceptance of it.",
+            "Force interaction so that inference matters. For example, deal both players Backed colours from a pool that guarantees overlap or conflict (e.g., each player has one Backed and one 'Doubted' colour that scores negatively), so that taking and denying cards actually trades off against the opponent's hidden goal.",
+            "Alternatively, play duplicate: play the same shuffle twice with seats and Backed colours swapped, and sum the two totals, so that deck order cancels out and only decisions differ."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "SCORING TABLE (one colour): empty = 0, or -15 if it is the Wager colour. Otherwise base = sum - 10, doubled if it is the Wager colour (negatives too), +10 if sum >= 25. Examples: sum 8 non-wager = -2; sum 8 wager = -4; sum 22 non-wager = +12; sum 24 wager = 28; sum 27 wager = 34+10 = 44. A buried card costs 3.\n\nMAIN DECISION each round is A, B or NONE.\n- NONE is free.\n- A card that fits (value above the column's top) adds its value but raises the top, which closes off lower cards later.\n- A card that does not fit costs 3. It is worth taking only to deny the opponent, e.g. a high card in their suspected Wager colour (an 8 to them can be worth 8 to 16+, while denying it costs you 3).\n- Taking a high card early (a 9 caps the column at one more card) against starting low is a real trade-off.\n- No option is strictly better whatever the opponent does.\n\nTHOUGHTLESS POLICIES, by the winner rule:\n(1) Always NONE. Total is exactly -15, because the Wager colour is empty. Sensible play, e.g. Red(W) 3,5,7,9 = 28 and Blue 4,8,10 = 12, gives 40 and wins. Random play (about 8 takes, about 4 burials = -12, small or negative columns) comes out around -10 to -25, so NONE sometimes wins and sometimes loses. It does not win or draw almost every time.\n(2) Always A, taking it when not already gone. It takes about 9 to 10 cards. Rising tops mean about 40-50% are buried (-12 to -15). The column sums of roughly 10-18 score little or negative, giving a total of about -15 to +5. Sensible play beats it in almost all deals.\n(3) Always B is symmetric to (2).\n(4) Always take whatever fits greedily. It takes high cards early and caps its columns, so planned play beats it more often than not, though it is not hopeless.\nNo policy never loses.\n\nSEATS: priority alternates, 6 rounds each. The second chooser sees the first's choice, and that advantage also alternates. The wager is simultaneous. No structural seat edge, and both players can realistically win.\n\nThe game is competitive (no cooperation or payoff-ordering label), so there is no mislabelled ordering to check."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "RULES:\n- Order is fully specified: priority picks and places, then the other picks.\n- 'Naming the taken card = NONE' covers collisions. Unique values per colour mean 'higher than top' is never tied.\n- Placement and burial are mandatory and defined. Untaken cards are removed.\n- The wager is clearly at the start of round 5, before the reveal. Empty-wager and negative-wager cases are defined.\n- The winner is decided by arithmetic, with draws defined.\n- Finite: 12 rounds use 24 of 27 cards.\n\nENGINE:\n- The single setup shuffle plus remove-from-list reveals is the supported shared_deck_draw workaround, so 0 random draws per round is accurate.\n- The hidden wager is a private_value (1 hidden element).\n- The wager poll is simultaneous, as required. The A/B picks are sequential_choice, which is intended.\n- No conditional block structure is needed: per-step `when`/`if` handles fit versus burial and wager doubling.\n\nLIMITS:\n- Steps 16 <= 20, choice steps 3 <= 4, rounds 12 <= 40.\n- Attributes: per player 3x(top, sum) + burial + wager = 8, so 16 for both; plus Card A and B (colour and value) = 20.\n- That is at the limit but within it, and lower if each card is encoded as one number.\n\nNo board, clock or judge is needed. With two players, the absence of a talk phase is appropriate. This is not a repeated cooperation game, so the late-round betrayal test does not apply."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "CHANCE: the deal order decides which cards land in whose priority rounds and whether long ascending runs are possible. I estimate roughly 30-40% of the result is chance.\n\nSKILL DECISIONS:\n- Card counting: the full composition is public, and the only unknowns at the end are 3 cards.\n- When to open a colour low versus wait.\n- Not taking high cards too early.\n- The 25-sum bonus threshold.\n- Choosing the Wager colour after seeing 8 cards and the opening positions.\n- As second chooser, reacting to the first's pick.\n- Inferring the opponent's hidden Wager from their picks after round 5 and denying them its high cards at a cost of 3. This is a genuine inference that can be acted on.\n\nIF BOTH PLAY WELL: both see the same stream and priority alternates. The margin then comes from wager choice, timing and denial decisions, plus deal variance. It is not decided by a hidden type or the deal alone.\n\nAGAINST WEAK PLAY: a careless player loses heavily through burials, capped columns and a wasted -15 empty Wager, so good reasoning is clearly favoured."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 2,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "revise_rules",
+      "reason": "The game is built to the rules, but a thoughtless 'always take the first option' policy wins about 85% of matches from either seat. That means a near-mindless line, probably playing or discarding the oldest card and always drawing from the draw pile while avoiding penalties and negative columns, beats varied play. The scoring rewards passivity and punishes any attempt to build columns.",
+      "guidance": "Rebalance so that building columns is clearly better than doing nothing.\n- Lower or remove the column offset (column_offset 8 makes most short columns negative), or score an empty column below a modest built one, for example a small penalty per empty column.\n- Remove illegal plays as a choice: only offer legal PLAY options, so random or careless play is not drained by penalties and the illegal_play_penalty parameter can go.\n- Make the Wager risk symmetric: if it doubles positive scores, it should also worsen negative ones, so committing is a real decision.\n- Keep the per-turn option list short so a fixed policy cannot exploit a structural default.\n- Then check that neither first@ nor last@ policies beat random seats by much more than 60%."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 3,
+      "attributes": 19,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "measured": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 3,
+      "attributes": 41,
+      "hidden_elements": 10
+    }
+  },
+  "verdict": "ready_for_review"
+}

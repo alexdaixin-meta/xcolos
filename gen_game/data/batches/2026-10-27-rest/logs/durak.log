@@ -1,0 +1,52 @@
+
+$ gen_game convert durak --judge   (code 28364604f0, 14:06:22)
+step A: designing the rules
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: In the failing scenario the attack was 61 (6 of Clubs) with Spades as trump, and the defender held 94, 104 and 114, all Spades trumps, so a one-card defence is a legal beat under rule (b). The game instead recorded defence_cards [999], treated the defence as TAKE and gave seat 2 four cards; the other three failures are the same bug: valid defences fail, so hands and penalties come out 2 too high.
+step C: building the game file
+step D: evaluating
+triage: fix_game: In the failing scenario the trump was Spades and the defender held 94 (9 of Spades, a trump) against an attack of 61 (6 of Clubs), yet the game offered the defender only ['TAKE']. That is a legal beat under the rules, so the tests' expected discard (defender left with 2 cards) is correct, and the game never builds the defence options. The penalty failures follow from this same bug, because a defender who can never defend keeps picking up cards.
+step C: building the game file
+triage: fix_game: The rules have only one random event, the S1 shuffle at the start of each deal, and the platform supports seeded deck handling. Different logs from the same seed mean the game file brings in its own non-determinism: an unseeded draw, a clock, or iteration over an unordered collection.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_tests: The offer, trump-pick and first-attacker scenarios run with "rounds": 0, so no moves are played (the log shows 'moves played: .'). Round 1, where seat 2 offers and seat 1 picks, never happens, and trump correctly stays -1. The game did the deal correctly, so the failures come from the test setup, not the game file.
+rewriting the independent tests
+step D: evaluating
+triage: fix_game: The rules make round 1 setup only, with no bout, and bouts run in rounds 2 to 40. The game plays a full bout inside round 1 as well: in R1 seat 1 attacked 9, seat 2 beat it with 10 and seat 1 passed, all in r1. As a result `bout` is one ahead everywhere (R1, R3, R4), and in R4 cards changed hands after only the setup round.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The R10 and R11 failures show the game offering the attacker throw-in cards it may not play. In R10 it offered card 20 (the 8 of Hearts), whose rank matches nothing on the table. In R11 it offered card 18 after the defender had beaten the attack with their last card, when the rules forbid any throw-in. These are implementation errors in the throw-in step, not problems with the rules.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The throw-in options are wrong in the game file. In R10 the table holds 9 (6 of Diamonds) and 1 (7 of Clubs), so only rank-6 and rank-7 cards may be thrown in, but the game offered 20, the 8 of Hearts. In R11 the game offered a throw-in after the defender had beaten the attack with its last card, which rule Step 7 forbids.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_tests: In the trace seat 2 takes once in each bout: card 10, then card 0. It ends holding [0, 1, 2, 3, 10], and hand_size 5 equals the cards actually held, so the game updated hand sizes correctly. The expected 6 does not follow from the hands the test set up and the moves it played; most likely the test's starting hand_size for seat 2 did not match the cards it gave seat 2, or its count was off.
+rewriting the independent tests
+step D: evaluating
+triage: fix_tests: In the first two failures the game's throw-in offer was correct: the final offer was [PASS, 9, 18, 27] after attack 0. The tests flagged 1 and 14 because their not_offered checks also caught the attack prompt, where the attacker may legally play any card in hand. The third failure looks like a scenario set-up error and does not show a game bug.
+rewriting the independent tests
+step D: evaluating
+triage: revise_rules: The game was built and behaves as specified, but the design has six choice steps per round where the limit is four. A thoughtless 'always pick the last option' policy also wins about two thirds of its games for either seat. Always beating when possible, with the highest card, is close to dominant, so the decisions carry little real strategy.
+
+durak: dropped
+  too complex: it is too large for the platform: the built game has 6 choice steps per round, over the limit of 4 (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/28364604f0/gen_game/data/games/durak
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/28364604f0/gen_game/data/games/durak/VERIFIED.md

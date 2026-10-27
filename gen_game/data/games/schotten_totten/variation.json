@@ -1,0 +1,131 @@
+{
+  "original_summary": "Schotten Totten is a two-player card game. Players lay cards from a hidden six-card hand onto their side of nine Stones in a line. Each side of a Stone is completed with three cards forming poker-like formations, the stronger formation claims the Stone, and the first player to 5 Stones or to 3 adjacent Stones wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "A thoughtless policy, such as always playing the lowest card to the leftmost open Stone, breaks up its own formations and loses most Stones to a player who builds flushes and straights. Neither seat has a clear edge: the first player has tempo, and the second sees one more card before committing. Every placement is permanent, so choices decide the outcome."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Card counting, managing the hand, and timing commitments to win the 'who completed first' tie-break all give experienced players a reliable edge. Draw luck matters within a single game, but six-card hands and nine Stones give many decisions that smooth it out."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A weak player still wins Stones with naturally strong hands. A strong player keeps gaining from tracking which cards are gone, from sacrificing Stones deliberately, and from forcing the opponent to spoil formations when they run out of safe plays."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands and the deck order are hidden. Players must infer what the opponent is holding back from the cards visible on the table, and plan which Stones to contest over many turns."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "weak",
+      "evidence": "Comparing formations at the end is arithmetic. The early-claim rule, which requires 'proving' the opponent cannot beat you, is an open-ended search over unseen cards, and the engine cannot check it simply."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is turn-based and text-only, but it breaks the platform limits in several ways. The '3 adjacent Stones' win depends on adjacency. Nine Stones with two sides each need 18 side attributes plus hands and deck, which exceeds the 20-attribute limit. Each round has two random draws, but only one is allowed. A full game takes about 50 or more turns, and the limit is 40 rounds."
+    }
+  ],
+  "problems": [
+    "The '3 adjacent Stones' victory depends on adjacency in a line, which is a spatial element the platform excludes.",
+    "Nine Stones need 18 side attributes plus hands, deck and scores, which is more than 20 attributes.",
+    "A round in which both players play and draw has two random draws, but the limit is one.",
+    "A full game runs past 40 rounds.",
+    "The early-claim 'proof' rule cannot be checked by simple arithmetic.",
+    "Recognising formations is described in words and needs an exact arithmetic definition for the engine."
+  ],
+  "changes": [
+    {
+      "what": "Remove the adjacency win. The game is won by claiming 3 of the 5 Stones, which is a strict majority.",
+      "why": "This keeps a 'first to a majority' race without any spatial relation.",
+      "fixes": "The '3 adjacent Stones' victory depends on adjacency in a line, which is a spatial element the platform excludes."
+    },
+    {
+      "what": "Use 5 Stones instead of 9, and a 36-card deck (4 colours x values 1-9) instead of 54 cards.",
+      "why": "Ten Stone-side lists plus hands, deck and claim tracking fit within 20 attributes. The smaller deck keeps formations about as frequent relative to the number of Stones.",
+      "fixes": "Nine Stones need 18 side attributes plus hands, deck and scores, which is more than 20 attributes."
+    },
+    {
+      "what": "Make one round equal one player's turn. Players alternate, and each round has at most one draw.",
+      "why": "This gives exactly one chance event per round.",
+      "fixes": "A round in which both players play and draw has two random draws, but the limit is one."
+    },
+    {
+      "what": "Fix the length at 30 rounds: 5 Stones x 3 cards x 2 players. The game can end earlier when someone reaches 3 Stones.",
+      "why": "This keeps the game within 40 rounds.",
+      "fixes": "A full game runs past 40 rounds."
+    },
+    {
+      "what": "Remove early claims. A Stone is resolved automatically as soon as both sides hold 3 cards. The tie-break 'player who completed their side first' is kept and tracked with one attribute per Stone.",
+      "why": "Every resolution becomes pure arithmetic, while the tempo element of the tie-break survives.",
+      "fixes": "The early-claim 'proof' rule cannot be checked by simple arithmetic."
+    },
+    {
+      "what": "Define formation strength numerically: strength = sum of values + a tier bonus. The bonus is 120 for a Straight Flush, 90 for Three of a Kind, 60 for a Flush, 30 for a Straight, and 0 otherwise.",
+      "why": "The highest possible sum is 27, which is less than the 30-point gap between tiers. So the formula reproduces the original order exactly, and a single calculation compares two sides.",
+      "fixes": "Recognising formations is described in words and needs an exact arithmetic definition for the engine."
+    }
+  ],
+  "keeps": [
+    "Two players lay cards from a hidden hand onto their own side of contested Stones.",
+    "Each side of a Stone holds three permanent cards, scored in the original formation order: Straight Flush > Three of a Kind > Flush > Straight > High sum.",
+    "The tie-break by higher sum and then by who completed first.",
+    "A forced play every turn, so a player who runs out of good moves must spoil a formation.",
+    "Drawing one card after each play while the deck lasts.",
+    "Racing to claim a majority of the Stones."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core of Schotten Totten is inference from hidden hands, card counting and forced commitment. All of it survives when cut to 5 Stones, with alternating single turns and arithmetic Stone resolution, which fits the limits."
+  },
+  "variation": {
+    "name": "Schotten Totten: Five Stones",
+    "summary": "A compact two-player Schotten Totten. Players alternate placing one card from a hidden 6-card hand onto their side of one of 5 Stones. Each Stone is resolved arithmetically when both sides hold 3 cards, and the first to claim 3 Stones wins.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "COMPONENTS: A deck of 36 cards, 4 colours (Red, Blue, Green, Yellow) x values 1-9, each card written like 'R7'. There are 5 Stones numbered 1-5. Each Stone has a side for Player A and a side for Player B, and each side holds at most 3 cards.\n\nSETUP: Shuffle the deck. Deal 6 cards face down to each player. Each hand is private: only its owner sees it. The remaining 24 cards form a face-down draw pile. Randomly decide which player is A; A takes the first turn.\n\nROUNDS: The game has at most 30 rounds. In odd rounds Player A is active; in even rounds Player B is active. Each round:\n(1) The engine announces to both players the cards on every side of every Stone, which Stones are claimed and by whom, each player's number of claimed Stones, and how many cards remain in the draw pile.\n(2) The active player chooses one card from their hand.\n(3) The active player chooses one Stone that is unclaimed and whose side for that player holds fewer than 3 cards. A player always has such a Stone and a card to play, and must play.\n(4) The card moves from the hand to that player's side of the chosen Stone, face up. Cards never move again.\n(5) If this card was the third card on that side and the other side has fewer than 3 cards, record this player as that Stone's 'first finisher'.\n(6) If the draw pile is not empty, the active player draws its top card into their hand.\n(7) For each unclaimed Stone where both sides now hold 3 cards, resolve it, as described below.\n(8) If either player has claimed 3 Stones, the game ends immediately and that player wins.\n\nSTRENGTH OF A SIDE: Let the three values sum to S. The side has one formation:\n- Straight Flush: all three cards share a colour, the values are all different, and highest minus lowest equals 2. Bonus 120.\n- Three of a Kind: all three values are equal. Bonus 90.\n- Flush: all three cards share a colour (and the side is not a Straight Flush). Bonus 60.\n- Straight: the values are all different and highest minus lowest equals 2 (and the side is not a Straight Flush). Bonus 30.\n- Otherwise: bonus 0.\nStrength = S + bonus.\n\nRESOLVING A STONE: The side with the higher strength claims the Stone. If the strengths are equal, the first finisher of that Stone claims it. A claimed Stone stays on the table with its cards visible, but it can no longer be played on.\n\nEND OF CARDS: After round 30 every Stone has been resolved. If no one has reached 3 Stones (possible only if the game has not yet ended), the player with more claimed Stones wins. Equal counts are a draw.",
+    "objective": "The first player to claim 3 of the 5 Stones wins immediately. If the game reaches the end of round 30 without this, the player with more claimed Stones wins, and equal counts are a draw. With the first-finisher tie-break every resolved Stone has an owner, so in practice someone reaches 3.",
+    "expected_effect": "Play keeps the original's tension. Players should hold strong partial formations back, count which values and colours are gone in order to judge whether an opponent's two-card start can still become a Straight Flush or Three of a Kind, and race to complete a side first so they win ties. The forced play every turn creates late-game squeeze: a player whose safe moves run out must dump cards onto Stones they are willing to concede, and choosing which Stones to give up becomes a key decision. Five Stones with a 3-Stone majority makes each Stone weighty, so sacrificing one Stone to secure two others is a real plan. The 6-card hand and alternating turns give enough decisions per game that skill outweighs the draw. Talk is omitted, because in a two-player zero-sum race it adds no reasoning beyond bluffing that the hidden hand already supplies."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 12,
+    "choice_steps_per_round": 2,
+    "attributes": 20,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 30
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "FORMATION ORDERING, checked against the labels. Strength = S + bonus.\n| Formation | Min strength | Max strength |\n|---|---|---|\n| High sum | 1+1+2 = 4 | 9+9+8 = 26 |\n| Straight | 1+2+3+30 = 36 | 7+8+9+30 = 54 |\n| Flush (not straight flush) | 1+2+4+60 = 67 | 9+8+6+60 = 83 |\n| Three of a Kind | 3+90 = 93 | 27+90 = 117 |\n| Straight Flush | 6+120 = 126 | 24+120 = 144 |\nThe ranges do not overlap, so the stated order holds. Ties within one formation fall to sum, as in the original, and then to the first finisher. With 4 colours there are 4 copies of each value, so every formation is reachable.\n\nCARD ECONOMY. 6 + 6 dealt, 24 in the pile, and the active player draws in rounds 1-24. Each player draws 12, holds 18 over the game and plays 15, which exactly fills 15 slots. Step 3's claim that a legal play always exists holds. The number of cards played differs by at most 1. A player's open slots run out only when all of their 15 cards are down: A after round 29, B after round 30. Each player has exactly one placement per turn.\n\nTHOUGHTLESS POLICIES under the winner rule (first to 3 of 5 Stones):\n- 'Always the first card, on the lowest-numbered open Stone': this builds Stones 1-3 from random triples. Against sensible play the opponent concedes those, wins 4 and 5, and contests one Stone with planned formations. A random triple is high-sum about 70% of the time, which loses to any straight or flush, so the policy loses most games.\n- 'Always the highest card': this ignores colour and run structure. It loses to flush and straight builders, and it wins only ties of plain high sum.\n- 'Random': it loses to planned play.\nNo card or Stone choice is strictly better whatever the opponent does: the value of each placement depends on the opponent's side and on unseen cards. No policy never loses.\n\nSEAT EDGE:\n- A plays first, so A tends to become first finisher, which helps on exact ties. Exact ties are rare, since strength ranges are wide.\n- B places the very last card (round 30) with full knowledge of the board.\n- After the pile empties (round 24) both hands are fully deducible.\nThese edges roughly offset each other, and the seat is randomised. Both players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS:\n- Setup, turn order, legal plays and first finisher are specified. Step 5 records the first finisher only if the other side is not yet full, so exactly one finisher exists per Stone.\n- Resolution is specified, and only the Stone just played can become full in a round, so step 7 handles at most one Stone.\n- The end condition is specified. Five Stones means someone reaches 3 by round 30 at the latest, so the game is finite and every outcome is computed by arithmetic.\n\nARITHMETIC. Strength is computable from colour letters and values using sum, max-min, distinctness and equal-colour tests. No judge is needed, although parsing 'R7' strings needs per-card colour and value extraction in the calc steps.\n\nLIMITS: 12 steps (cap 20); 2 choice steps (cap 4); 1 random draw; 30 rounds (cap 40); 2 hidden hands (cap 3).\n\nATTRIBUTES are at the cap of 20 and tight. The count is 10 sides, 5 owner/first-finisher entries, 2 hands, 2 claim counts and 1 pile. This works only if Stone owner and first finisher share one field, or if claim counts are derived. It is feasible, but it leaves no headroom.\n\nNo board, clock, trading or binding agreements are used. Two players need no talk phase."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE. The deal and the draws decide which formations are available, as in the original. Rough estimate: about 30-40% of outcomes are driven by the cards.\n\nWHAT REASONING DOES:\n- Players choose which Stones to concede and which to contest, with 3 of 5 needed.\n- They commit cards irrevocably, with timing that affects the first finisher.\n- They count cards: 36 known cards, and the visible table shows which straight or flush completions are dead.\n- They infer the opponent's targets from partial sides.\n- After round 24 the pile is empty, every unplayed card is in one of two hands, and both hands are exactly deducible. This makes the endgame a perfect-information exercise with 3 plays each.\n\nGOOD PLAY BY BOTH. Under equal good play the deal tilts results, but it does not alone decide them. Concession choices and blocking (filling a side to deny a completion) let the weaker hand still win 3 Stones. A careful player clearly beats a thoughtless one, as shown under balanced."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

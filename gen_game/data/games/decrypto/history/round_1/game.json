@@ -1,0 +1,1261 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "decrypto",
+    "name": "Decrypto Duel (Paired Rounds)",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "Two teams of two send secret three-digit codes through clues about hidden keywords while the rival Guesser tries to intercept."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "team",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "keywords",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "my_code",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "standing",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "guess",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "word_list",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "code_list",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "enc_team",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "encryptor_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "decoder_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "interceptor_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_code",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "revealed_code",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "current_clues",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "clue_valid",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "decoder_guess",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "interceptor_guess",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "clue_history_a",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "clue_history_b",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "a_interceptions",
+        "visible": "public",
+        "type": "number"
+      },
+      {
+        "key": "a_miscommunications",
+        "visible": "public",
+        "type": "number"
+      },
+      {
+        "key": "b_interceptions",
+        "visible": "public",
+        "type": "number"
+      },
+      {
+        "key": "b_miscommunications",
+        "visible": "public",
+        "type": "number"
+      },
+      {
+        "key": "player_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "team_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "keywords_per_team",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "word_list_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 120
+      },
+      {
+        "key": "max_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "pairs",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "code_length",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "code_digit_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "code_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 24
+      },
+      {
+        "key": "clue_max_words",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "interception_trigger",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "miscommunication_trigger",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "first_interception_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "trigger_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 1000
+      }
+    ]
+  },
+  "rules": "Two teams of two (seats 1-2 are Team A, seats 3-4 are Team B) play up to {max_rounds} rounds in {pairs} pairs. Each team is dealt {keywords_per_team} different keywords from {word_list_size} nouns; no word goes to both teams and a team's keywords are visible only to its two members. Token counts start at 0 and are public; both clue histories start empty with four columns (keywords 1-4).\nWhen the round is odd in an odd pair, or even in an even pair, Team A encrypts; otherwise Team B encrypts. In odd pairs seats 1 and 3 are Encryptors and seats 2 and 4 are Guessers; in even pairs seats 2 and 4 are Encryptors and seats 1 and 3 are Guessers. The Decoder is the encrypting team's Guesser and the Interceptor is the other team's Guesser; the other team's Encryptor only watches. In rounds 1 and 2 there is no Interceptor and no interception guess is asked; from round {first_interception_round} on an Interceptor is announced.\nEach round the code is drawn uniformly from the {code_count} ordered sequences of three different digits from 1 to {code_digit_max} and is shown only to the Encryptor. The Encryptor submits three clues in code order separated by ' / ', each at most {clue_max_words} words.\nA referee rules the clue set valid or invalid. It is valid only if every clue relates by meaning or association to its keyword, no clue hints by spelling, letters, letter count, rhyme or keyword number or position, no clue contains its keyword or a form of it, and no clue repeats a clue in that team's history. If valid, the clues are shown to all before guesses and the round continues; if invalid, the code is revealed to everyone, the encrypting team gains 1 Miscommunication, no clues are added and no guesses are taken.\nThe Decoder and the Interceptor (when there is one) submit guesses at the same time from the {code_count} codes, and neither sees the other's guess until both are in. Nobody else is asked; when the clue set was invalid nobody is asked. If the Decoder's guess differs in any digit, the encrypting team gains 1 Miscommunication; if it matches exactly, no Miscommunication is gained. If the Interceptor's guess equals the true code exactly, the Interceptor's team gains 1 Interception; otherwise it gains nothing. When clues are valid each clue is appended to the encrypting team's public history under the keyword number it clued (3 entries per valid round); when invalid nothing is appended.\nThe game can end only after an even-numbered round; after an odd round play always continues. A team triggers when it has {interception_trigger} or more Interceptions or the other team has {miscommunication_trigger} or more Miscommunications. When exactly one team triggers at the end of an even round, that team wins. When both trigger, or when neither has triggered by round {max_rounds}, the higher Interceptions minus Miscommunications wins and equal values are a draw. Both members of a team share its result. There is no talk phase; players communicate only through clues.",
+  "setup": [
+    {
+      "use": "update",
+      "label": "the teams",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.seat <= team_size"
+            },
+            "key": "team",
+            "value": "A"
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat > team_size"
+            },
+            "key": "team",
+            "value": "B"
+          }
+        }
+      ],
+      "text": "Seats 1 and 2 are Team A (A1, A2). Seats 3 and 4 are Team B (B1, B2)."
+    },
+    {
+      "use": "update",
+      "label": "the word list and codes",
+      "do": [
+        {
+          "set": {
+            "key": "word_list",
+            "value": [
+              "apple",
+              "anchor",
+              "arrow",
+              "axe",
+              "ball",
+              "balloon",
+              "banana",
+              "basket",
+              "bed",
+              "bell",
+              "bicycle",
+              "boat",
+              "book",
+              "boot",
+              "bottle",
+              "bowl",
+              "box",
+              "bread",
+              "bridge",
+              "broom",
+              "brush",
+              "bucket",
+              "button",
+              "cake",
+              "camera",
+              "candle",
+              "car",
+              "carpet",
+              "castle",
+              "chair",
+              "cheese",
+              "clock",
+              "cloud",
+              "coat",
+              "coin",
+              "comb",
+              "computer",
+              "cup",
+              "desk",
+              "diamond",
+              "door",
+              "drum",
+              "egg",
+              "envelope",
+              "feather",
+              "fence",
+              "flag",
+              "flower",
+              "fork",
+              "glove",
+              "guitar",
+              "hammer",
+              "hat",
+              "helmet",
+              "horse",
+              "house",
+              "island",
+              "jacket",
+              "kettle",
+              "key",
+              "kite",
+              "knife",
+              "ladder",
+              "lamp",
+              "leaf",
+              "lemon",
+              "lock",
+              "map",
+              "mirror",
+              "moon",
+              "mountain",
+              "needle",
+              "nest",
+              "onion",
+              "orange",
+              "oven",
+              "paint",
+              "pencil",
+              "piano",
+              "pillow",
+              "pipe",
+              "plate",
+              "pocket",
+              "pot",
+              "pumpkin",
+              "rabbit",
+              "ring",
+              "river",
+              "rope",
+              "rose",
+              "saddle",
+              "scarf",
+              "scissors",
+              "shell",
+              "ship",
+              "shoe",
+              "sock",
+              "spoon",
+              "star",
+              "stone",
+              "sun",
+              "sword",
+              "table",
+              "tent",
+              "tiger",
+              "tooth",
+              "towel",
+              "tower",
+              "train",
+              "tree",
+              "truck",
+              "umbrella",
+              "vase",
+              "wagon",
+              "wall",
+              "watch",
+              "wheel",
+              "whistle",
+              "window",
+              "wolf"
+            ]
+          }
+        },
+        {
+          "set": {
+            "key": "code_list",
+            "value": [
+              "1-2-3",
+              "1-2-4",
+              "1-3-2",
+              "1-3-4",
+              "1-4-2",
+              "1-4-3",
+              "2-1-3",
+              "2-1-4",
+              "2-3-1",
+              "2-3-4",
+              "2-4-1",
+              "2-4-3",
+              "3-1-2",
+              "3-1-4",
+              "3-2-1",
+              "3-2-4",
+              "3-4-1",
+              "3-4-2",
+              "4-1-2",
+              "4-1-3",
+              "4-2-1",
+              "4-2-3",
+              "4-3-1",
+              "4-3-2"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal Team A keywords",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal Team B keywords",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "word_list[min(int(uniform(0, len(word_list))), len(word_list) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "keywords",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "word_list",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "your keywords",
+      "to": "all",
+      "text": "You are on Team {team}. Your team's secret keywords, numbered 1-4 in order: {keywords}."
+    },
+    {
+      "use": "update",
+      "label": "tokens and histories",
+      "do": [
+        {
+          "set": {
+            "key": "a_interceptions",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "a_miscommunications",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "b_interceptions",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "b_miscommunications",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "clue_history_a",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "clue_history_b",
+            "value": []
+          }
+        }
+      ],
+      "text": "All token counts start at 0. Both clue histories start empty, with four columns (keywords 1-4) each."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "roles",
+      "label": "the round roles",
+      "do": [
+        {
+          "adjust": {
+            "key": "round_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "enc_team",
+            "value": {
+              "calc": "'A' if ((round_number + 1) // 2) % 2 == round_number % 2 else 'B'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "encryptor_seat",
+            "value": {
+              "calc": "(1 if enc_team == 'A' else 3) + (0 if ((round_number + 1) // 2) % 2 == 1 else 1)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "decoder_seat",
+            "value": {
+              "calc": "(1 if enc_team == 'A' else 3) + (1 if ((round_number + 1) // 2) % 2 == 1 else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "interceptor_seat",
+            "value": {
+              "calc": "0 if round_number < first_interception_round else ((3 if enc_team == 'A' else 1) + (1 if ((round_number + 1) // 2) % 2 == 1 else 0))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "my_code",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "guess",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "revealed_code",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "decoder_guess",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "interceptor_guess",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "current_clues",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "clue_valid",
+            "value": false
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "roles",
+      "label": "announce with interceptor",
+      "when": {
+        "calc": "interceptor_seat > 0"
+      },
+      "to": "all",
+      "text": "Round {round_number} of {max_rounds}: Team {enc_team} encrypts. Encryptor seat {encryptor_seat}. Decoder seat {decoder_seat}. Interceptor seat {interceptor_seat}."
+    },
+    {
+      "use": "tell",
+      "phase": "roles",
+      "label": "announce without interceptor",
+      "when": {
+        "calc": "interceptor_seat == 0"
+      },
+      "to": "all",
+      "text": "Round {round_number} of {max_rounds}: Team {enc_team} encrypts. Encryptor seat {encryptor_seat}. Decoder seat {decoder_seat}. There is no interception this round."
+    },
+    {
+      "use": "update",
+      "phase": "code",
+      "label": "draw the code",
+      "do": [
+        {
+          "set": {
+            "key": "current_code",
+            "value": {
+              "calc": "code_list[min(int(uniform(0, code_count)), code_count - 1)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": {
+              "calc": "encryptor_seat"
+            },
+            "key": "my_code",
+            "value": {
+              "calc": "current_code"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "code",
+      "label": "your keywords this round",
+      "to": "all",
+      "text": "Round {round_number}. You are on Team {team}. Your team's keywords, numbered 1-4 in order: {keywords}."
+    },
+    {
+      "use": "tell",
+      "phase": "code",
+      "label": "your secret code",
+      "to": {
+        "where": "you.seat == encryptor_seat"
+      },
+      "text": "You are the Encryptor. Your secret code is {my_code}."
+    },
+    {
+      "use": "ask",
+      "phase": "clues",
+      "label": "write the clues",
+      "to": {
+        "where": "you.seat == encryptor_seat"
+      },
+      "answer": {
+        "type": "text",
+        "max_words": 15
+      },
+      "verify": {
+        "bind": "clues"
+      },
+      "text": "You are the Encryptor. Write three clues in code order, one per digit, separated by ' / ', each at most {clue_max_words} words. Each clue must relate by meaning to your team's keyword with that number. No spelling, letters, counts, rhyme, number or position hints; never use the keyword or a form of it; never repeat a clue in your team's history."
+    },
+    {
+      "use": "update",
+      "phase": "clues",
+      "label": "store the clues",
+      "do": [
+        {
+          "set": {
+            "key": "current_clues",
+            "value": "$clues"
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "clues",
+      "label": "referee rules on clues",
+      "when": {
+        "prose": "Each of the three clues in current_clues relates by meaning or association to the keyword (from the encrypting team's keywords) numbered by its digit of current_code, no clue hints by spelling, letters, letter count, rhyme or keyword number or position, no clue contains its keyword or a form of it, and no clue repeats a clue already in the encrypting team's clue history."
+      },
+      "do": [
+        {
+          "set": {
+            "key": "clue_valid",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "clues",
+      "label": "invalid clue set",
+      "when": {
+        "calc": "not clue_valid"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "revealed_code",
+            "value": {
+              "calc": "current_code"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "a_miscommunications",
+            "value": 1,
+            "if": {
+              "calc": "enc_team == 'A'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "b_miscommunications",
+            "value": 1,
+            "if": {
+              "calc": "enc_team == 'B'"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "clues",
+      "label": "show the clues",
+      "when": {
+        "calc": "clue_valid"
+      },
+      "to": "all",
+      "text": "Team {enc_team}'s clues, in code order: {current_clues}"
+    },
+    {
+      "use": "tell",
+      "phase": "clues",
+      "label": "invalid clues announced",
+      "when": {
+        "calc": "not clue_valid"
+      },
+      "to": "all",
+      "text": "The referee ruled Team {enc_team}'s clue set invalid. The code was {revealed_code}. Team {enc_team} gains 1 Miscommunication. No clues are added and no guesses are taken. Tokens: A {a_interceptions} Interceptions / {a_miscommunications} Miscommunications; B {b_interceptions} Interceptions / {b_miscommunications} Miscommunications."
+    },
+    {
+      "use": "poll",
+      "phase": "guess",
+      "label": "guess the code",
+      "when": {
+        "calc": "clue_valid"
+      },
+      "to": {
+        "where": "you.seat == decoder_seat or you.seat == interceptor_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "game": "code_list"
+        }
+      },
+      "store": "guess",
+      "text": "Guess Team {enc_team}'s code from the clues: {current_clues}. Choose one code. Your guess stays secret until both guesses are in."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "score the guesses",
+      "when": {
+        "calc": "clue_valid"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "revealed_code",
+            "value": {
+              "calc": "current_code"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "decoder_guess",
+            "value": {
+              "calc": "[p.guess for p in players if p.seat == decoder_seat][0]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "interceptor_guess",
+            "value": {
+              "calc": "[p.guess for p in players if p.seat == interceptor_seat][0]"
+            },
+            "if": {
+              "calc": "interceptor_seat > 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "a_miscommunications",
+            "value": 1,
+            "if": {
+              "calc": "enc_team == 'A' and decoder_guess != current_code"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "b_miscommunications",
+            "value": 1,
+            "if": {
+              "calc": "enc_team == 'B' and decoder_guess != current_code"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "b_interceptions",
+            "value": 1,
+            "if": {
+              "calc": "enc_team == 'A' and interceptor_seat > 0 and interceptor_guess == current_code"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "a_interceptions",
+            "value": 1,
+            "if": {
+              "calc": "enc_team == 'B' and interceptor_seat > 0 and interceptor_guess == current_code"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "clue_history_a",
+            "value": {
+              "calc": "'keyword ' + current_code[0] + ': clue 1 of ' + current_clues"
+            },
+            "if": {
+              "calc": "enc_team == 'A'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "clue_history_a",
+            "value": {
+              "calc": "'keyword ' + current_code[2] + ': clue 2 of ' + current_clues"
+            },
+            "if": {
+              "calc": "enc_team == 'A'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "clue_history_a",
+            "value": {
+              "calc": "'keyword ' + current_code[4] + ': clue 3 of ' + current_clues"
+            },
+            "if": {
+              "calc": "enc_team == 'A'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "clue_history_b",
+            "value": {
+              "calc": "'keyword ' + current_code[0] + ': clue 1 of ' + current_clues"
+            },
+            "if": {
+              "calc": "enc_team == 'B'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "clue_history_b",
+            "value": {
+              "calc": "'keyword ' + current_code[2] + ': clue 2 of ' + current_clues"
+            },
+            "if": {
+              "calc": "enc_team == 'B'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "clue_history_b",
+            "value": {
+              "calc": "'keyword ' + current_code[4] + ': clue 3 of ' + current_clues"
+            },
+            "if": {
+              "calc": "enc_team == 'B'"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "reveal",
+      "label": "the reveal",
+      "when": {
+        "calc": "clue_valid"
+      },
+      "to": "all",
+      "text": "The code was {revealed_code}. Decoder guessed {decoder_guess}. Interceptor guessed {interceptor_guess} (blank when there is no Interceptor). Tokens: A {a_interceptions} Interceptions / {a_miscommunications} Miscommunications; B {b_interceptions} Interceptions / {b_miscommunications} Miscommunications."
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "standings at the end of the pair",
+      "when": {
+        "calc": "round_number % 2 == 0"
+      },
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.seat <= team_size"
+            },
+            "key": "standing",
+            "value": {
+              "calc": "((1 if (a_interceptions >= interception_trigger or b_miscommunications >= miscommunication_trigger) else 0) - (1 if (b_interceptions >= interception_trigger or a_miscommunications >= miscommunication_trigger) else 0)) * trigger_weight + a_interceptions - a_miscommunications"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat > team_size"
+            },
+            "key": "standing",
+            "value": {
+              "calc": "((1 if (b_interceptions >= interception_trigger or a_miscommunications >= miscommunication_trigger) else 0) - (1 if (a_interceptions >= interception_trigger or b_miscommunications >= miscommunication_trigger) else 0)) * trigger_weight + b_interceptions - b_miscommunications"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "end of the pair",
+      "when": {
+        "calc": "round_number % 2 == 0"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round_number % 2 == 0 and (a_interceptions >= interception_trigger or b_miscommunications >= miscommunication_trigger or b_interceptions >= interception_trigger or a_miscommunications >= miscommunication_trigger or round_number >= max_rounds)"
+      },
+      "rank_by": "you.standing",
+      "text": "Winner: {result}. Team A: {a_interceptions} Interceptions, {a_miscommunications} Miscommunications (standing {players[0].standing}); Team B: {b_interceptions} Interceptions, {b_miscommunications} Miscommunications (standing {players[2].standing})."
+    }
+  },
+  "limits": {
+    "rounds": 16,
+    "rounds_max": 16,
+    "actions_max": 400,
+    "deadline_s": 120
+  }
+}

@@ -1,0 +1,50 @@
+# 02 critic
+
+- time: 2026-10-27T22:05:17+00:00 (71.3s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 b14ff75360112b5d, reply sha256 d1797076a0dfad10
+
+## Sent
+
+````
+ORIGINAL GAME: Libertalia
+Game is 3 campaigns of 6 looting days plus a rest day. Each player has 30 cards of one color. At start of campaign 1, one player draws 9 random cards and all players take the same 9 into hand; later campaigns each player keeps 3 unplayed cards and draws 6 new common cards. Each day, booty tokens (chests 5, jewels 3, goods 1, maps, cursed -3, sabers, officers) are placed in 6 spaces, N tokens per space where N=player count. Sunrise: all simultaneously choose 1 hand card face down then reveal. Order characters by rank number, tie by influence value in silver mark. Day: in ascending rank order resolve each character's day ability. Dusk: in descending rank order each player takes one remaining booty token from that day's space and resolves dusk ability and saber/officer effects. Character goes to player's den face up. Night: all dens resolve night abilities simultaneously. Rest day: score dens: doubloons + chests*5 + jewels*3 + goods*1 + 12 per set of 3 maps -3 per cursed relic. Add to total track. Discard all characters in dens/graveyard, return booty and doubloons, give each 10 doubloons to start next campaign.
+
+PROPOSED VARIATION: Libertalia: Shared Hand
+Players: 3 to 3
+Rules: SETUP: 3 players, each with a score of 0 doubloons. The game has 2 campaigns of 5 days (10 rounds). At the start of each campaign every player receives the same 7-card hand: ranks 1 to 7, one card of each rank. Cards played are removed from the owner's hand. The 2 cards left after day 5 are discarded unused, and a fresh full hand is dealt for campaign 2. Which cards each player has played is public once revealed.
+
+CHARACTERS:
+- Rank 1, Cabin Boy: takes no booty. Gains 3 doubloons.
+- Rank 2, Gunner: takes booty normally. Every other non-clashed player who played rank 6 or 7 loses 3 doubloons.
+- Rank 3, Quartermaster: takes booty normally. Gains 1 doubloon for each other non-clashed player who played a higher rank.
+- Rank 4, Bosun: takes booty normally. If the token taken is negative, it counts as 0.
+- Rank 5, Merchant: takes booty normally. Gains 2 extra doubloons if the token taken is worth 3 or more.
+- Rank 6, Captain: takes booty normally. No ability.
+- Rank 7, Admiral: takes booty normally. Pays a wage: loses 2 doubloons.
+
+BOOTY ROWS: each day one row is drawn at random, each equally likely, with replacement, from: A [5,3,1], B [5,1,-3], C [3,3,1], D [5,3,-3], E [3,1,-3], F [5,5,-3]. The values are the tokens, listed best to worst.
+
+EACH DAY (ROUND):
+1. Draw the booty row and announce it to all players.
+2. Talk: everyone writes one short message at the same time. All messages are then shown to everyone. Messages are not binding.
+3. All players secretly and simultaneously choose one card from their hand.
+4. Reveal all cards.
+5. Clash: if two or three players played the same rank, all of those players are clashed. They take no booty, their abilities do not fire, and their cards are still spent.
+6. Booty: non-clashed players other than the Cabin Boy are ordered by rank, highest first. The first takes the best token, the second the next, and so on. Tokens left over are discarded.
+7. Abilities of non-clashed characters resolve at the same time, as listed above. Gunner and Quartermaster count only non-clashed players.
+8. Each player adds their token value plus or minus their ability effects to their score.
+9. After day 5, discard leftover cards and deal fresh hands. After day 10, the game ends.
+
+The Cabin Boy's +3 still applies when other players take booty. Scores can go negative.
+How the winner is decided: After 10 rounds, the player with the highest doubloon total wins. If two or more players share the highest total, they draw.
+The designer's stated complexity: {"steps_per_round": 14, "choice_steps_per_round": 2, "attributes": 17, "hidden_elements": 1, "random_draws_per_round": 1, "rounds": 10}
+````
+
+## Reply
+
+````
+```json
+{"balanced": {"verdict": "pass", "evidence": "TOKEN TABLE (best/second/worst): A 5/3/1, B 5/1/-3, C 3/3/1, D 5/3/-3, E 3/1/-3, F 5/5/-3. Averages: best 26/6=4.33, second 16/6=2.67, worst -10/6=-1.67. All values below assume the card is not clashed.\n\nCARD VALUES:\n- Cabin Boy (1) is a flat +3.\n- Admiral (7) always takes the best token, minus 2. Per row A..F that is 3,1,3,3,1,3, average 2.33. A Gunner present costs a further 3.\n- Captain (6) takes the best token if there is no 7. If a 7 is present it takes the second token: A..F 3,1,3,3,1,5. A Gunner present costs 3.\n- Merchant (5) in first place: A..F 7,7,5,7,5,7, average 6.33. In second place: 5,1,5,5,1,7, average 4.0.\n- Bosun (4) turns the worst token's average of -1.67 into 0.33, because the -3s become 0.\n- Gunner (2) and Quartermaster (3) usually take the second or third token. They gain or deter through their abilities.\n\nDOMINANCE: No card is strictly dominant. Cabin Boy (3) is at least Admiral (at most 3) only when neither card is clashed. If an opponent also plays 1, the Cabin Boy scores 0 while an Admiral could have scored 3. Clash outcomes depend on the opponents' choices, so dominance fails across opponent actions. Each card is also usable only once per campaign, with 5 of 7 played, so timing matters.\n\nTHOUGHTLESS POLICIES under the winner rule:\n(a) Always highest (7,6,5,4,3). Day 1 yields at most 3, and it loses 3 to any Gunner. Day 2 the Captain is exposed to the Gunner again. Its play is predictable, so opponents can time Gunners and avoid its ranks. It loses to sensible play. Against random play it also clashes often, with about a 1-in-7 chance per opponent per day of matching.\n(b) Always lowest (1,2,3,4,5). Opponents know day 1 is the Cabin Boy, so they play e.g. 5 and 6 and take best plus second (+2) against its 3. On day 2 they dodge 6/7 and its Gunner gets a low token. On day 3 its Quartermaster gains at most +2. On days 4-5 its Bosun and Merchant are predictable and easily outranked. It loses on average to sensible play.\n(c) Two copies of the same deterministic policy clash every day and score 0, while the third player scores freely. A policy that can score 0 for ten rounds clearly can lose. No thoughtless policy wins or draws almost every time.\n\nSEATS: The game is fully symmetric, with simultaneous choice, identical hands, a public row and public played cards. There is no seat edge. All three players can realistically win.", "playable": {"verdict": "pass", "evidence": "RULES COVERAGE: The rules cover every case:\n- Clashes are defined for two or three matching ranks.\n- Non-clashed ranks are distinct, so the booty order has no ties.\n- At most 3 takers face 3 tokens, and leftovers are discarded.\n- The Cabin Boy is excluded from booty.\n- The Gunner and Quartermaster count only non-clashed other players.\n- Bosun and Merchant conditions are arithmetic.\n- Hands reset after day 5, and the 2 leftover cards are discarded.\n- Scores accumulate and may go negative.\n- Ties draw.\n\nFINITENESS AND ARITHMETIC: The game is finite at 10 rounds and decided by an arithmetic total.\n\nLIMITS: The stated complexity is within all limits: steps 14/20, choices 2/4 (talk plus card), attributes 17/20 (hands as per-player lists, scores, row, played ranks), hidden 1/3, random draws 1/1, rounds 10/40. Ranking 3 distinct ranks needs calc, and the token lookup costs steps (the payoff_matrix workaround), but this plausibly fits under 20. The card choice is a simultaneous poll. No board, clock, judge, trading or binding is needed.\n\nTALK: Talk is simultaneous and justified. All players want to avoid clashes but disagree about who takes the high ranks, and a player can bluff a rank to induce a clash or a dodge. Following a proposal can therefore cost a player.\n\nREPEATED-GAME CHECK: This is not a prisoner's dilemma with a safe late option. On days 5 and 10 hands are fully public (3 cards each), and the choice is a pure anti-coordination and ordering problem with no dominant safe card.", "reasoning_over_luck": {"verdict": "pass", "evidence": "THE RANDOM ROW: The only random element is the row. It is drawn before choices, announced, and shared by all, so it is information to act on rather than a hidden luck source. The spread between best and worst token varies from 2 (row C) to 8 (row F). This changes the relative value of the Bosun, Merchant, Cabin Boy and high ranks, and rewards reasoning about which card to spend on which row.\n\nHOW GOOD PLAY WINS: Played cards are public, so remaining hands can be deduced exactly. Predicting opponents' ranks lets a player:\n- avoid clashes;\n- time the Gunner against expected 6s and 7s;\n- time the Quartermaster under expected high cards;\n- choose which 2 cards to discard.\nA predictable player is exploitable, as shown in the balanced check.\n\nOUTCOME UNDER GOOD PLAY: When all play well, results hinge on mixed-strategy anti-coordination, not on the draw. The row affects all players symmetrically, and no hidden type or deal decides the winner. Chance from the row alone accounts for roughly 15-25% of the variance in winner identity.\n\nSKILL ADVANTAGE: A player who models opponents is clearly favoured over one who does not.", "required_changes": []}
+```
+````

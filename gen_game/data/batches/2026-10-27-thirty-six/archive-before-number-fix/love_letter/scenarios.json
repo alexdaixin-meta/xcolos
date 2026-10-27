@@ -1,0 +1,1683 @@
+[
+  {
+    "name": "Before any deal the deck holds all 16 cards and hands are empty",
+    "rule": "R1",
+    "players": 2,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 16
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "The deck has 16 cards: rank 1 x5, rank 2 x2, rank 3 x2, rank 4 x2, rank 5 x2, rank 6 x1, rank 7 x1, rank 8 x1."
+  },
+  {
+    "name": "First round deals 1 burned, 5 face up and resets old discards (random deal: only counts asserted)",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "discards": [
+            5,
+            5,
+            5
+          ],
+          "discard_sum": 15
+        }
+      },
+      "game": {
+        "hand_over": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_number": 1
+      },
+      "lens": {
+        "game": {
+          "face_up": 5,
+          "burned_card": 1
+        },
+        "players": {
+          "1": {
+            "discards": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When hand_over = 1 at the start of a round, then all 16 cards are gathered, 1 goes to burned_card, 5 go face up to face_up, each player gets 1 card, deck_count = 8, protected, eliminated and discard_sum are 0 for both players, and hand_over = 0."
+  },
+  {
+    "name": "New hand shows 5 face-up ranks while the burned card stays apart (random deal: only counts asserted)",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "face_up": 5,
+          "burned_card": 1
+        }
+      }
+    },
+    "rule_text": "When a new hand is dealt, then the 5 face_up ranks are announced and the burned card stays hidden."
+  },
+  {
+    "name": "Turn start draws one card and deck_count drops by 1",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "game": {
+        "deck_count": 2
+      },
+      "lens": {
+        "game": {
+          "deck": 2
+        },
+        "players": {
+          "1": {
+            "hand": 1
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "discards": [
+            4
+          ],
+          "career_sum": 4
+        }
+      }
+    },
+    "rule_text": "When a turn starts, then the active player's protected = 0, they draw 1 card from the deck, deck_count drops by 1, and they are privately told the rank they kept and the rank they drew."
+  },
+  {
+    "name": "The chosen rank is the one discarded",
+    "rule": "R5",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            2
+          ],
+          "career_sum": 2
+        },
+        "2": {
+          "discards": [],
+          "tokens": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        },
+        {
+          "seat": 1,
+          "option": 4
+        }
+      ]
+    },
+    "rule_text": "When the active player chooses a rank, then it is stored in discard_choice."
+  },
+  {
+    "name": "Countess with Prince must be discarded",
+    "rule": "R6",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            7
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          5,
+          5,
+          5
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            7
+          ],
+          "career_sum": 7
+        },
+        "2": {
+          "discards": []
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 5
+        }
+      ]
+    },
+    "rule_text": "When the active player holds rank 7 together with rank 5 or rank 6, then discard_choice = 7."
+  },
+  {
+    "name": "Discard appends to discards and adds to career_sum",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ],
+          "discards": [
+            4
+          ],
+          "discard_sum": 4,
+          "career_sum": 10
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4
+        ],
+        "deck_count": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            4,
+            4
+          ],
+          "career_sum": 14
+        }
+      },
+      "game": {
+        "deck_count": 1
+      }
+    },
+    "rule_text": "When a card is discarded, then it moves to the player's discards, its rank is added to discard_sum and career_sum, and 'Seat s discards rank r (name)' is announced."
+  },
+  {
+    "name": "Guard asks for a guess from 2 to 8",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            1
+          ],
+          "career_sum": 1,
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        },
+        {
+          "seat": 1,
+          "option": 8
+        }
+      ]
+    },
+    "rule_text": "When discard_choice = 1, then the active player names a rank from 2 to 8 as guess."
+  },
+  {
+    "name": "Guard against a protected opponent does nothing even with the right guess",
+    "rule": "R9",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "protected": 1
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0,
+          "discards": [
+            1
+          ]
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When a Guard is played against a protected opponent, then it has no effect."
+  },
+  {
+    "name": "Guard correct guess eliminates the opponent and gives a token",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 1
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When a Guard's guess equals an unprotected opponent's card, then the opponent's eliminated = 1 and a hit is announced; otherwise a miss is announced."
+  },
+  {
+    "name": "Guard wrong guess is a miss",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When a Guard's guess equals an unprotected opponent's card, then the opponent's eliminated = 1 and a hit is announced; otherwise a miss is announced."
+  },
+  {
+    "name": "Priest only looks: nobody is out and the opponent keeps its card",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0,
+          "discards": [
+            2
+          ]
+        },
+        "2": {
+          "tokens": 0,
+          "discards": []
+        }
+      },
+      "lens": {
+        "players": {
+          "2": {
+            "hand": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a Priest is played against an unprotected opponent, then the active player is privately told the opponent's rank and the look is announced publicly; against a protected opponent it has no effect."
+  },
+  {
+    "name": "Baron: opponent's lower card is out",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ]
+        },
+        "2": {
+          "hand": [
+            2
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          5,
+          5,
+          5
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 1,
+          "discards": [
+            3
+          ]
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When a Baron is played against an unprotected opponent, then the holder of the lower hand card gets eliminated = 1 and the losing rank is announced; on equal cards a tie is announced and nobody is out."
+  },
+  {
+    "name": "Baron: active player's lower card is out",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ]
+        },
+        "2": {
+          "hand": [
+            7
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          5,
+          5,
+          5
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 1
+        }
+      }
+    },
+    "rule_text": "When a Baron is played against an unprotected opponent, then the holder of the lower hand card gets eliminated = 1 and the losing rank is announced; on equal cards a tie is announced and nobody is out."
+  },
+  {
+    "name": "Baron: equal cards tie, nobody out",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ]
+        },
+        "2": {
+          "hand": [
+            5
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          5,
+          5,
+          5
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When a Baron is played against an unprotected opponent, then the holder of the lower hand card gets eliminated = 1 and the losing rank is announced; on equal cards a tie is announced and nobody is out."
+  },
+  {
+    "name": "Handmaid protects against the opponent's next Guard",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            1
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          6,
+          6,
+          6
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0,
+          "discards": [
+            4
+          ]
+        },
+        "2": {
+          "tokens": 0,
+          "discards": [
+            1
+          ]
+        }
+      },
+      "game": {
+        "deck_count": 1
+      }
+    },
+    "rule_text": "When a Handmaid is played, then the active player's protected = 1 until their next turn starts."
+  },
+  {
+    "name": "Prince targets the unprotected opponent, who discards and redraws",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            5
+          ],
+          "career_sum": 5
+        },
+        "2": {
+          "discards": [
+            3
+          ],
+          "career_sum": 3
+        }
+      },
+      "game": {
+        "deck_count": 1
+      },
+      "lens": {
+        "players": {
+          "2": {
+            "hand": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a Prince is played, then its target is the opponent, or the active player if the opponent is protected."
+  },
+  {
+    "name": "Prince targets the active player when the opponent is protected",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "protected": 1
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            5,
+            4
+          ],
+          "career_sum": 9
+        },
+        "2": {
+          "discards": [],
+          "career_sum": 0
+        }
+      },
+      "game": {
+        "deck_count": 1
+      }
+    },
+    "rule_text": "When a Prince is played, then its target is the opponent, or the active player if the opponent is protected."
+  },
+  {
+    "name": "Prince forcing out the Princess eliminates the target",
+    "rule": "R15",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            8
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 1
+        },
+        "2": {
+          "discards": [
+            8
+          ],
+          "career_sum": 8,
+          "tokens": 0
+        }
+      },
+      "game": {
+        "deck_count": 2
+      }
+    },
+    "rule_text": "When a Prince target discards, then the rank is added to the target's discard_sum and career_sum and announced; if it was rank 8, the target's eliminated = 1."
+  },
+  {
+    "name": "Prince with an empty deck gives the target the burned card",
+    "rule": "R16",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4
+        ],
+        "deck_count": 1,
+        "burned_card": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 1
+        },
+        "2": {
+          "discards": [
+            3
+          ],
+          "career_sum": 3,
+          "tokens": 0
+        }
+      },
+      "game": {
+        "deck_count": 0
+      },
+      "lens": {
+        "game": {
+          "burned_card": 0
+        }
+      }
+    },
+    "rule_text": "When a Prince target did not discard rank 8, then the target draws from the deck if deck_count > 0 (deck_count drops by 1); otherwise the target takes the burned card."
+  },
+  {
+    "name": "King swaps hands (seen through the showdown that follows)",
+    "rule": "R17",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            6
+          ]
+        },
+        "2": {
+          "hand": [
+            7
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          2
+        ],
+        "deck_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 1,
+          "discards": [
+            6
+          ]
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When a King is played against an unprotected opponent, then the two hand cards are swapped and the swap is announced; against a protected opponent it has no effect."
+  },
+  {
+    "name": "King against a protected opponent does not swap",
+    "rule": "R17",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            6
+          ]
+        },
+        "2": {
+          "hand": [
+            7
+          ],
+          "protected": 1
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          2
+        ],
+        "deck_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 1
+        }
+      }
+    },
+    "rule_text": "When a King is played against an unprotected opponent, then the two hand cards are swapped and the swap is announced; against a protected opponent it has no effect."
+  },
+  {
+    "name": "Discarding the Princess knocks yourself out",
+    "rule": "R18",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            8
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 8
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            8
+          ],
+          "career_sum": 8,
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 1
+        }
+      }
+    },
+    "rule_text": "When a Princess is discarded by the active player, then their eliminated = 1."
+  },
+  {
+    "name": "Empty deck triggers showdown, lower card loses",
+    "rule": "R19",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            6
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4
+        ],
+        "deck_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 1
+        }
+      },
+      "game": {
+        "deck_count": 0
+      }
+    },
+    "rule_text": "When nobody is eliminated and (deck_count = 0 or it is round 40), then both hands are revealed and the lower card's owner gets eliminated = 1."
+  },
+  {
+    "name": "Equal showdown cards: lower discard_sum loses",
+    "rule": "R20",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            4
+          ],
+          "discard_sum": 2
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4
+        ],
+        "deck_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 1
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When showdown cards are equal, then the lower discard_sum is eliminated; if discard_sum is also equal, then the hand is tied, no token is awarded, and hand_over = 1."
+  },
+  {
+    "name": "Equal showdown cards and discard_sum: tied hand, no token",
+    "rule": "R20",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            4
+          ],
+          "discard_sum": 4
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4
+        ],
+        "deck_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 0
+        },
+        "2": {
+          "tokens": 0
+        }
+      }
+    },
+    "rule_text": "When showdown cards are equal, then the lower discard_sum is eliminated; if discard_sum is also equal, then the hand is tied, no token is awarded, and hand_over = 1."
+  },
+  {
+    "name": "Elimination gives the other player exactly one token",
+    "rule": "R21",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "tokens": 2
+        },
+        "2": {
+          "hand": [
+            6
+          ],
+          "tokens": 1
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tokens": 3
+        },
+        "2": {
+          "tokens": 1
+        }
+      }
+    },
+    "rule_text": "When exactly one player is eliminated, then the other gains 1 token, hand_over = 1, and the eliminated player is active_seat for the next hand."
+  },
+  {
+    "name": "Eliminated seat starts the next hand (random new deal: only counts asserted)",
+    "rule": "R21",
+    "players": 2,
+    "rounds": 2,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            6
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "deck_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 6,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_number": 2
+      },
+      "lens": {
+        "players": {
+          "2": {
+            "discards": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When exactly one player is eliminated, then the other gains 1 token, hand_over = 1, and the eliminated player is active_seat for the next hand."
+  },
+  {
+    "name": "Without a token the turn passes to the other seat",
+    "rule": "R22",
+    "players": 2,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            2
+          ]
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "deck": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "deck_count": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "discards": [
+            4
+          ]
+        },
+        "2": {
+          "discards": [
+            4
+          ]
+        }
+      },
+      "game": {
+        "deck_count": 2
+      }
+    },
+    "rule_text": "When no token was awarded in a round, then active_seat switches to the other seat."
+  },
+  {
+    "name": "Round 40 showdown decides the last token and the game ends",
+    "rule": "R23",
+    "players": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ],
+          "tokens": 3,
+          "career_sum": 50
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "tokens": 3,
+          "career_sum": 60
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "round_number": 39,
+        "deck": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "deck_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 3054,
+        "2": 4060
+      },
+      "players": {
+        "1": {
+          "tokens": 3,
+          "career_sum": 54
+        },
+        "2": {
+          "tokens": 4
+        }
+      },
+      "game": {
+        "round_number": 40
+      }
+    },
+    "rule_text": "When round 40 ends, then the game ends; more tokens wins, then higher career_sum, and if both are equal it is a draw."
+  },
+  {
+    "name": "Equal tokens at the end: higher career_sum wins",
+    "rule": "R23",
+    "players": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ],
+          "tokens": 2,
+          "career_sum": 30
+        },
+        "2": {
+          "hand": [
+            4
+          ],
+          "tokens": 2,
+          "career_sum": 40,
+          "discard_sum": 4
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "round_number": 39,
+        "deck": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "deck_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 2034,
+        "2": 2040
+      },
+      "players": {
+        "1": {
+          "tokens": 2,
+          "career_sum": 34
+        },
+        "2": {
+          "tokens": 2,
+          "career_sum": 40
+        }
+      }
+    },
+    "rule_text": "When round 40 ends, then the game ends; more tokens wins, then higher career_sum, and if both are equal it is a draw."
+  },
+  {
+    "name": "Equal tokens and career_sum at the end: shared result",
+    "rule": "R23",
+    "players": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ],
+          "tokens": 2,
+          "career_sum": 36
+        },
+        "2": {
+          "hand": [
+            4
+          ],
+          "tokens": 2,
+          "career_sum": 40,
+          "discard_sum": 4
+        }
+      },
+      "game": {
+        "hand_over": 0,
+        "active_seat": 1,
+        "round_number": 39,
+        "deck": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "deck_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 2040,
+        "2": 2040
+      }
+    },
+    "rule_text": "When round 40 ends, then the game ends; more tokens wins, then higher career_sum, and if both are equal it is a draw."
+  }
+]

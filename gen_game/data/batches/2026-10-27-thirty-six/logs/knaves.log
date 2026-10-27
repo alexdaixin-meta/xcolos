@@ -1,0 +1,30 @@
+
+$ gen_game convert knaves --judge   (code 4c3d46f237, 11:04:24)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are sound and the platform can express them, but the game file mishandles its deck. After the first trick the three played cards (JD, 10D, QD) reappear in the table deck instead of leaving play. When a new hand begins the deck is not refilled with all 20 cards, so the deal draws from an empty list and crashes.
+step C: building the game file
+step D: evaluating
+triage: fix_game: Dealing works: each seat holds 5 cards after one trick, the deck is empty, and the turned and hidden cards are set. But the bid step never offers the options 0 to 6. In every failing scenario the seats were never offered 0 (or 6), and the stored bid stayed at 0 when the test chose 3 and 6, so the bid is not implemented as the rules and interface require.
+step C: building the game file
+step D: evaluating
+triage: fix_game: Cards played to a trick are put back into the table deck (the deck holds 10D, QD and JD after trick 1), and the deck is never rebuilt at the start of a new hand. So when hand 2 is dealt, the game draws from a nearly empty list and crashes with an index out of range. The rules deal all 20 cards each hand, and trick cards simply leave play.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: R10 says each seat is offered the bids 0, 1, 2, 3, 4, 5 and 6 in the simultaneous poll. In every failing scenario the tests' rules for bids like 2, 3, 4 or 5 were 'never matched (the game never put that option to this seat)', and all three seats ended up bidding 0. So the game's bid poll does not offer the full range. The tests read the rules correctly, and the failures in R5–R8 all come from this one bid defect, not from the dealer, eldest or deal logic.
+step C: building the game file
+step D: evaluating
+
+knaves: ready for review
+  16/16 scenarios, tier 0 passed, 0 design flag(s) left after 2 variation(s)
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/4c3d46f237/gen_game/data/games/knaves
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/4c3d46f237/gen_game/data/games/knaves/VERIFIED.md

@@ -1,0 +1,354 @@
+{
+  "game": "psychological_jujitsu",
+  "attempts": [
+    ""
+  ],
+  "conformance": [
+    "rule R6 has no scenario: nothing checks it"
+  ],
+  "scenarios": [
+    {
+      "name": "Setup: every hand holds the 13 cards 1 to 13 and scores start at 0 (all bid 13, cancelled)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Setup: three distinct bonus values leave two in the pool of five",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Setup with 4 players: four bonus values dealt, one left in the pool",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round start draws the prize from the pile and removes it",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A round with the talk poll completes and the round counter advances",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Bids are revealed after all are in; highest unique bid wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The bid card leaves the hand and is not offered again",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Matching bids are cancelled and the unique lower bid wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Bids 10, 10 and 4: the 4 wins the prize",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Bids 7, 7, 7: all cancelled, no score changes",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Winning a prize of 11 adds 11",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Winning prize 7 with bonus 7 adds 12",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Bonus round: total includes the +5 (announcement content not observable)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 13",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tied highest final scores share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Single highest final score wins alone",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        4
+      ],
+      "results": {
+        "seat 1": 12,
+        "seat 3": 14,
+        "seat 2": 10,
+        "seat 4": 4
+      },
+      "turns_min": 75,
+      "turns_max": 100
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 1": 22,
+      "seat 3": 17,
+      "seat 2": 21
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 16,
+        "loss": 42,
+        "draw": 2,
+        "win_rate": 0.28
+      },
+      "first@seat2": {
+        "win": 22,
+        "loss": 37,
+        "draw": 1,
+        "win_rate": 0.37
+      },
+      "last@seat1": {
+        "win": 27,
+        "loss": 30,
+        "draw": 3,
+        "win_rate": 0.47
+      },
+      "last@seat2": {
+        "win": 26,
+        "loss": 34,
+        "draw": 0,
+        "win_rate": 0.43
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 91.0,
+      "prompt_chars_avg": 182,
+      "prompt_chars_max": 194
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 4 players, suggested 3",
+      "why": "The designer chose 3, so it is kept. Cancellation of matching bids needs at least 3 bidders to create the outbidding-by-colliding tension; with 2, any tie simply voids the round. The maximum stays at the source's 4, since more bidders make most rounds collapse into cancellations and drown out the hidden-favourite signal."
+    },
+    {
+      "what": "Talk kept as a simultaneous poll with broadcast",
+      "why": "The source specifies simultaneous talk. Players genuinely disagree, since everyone wants the prize, so bluffing about intended bids or hinting at a favourite gives others something to reason about."
+    },
+    {
+      "what": "Strategy check",
+      "why": "A thoughtful player avoids bids others are likely to duplicate, saves high cards for high prizes, uses talk to provoke collisions between rivals, and infers rivals' bonus values from how eagerly they chase mid prizes."
+    },
+    {
+      "what": "Hands made public",
+      "why": "The rules announce every remaining hand each round, and hands are deducible from the revealed bids anyway."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The shuffled face-down prize pile is modelled as a public list of remaining values with a random draw each round",
+      "why": "The rules announce the remaining prize values each round; only the order is hidden, and a random draw reproduces that."
+    },
+    {
+      "what": "The '+5 bonus' announcement and the end-of-game bonus reveal are done with tell steps",
+      "why": "The bonus attribute stays visible only to its owner until the game ends."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 2,
+    "attributes": 25,
+    "hidden_elements": 4
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Psychological Jujitsu (also called GOPS) is a sealed-bid card game. Each round a random prize card from 1 to 13 is turned up, and every player secretly bids one card from an identical hand of 13. The highest bid takes the prize's points, each card can be used only once, and the highest total after 13 rounds wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "Every player starts with an identical hand, so no seat has an edge. Simple policies all lose to an attentive opponent. 'Always play my lowest card' loses every prize to someone bidding one higher. 'Always play my highest card' is beaten by giving up the first round with an Ace and then beating each later bid by exactly one, which wins 12 of 13 prizes. 'Bid equal to the prize' is beaten by bidding prize+1 and dumping Aces on the prizes you give up. Random bidding wastes high cards on low prizes."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "The random prize order affects both players equally. Skill lies in spending budget efficiently, and that reliably beats naive play. Two-player GOPS has a non-trivial equilibrium, and strong exploitative play wins most matches against fixed patterns."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "A weak player still wins some prizes, since every bid takes something. A strong player keeps improving through budget planning (how much is left for the remaining prizes), modelling the opponent's tendencies and endgame calculation, and the game is not practically solved for multiplayer."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "weak",
+        "evidence": "The opponent's current bid is hidden, and predicting it is the core of the game. However, the remaining hands are common knowledge once bids are revealed, and no player has private information of their own. The only things to infer are the upcoming prize order, which is pure chance, and the opponent's tendencies. With 3 or more players, the original rule of discarding the prize on a tie is crude, and the game mostly becomes 2-player duels."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "The prize winner is found by comparing numbers, and scores are sums of card values. No judgement is needed."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "good",
+        "evidence": "It uses simultaneous numeric choices from a tracked hand, a shuffled prize list and 13 rounds. There is no board, and it is text-only and short."
+      }
+    ],
+    "problems": [
+      "There is no private information. Hands are fully deducible, so the only inference is guessing an opponent's style, which limits hidden-state reasoning.",
+      "The original gives two tie rules as alternatives. A rule set must pick one, and with 3 or more players the 'discard everything' rule throws away many prizes and blunts interaction.",
+      "Models may lose track of which cards remain, which turns bad play into bookkeeping errors rather than reasoning errors.",
+      "The rules do not say what happens if a player names a card they no longer hold.",
+      "The original never says how a tie for the highest final total is resolved."
+    ],
+    "changes": [
+      {
+        "what": "Each player is secretly dealt a different 'bonus card' value from 5 to 9. Winning that prize earns +5 extra points.",
+        "why": "This gives each player a private stake that shapes what they should do. Rivals must infer it from unusually strong bids on middling prizes. Every bonus is the same flat +5 and drawn from a narrow mid range, so it changes what to fight for without deciding who ends ahead.",
+        "fixes": "There is no private information. Hands are fully deducible, so the only inference is guessing an opponent's style, which limits hidden-state reasoning."
+      },
+      {
+        "what": "The game is fixed at 3 to 4 players, and the original's 'next highest' variant is adopted. Tied highest bids are cancelled and the prize goes to the highest bid that is not tied. If every bid is tied, the prize is discarded.",
+        "why": "This creates real multi-way tactics. Two rivals clashing at the top can hand the prize to a third player's modest bid. Because only one player can win, it also gives talk something to fight over.",
+        "fixes": "The original gives two tie rules as alternatives. A rule set must pick one, and with 3 or more players the 'discard everything' rule throws away many prizes and blunts interaction."
+      },
+      {
+        "what": "A short simultaneous message phase is added before each bid.",
+        "why": "With one winner and hidden bonus cards, players can bluff about their bonus, threaten to contest a prize, or try to coordinate against the leader. The tie rule makes naive coordination dangerous: if two players agree to both bid 13, they cancel out and hand the prize to the next highest bidder.",
+        "fixes": "There is no private information. Hands are fully deducible, so the only inference is guessing an opponent's style, which limits hidden-state reasoning."
+      },
+      {
+        "what": "At the start of each round, the engine announces every player's remaining hand, every score and the remaining prize values.",
+        "why": "This removes bookkeeping failure so that results reflect strategy.",
+        "fixes": "Models may lose track of which cards remain, which turns bad play into bookkeeping errors rather than reasoning errors."
+      },
+      {
+        "what": "An invalid or missing bid is replaced by that player's lowest remaining card.",
+        "why": "The rules become complete and build-able, and an invalid bid carries a mild penalty.",
+        "fixes": "The rules do not say what happens if a player names a card they no longer hold."
+      },
+      {
+        "what": "Final ties are resolved as a draw among the tied leaders.",
+        "why": "The winner rule becomes complete and purely arithmetic.",
+        "fixes": "The original never says how a tie for the highest final total is resolved."
+      }
+    ],
+    "keeps": [
+      "Identical hands of Ace to King (1 to 13), each card usable only once.",
+      "A shuffled prize pile of 1 to 13, revealed one card per round over 13 rounds.",
+      "Simultaneous secret bids, with the highest bid winning the prize's face value.",
+      "The original's 'discard tied bids, award to next highest' tie variant.",
+      "Highest total wins."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The core simultaneous budget-bidding game is already balanced and skill-based. It needs a private element, a single settled multiplayer tie rule and complete edge-case rules."
+    },
+    "variation": {
+      "name": "Psychological Jujitsu: Hidden Favourites",
+      "summary": "This is GOPS for 3 to 4 players. Each player secretly holds a bonus prize value worth +5 extra if won. A short simultaneous talk phase comes before each bid, and tied top bids cancel so that the next-highest bid takes the prize.",
+      "players": {
+        "min": 3,
+        "max": 4,
+        "suggested": 3
+      },
+      "rules": "SETUP: Each player receives a hand of 13 cards valued 1 to 13 (Ace=1 up to King=13). The prize pile holds 13 cards valued 1 to 13 and is shuffled face-down. Each player is then privately told one bonus value, drawn at random without replacement from {5,6,7,8,9}, so no two players share a bonus value. Only that player knows their bonus value. All scores start at 0.\n\nEACH ROUND (13 rounds):\n1. The engine reveals the top card of the prize pile as this round's prize. It also announces every player's remaining hand, every current score and the prize values still in the pile.\n2. Talk: everyone writes one short message (at most 40 words) at the same time without seeing the others. All messages are then shown to everyone. Messages are not binding and may be false.\n3. Bid: everyone secretly chooses one card from their remaining hand at the same time. If a player names a card they do not hold, or gives no valid bid, their lowest remaining card is used.\n4. All bids are revealed, and each bid card is removed from its owner's hand permanently.\n5. Resolution: any bid value chosen by two or more players is cancelled. The highest bid that is not cancelled wins the prize. If every bid is cancelled, the prize is discarded and nobody scores. Example: bids 10, 10 and 4 give the prize to the player who bid 4.\n6. The winner adds the prize's value to their score. If the prize's value equals the winner's secret bonus value, they add 5 more points.\n7. The result is announced: all bids, who won the prize (if anyone), and the new scores. When a bonus is scored, the announcement says only '+5 bonus' with the winner's new total, so the bonus value becomes known only through that event.\n\nEND: After 13 rounds, all hands and the prize pile are empty. Bonus values are revealed.",
+      "objective": "The player with the highest final score wins. If two or more players tie for the highest score, the game is a draw among them.",
+      "expected_effect": "Players must budget 91 points of bidding power across 13 prizes, predict rivals' bids and exploit the cancellation rule, for example by bidding moderately when two rivals are likely to clash high. The hidden bonus makes a 5 to 9 prize worth up to 14 to one player. Rivals must notice who bids suspiciously high on mid prizes and deny them, while the holder weighs revealing their interest against paying for it. Talk passes both tests. Players disagree because only one can win, every prize goes to at most one player, and bonus values differ. A player who just follows a proposal such as 'let's both bid King on this to stop the leader' can cancel out with their partner and hand the prize to the leader, or can be betrayed by a partner who secretly bids lower and spends less. Bluffing about one's bonus value can steer rivals' spending. Simple policies all lose: 'always highest' and 'always lowest' are beaten by one-up bidding, and players copying the same pattern cancel each other out."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 11,
+      "choice_steps_per_round": 2,
+      "attributes": 19,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 13
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "The game is symmetric. Every player has the same 13-card hand, bids are simultaneous, prizes are public when revealed, and bonus values come from the same symmetric draw, so no seat has an edge from move order.\n\nThoughtless policies, judged by the winner rule:\n(a) ALWAYS HIGHEST (13,12,...,1). Its bid each round is public and predictable, because hands are announced. A sensible opponent can concede round 1 with a 1, then play 13 against 12, 12 against 11, and so on. That shifted reply beats the bot in every round from 2 to 13. The bot keeps at most the round-1 prize (average 7 of 91 points), which is about 7 against roughly 40+ for the exploiter, so it LOSES. With 3 players the second sensible player also takes rounds, so the bot still finishes last. If every player uses this policy, all bids match every round, everything is cancelled and all draw at 0. Against random play it does well early: in round 1 it is cancelled only about 15% of the time (1-(12/13)^2). That is the normal edge of a coherent plan over randomness, not a dominant policy, because it loses to adaptive play.\n(b) ALWAYS LOWEST. It wins a round only when every other bid is cancelled, which is rare against both sensible and random play, so it LOSES.\n(c) BID = PRIZE VALUE. It is fully predictable, so others can overbid it by 1 or deliberately match it to cancel it, and it LOSES to sensible play.\n(d) No card is strictly best. A 13 can be cancelled by a matching 13, which makes a low bid the winner (the example given: 10,10,4 gives the prize to 4). So the value of every bid depends on the others' bids, like rock-paper-scissors.\n\nThe bonus is +5 on one prize value in 5..9. A bonus of 9 makes that prize worth 14 and a bonus of 5 makes it worth 10. Expected values are equal across players, and the asymmetry is small next to the 91-point pool. Every player can realistically win. The game makes no labelled payoff-ordering claim, and it is not a cooperation game, so the 'safe option never behind' test does not apply."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules are complete.\n- Invalid bids default to the lowest remaining card.\n- The cancellation rule is precise and comes with a worked example.\n- The all-cancelled case is covered: the prize is discarded.\n- The final tie is a draw among the tied players.\n- The bonus announcement rule is explicit.\n- The game ends after exactly 13 rounds, because hands and the pile both run out, and the result is decided by arithmetic on the scores the game keeps.\n\nStated limits are all within platform limits: steps 11 (\u226420), choice steps 2 (\u22644: talk and bid), attributes 19 (\u226420; for 4 players, hand, score and bonus each is 12, plus pile, current prize, bids and winner fits), hidden elements 2 (\u22643: bonus values and pile order), random draws per round 1 (\u22641: the prize reveal; the bonus draw is in setup), rounds 13 (\u226440).\n\nOnly supported features are used: private_values, simultaneous_choice, free_text_talk and shared_deck_draw via a list. The game needs no board, judge or clock.\n\nTalk is justified. With 3-4 players, players disagree about who should take each prize, and the cancellation rule creates real reasons to signal or bluff ('I will play 13', meant to bait a cancellation or deter a rival). Following a proposal can cost a player, and the talk is simultaneous as required. The last round is forced, since each player has one card, and it is computed. This is not a cooperation game, so there is no late-round betrayal collapse."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Chance enters in two places.\n- Prize order: it is identical for all players and revealed one card at a time, so it is symmetric.\n- Bonus assignment: it is worth +5 once, and only if that player wins that specific prize, which is contested and depends on strategy.\nI estimate chance at roughly 15-25% of the outcome. The rest comes from hand management (spending high cards on high prizes), predicting rivals' bids from their public remaining hands, and using cancellation, either to block a leader or to win cheaply when two rivals collide.\n\nThere is real hidden information to infer. Players can read rivals' bonus values from how hard they bid on prizes 5-9, and the '+5 bonus' event confirms a bonus value once it happens.\n\nWhen everyone plays well, the outcome comes from mixed-strategy guessing about simultaneous bids and from opponent modelling, not from the deal alone. Bonus luck can be overcome because the bonus prize must still be won against opponents. A player who reasons well (tracks the remaining cards and prizes, and exploits predictable rivals) is clearly favoured over one who does not, as shown by the shifted-bid exploit in the balanced check."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 11,
+      "choice_steps_per_round": 2,
+      "attributes": 19,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 13
+    },
+    "measured": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 2,
+      "attributes": 25,
+      "hidden_elements": 4
+    }
+  },
+  "verdict": "ready_for_review"
+}

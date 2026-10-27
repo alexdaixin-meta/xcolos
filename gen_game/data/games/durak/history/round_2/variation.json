@@ -1,0 +1,138 @@
+{
+  "original_summary": "Durak is a 2\u20136 player shedding game played with a 36-card deck and a trump suit. An attacker plays cards, and the defender must beat each one with a higher card of the same suit or with a trump, or else pick up the whole table. Players draw back up to six, and the last player still holding cards is the loser (the 'durak').",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Every simple policy loses to sensible play. A player who always takes swells their hand and ends as durak. A player who always attacks with their highest card throws away trumps they need later. A player who never adds cards gives up tempo. The first attacker is set by the deal (lowest trump), so no fixed seat has an edge. With 3\u20136 players, the seat to the left of a strong attacker is slightly worse off, but the effect is minor."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Card counting, saving trumps and choosing when to take all reward skill. But drawing from the talon after every bout adds a lot of luck, so a single deal is noisy. With many players, who ends as durak also depends partly on who happens to gang up on whom."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Play has many levels: tracking seen cards, timing trump spends, taking on purpose to collect a rank, and adding cards to strand the defender. A weak player still sheds cards and can survive a hand."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands and the talon are hidden. Good play means inferring the opponent's holding from what they beat, failed to beat or added, and planning the endgame once the talon is empty."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Whether a card beats another, which ranks may be added, and who runs out of cards are all mechanical facts that arithmetic can check."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "bad",
+      "evidence": "The game is turn-based and text-only. But open-ended multi-player adding with clockwise priority, drawing order across up to 6 players, and up to 6 attacks per bout go far beyond 4 choice steps per round. Repeated talon draws exceed one random draw per round. The previous variation also failed the determinism test: the same seed gave different logs. That points to an unseeded or clock-based pick, randomness outside the single setup shuffle, fallbacks not computed from ordered data, or output produced by iterating over an unordered collection."
+    }
+  ],
+  "problems": [
+    "P1: Non-determinism. Replaying the same seed gave different logs. Likely causes are an unseeded or time-based random pick, randomness used outside the single setup shuffle, fallbacks not computed from ordered data, or hands, discards or announcements listed by iterating over a set or map.",
+    "P2: Drawing from the talon every bout needs many random draws and makes a single deal luck-heavy.",
+    "P3: Multi-player adding with clockwise priority and up to 6 attacks per bout needs far more than 4 choice steps per round.",
+    "P4: With 3 or more players, whether you end as durak depends partly on seat position and on others' choices, not only on your own reasoning.",
+    "P5: If a random card fixes the trump suit, the deal alone could decide the game.",
+    "P6: The game needs a guaranteed end within 40 rounds, and every illegal or missing answer needs a deterministic resolution."
+  ],
+  "changes": [
+    {
+      "what": "Randomness happens exactly once, at step 1 of round 1. The 36-card deck is built as an ordered list: Clubs, Diamonds, Hearts, Spades, and ranks 6 to 14 within each suit, with card id = suit index \u00d7 9 + rank \u2212 6. The engine's seeded shuffle is applied to this list. Cards are dealt by fixed positions: positions 1\u20138 to player 1, then 9\u201316 to player 2, and 17\u201336 to the set-aside list in that order. No other random operation, clock value or external source is used anywhere.",
+      "why": "The game has a single seeded source of randomness, so the same seed always gives the same deal.",
+      "fixes": "P1: Non-determinism"
+    },
+    {
+      "what": "All hands, the discard pile and the set-aside pile are stored as ordered lists sorted ascending by card id. Every announcement and every fallback reads them in that order. Nothing iterates over a set or map.",
+      "why": "This removes output and fallbacks that depend on iteration order.",
+      "fixes": "P1: Non-determinism"
+    },
+    {
+      "what": "Every fallback is a fixed rule on ordered data. An illegal or missing offer becomes Hearts and Spades. An illegal or missing trump pick becomes the first offered suit in suit order. An illegal or missing attack becomes the attacker's lowest-rank card, with ties broken by lower suit index. An illegal or missing defence counts as TAKE. An illegal or missing throw-in counts as PASS.",
+      "why": "Every fallback is deterministic and reproducible.",
+      "fixes": "P1: Non-determinism; P6: guaranteed end and deterministic resolution"
+    },
+    {
+      "what": "Two players, 8 cards each, no drawing. The other 20 cards stay set aside face down and are never used.",
+      "why": "This removes talon luck and repeated draws. It keeps a real inference problem: 28 unseen cards, of which 8 are in the opponent's hand.",
+      "fixes": "P2: talon luck and repeated draws; P4: seat and coalition effects"
+    },
+    {
+      "what": "Each bout has one attack, one optional throw-in matching a rank on the table, and up to two defences.",
+      "why": "This keeps choice steps at 4 per round while keeping attack, defend, take and add.",
+      "fixes": "P3: too many choice steps"
+    },
+    {
+      "what": "The trump suit is chosen by cut-and-choose. Player 2 offers two different suits, and player 1 picks one of them as trump. The holder of the lowest trump attacks first. If neither player holds a trump, player 2 attacks first.",
+      "why": "Player 2 must offer two suits it can live with, and player 1 chooses after reading its own hand. Reasoning can offset a lopsided deal, and the two seat roles balance each other.",
+      "fixes": "P5: deal deciding the game"
+    },
+    {
+      "what": "The game ends when a hand empties, with a cap at round 40. At the cap, the player with fewer cards wins, and equal counts are a draw.",
+      "why": "This guarantees an end with an arithmetic result.",
+      "fixes": "P6: guaranteed end and deterministic resolution"
+    }
+  ],
+  "keeps": [
+    "The 36-card deck, ranks 6 to Ace",
+    "A trump suit that beats all other suits",
+    "Beating a card with a higher card of the same suit or with any trump",
+    "The attacker adding cards that match ranks already on the table",
+    "A defender who fails takes the whole table",
+    "A successful defender becomes the next attacker",
+    "The lowest trump attacks first",
+    "Shedding all your cards to escape being the durak"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "A two-player, no-draw, deterministically seeded Durak keeps the core of beating, taking and adding, has real hidden information, and fits the step limits."
+  },
+  "variation": {
+    "name": "Duel Durak (seeded)",
+    "summary": "Two-player Durak with 8-card hands, no drawing, and a hidden 20-card set-aside pile. The trump suit is chosen by cut-and-choose. Each bout has one attack, one optional throw-in and up to two defences. The first player to empty their hand wins. The only randomness is a single seeded shuffle in round 1.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "CARDS. 36 cards: suits Clubs (index 0), Diamonds (1), Hearts (2), Spades (3); ranks 6, 7, 8, 9, 10, J=11, Q=12, K=13, A=14. Each card has an id = suit index \u00d7 9 + (rank \u2212 6), from 0 to 35. Hands, the discard pile and the set-aside pile are always kept as lists sorted ascending by id, and are always shown and read in that order.\n\nCARD STRENGTH. Card X beats card Y if: (a) X has the same suit as Y and a higher rank; or (b) X is a trump and Y is not.\n\nROUND 1 (setup, no bout).\nStep 1. Build the deck as the ordered list of ids 0 to 35. Shuffle it once with the engine's seeded shuffle. This is the only random operation in the game; no clock or other random source is ever used. Positions 1\u20138 go to player 1's hand, positions 9\u201316 to player 2's hand, and positions 17\u201336 to the set-aside pile. The set-aside pile stays face down for the whole game and is never drawn from. Each player is told only their own hand. Both players are told that each holds 8 cards.\nStep 2. Player 2 names two different suits as the offer. If the answer is missing or illegal, the offer is Hearts and Spades.\nStep 3. Player 1 picks one of the two offered suits as trump. If the answer is missing or illegal, trump is the offered suit with the lower suit index.\nStep 4. The trump suit is announced. The first attacker is the player holding the lowest-rank trump. If neither player holds a trump, player 2 attacks first. The other player is the defender.\n\nROUNDS 2 TO 40 (one bout each, played only while both players hold cards).\nStep 5 (attack). The attacker plays one card from their hand face up. If the answer is missing or illegal, the attacker plays their lowest-rank card, with ties broken by lower suit index.\nStep 6 (defence 1). The defender either plays one card from their hand that beats the attack card, or says TAKE. A missing or illegal answer counts as TAKE.\nStep 7 (throw-in). The attacker may add one card from their hand whose rank equals the rank of any card now on the table, or say PASS. A throw-in is allowed even if the defender said TAKE; the defender then takes it too. The attacker may not throw in if the defender has not said TAKE and has no cards left in hand. A missing or illegal answer counts as PASS.\nStep 8 (defence 2). This step happens only if a card was thrown in and the defender has not said TAKE. The defender either plays one card that beats the thrown-in card, or says TAKE. A missing or illegal answer counts as TAKE.\nStep 9 (resolution). If the defender said TAKE at any point, all cards on the table go into the defender's hand, and the same attacker attacks again next bout. Otherwise, all cards on the table go to the discard pile, and the defender becomes the attacker for the next bout.\nStep 10 (announcement). Announce all cards played this bout in order, the result, and both players' hand sizes.\n\nEND. After a bout's resolution, if exactly one player has 0 cards, that player wins. If both have 0 cards, the game is a draw. If both players still hold cards after round 40, the player with fewer cards wins; equal counts are a draw.\n\nDETERMINISM. Given the same seed, the game must produce identical logs. Every fallback is the fixed rule stated above, computed from the sorted lists.",
+    "objective": "The first player whose hand reaches 0 cards after a bout wins. If both reach 0 at the same resolution, the game is a draw. If round 40 ends with both players holding cards, the player with fewer cards wins; equal counts are a draw.",
+    "expected_effect": "Without drawing, the game becomes a card-counting duel. Each player knows their own 8 cards, and play gradually reveals which of the 28 unseen cards are in the opponent's hand rather than set aside. A failed defence or a declined throw-in leaks information about the opponent's hand. Cut-and-choose makes player 2 offer two suits it can live with, while player 1 reads its own hand to pick between them. Taking on purpose to collect a rank, saving trumps for the last bouts, and throwing in to strand the defender are all rewarded. Simple policies lose: always TAKE builds a huge hand, always attacking with the lowest card is read and punished, and never throwing in gives up tempo. With one seeded shuffle and fallbacks computed from ordered lists, two runs with the same seed should replay identically."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 4,
+    "attributes": 18,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "STRUCTURE. The game is zero-sum. There are 8 cards each and no drawing; 20 cards are set aside. A beaten bout removes the same number of cards from both hands (1 or 2 each), so the card counts stay equal until someone says TAKE. A TAKE adds the table to the taker's hand and keeps the initiative with the attacker. The relative change per bout is: beaten (defender gets the attack): diff 0. Defender TAKEs 1 card: defender +1, attacker -1, swing 2 in the attacker's favour, attacker keeps the attack. TAKE with a throw-in: swing 4.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE.\n(1) Always TAKE as defender (the 'first/pass' option). Every attack grows your hand while the opponent's shrinks. The opponent reaches 0 after at most 8 attacks and wins. This policy loses to sensible play and to random play.\n(2) Always beat when legal, and always attack with the lowest card (the fallback). It loses whenever the opponent holds an unbeatable card, for example any trump against your non-trump. The opponent attacks with it, you must TAKE, and they keep the attack. Not never-losing.\n(3) Always attack with your highest trump. Each one forces a TAKE unless the defender holds a higher trump. Once the trumps are spent, the attacker's remaining low off-suit cards are exposed. It loses against a hand with more or higher trumps. It also loses when the defender's beaters force TAKEs back on the attacker. Not never-losing.\n(4) Always throw in when legal. This sheds cards faster but hands the defender extra cards to beat with spare high cards. Not dominant.\n(5) Random play loses to sensible play, which saves trumps and leads suits the opponent has shown it cannot cover.\n\nNo option is strictly better whatever the opponent does, and no thoughtless policy never loses.\n\nSEAT. Player 2 controls which two suits are offered and can exclude its own two weakest suits. Player 1 then picks the better of the two for itself. This is a cut-and-choose: each side has one lever. Player 2's offer leaks some information about its strengths, which partly offsets player 1's information from choosing. The first attack goes to the holder of the lowest trump, as in the original, which tends to give the initiative to the weaker trump holder. With alternating single-card bouts and no TAKEs, bout 8 is attacked by the initial defender, so parity also counters the first-move edge. Throw-ins change parity, so no fixed seat edge is evident. Both players can win. Draws occur when both hands empty at the same resolution or when hand counts are equal after round 40."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Two players, so the rule on talk does not apply. The game is zero-sum, so the cooperation check does not apply.\n\nRULES ARE COMPLETE.\n- Card ids are unique, so 'lowest-rank trump' never ties.\n- Every choice step has a deterministic fallback computed from the sorted lists.\n- The beat test is arithmetic: suit = floor(id/9) and rank = id mod 9 + 6. It fits in calc steps.\n- Edge cases are covered:\n  - The attacker plays their last card: Step 7 cannot add, resolution follows. If the defender beat with their last card, both are at 0 and it is a draw. If the defender took, the attacker wins.\n  - A throw-in against an empty defender hand is forbidden.\n  - Only the attack card is on the table after a TAKE, so the throw-in rank test is unambiguous.\n\nFINITE. At most 39 bouts. Round 40 has an arithmetic tiebreak on hand size.\n\nNo judge, board or clock is needed. The single seeded shuffle in round 1 fits random_draws_per_round \u2264 1.\n\nLIMITS.\n- steps 16 \u2264 20\n- choice steps 4 \u2264 4 (offer, pick, attack/defend/throw/defend)\n- attributes 18 \u2264 20\n- hidden elements 3 \u2264 3 (two hands and the set-aside pile)\n- rounds 40 \u2264 40\n\nCaveat: dealing 36 ids uses the shared_deck_draw workaround of remove/append operations. These must be done as list slices inside Step 1 to stay within 20 steps. This is plausible.\n\nNo unsupported features are used: no trades, no blocks of conditional steps, no binding agreements. Taking and discarding are list appends."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE. Chance enters only through the deal of 8+8 cards from 36. On average about 4 cards of a given suit are dealt in total (16 \u00d7 9/36).\n\nPLAYER CONTROL. Players, not the deck, set the trump. Player 2 offers suits matching its hand, and player 1 picks between them. A deal that is weak in one suit can be rescued by choosing the trump.\n\nWHAT CAN BE INFERRED.\n- Initially the opponent's 8 cards are among 28 unknown ids.\n- Every TAKE reveals cards that enter the opponent's hand.\n- Every defence reveals what the opponent spent. A failure to cover reveals a void or a lack of higher cards in that suit.\n- The offer leaks player 2's suit strength.\n\nHOW TO ACT ON IT.\n- Lead into known voids.\n- Save trumps for unbeatable final attacks.\n- Time throw-ins on ranks the opponent cannot cover.\n- Manage parity so you hold the last attack.\n- Decide when to TAKE cheaply rather than spend a trump.\n\nESTIMATE. Chance is roughly 40% of the result: strong trump holdings matter. When both sides play well, the outcome still depends on how trumps are spent and on the order of attacks, not on the deal alone. A good reasoner is clearly favoured over a random or always-lowest player, as shown by policies (2) and (5) above."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

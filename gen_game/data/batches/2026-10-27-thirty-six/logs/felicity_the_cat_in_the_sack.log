@@ -1,0 +1,49 @@
+
+$ gen_game convert felicity_the_cat_in_the_sack --judge   (code e5a100032e, 09:38:11)
+step A: designing the rules
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: In the bidding scenarios the scripted bids were never offered to the players. Seat 1's bid of 1 and Blaise's bid of 3 were never put to them, so every stage-1 poll fell back to a pass (0), and the all-pass branch ran where a sale should have happened. The rules are clear and the platform supports numeric simultaneous bids, so the bid poll in the game file is wrong.
+step C: building the game file
+triage: fix_game: Each failure is a fixable coding slip, not a flaw in the rules or a missing capability. The attempts hit an unfilled {mice} placeholder, private bookkeeping fields shown blank to players, and an `unopened_pile` attribute that a rare all-pass branch only would ever change. The rules are expressible: simultaneous bids, hidden hands, and `when`/`if` conditional updates are all supported.
+step C: building the game file
+step D: evaluating
+triage: fix_game: In several scenarios a lone legal bid of 1 (or another legal bid) is treated as a pass. Seat 1 ends with 17 mice (15 + the 2-mouse pass reward) and 0 cat points instead of winning the sack, which points to a bug in how the game file reads, validates or resolves bids, not to a problem with the rules.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: Every failing scenario has the same cause: the stage-1 bid poll never offers the numbers the rules require. Seats were never offered 0, 2, 4, 5 or 6, so everyone ended up passing (mice 17, no sack taken). Numeric bids are supported, and the pass bonus and start_seat advance worked correctly, so the fault is in how the game file builds the bid options, not in the rules or the tests.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The sack held cat_3, cat_8 and small_dog. Under R10 a lone small dog with no negative cat removes the lowest positive cat, so the sack is worth 8, but the game left dog_removed at 0 and scored 11. The test reads the rules correctly, and the file is missing the small dog's fallback branch.
+step C: building the game file
+step D: evaluating
+triage: fix_game: In every failing scenario the stage-1 bid poll never offered the numbers 0 to the player's mice: seat 1 was never offered 0 or 5, and the rules for 4 and 6 were never matched. So every player was recorded as passing, gained 2 mice (17 each), and no sack was taken. The rules are clear and the engine supports numeric bids in a simultaneous poll, so this is an error in the game file.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: Every failure traces to the stage-1 bidding poll. The tests report that seats were never offered 0, 3 or 15, so the scripted bids could not be made. All bids came out 0 and nobody ever entered the auction, which also explains the failed tie-break, leader and pass-bonus scenarios. The rules are clear and the platform supports numeric simultaneous bids, so the game file is at fault.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are coherent and the platform can express them: they use simultaneous numeric polls, list operations and conditional updates. The failures come from the game file. The stage-1 poll never offered the legal values 0..mice, so every scripted bid fell back to 0 and no bidding, bonus or award happened. The setup also overwrote hands that the scenario supplied.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are sound and the platform can express them, but the game file does not implement them. In the trace the stage-1 poll never offers the range 0..mice, every bid ends up 0, and nobody bids, gains pass bonuses, wins a sack or scores cat points. Setup also seems to overwrite scenario-supplied state such as start_seat (0 -> 2 when the scenario wanted 3).
+
+felicity_the_cat_in_the_sack: dropped
+  too complex: it could not be built to behave as designed: scenario `Sack order starts at start_seat 3 and wraps, so seat 3 wins a tie with seat 1` failed: rule R5 is broken: sack_owners lists the seats from start_seat ascending and wrapping (start_seat 3 of 4 gives [3,4,1,2]), and sack_cards holds the played cards in that order.; seat 1 mice: expected 18, got 15; seat 1 score: expected 18, got 15; seat 2 mice: expected 17, got 15; seat 2 score: expect (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/felicity_the_cat_in_the_sack
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/felicity_the_cat_in_the_sack/VERIFIED.md

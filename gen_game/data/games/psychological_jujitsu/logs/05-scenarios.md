@@ -1,0 +1,492 @@
+# 05 scenarios
+
+- time: 2026-10-27T20:52:32+00:00 (34.9s)  model: claude-opus-5-5
+- system prompt: [system/6dcf03e1-scenarios.md](system/6dcf03e1-scenarios.md) (sha256 6dcf03e15fe36c21)
+- sent sha256 8c53cc490e1b41b5, reply sha256 38c2e2545579bfa8
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Psychological Jujitsu: Hidden Favourites",
+  "summary": "Players secretly bid cards from identical 1-13 hands for 13 prizes. A bid value matched by anyone is cancelled, the highest unique bid wins, and each player has a secret favourite prize value worth +5.",
+  "players": {
+    "min": 3,
+    "max": 4,
+    "suggested": 3
+  },
+  "parameters": {
+    "hand_size": 13,
+    "card_min": 1,
+    "card_max": 13,
+    "prize_pile_size": 13,
+    "rounds": 13,
+    "bonus_value_min": 5,
+    "bonus_value_max": 9,
+    "bonus_points": 5,
+    "message_max_words": 40,
+    "starting_score": 0
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "public",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "meaning": "Cards still in this player's hand. The rules announce every hand each round.",
+        "observable": false
+      },
+      {
+        "key": "score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Points won from prizes and bonuses",
+        "observable": true
+      },
+      {
+        "key": "bonus",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "Secret bonus value, dealt at setup from bonus_pool and revealed at game end",
+        "observable": false
+      },
+      {
+        "key": "message",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "This round's talk message",
+        "observable": false
+      },
+      {
+        "key": "bid",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Card bid this round, revealed once all bids are in",
+        "observable": true
+      },
+      {
+        "key": "bid_unique",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "True when no other player bid the same value this round",
+        "observable": false
+      },
+      {
+        "key": "won_round",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "True when this player won this round's prize",
+        "observable": false
+      },
+      {
+        "key": "bonus_scored",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "True when this player scored the +5 bonus this round",
+        "observable": false
+      }
+    ],
+    "game": [
+      {
+        "key": "prize_pile",
+        "type": "list",
+        "visible": "public",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "meaning": "Prize values still in the pile. The remaining values are announced; the draw order is random.",
+        "observable": false
+      },
+      {
+        "key": "bonus_pool",
+        "type": "list",
+        "visible": "none",
+        "initial": [
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "meaning": "Bonus values not yet dealt",
+        "observable": false
+      },
+      {
+        "key": "prize",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "This round's revealed prize value",
+        "observable": true
+      },
+      {
+        "key": "round_no",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Rounds started so far",
+        "observable": true
+      },
+      {
+        "key": "winning_bid",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Highest uncancelled bid this round; 0 if every bid was cancelled",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Every player's hand is set to the cards 1 to 13, and every score is set to 0.",
+    "The prize pile is set to the values 1 to 13.",
+    "Each player draws one value at random from bonus_pool into their bonus, and that value is removed from bonus_pool, so no two players share a bonus value.",
+    "Each player is privately told their own bonus value."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "round_no += 1. One value is drawn at random from prize_pile into prize and removed from prize_pile. Every player's bid_unique, won_round and bonus_scored are set to false, and winning_bid is set to 0."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce: 'Round {round_no}: the prize is {prize}.' Also announce every player's hand, every score and the prize_pile values still remaining."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "short text, at most 40 words",
+      "effect": "Each player's message is set to their text. Then broadcast {\"to\": \"all\", \"text\": \"Seat {seat} says: {value}\"}. Messages are not binding."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "one card from your own hand",
+      "effect": "Each player's bid is set to the chosen card. If a player gives an invalid answer or none, bid = the minimum of their hand."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Each player's bid is removed from their hand. For each player, bid_unique = (number of other players whose bid equals this bid) == 0. winning_bid = the maximum bid among players with bid_unique true, or 0 if no player has bid_unique true. For each player, won_round = bid_unique and bid == winning_bid."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "For the player with won_round true: score += prize, and if prize == bonus, then score += 5 and bonus_scored = true."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce every player's bid, the winner of the prize (or 'cancelled: nobody scores' if winning_bid == 0) and the new scores. If bonus_scored is true for the winner, announce only '+5 bonus' together with the winner's new total, not the bonus value."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "If round_no == 13, reveal every player's bonus to everyone and end the game. Otherwise continue with the next round."
+    }
+  ],
+  "ending": {
+    "condition": "round_no == 13",
+    "rank_by": "you.score",
+    "decided_by": "Each player's standing is their final score. The highest score wins, and players tied at the top share the win (a draw among them)."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "At setup, every player's hand is the 13 cards 1 to 13 and every score is 0."
+    },
+    {
+      "id": "R2",
+      "text": "At setup, each player gets a distinct bonus value drawn from {5,6,7,8,9}, and only that player can see it."
+    },
+    {
+      "id": "R3",
+      "text": "At the start of each round, one prize value is drawn at random from prize_pile, removed from it and announced, so each value 1 to 13 is a prize exactly once over 13 rounds."
+    },
+    {
+      "id": "R4",
+      "text": "Each round, every player sends one message of at most 40 words at the same time, and all messages are then shown to everyone."
+    },
+    {
+      "id": "R5",
+      "text": "Each round, every player secretly bids one card from their own hand at the same time, and no bid is seen until all are in."
+    },
+    {
+      "id": "R6",
+      "text": "When a player bids a card not in their hand, or gives no valid bid, then the lowest card in their hand is used as their bid."
+    },
+    {
+      "id": "R7",
+      "text": "After bidding, each player's bid card is removed from their hand permanently."
+    },
+    {
+      "id": "R8",
+      "text": "When two or more players bid the same value, all of those bids are cancelled."
+    },
+    {
+      "id": "R9",
+      "text": "The highest uncancelled bid wins the prize: with bids 10, 10 and 4, the player who bid 4 wins."
+    },
+    {
+      "id": "R10",
+      "text": "When every bid is cancelled (for example bids 7, 7 and 7), the prize is discarded and no score changes."
+    },
+    {
+      "id": "R11",
+      "text": "The winner adds the prize value to their score: winning a prize of 11 adds 11."
+    },
+    {
+      "id": "R12",
+      "text": "When the prize value equals the winner's bonus value, the winner adds 5 more: winning prize 7 with bonus 7 adds 12."
+    },
+    {
+      "id": "R13",
+      "text": "When a bonus is scored, the announcement says '+5 bonus' and the new total, but not the bonus value."
+    },
+    {
+      "id": "R14",
+      "text": "After round 13 the game ends and every bonus value is revealed."
+    },
+    {
+      "id": "R15",
+      "text": "The player with the highest final score wins, and players tied for the highest score share the win."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Talk message",
+      "who": "every seat",
+      "options": "a short free text of at most 40 words"
+    },
+    {
+      "question": "Bid",
+      "who": "every seat",
+      "options": "exactly the cards remaining in that seat's own hand (13 options in round 1, falling by one each round to 1 option in round 13)"
+    }
+  ],
+  "choices": [
+    {
+      "what": "3 to 4 players, suggested 3",
+      "why": "The designer chose 3, so it is kept. Cancellation of matching bids needs at least 3 bidders to create the outbidding-by-colliding tension; with 2, any tie simply voids the round. The maximum stays at the source's 4, since more bidders make most rounds collapse into cancellations and drown out the hidden-favourite signal."
+    },
+    {
+      "what": "Talk kept as a simultaneous poll with broadcast",
+      "why": "The source specifies simultaneous talk. Players genuinely disagree, since everyone wants the prize, so bluffing about intended bids or hinting at a favourite gives others something to reason about."
+    },
+    {
+      "what": "Strategy check",
+      "why": "A thoughtful player avoids bids others are likely to duplicate, saves high cards for high prizes, uses talk to provoke collisions between rivals, and infers rivals' bonus values from how eagerly they chase mid prizes."
+    },
+    {
+      "what": "Hands made public",
+      "why": "The rules announce every remaining hand each round, and hands are deducible from the revealed bids anyway."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The shuffled face-down prize pile is modelled as a public list of remaining values with a random draw each round",
+      "why": "The rules announce the remaining prize values each round; only the order is hidden, and a random draw reproduces that."
+    },
+    {
+      "what": "The '+5 bonus' announcement and the end-of-game bonus reveal are done with tell steps",
+      "why": "The bonus attribute stays visible only to its owner until the game ends."
+    }
+  ],
+  "unsupported": []
+}
+
+OBSERVABLE (the only attributes you may assert on): player: score, bid; table: prize, round_no.
+
+YOUR PREVIOUS REPLY WAS REFUSED. Here it is:
+[
+  {"name": "Setup: every hand holds 13 cards, scores 0, prize and round counter 0", "rule": "R1", "players": 3, "rounds": 0,
+   "expect": {"lens": {"players": {"1": {"hand": 13}, "2": {"hand": 13}, "3": {"hand": 13}}, "game": {"prize_pile": 13}},
+              "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 0}},
+              "game": {"round_no": 0, "prize": 0}}},
+  {"name": "Setup: three distinct bonus values leave two in the pool of five", "rule": "R2", "players": 3, "rounds": 0,
+   "expect": {"lens": {"game": {"bonus_pool": 2}}}},
+  {"name": "Setup with 4 players: four bonus values dealt, one left in the pool", "rule": "R2", "players": 4, "rounds": 0,
+   "expect": {"lens": {"game": {"bonus_pool": 1}}}},
+  {"name": "Round start draws the prize from the pile and removes it", "rule": "R3", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [4]}},
+   "expect": {"game": {"prize": 4, "round_no": 1}, "lens": {"game": {"prize_pile": 0}}}},
+  {"name": "A round with the talk poll completes and the round counter advances", "rule": "R4", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [3, 4]}},
+   "expect": {"game": {"round_no": 1}}},
+  {"name": "Bids are revealed after all are in; highest unique bid wins", "rule": "R5", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [2]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 11}],
+   "expect": {"players": {"1": {"bid": 13, "score": 2}, "2": {"bid": 12, "score": 0}, "3": {"bid": 11, "score": 0}}}},
+  {"name": "The bid card leaves the hand and is not offered again", "rule": "R7", "players": 3, "rounds": 2,
+   "given": {"game": {"prize_pile": [2, 3]}, "players": {"1": {"hand": [5, 13], "bonus": 5}, "2": {"hand": [1, 2], "bonus": 6}, "3": {"hand": [3, 4], "bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 13}],
+   "expect": {"lens": {"players": {"1": {"hand": 0}, "2": {"hand": 0}, "3": {"hand": 0}}},
+              "players": {"1": {"bid": 5}}}},
+  {"name": "Matching bids are cancelled and the unique lower bid wins", "rule": "R8", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [4]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 12}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 9}],
+   "expect": {"players": {"1": {"bid": 12, "score": 0}, "2": {"bid": 12, "score": 0}, "3": {"bid": 9, "score": 4}}}},
+  {"name": "Bids 10, 10 and 4: the 4 wins the prize", "rule": "R9", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [3]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 10}, {"seat": 2, "options_include": 10}, {"seat": 3, "options_include": 4}],
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 3}}}},
+  {"name": "Bids 7, 7, 7: all cancelled, no score changes", "rule": "R10", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [8]}, "players": {"1": {"score": 5, "bonus": 5}, "2": {"score": 3, "bonus": 6}, "3": {"score": 2, "bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 7}, {"seat": 2, "options_include": 7}, {"seat": 3, "options_include": 7}],
+   "expect": {"players": {"1": {"score": 5}, "2": {"score": 3}, "3": {"score": 2}}}},
+  {"name": "Winning a prize of 11 adds 11", "rule": "R11", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [11]}, "players": {"1": {"score": 4, "bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 2}, {"seat": 3, "options_include": 3}],
+   "expect": {"game": {"prize": 11}, "players": {"1": {"score": 15}, "2": {"score": 0}, "3": {"score": 0}}}},
+  {"name": "Winning prize 7 with bonus 7 adds 12", "rule": "R12", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [7]}, "players": {"1": {"bonus": 7}, "2": {"bonus": 5}, "3": {"bonus": 6}}},
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 11}],
+   "expect": {"players": {"1": {"score": 12}, "2": {"score": 0}, "3": {"score": 0}}}},
+  {"name": "Bonus round: total includes the +5 (announcement content not observable)", "rule": "R13", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [9]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 9, "score": 1}, "3": {"bonus": 6}}},
+   "rules": [{"seat": 1, "options_include": 3}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 4}],
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 15}, "3": {"score": 0}}}},
+  {"name": "Game ends after round 13", "rule": "R14", "players": 3,
+   "given": {"game": {"round_no": 12, "prize_pile": [13]},
+             "players": {"1": {"hand": [13], "bonus": 5}, "2": {"hand": [12], "bonus": 6}, "3": {"hand": [1], "bonus": 7}}},
+   "expect": {"winner": 1, "standings": {"1": 13, "2": 0, "3": 0},
+              "game": {"round_no": 13, "prize": 13},
+              "players": {"1": {"score": 13, "bid": 13}, "2": {"bid": 12}, "3": {"bid": 1}}}},
+  {"name": "Tied highest final scores share the win", "rule": "R15", "players": 3,
+   "given": {"game": {"round_no": 12, "prize_pile": [1]},
+             "players": {"1": {"hand": [2], "score": 10, "bonus": 5}, "2": {"hand": [2], "score": 10, "bonus": 6}, "3": {"hand": [1], "score": 5, "bonus": 7}}},
+   "expect": {"winner": [1, 2], "standings": {"1": 10, "2": 10, "3": 6},
+              "players": {"1": {"score": 10}, "2": {"score": 10}, "3": {"score": 6}}}},
+  {"name": "Single highest final score wins alone", "rule": "R15", "players": 3,
+   "given": {"game": {"round_no": 12, "prize_pile": [6]},
+             "players": {"1": {"hand": [3], "score": 20, "bonus": 5}, "2": {"hand": [9], "score": 18, "bonus": 7}, "3": {"hand": [3], "score": 22, "bonus": 8}}},
+   "expect": {"winner": 2, "standings": {"1": 20, "2": 24, "3": 22},
+              "players": {"1": {"score": 20}, "2": {"score": 24}, "3": {"score": 22}}}}
+]
+
+Why it was refused: scenario 1: needs `rules` (what each seat answers, by option name); scenario 2: needs `rules` (what each seat answers, by option name); scenario 3: needs `rules` (what each seat answers, by option name); scenario 4: needs `rules` (what each seat answers, by option name); scenario 5: needs `rules` (what each seat answers, by option name); scenario 14: needs `rules` (what each seat answers, by option name); scenario 15: needs `rules` (what each seat answers, by option name); scenario 16: needs `rules` (what each seat answers, by option name)
+Correct it: change what the problem requires and keep the rest. Reply in the same format as before, complete, and nothing else.
+````
+
+## Reply
+
+````
+[
+  {"name": "Setup: every hand holds the 13 cards 1 to 13 and scores start at 0 (all bid 13, cancelled)", "rule": "R1", "players": 3, "rounds": 1,
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 13}, {"seat": 3, "options_include": 13}],
+   "expect": {"lens": {"players": {"1": {"hand": 12}, "2": {"hand": 12}, "3": {"hand": 12}}, "game": {"prize_pile": 12}},
+              "offered": [{"seat": 1, "option": 1}, {"seat": 1, "option": 13}, {"seat": 2, "option": 1}, {"seat": 3, "option": 7}],
+              "players": {"1": {"score": 0, "bid": 13}, "2": {"score": 0, "bid": 13}, "3": {"score": 0, "bid": 13}},
+              "game": {"round_no": 1}}},
+  {"name": "Setup: three distinct bonus values leave two in the pool of five", "rule": "R2", "players": 3, "rounds": 1,
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 13}, {"seat": 3, "options_include": 13}],
+   "expect": {"lens": {"game": {"bonus_pool": 2}}}},
+  {"name": "Setup with 4 players: four bonus values dealt, one left in the pool", "rule": "R2", "players": 4, "rounds": 1,
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 13}, {"seat": 3, "options_include": 13}, {"seat": 4, "options_include": 13}],
+   "expect": {"lens": {"game": {"bonus_pool": 1}}}},
+  {"name": "Round start draws the prize from the pile and removes it", "rule": "R3", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [4]}},
+   "rules": [{"seat": 1, "options_include": 1}, {"seat": 2, "options_include": 1}, {"seat": 3, "options_include": 1}],
+   "expect": {"game": {"prize": 4, "round_no": 1}, "lens": {"game": {"prize_pile": 0}}}},
+  {"name": "A round with the talk poll completes and the round counter advances", "rule": "R4", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [3]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 5}, {"seat": 2, "options_include": 6}, {"seat": 3, "options_include": 7}],
+   "expect": {"game": {"round_no": 1, "prize": 3},
+              "players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 3}}}},
+  {"name": "Bids are revealed after all are in; highest unique bid wins", "rule": "R5", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [2]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 11}],
+   "expect": {"players": {"1": {"bid": 13, "score": 2}, "2": {"bid": 12, "score": 0}, "3": {"bid": 11, "score": 0}}}},
+  {"name": "The bid card leaves the hand and is not offered again", "rule": "R7", "players": 3, "rounds": 2,
+   "given": {"game": {"prize_pile": [2, 3]}, "players": {"1": {"hand": [5, 13], "bonus": 5}, "2": {"hand": [1, 2], "bonus": 6}, "3": {"hand": [3, 4], "bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 13}],
+   "expect": {"lens": {"players": {"1": {"hand": 0}, "2": {"hand": 0}, "3": {"hand": 0}}},
+              "players": {"1": {"bid": 5}}}},
+  {"name": "Matching bids are cancelled and the unique lower bid wins", "rule": "R8", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [4]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 12}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 9}],
+   "expect": {"players": {"1": {"bid": 12, "score": 0}, "2": {"bid": 12, "score": 0}, "3": {"bid": 9, "score": 4}}}},
+  {"name": "Bids 10, 10 and 4: the 4 wins the prize", "rule": "R9", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [3]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 10}, {"seat": 2, "options_include": 10}, {"seat": 3, "options_include": 4}],
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 0}, "3": {"score": 3}}}},
+  {"name": "Bids 7, 7, 7: all cancelled, no score changes", "rule": "R10", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [8]}, "players": {"1": {"score": 5, "bonus": 5}, "2": {"score": 3, "bonus": 6}, "3": {"score": 2, "bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 7}, {"seat": 2, "options_include": 7}, {"seat": 3, "options_include": 7}],
+   "expect": {"players": {"1": {"score": 5}, "2": {"score": 3}, "3": {"score": 2}}}},
+  {"name": "Winning a prize of 11 adds 11", "rule": "R11", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [11]}, "players": {"1": {"score": 4, "bonus": 5}, "2": {"bonus": 6}, "3": {"bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 2}, {"seat": 3, "options_include": 3}],
+   "expect": {"game": {"prize": 11}, "players": {"1": {"score": 15}, "2": {"score": 0}, "3": {"score": 0}}}},
+  {"name": "Winning prize 7 with bonus 7 adds 12", "rule": "R12", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [7]}, "players": {"1": {"bonus": 7}, "2": {"bonus": 5}, "3": {"bonus": 6}}},
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 11}],
+   "expect": {"players": {"1": {"score": 12}, "2": {"score": 0}, "3": {"score": 0}}}},
+  {"name": "Bonus round: total includes the +5 (announcement content not observable)", "rule": "R13", "players": 3, "rounds": 1,
+   "given": {"game": {"prize_pile": [9]}, "players": {"1": {"bonus": 5}, "2": {"bonus": 9, "score": 1}, "3": {"bonus": 6}}},
+   "rules": [{"seat": 1, "options_include": 3}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 4}],
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 15}, "3": {"score": 0}}}},
+  {"name": "Game ends after round 13", "rule": "R14", "players": 3,
+   "given": {"game": {"round_no": 12, "prize_pile": [13]},
+             "players": {"1": {"hand": [13], "bonus": 5}, "2": {"hand": [12], "bonus": 6}, "3": {"hand": [1], "bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 13}, {"seat": 2, "options_include": 12}, {"seat": 3, "options_include": 1}],
+   "expect": {"winner": 1, "standings": {"1": 13, "2": 0, "3": 0},
+              "game": {"round_no": 13, "prize": 13},
+              "players": {"1": {"score": 13, "bid": 13}, "2": {"bid": 12}, "3": {"bid": 1}}}},
+  {"name": "Tied highest final scores share the win", "rule": "R15", "players": 3,
+   "given": {"game": {"round_no": 12, "prize_pile": [1]},
+             "players": {"1": {"hand": [2], "score": 10, "bonus": 5}, "2": {"hand": [2], "score": 10, "bonus": 6}, "3": {"hand": [1], "score": 5, "bonus": 7}}},
+   "rules": [{"seat": 1, "options_include": 2}, {"seat": 2, "options_include": 2}, {"seat": 3, "options_include": 1}],
+   "expect": {"winner": [1, 2], "standings": {"1": 10, "2": 10, "3": 6},
+              "players": {"1": {"score": 10}, "2": {"score": 10}, "3": {"score": 6}}}},
+  {"name": "Single highest final score wins alone", "rule": "R15", "players": 3,
+   "given": {"game": {"round_no": 12, "prize_pile": [6]},
+             "players": {"1": {"hand": [3], "score": 20, "bonus": 5}, "2": {"hand": [9], "score": 18, "bonus": 7}, "3": {"hand": [3], "score": 22, "bonus": 8}}},
+   "rules": [{"seat": 1, "options_include": 3}, {"seat": 2, "options_include": 9}, {"seat": 3, "options_include": 3}],
+   "expect": {"winner": 2, "standings": {"1": 20, "2": 24, "3": 22},
+              "players": {"1": {"score": 20}, "2": {"score": 24}, "3": {"score": 22}}}}
+]
+````

@@ -1,0 +1,168 @@
+{
+  "original_summary": "Break the Code is a deduction game. Players hide sorted number tiles and take turns asking face-up question cards that opponents must answer truthfully, then try to guess the hidden tiles exactly. The previously tested 2-player 'Duel' version reduced it to two secret 3-digit codes, six fixed question cards asked simultaneously, and a first-to-guess-correctly race over 6 rounds.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "In the tested Duel, no simple policy wins outright. Always-pass only draws, and blind early guessing (1/120) loses. But 'must use every card exactly once' makes question order nearly irrelevant by round 6. If both players pick codes from large ambiguity classes and wait for the full profile, the game draws. A simple wait-and-guess policy cannot lose against a strong player, so the interesting choices do not move the result."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Between competent players most games draw (same-round correct guesses, or nobody correct). Most decisive games turn on a blind 1/2 or 1/3 pick between indistinguishable candidates. Luck therefore decides more than half of decisive outcomes, and the better reasoner is not reliably favoured."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "With all six cards forced and a binary race, the decisions are thin. A weak player still draws often, and a strong player has little way to convert better deduction or code choice into a win."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "The hidden code is real hidden state: 120 candidates narrowed by known functions. Choosing a code that resists identification is opponent modelling, and choosing which card to ask next is planning."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Every answer and every guess check is arithmetic on stored codes. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is text-only, turn-based and short. It failed playability on three counts. There were no defaults for an invalid or reused card, an illegal guess, or an illegal code. The attribute encoding was unstated: separate digit and card flags exceed 20 attributes. The step count for answer arithmetic was unclear."
+    }
+  ],
+  "problems": [
+    "P1: Most games between competent players are draws (both correct in the same round, or neither correct), so the result rarely reflects skill.",
+    "P2: Decisive games are mostly settled by blind 1/2 or 1/3 guesses between indistinguishable candidates: luck among equals.",
+    "P3: 'Use every card exactly once' removes card selection as a decision, and both players end with the same information at the same time.",
+    "P4: A single code per match gives one luck-heavy sample, no chance to learn an opponent's code-choice habits, and no reward for efficient deduction beyond tying.",
+    "P5: No rule for naming an invalid or already-used card.",
+    "P6: No rule for an illegal guess (repeated digits, out of range, unsorted) or for guessing with no guesses left.",
+    "P7: No rule for an illegal secret code at setup.",
+    "P8: Attribute and step encoding was unstated and, done naively (separate digits, six card flags per player), exceeds the 20-attribute limit."
+  ],
+  "changes": [
+    {
+      "what": "Replace the first-correct-wins race with points. In each leg, a correct guess scores 4, 3, 2 or 1 points in leg-round 1, 2, 3 or 4. A wrong guess costs 1 point. The leg does not stop when one player is correct; the other can still score less by guessing later. The higher match total wins.",
+      "why": "Same-round ties now depend on how early each player committed. A player who solves in leg-round 2 beats one who solves in leg-round 3. When to guess among k candidates becomes an expected-value decision, not a coin toss with nothing at stake.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Play 3 legs of 4 rounds each (12 rounds). Each leg uses fresh secret codes, and both codes are revealed at the end of each leg.",
+      "why": "Three independent legs average out the luck of a final 1/2 pick. Revealing codes lets players learn and exploit each other's code-choice habits in later legs.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Each leg has only 4 ask rounds, so each player uses 4 of the 6 cards. A card cannot be repeated within a leg; all cards become available again next leg.",
+      "why": "Which 4 cards to ask, and in which order given earlier answers, becomes a real adaptive planning decision. The two players reach different information at different speeds.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Same leg structure as above, with code choice repeated at the start of every leg.",
+      "why": "Gives multiple deduction samples and repeated code-choice duels, where opponent modelling can pay off.",
+      "fixes": "P4"
+    },
+    {
+      "what": "Card default: a missing, invalid or already-used card number is replaced by the lowest-numbered card that player has not used this leg.",
+      "why": "Every ask resolves deterministically.",
+      "fixes": "P5"
+    },
+    {
+      "what": "Guess defaults:\n- Three different digits 0-9 written in any order are sorted ascending and accepted.\n- Anything else (repeats, wrong length, non-digits, blank) counts as a pass and costs nothing.\n- A guess written with no guesses left, or after already guessing correctly this leg, counts as a pass and costs nothing.",
+      "why": "Every guess resolves deterministically.",
+      "fixes": "P6"
+    },
+    {
+      "what": "Code default: three different digits in any order are sorted. Any other entry becomes 0-1-2. This code is identifiable from the SUM card alone, which is a natural penalty.",
+      "why": "Setup always produces a legal code.",
+      "fixes": "P7"
+    },
+    {
+      "what": "Store each code as one number 100A+10B+C and each guess the same way. Store used cards as one bitmask per player (card n adds 2^(n-1)). Compute each answer in a single calculation step per player.",
+      "why": "Keeps the game at 17 attributes and 13 steps.",
+      "fixes": "P8"
+    },
+    {
+      "what": "Tie-break: if totals are equal, the player with fewer wrong guesses over the match wins. Otherwise it is a draw.",
+      "why": "Turns remaining ties into results that reward careful play.",
+      "fixes": "P1"
+    }
+  ],
+  "keeps": [
+    "Secret sorted number codes that each player hides from the other",
+    "Question cards that must be answered truthfully with a computed fact about the opponent's code",
+    "Exact full-code guesses, with a limited number of attempts and wrong guesses penalised",
+    "The race to deduce faster than your opponent while choosing a code that is hard to deduce"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core is genuine hidden-state deduction plus code-choice opponent modelling. It needed graded scoring, partial card use, several legs and explicit defaults, all of which fit within the limits."
+  },
+  "variation": {
+    "name": "Break the Code: Three-Leg Duel",
+    "summary": "Two players each hide a 3-digit code and race to deduce the other's using 4 of 6 question cards per leg. Earlier correct guesses score more and wrong guesses cost a point, over 3 legs with fresh codes.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "OVERVIEW. Two players. The match has 3 legs of 4 rounds each (12 rounds in total). Leg 1 is rounds 1-4, leg 2 is rounds 5-8, leg 3 is rounds 9-12. The leg-round is 1, 2, 3 or 4 within each leg. Scores start at 0 and carry across legs.\n\nCODES. A code is three different digits from 0 to 9, kept smallest first as A < B < C. Example: 2-5-8.\n\nTHE SIX QUESTION CARDS. Each answer is one number computed from the opponent's current code A < B < C.\n1 SUM: A + B + C.\n2 EVENS: how many of the three digits are even (0 counts as even).\n3 RANGE: C - A.\n4 HIGH: how many of the three digits are 5 or more.\n5 STEPS: how many of the pairs (A,B) and (B,C) differ by exactly 1 (0, 1 or 2).\n6 THREES: how many of the three digits are in {0, 3, 6, 9}.\n\nEACH ROUND:\n\nStep 1. Code choice (leg-round 1 only, i.e. rounds 1, 5, 9).\n- Both players simultaneously and secretly write a code.\n- Three different digits written in any order are sorted ascending and become that player's code for this leg.\n- Any other entry (repeated digits, wrong count, non-digits, blank) becomes the code 0-1-2.\n- Only the engine knows the codes.\n- Each player's guesses for the leg are set to 2, their solved flag to no, and their used cards to none.\n\nStep 2. Ask. Both players simultaneously and secretly name one card number (1-6) they have not used in this leg.\n- If a player names nothing, an invalid number, or a card already used this leg, they are given the lowest-numbered card they have not used this leg.\n- The card becomes used for that player until the leg ends.\n- Each player uses exactly 4 different cards per leg; all six are available again at the start of the next leg.\n\nStep 3. Answer. The engine computes each player's card from the opponent's code. It announces to both players which card each player asked and the answer.\n\nStep 4. Guess. Both players simultaneously either pass or write a code guess.\n- A guess of three different digits in any order is sorted ascending.\n- Any other entry counts as a pass.\n- A guess written by a player with 0 guesses left, or who has already guessed correctly this leg, counts as a pass.\n- A pass costs nothing.\n- A valid guess uses up 1 of that player's guesses for the leg.\n\nStep 5. Check. Each valid guess is compared with the opponent's code.\n- Correct (all three digits match): the guesser scores 5 minus the leg-round, so 4 points in leg-round 1, 3 in leg-round 2, 2 in leg-round 3, 1 in leg-round 4. The guesser is marked solved for the rest of the leg and makes no further guesses that leg.\n- Wrong: the guesser loses 1 point and also gains 1 to their wrong-guess count.\n- Every guess and its result (correct or wrong) is announced to both players.\n- One player guessing correctly does not end the leg for the other player, who may keep asking and guessing.\n\nStep 6. Leg end (leg-round 4 only, i.e. rounds 4, 8, 12). Both codes are revealed to both players, and the current scores are announced.\n\nStep 7. End check. After round 12 the match ends.\n\nENGINE ENCODING (for builders):\n- Per player: score, wrong_count, guesses_left, solved (0/1), used_mask, code (100A+10B+C), ask, answer, guess (100A+10B+C, or 0 for a pass).\n- Plus one table attribute: round.\n- Total: 17 attributes.\n- Leg-round is ((round - 1) mod 4) + 1.\n- Digits of a code are A = floor(code/100), B = floor(code/10) mod 10, C = code mod 10.\n- Card n is used if floor(used_mask / 2^(n-1)) mod 2 = 1.",
+    "objective": "After round 12, the player with the higher total score wins. If the totals are equal, the player with fewer wrong guesses over the whole match wins. If that is also equal, the match is a draw.",
+    "expected_effect": "Speed of deduction now separates players even when both eventually solve. Solving in leg-round 2 instead of 3 is worth a point, so ties are rarer.\n\nChoosing 4 of 6 cards adaptively rewards picking the most informative next question given earlier answers. Codes with extreme sums (such as 0-1-2 or 7-8-9) become easy targets, so code choice becomes a reasoned bet on which cards the opponent will ask.\n\nGuessing becomes an expected-value decision. With 2 candidates left in leg-round 3, guessing now (2 points, 50%, -1 if wrong) competes with waiting for a 4th card that may settle it for 1 point. Remaining 1/2 picks are spread over 3 legs, so luck averages down.\n\nRevealed codes let players model each other's code-choice habits across legs.\n\nSimple policies all lose to good play:\n- Always pass scores 0 and loses to any positive score.\n- Blind early guessing averages about -2 per leg.\n- Always asking cards in fixed order loses speed to adaptive asking.\n- Always waiting until leg-round 4 caps at 1 point per leg and loses to a player who solves earlier.\n\nTalk is omitted: two players with directly opposed interests and nothing to coordinate."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 3,
+    "attributes": 17,
+    "hidden_elements": 1,
+    "random_draws_per_round": 0,
+    "rounds": 12
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "The seats are symmetric. Both players ask at the same time, get one answer per round, guess at the same time and hold 2 guesses each. Neither move order nor information gives either seat an edge. There are C(10,3) = 120 legal codes.\n\nThoughtless policies, judged by the WINNER RULE against sensible play (S) and random play (R):\n(a) Always pass: never wins. It draws only if the opponent never finds the code. Against S it loses whenever S finds the code by round 6, which the analysis below shows S usually does. It does not 'never lose'.\n(b) Guess in rounds 1 and 2 with no information: each guess has a 1/120 chance of being right, about 1.7% in total. Against S it almost always loses, because S keeps both guesses for later. Against R, which also guesses blindly, it mostly draws.\n(c) Always ask Q1..Q6 in that order and guess as soon as one candidate remains: this is close to sensible play. It does not dominate, because the order of questions changes how fast the candidates narrow.\n\nNo option is strictly better whatever the opponent does. The best ordering of question cards depends on which code you face.\n\nFull answer profile check:\nSame sum and range forces the shift (A+k, B-2k, C+k).\nExample: 3-7-8 versus 4-5-9.\n- SUM is 18 for both.\n- RANGE is 5 for both.\n- EVENS is 1 for both.\n- HIGH is 2 for both.\n- STEPS is 1 for both.\n- THREES is 1 for both.\nSo some codes cannot be told apart even after all six cards. Code choice is therefore a real lever, and no single code is safe. Both players can realistically win; the real risk is a high draw rate, handled under reasoning_over_luck.\n\nThere are no labelled payoff orderings to check. The game passes, but it is draw-prone."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "The rules are finite (6 rounds) and decided by arithmetic on stored codes. No board, clock or judge is needed, and asking and guessing are correctly simultaneous polls. It is a 2-player game, so talk is not needed.\n\nGaps that leave situations unplayable from the words alone:\n1. No rule covers naming a card already used, or an invalid card. 'Must use every card exactly once' gives no enforcement or default.\n2. No rule covers an illegal guess (repeated digits, not ascending, out of range) or writing a code with 0 guesses left. Is it treated as a pass, as wrong, or does it still consume a guess?\n3. No rule covers an illegal secret code at setup, for example 3-3-7.\n\nComplexity limits:\n- Tracking 6 used-card flags per player (12), 2 guess counters and 6 code digits already reaches 20 attributes. That is before guess digits, answer values and correctness flags, so the declared 13 attributes only works if the codes are hidden elements and the used cards are packed into one bitmask per player. This is not stated.\n- Steps: Q5 and Q6 each need several conditional operations per player. 10 steps fits only if each answer is a single multi-operation step.\n\nThe rules need these defaults and this encoding spelled out."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "There is no random draw, and inference is real: you narrow 120 candidates with 6 known functions, choose the order of question cards, and choose a hard-to-identify code.\n\nUnder the intended good strategy, though, the result is not decided by reasoning:\n- Both players pick codes in large equivalence classes, such as the 3-7-8 / 4-5-9 pair or classes that stay ambiguous until late cards.\n- Both use the same six cards, so both reach comparable information at about the same round.\n- The race is then settled in one of three ways:\n  (i) Both identify the code in the same round and both guess correctly: a draw.\n  (ii) Both still face k candidates: each player's early 1/k guess succeeds or fails essentially by coin flip.\n  (iii) Both wait until the full profile and then use their 2 guesses on a class of size \u22642: both correct, a draw.\n\nRough estimate: among competent players, most games draw. Most decisive games turn on a blind 1/2 or 1/3 guess among indistinguishable candidates. Chance among equals is effectively above 50% of decisive outcomes. A better reasoner is not clearly favoured once both choose good codes, and the required use of every card removes most planning from question order by round 6."
+        },
+        "required_changes": [
+          "Reduce draws and coin-flip races. Add a margin of victory that turns draws into decisive results, scored over the cards not yet used. Example: a correct guess in round r scores 7\u2212r points, a wrong guess costs 2 points, and higher total wins. Play several codes per match, such as 3 legs with roles carried over, so early efficient deduction and smart code choice are rewarded beyond same-round ties.",
+          "Drop 'must use every card exactly once'. Let each player ask only 4 of the 6 cards, so card selection is a real planning decision and the two players reach different information.",
+          "Add a tie-break for both players correct in the same round. For example, the player with more unused question cards or more remaining guesses wins, so better planning is rewarded instead of a draw.",
+          "Specify the defaults. An already-used or invalid card is replaced by the lowest-numbered unused card. An illegal guess, or a guess with 0 guesses left, counts as a pass and consumes nothing. An illegal secret code is replaced by 0-1-2, or the player is re-polled.",
+          "State the encoding. Store each code as a hidden element per player and each player's used cards as one bitmask attribute, so attributes stay at or below 20. List the arithmetic for Q5 and Q6 so steps_per_round stays at or below 20."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Code space: C(10,3) = 120 codes. Scoring for a correct guess is 5 - leg-round: 4, 3, 2, 1 in rounds 1 to 4 of a leg. A wrong guess costs -1. Each player has 2 guesses per leg.\n\nHow much the cards reveal. Range d has (10-d)(d-1) codes: d=2:8, 3:14, 4:18, 5:20, 6:20, 7:18, 8:14, 9:8. Knowing SUM s and RANGE d gives B = s - d - 2A, with the constraint 0 < s - d - 3A < d. That leaves about 1 to 3 candidates:\n- 2-4-7 (s=13, d=5) is unique.\n- s=13, d=7 leaves 0-6-7 and 1-3-8.\n- EVENS, HIGH or THREES as a third card almost always pins the code.\n\nEV table for a sensible plan (SUM then RANGE, guess in round 2):\n- Round-1 guess with about 10 candidates after SUM: EV = 4(0.1) - 0.9 = -0.5. Bad.\n- Round-2 guess with p about 0.6: EV = 3(0.6) - 0.4 = +1.4.\n- If that guess is wrong, a round-3 guess after a third card has p about 1, worth +2.\n- Expected value is about +2.5 to +3 per leg, so about +8 over the match.\n\nThoughtless policies under the WINNER RULE:\n- Always pass: scores 0. It loses to any sensible player, who averages about +8 over the match. It only draws against another passer.\n- Always the lowest card plus pass: same 0. It loses.\n- Always guess a fixed code every leg: about 2/120 hit chance, so it averages about -2 per leg. It loses to a passer and to a sensible player.\n- Always guess round 1: negative EV, so it loses to sensible play.\n- Always guess round 4 only: at most +1 per leg, so it loses to round-2 guessers who average +2 or more.\n- No policy never loses, and no card or guess option is strictly dominant.\n\nSeats: all choices are simultaneous and all announcements go to both players, so there is no seat edge. Both players can win. Results differ through:\n- code choice: picking codes whose SUM/RANGE class is ambiguous, and the opponent anticipating that;\n- adaptive card order;\n- timing of the risky round-2 guess.\n\nThe tie-break on wrong guesses rewards caution, but not decisively. Its cost: a wrong guess costs 1 point and the leg's guess budget."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules cover every case:\n- invalid codes default to 0-1-2;\n- invalid or used cards default to the lowest unused card;\n- invalid guesses, guesses after solving, and guesses with 0 left all count as a pass;\n- scoring, reveal and tie-breaks are fully specified.\n\nAll six card formulas are arithmetic on the stored code, using floor and mod for the digits and `if` for STEPS adjacency. The pass encoding 0 cannot clash with a real code: B is at least 1, so the minimum code value is 12. Card choice uses the bitmask, which is fine.\n\nThe game is finite: 12 fixed rounds, no random draws, no judge, board or clock. It is a two-player simultaneous poll, so the talk and repeated-cooperation questions do not apply.\n\nComplexity:\n- steps 13 of 20; choices 3 of 4; rounds 12 of 40; hidden 1 of 3; draws 0 of 1.\n- Attributes are miscounted. There are 9 per-player fields x 2 + round = 19, not the stated 17. That is still within the limit of 20, but there is only 1 spare slot.\n- Computing six possible card answers per player with conditional operations inside 13 steps is tight but feasible with per-operation `if`."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "There are no random draws. Chance is essentially 0%, apart from a guess between 2 or 3 candidates, and those candidates exist only because of the opponent's chosen code.\n\nOutcomes depend on:\n- choosing informative card sequences adaptively (for example, RANGE then SUM, then whichever card splits the remaining candidates);\n- judging when the candidate count makes a round-2 guess worth +1.4 or more;\n- opponent modelling in code choice: picking codes in ambiguous SUM/RANGE classes, while anticipating that the opponent narrows their prior toward exactly those codes.\n\nUnder mutual good play, the winner is decided by these choices, not by a deal. A careless player who guesses early or asks redundant cards scores clearly less."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

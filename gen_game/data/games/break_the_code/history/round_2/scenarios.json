@@ -1,0 +1,1146 @@
+[
+  {
+    "name": "R1 first round sets round to 1",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a round starts, round increases by exactly 1 and leg_round = ((round - 1) mod 4) + 1, so rounds 1, 5 and 9 have leg_round 1 and rounds 4, 8 and 12 have leg_round 4."
+  },
+  {
+    "name": "R1 round 5 is leg_round 1 so revealed codes reset to -1",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 4
+      },
+      "players": {
+        "1": {
+          "revealed_code": 258
+        },
+        "2": {
+          "revealed_code": 369
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 5
+      },
+      "players": {
+        "1": {
+          "revealed_code": -1
+        },
+        "2": {
+          "revealed_code": -1
+        }
+      }
+    },
+    "rule_text": "When a round starts, round increases by exactly 1 and leg_round = ((round - 1) mod 4) + 1, so rounds 1, 5 and 9 have leg_round 1 and rounds 4, 8 and 12 have leg_round 4."
+  },
+  {
+    "name": "R2 initial score, wrong_count and revealed_code",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 0
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0,
+          "revealed_code": -1
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0,
+          "revealed_code": -1
+        }
+      }
+    },
+    "rule_text": "When the game starts, each player's score is 0 and wrong_count is 0, and neither is reset between legs."
+  },
+  {
+    "name": "R2 score and wrong_count are not reset at a new leg",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 4
+      },
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 2,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 5
+      },
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 2,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When the game starts, each player's score is 0 and wrong_count is 0, and neither is reset between legs."
+  },
+  {
+    "name": "R3 guesses_left and solved reset at leg start so both may guess and score 4",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 4
+      },
+      "players": {
+        "1": {
+          "guesses_left": 0,
+          "score": 0
+        },
+        "2": {
+          "solved": 1,
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 12,
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 12,
+        "times": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5
+      },
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 4,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When leg_round is 1, each player's guesses_left is set to 2 and solved to 0 before codes are entered."
+  },
+  {
+    "name": "R4 codes stay unchanged in leg_round 2 so correct guesses score 3",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 258
+        },
+        "2": {
+          "code": 369
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 369
+      },
+      {
+        "seat": 2,
+        "options_include": 258
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2
+      },
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 3,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When leg_round is 1, both players are polled at the same time for a code; when leg_round is 2, 3 or 4, no code is asked for and codes stay unchanged."
+  },
+  {
+    "name": "R5 entries 852 and 12 are stored as 258 and 12, so guesses of them are right",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 852
+      },
+      {
+        "seat": 1,
+        "options_include": 12
+      },
+      {
+        "seat": 2,
+        "options_include": 12
+      },
+      {
+        "seat": 2,
+        "options_include": 258
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 4,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a player enters 852 as a code, code is stored as 258; when a player enters 12, code is stored as 12."
+  },
+  {
+    "name": "R5 entries 852 and 12 are revealed as 258 and 12 after the leg",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 4,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 852
+      },
+      {
+        "seat": 2,
+        "options_include": 12
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 4
+      },
+      "players": {
+        "1": {
+          "revealed_code": 258,
+          "score": 1
+        },
+        "2": {
+          "revealed_code": 12,
+          "score": 1
+        }
+      }
+    },
+    "rule_text": "When a player enters 852 as a code, code is stored as 258; when a player enters 12, code is stored as 12."
+  },
+  {
+    "name": "R6 repeated digits and a declined entry both store code 12",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 4,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 447
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 4
+      },
+      "players": {
+        "1": {
+          "revealed_code": 12,
+          "score": 1
+        },
+        "2": {
+          "revealed_code": 12,
+          "score": 1
+        }
+      }
+    },
+    "rule_text": "When a code entry has repeated digits (for example 447) or is declined, code is stored as 12."
+  },
+  {
+    "name": "R7 asking card 1 is offered and changes no score (answer is private)",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 369
+        },
+        "2": {
+          "code": 258
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 1
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a player asks card 1 and the opponent's code is 258, answer is 2 (digits 5 and 8 are 5 or higher)."
+  },
+  {
+    "name": "R8 asking card 2 is offered and changes no score (answer is private)",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 369
+        },
+        "2": {
+          "code": 258
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a player asks card 2 and the opponent's code is 258, answer is 1 (the count of odd digits)."
+  },
+  {
+    "name": "R9 asking card 3 is offered and changes no score (answer is private)",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 369
+        },
+        "2": {
+          "code": 258
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 3
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a player asks card 3 and the opponent's code is 258, answer is 2 (the count of digits in 2, 3, 5, 7)."
+  },
+  {
+    "name": "R10 asking card 4 is offered and changes no score (answer is private)",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 258
+        },
+        "2": {
+          "code": 369
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 4
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a player asks card 4 and the opponent's code is 369, answer is 3 (the count of digits in 0, 3, 6, 9)."
+  },
+  {
+    "name": "R11 both seats ask card 5 and no score changes (answers are private)",
+    "rule": "R11",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 258
+        },
+        "2": {
+          "code": 123
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 5
+        },
+        {
+          "seat": 2,
+          "option": 5
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a player asks card 5 and the opponent's code is 123, answer is 2; when the code is 258, answer is 0."
+  },
+  {
+    "name": "R12 asking card 6 is offered and changes no score (answer is private)",
+    "rule": "R12",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 369
+        },
+        "2": {
+          "code": 258
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 6
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a player asks card 6 and the opponent's code is 258, answer is 3 ((2+5+8) mod 4)."
+  },
+  {
+    "name": "R13 declining a card changes nothing observable",
+    "rule": "R13",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 369
+        },
+        "2": {
+          "code": 258
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 2
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a player declines to ask, card_asked is 0 and no answer is given; asking the same card again gives the same answer."
+  },
+  {
+    "name": "R14 both seats ask cards; no score changes and codes stay hidden",
+    "rule": "R14",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 369
+        },
+        "2": {
+          "code": 258
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "revealed_code": -1
+        },
+        "2": {
+          "score": 0,
+          "revealed_code": -1
+        }
+      }
+    },
+    "rule_text": "After asking, the answer is shown only to the asker, and both players are told which card each player asked."
+  },
+  {
+    "name": "R15 seat with no guesses left and seat already solved are not asked to guess",
+    "rule": "R15",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 258,
+          "guesses_left": 0,
+          "score": 2
+        },
+        "2": {
+          "code": 369,
+          "solved": 1,
+          "score": 3
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 500
+        },
+        {
+          "seat": 2,
+          "option": 500
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 2,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 3,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a player's guesses_left is 0 or solved is 1, that player is not asked for a guess."
+  },
+  {
+    "name": "R16 a guess with repeated digits is a pass",
+    "rule": "R16",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 258
+        },
+        "2": {
+          "code": 369
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 447
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a guess is declined or has repeated digits, it is a pass, and score, wrong_count and guesses_left are unchanged."
+  },
+  {
+    "name": "R17 correct guess 852 against code 258 in leg_round 3 scores 2",
+    "rule": "R17",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 2
+      },
+      "players": {
+        "1": {
+          "code": 369,
+          "score": 1
+        },
+        "2": {
+          "code": 258,
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 852
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 3
+      },
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a valid guess equals the opponent's code, the guesser scores 5 - leg_round (4, 3, 2 or 1 in leg-rounds 1 to 4) and solved becomes 1."
+  },
+  {
+    "name": "R18 wrong guess costs the guesser 1 and gives the opponent 1",
+    "rule": "R18",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 258,
+          "score": 2
+        },
+        "2": {
+          "code": 369,
+          "score": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 147
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 1,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 3,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a valid guess does not equal the opponent's code, the guesser's score decreases by 1, wrong_count increases by 1, guesses_left decreases by 1, and the opponent's score increases by 1."
+  },
+  {
+    "name": "R19 both guess right in leg_round 3 and both score 2",
+    "rule": "R19",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 2
+      },
+      "players": {
+        "1": {
+          "code": 258
+        },
+        "2": {
+          "code": 369
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 369
+      },
+      {
+        "seat": 2,
+        "options_include": 258
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 2,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 2,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When both players guess correctly in the same round, both score 5 - leg_round."
+  },
+  {
+    "name": "R20 one right and one wrong guess; codes not revealed",
+    "rule": "R20",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "code": 258
+        },
+        "2": {
+          "code": 369
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 369
+      },
+      {
+        "seat": 2,
+        "options_include": 147
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 0,
+          "revealed_code": -1
+        },
+        "2": {
+          "score": -1,
+          "wrong_count": 1,
+          "revealed_code": -1
+        }
+      }
+    },
+    "rule_text": "After guessing, both players are told whether each player passed, guessed right or guessed wrong, and codes are not shown."
+  },
+  {
+    "name": "R21 leg end: unsolved-opponent bonus and codes revealed",
+    "rule": "R21",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 3
+      },
+      "players": {
+        "1": {
+          "code": 258,
+          "solved": 1,
+          "score": 3
+        },
+        "2": {
+          "code": 369,
+          "solved": 0,
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 4
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 500
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 4,
+          "revealed_code": 258
+        },
+        "2": {
+          "score": 0,
+          "revealed_code": 369
+        }
+      }
+    },
+    "rule_text": "When leg_round is 4, each player whose opponent's solved is 0 scores +1, and then both codes are revealed to both players."
+  },
+  {
+    "name": "R22 game ends after round 12; higher score wins",
+    "rule": "R22",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 11
+      },
+      "players": {
+        "1": {
+          "code": 258,
+          "score": 3
+        },
+        "2": {
+          "code": 369,
+          "score": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 369
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 500,
+        "2": 300
+      },
+      "game": {
+        "round": 12
+      },
+      "players": {
+        "1": {
+          "score": 5,
+          "revealed_code": 258
+        },
+        "2": {
+          "score": 3,
+          "revealed_code": 369
+        }
+      }
+    },
+    "rule_text": "When round 12 has finished, the game ends; the higher score wins, a level score is broken by the lower wrong_count, and a full tie is a draw."
+  },
+  {
+    "name": "R22 level score broken by fewer wrong guesses",
+    "rule": "R22",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 11
+      },
+      "players": {
+        "1": {
+          "code": 258,
+          "score": 5,
+          "wrong_count": 1
+        },
+        "2": {
+          "code": 369,
+          "score": 5,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 599,
+        "2": 600
+      },
+      "game": {
+        "round": 12
+      },
+      "players": {
+        "1": {
+          "score": 6,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 6,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When round 12 has finished, the game ends; the higher score wins, a level score is broken by the lower wrong_count, and a full tie is a draw."
+  },
+  {
+    "name": "R22 full tie is a shared win",
+    "rule": "R22",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 11
+      },
+      "players": {
+        "1": {
+          "code": 258,
+          "score": 4,
+          "wrong_count": 1
+        },
+        "2": {
+          "code": 369,
+          "score": 4,
+          "wrong_count": 1
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 499,
+        "2": 499
+      },
+      "game": {
+        "round": 12
+      },
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": 5
+        }
+      }
+    },
+    "rule_text": "When round 12 has finished, the game ends; the higher score wins, a level score is broken by the lower wrong_count, and a full tie is a draw."
+  }
+]

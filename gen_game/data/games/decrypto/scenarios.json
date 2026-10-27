@@ -1,0 +1,609 @@
+[
+  {
+    "name": "Setup: seats 1-2 are white, seats 3-4 black, 4 keywords each, 8 words dealt from the 40",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "team": "white"
+        },
+        "2": {
+          "team": "white"
+        },
+        "3": {
+          "team": "black"
+        },
+        "4": {
+          "team": "black"
+        }
+      },
+      "game": {
+        "round": 0,
+        "white_interceptions": 0,
+        "white_miscommunications": 0,
+        "white_decodes": 0,
+        "black_interceptions": 0,
+        "black_miscommunications": 0,
+        "black_decodes": 0
+      },
+      "lens": {
+        "game": {
+          "deck": 32,
+          "history": 0
+        },
+        "players": {
+          "1": {
+            "keywords": 4
+          },
+          "2": {
+            "keywords": 4
+          },
+          "3": {
+            "keywords": 4
+          },
+          "4": {
+            "keywords": 4
+          }
+        }
+      }
+    },
+    "rule_text": "When setup runs, then seats 1 and 2 are Team White, seats 3 and 4 are Team Black, and each team receives 4 different words from the 40-word list, so 8 distinct words are dealt in total."
+  },
+  {
+    "name": "Keyword lists keep 4 words each after a round is played",
+    "rule": "R2",
+    "players": 4,
+    "seed": 2,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 32
+        },
+        "players": {
+          "1": {
+            "keywords": 4
+          },
+          "2": {
+            "keywords": 4
+          },
+          "3": {
+            "keywords": 4
+          },
+          "4": {
+            "keywords": 4
+          }
+        }
+      }
+    },
+    "rule_text": "When keywords are dealt, then both members of a team hold the same keyword list, it is visible only to them, and it never changes."
+  },
+  {
+    "name": "Round 1: seat 1 encrypts and seat 2 decodes it",
+    "rule": "R3",
+    "players": 4,
+    "seed": 3,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "2-1-3"
+      },
+      {
+        "seat": 2,
+        "options_include": "2-1-3"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1,
+        "white_decodes": 1,
+        "white_miscommunications": 0,
+        "black_decodes": 1,
+        "black_miscommunications": 0,
+        "white_interceptions": 0,
+        "black_interceptions": 0
+      }
+    },
+    "rule_text": "When a round is odd (1, 3, 5, 7), then seats 1 and 3 are Encryptors and seats 2 and 4 are Decoders."
+  },
+  {
+    "name": "Round 2: seat 2 encrypts, seat 1 decodes, white encryptor intercepts black's code",
+    "rule": "R4",
+    "players": 4,
+    "seed": 4,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1
+      }
+    },
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "2-1-3"
+      },
+      {
+        "seat": 1,
+        "options_include": "2-1-3"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2,
+        "white_decodes": 1,
+        "white_miscommunications": 0,
+        "black_decodes": 1,
+        "black_miscommunications": 0,
+        "white_interceptions": 1,
+        "black_interceptions": 0
+      }
+    },
+    "rule_text": "When a round is even (2, 4, 6, 8), then seats 2 and 4 are Encryptors and seats 1 and 3 are Decoders."
+  },
+  {
+    "name": "Both encryptors set their own codes and their decoders match them",
+    "rule": "R5",
+    "players": 4,
+    "seed": 5,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "4-3-2"
+      },
+      {
+        "seat": 3,
+        "options_include": "3-4-1"
+      },
+      {
+        "seat": 2,
+        "options_include": "4-3-2"
+      },
+      {
+        "seat": 4,
+        "options_include": "3-4-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "white_decodes": 1,
+        "black_decodes": 1,
+        "white_miscommunications": 0,
+        "black_miscommunications": 0
+      }
+    },
+    "rule_text": "When the Encryptors submit, then only Encryptors are asked, simultaneously, for a code of three different digits from 1 to 4 and three clues in code order."
+  },
+  {
+    "name": "Invalid white clues: exactly 1 miscommunication and no decode, even with a correct guess",
+    "rule": "R6",
+    "players": 4,
+    "seed": 6,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "white_miscommunications": 1,
+        "white_decodes": 0,
+        "black_decodes": 1,
+        "black_miscommunications": 0
+      }
+    },
+    "rule_text": "When the referee rules a team's clues invalid, then that team gains exactly 1 Miscommunication and its decode is not scored that round, with no further Miscommunication and no Correct Decode."
+  },
+  {
+    "name": "Clues are revealed and the round is recorded in history",
+    "rule": "R7",
+    "players": 4,
+    "seed": 7,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "lens": {
+        "game": {
+          "history": 1
+        }
+      }
+    },
+    "rule_text": "When clues are revealed, then both teams' clues are shown to all four players and both codes stay hidden until the history step."
+  },
+  {
+    "name": "All four seats guess; black encryptor guesses white's code and intercepts",
+    "rule": "R8",
+    "players": 4,
+    "seed": 8,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1
+      }
+    },
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "2-4-1"
+      },
+      {
+        "seat": 4,
+        "options_include": "3-1-2"
+      },
+      {
+        "seat": 4,
+        "options_include": "2-4-1"
+      },
+      {
+        "seat": 1,
+        "options_include": "2-4-1"
+      },
+      {
+        "seat": 3,
+        "options_include": "3-1-2"
+      }
+    ],
+    "expect": {
+      "game": {
+        "white_decodes": 1,
+        "black_decodes": 1,
+        "black_interceptions": 1,
+        "white_interceptions": 0,
+        "white_miscommunications": 0,
+        "black_miscommunications": 0
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "1-2-3"
+        },
+        {
+          "seat": 2,
+          "option": "1-2-3"
+        },
+        {
+          "seat": 3,
+          "option": "1-2-3"
+        },
+        {
+          "seat": 4,
+          "option": "1-2-3"
+        }
+      ]
+    },
+    "rule_text": "When guesses are taken, then all four players answer simultaneously: decoders guess their own team's code and encryptors guess the opposing team's code."
+  },
+  {
+    "name": "Wrong decoder guess gives a miscommunication instead of a decode",
+    "rule": "R9",
+    "players": 4,
+    "seed": 9,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "3-2-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "white_miscommunications": 1,
+        "white_decodes": 0,
+        "black_decodes": 1,
+        "black_miscommunications": 0
+      }
+    },
+    "rule_text": "When a valid team's Decoder guess equals its true code digit by digit, then that team gains 1 Correct Decode; otherwise it gains 1 Miscommunication."
+  },
+  {
+    "name": "Interception counts even when the intercepted team's clues are invalid",
+    "rule": "R10",
+    "players": 4,
+    "seed": 10,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1
+      }
+    },
+    "judge": {
+      "White's three clues in white_clues": true
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "4-1-2"
+      },
+      {
+        "seat": 1,
+        "options_include": "4-1-2"
+      }
+    ],
+    "expect": {
+      "game": {
+        "white_interceptions": 1,
+        "black_interceptions": 0,
+        "black_miscommunications": 1,
+        "black_decodes": 0,
+        "white_decodes": 1,
+        "white_miscommunications": 0
+      }
+    },
+    "rule_text": "When round >= 2 and an Encryptor's guess equals the opposing team's true code digit by digit, then the Encryptor's team gains 1 Interception, whether or not the opposing team's clues were valid."
+  },
+  {
+    "name": "Round 1: matching encryptor guesses score no interception",
+    "rule": "R11",
+    "players": 4,
+    "seed": 11,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "white_interceptions": 0,
+        "black_interceptions": 0,
+        "white_decodes": 1,
+        "black_decodes": 1
+      }
+    },
+    "rule_text": "When it is round 1, then Encryptors' guesses are ignored and no Interception can be scored."
+  },
+  {
+    "name": "After scoring the round's entry is appended to history",
+    "rule": "R13",
+    "players": 4,
+    "seed": 13,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "history": 1
+        }
+      }
+    },
+    "rule_text": "When a round's scoring finishes, then both true codes are shown to everyone and appended to history beside that round's clues."
+  },
+  {
+    "name": "Game ends after round 8; all counters level gives a draw",
+    "rule": "R14",
+    "players": 4,
+    "seed": 14,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 7
+      }
+    },
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "standings": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "game": {
+        "round": 8,
+        "result": 0,
+        "white_interceptions": 1,
+        "black_interceptions": 1,
+        "white_decodes": 1,
+        "black_decodes": 1
+      }
+    },
+    "rule_text": "When, after a round, any team has 2 or more Interceptions or 2 or more Miscommunications, or round 8 has finished, then the game ends."
+  },
+  {
+    "name": "White reaches 2 interceptions with no miscommunications and wins",
+    "rule": "R15",
+    "players": 4,
+    "seed": 15,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "white_interceptions": 1
+      }
+    },
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "4-3-2"
+      },
+      {
+        "seat": 1,
+        "options_include": "4-3-2"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 1,
+        "2": 1,
+        "3": -1,
+        "4": -1
+      },
+      "game": {
+        "round": 2,
+        "white_interceptions": 2,
+        "black_interceptions": 0,
+        "result": 1
+      }
+    },
+    "rule_text": "When the game ends and exactly one team has 2 or more Interceptions with fewer than 2 Miscommunications, then that team wins."
+  },
+  {
+    "name": "Black reaches 2 miscommunications, white wins",
+    "rule": "R16",
+    "players": 4,
+    "seed": 16,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "black_miscommunications": 1
+      }
+    },
+    "judge": {
+      "White's three clues in white_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 1,
+        "2": 1,
+        "3": -1,
+        "4": -1
+      },
+      "game": {
+        "round": 2,
+        "black_miscommunications": 2,
+        "white_miscommunications": 0,
+        "result": 1
+      }
+    },
+    "rule_text": "When rule R15 does not decide it and exactly one team has 2 or more Miscommunications, then the other team wins."
+  },
+  {
+    "name": "Round 8 end with level net and interceptions: more correct decodes wins",
+    "rule": "R17",
+    "players": 4,
+    "seed": 17,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 7,
+        "white_decodes": 2,
+        "black_decodes": 1
+      }
+    },
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 1,
+        "2": 1,
+        "3": -1,
+        "4": -1
+      },
+      "game": {
+        "round": 8,
+        "white_decodes": 3,
+        "black_decodes": 2,
+        "white_interceptions": 1,
+        "black_interceptions": 1,
+        "result": 1
+      }
+    },
+    "rule_text": "When neither R15 nor R16 decides, then the team with the higher Interceptions minus Miscommunications wins; if tied, the team with more Interceptions wins; if still tied, the team with more Correct Decodes wins; if still tied, it is a draw."
+  },
+  {
+    "name": "A round runs encrypt, reveal, guess and score with no discussion step",
+    "rule": "R18",
+    "players": 4,
+    "seed": 18,
+    "rounds": 1,
+    "default": "decline",
+    "judge": {
+      "White's three clues in white_clues": true,
+      "Black's three clues in black_clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 1,
+        "white_decodes": 1,
+        "black_decodes": 1,
+        "white_miscommunications": 0,
+        "black_miscommunications": 0
+      }
+    },
+    "rule_text": "When the game is running, then there is no discussion phase, and teammates communicate only through official clues."
+  }
+]

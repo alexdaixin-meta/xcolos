@@ -1,0 +1,48 @@
+
+$ gen_game convert dollar_auction --judge   (code e5a100032e, 09:38:11)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests correctly expect each raise stage to offer every whole number from 0 to coins − committed. In the game, no seat was ever offered 5, 10, 20 or even 100, so every raise came out 0 and coins never dropped. The raise-choice options in the game file are wrong. This is not a rules or platform problem.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests read the rules correctly: raises from 0 to coins minus committed, raises summed across the three stages, and every committed bid paid at resolution. The game never offered any raise above 0, since every seat played only 0 and options like 5, 10, 20 and 100 were never offered. So no coins ever moved, which is a bug in how the file builds the raise options.
+step C: building the game file
+step D: evaluating
+triage: fix_game: In every raise stage the game offered each seat only a raise of 0, so 10, 15, 20 and 100 were never put to any seat and coins never fell below 100. The tests ask for exactly what the rules say: a raise from 0 to coins minus committed, and every committed bid paid at resolution.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules use a per-player numeric bid range, which the platform supports through numeric_bids. In every failing scenario the raise poll put no option above 0 to any seat (5, 40 and 100 were never offered, and all moves were 0), so the bug is in the game file's raise step, not in the tests or the rules.
+step C: building the game file
+step D: evaluating
+triage: fix_game: Every player chose 0 in all nine raise polls. The tests report that options like 5, 40 and 100 were 'never put to this seat', so the raise poll is not offering the range 0..(coins − committed) that R5/R6 require. The tests' expectations (committed 15 → coins 85, top_bid 15, top_count 1, and so on) follow the rules correctly. The engine can express a per-player numeric range, so the fault is in the file.
+step C: building the game file
+step D: evaluating
+triage: fix_game: In every failing scenario the raise poll offered only 0. Seats were never offered 5, 40 or 100, so committed, coins and top_bid never moved. The rules allow a per-player numeric range of 0..(coins − committed), and numeric bids are supported, so the game file builds the range wrong.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: In every failing scenario all three seats played 0 in all three stages, so committed, coins, top_bid and auction_winner never moved. That happened even where the tests scripted nonzero raises that the rules allow, such as 15, or 30 then 55 with coins 85. The game file is not offering the whole range from 0 to max_raise as raise options (or is not applying the choice), so legal scripted raises fall back to 0.
+step C: building the game file
+step D: evaluating
+triage: fix_game: Every failing scenario expects a nonzero raise (12, 7, 15, 55, 10), yet every move recorded is 0 and coins never drop. The tests' chosen amounts are not reaching the game: either the raise options are not the full whole-number range 0..max_raise, or the chosen amount is not stored and added to committed. The rules are simple and the engine supports numeric simultaneous choices, so the game file is at fault.
+step C: building the game file
+step D: evaluating
+triage: fix_game: In every failing scenario all nine raise moves came out as 0, even where the tests asked for positive raises (12, 7, 15) that R6 allows. So the file's raise poll is not offering the range 0..max_raise, and nothing was ever committed, paid or won. The rules are sound and the platform supports numeric simultaneous choices.
+
+dollar_auction: dropped
+  too complex: it could not be built to behave as designed: scenario `Stage bound: with coins 85 and committed 30 the next stage allows at most 55` failed: rule R6 is broken: Immediately before each of the 3 raise stages, each player's max_raise = coins - committed (for example coins 85 and committed 30 give max_raise 55).; seat 1 committed: expected 85, got 0; seat 1 coins: expected 0, got 85; seat 1 prize_points: expected 20, got 0; game top_bid: exp (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/dollar_auction
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/dollar_auction/VERIFIED.md

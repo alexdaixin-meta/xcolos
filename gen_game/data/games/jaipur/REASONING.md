@@ -1,0 +1,33 @@
+# Reasoning and planning: Jaipur Bazaar (Balanced Schedule)
+
+**Verdict: adequate.** Winning rewards hand-reading and preemptive selling around turn order, and players showed real but short-horizon reasoning, while private draws, especially of Diamonds, swung several results. More contested market cards, fewer free preemptions from the fixed schedule, and less floor-price dead time late in the game would make deeper planning matter more.
+
+From 3 play(s): 77 choices, 77 with a reason given (about 60.1 words each); results {'seat 2': 2, 'seat 1': 1}.
+
+## Reasoning: 2 of 3
+
+Most decisions weigh options against the public state. Players often infer the opponent's hand from the deck composition and the public takes, and they sell early to avoid a price crash. Some inferences were wrong or careless, for example about who acts before whom and how scarce Diamonds were.
+
+- match 1, turn 5, seat 2: "Seat 1 must have drawn a Cloth in round 1, since they sold 2 Cloth. That means they now hold 2 Silver and could sell them next." (Correctly infers the opponent's hidden draw from a public sale and preempts the Silver price.)
+- match 2, turn 24, seat 1: "Seat 2's sells, takes and draws tell me their hand: they hold only one card... Their best possible final score is about 47 + 5 + 1 = 53." (Tracks the opponent's hand count to bound their final score, then picks the sale that secures the win.)
+- match 3, turn 8, seat 2: "Seat 1 likely holds three Cloth too. They act first next round, so if I wait they can sell first and leave my Cloth nearly worthless." (Reads the opponent's hand from their takes and uses turn order to choose a preemptive sale.)
+
+## Planning: 2 of 3
+
+Several two-turn plans were stated and carried out using the public restock schedule and turn order, such as taking camels now and a multi-take next round, or building toward a 5-Silver bonus. Most other planning is single-turn hoarding, such as holding a card for a bonus set, and plans rarely extend past two rounds.
+
+- match 1, turn 6, seat 1: "If I take the camels now, my herd goes to 3. In round 4 I act first, and the market will hold 2 Silver... I can then take Silver 2 by returning 1 camel." (Two-round plan using the restock schedule and turn order, carried out at turn 7.)
+- match 2, turn 7, seat 2: "Seat 1 cannot sell Silver before my next turn... Next round I can sell 5 Silver for 5×3 + 8 = 23, instead of 17 for selling 4 now." (Delays a sale for a bigger set after judging the opponent cannot interfere, then sells 5 at turn 9.)
+- match 3, turn 13, seat 2: "If I leave it, the market will hold 2 Diamonds in round 8. The opponent moves first that round and could take both" (Looks ahead to the next restock to deny the opponent a pair.)
+
+## Luck: 2 of 3
+
+The private draws decided much of the late scoring. In match 3, seat 2 ended with 4 Diamonds, two of them drawn privately, and won with a 25-point sale. Turn order around the schedule also handed out free preemptions, though contested decisions still mattered.
+
+- match 3, turn 24, seat 2: "Selling all 4 Diamonds now at price 5 scores 4×5 + 5 bonus = 25, taking me to 67 for sure." (The deciding sale relied on Diamonds drawn privately.)
+
+## Weak spots
+
+- match 1, turn 3, seat 2: Took 3 Cloth and gave up 2 camels, expecting to sell 4 next round 'before my opponent's Cloth sales lower the price'. But the opponent acted later in the same round and crashed Cloth to 1, so the 4 Cloth fetched only 13 much later. Selling the Cloth already in hand, or taking 1, was better reasoned.
+- match 1, turn 18, seat 1: Held 2 Diamonds at price 4, claiming 'unlikely Seat 2 can sell 2 Diamonds before me'. The Diamond price soon fell to 2, and the pair was sold for 4 instead of 8. Selling then was the safer choice given that Diamonds were still in the deck.
+- match 2, turn 10, seat 2: Kept chasing camels that were already a lock (5 vs 1) while holding Cloth. Finished losing by 3 with surplus camels, when converting turns to points would have mattered more.

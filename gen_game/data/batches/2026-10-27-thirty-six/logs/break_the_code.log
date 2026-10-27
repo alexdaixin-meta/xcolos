@@ -1,0 +1,44 @@
+
+$ gen_game convert break_the_code --judge   (code af577a45cc, 11:19:08)
+step A: designing the rules
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules explicitly accept a code or guess written as three different digits in any order, sorted afterwards. The game instead offers only a short list of pre-sorted codes, and that list (guess_offer) is filtered down to codes matching the revealed SUM answer, so valid guesses such as 5,8,2 or 8,5,2 become passes and score nothing. The round counter also jumps from 0 to 2 in round 1, so the round and leg-round bookkeeping is off.
+step C: building the game file
+triage: fix_game: The failures differ from attempt to attempt and are file bugs. The latest one shows the per-player `code` attribute is never written, so every guess is compared against an unset code and `solved` can never become 1.
+step C: building the game file
+step D: evaluating
+triage: fix_tests: The rules say a guess from a player with 0 guesses left counts as a pass, so the outcome is the same whether the game polls that seat or skips it. The test failed only because it required a 'pass' option to be offered to Ada, who by the rule under test cannot act; it also leans on the internal guesses_left counter.
+rewriting the independent tests
+step D: evaluating
+triage: fix_game: The game takes the leg-start code as free text, while the guess is a numeric entry. The tests' code choices (147, 258) were therefore never offered at the code step and were played as guesses instead: the codes defaulted to 0-1-2, both guesses were wrong, and each seat lost a point. The rules and tests are consistent; the game's code-entry step is the problem.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: revise_rules: The game behaves as specified, but the scoring makes never guessing dominant. A wrong guess is a 2-point swing (-1 to the guesser, +1 to the code's owner), there are 120 possible codes, four card answers rarely pin one down, and an unguessed code earns its owner +1 each leg. A fixed policy that effectively passes therefore beats random play every time, so the flaw is in the rules, not the file.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests match the rules: each answer must be computed from the opponent's code. The game computes answers from per-player `opp_low`/`opp_high` scratch values that are never filled in; they stay 0 in the final state. So seat 1, asking about seat 2's code 2-5, was told LOW (as if the code were 0-0), and odd and big answers came out 0 for both seats.
+step C: building the game file
+step D: evaluating
+
+break_the_code: ready for review
+  19/19 scenarios, tier 0 passed, 0 design flag(s) left after 3 variation(s)
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/af577a45cc/gen_game/data/games/break_the_code
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/af577a45cc/gen_game/data/games/break_the_code/VERIFIED.md

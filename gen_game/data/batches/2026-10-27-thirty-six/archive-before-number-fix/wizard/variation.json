@@ -1,0 +1,142 @@
+{
+  "original_summary": "Wizard is a trick-taking card game for 3 to 6 players with a 60-card deck (four suits of 1-13, 4 Wizards, 4 Jesters). Each hand players bid exactly how many tricks they will win, then play the tricks with a trump suit. An exact bid scores 20 plus 10 per trick, a missed bid loses 10 per trick off, and the highest total after all hands wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No fixed bid works. 'Always bid 0' fails whenever a Wizard or a high trump is dealt, because a Wizard cannot be prevented from winning. 'Always bid high' fails on weak hands. Exact-bid scoring punishes missing in either direction. With 3 or more players and the highest total winning, one rival's gain is not automatically another's loss. In the original the deal rotates, so seats are even over a full game."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Hand evaluation, reading the trump, and card play that ducks or overtakes to land the exact bid all decide scores. Over many hands, strong players beat weak ones reliably, though a single hand is swingy."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A beginner can make simple exact bids (0 with a junk hand, 1 with a Wizard). Experts count cards, deliberately win or lose tricks to set opponents' bids, and plan whole hands. It is not solved."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden. Bids reveal information about opponents' hands, and play must be planned across tricks to hit the exact count. This is inference and opponent modelling at its core."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Trick winners and scores follow mechanically from the cards played and the bids."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "Up to 20 hands of up to 20 tricks each is far too long. Hand sizes change every hand, the dealer chooses trump on a Wizard, and sequential bidding plus sequential play exceeds 4 choice steps per round. A cut-down build (previous variation) works, but its spec left the fallback rules ambiguous enough that the independent tests were written wrongly."
+    }
+  ],
+  "problems": [
+    "P1: The original length (60/players hands with growing hand sizes) is far beyond 40 rounds and cannot be played as one-trick rounds.",
+    "P2: A 60-card deck, growing hands and a dealer's free trump choice on a turned Wizard add state and a choice step that the engine limits cannot carry.",
+    "P3: Sequential bidding plus sequential play per trick gives more than 4 choice steps per round.",
+    "P4: Previous variation: the invalid-bid fallback rule did not say that a legal answer such as '0' is always kept. The test scripted '0' (the default 'first' option) and wrongly expected 1. The rules must make plain that only a missing or out-of-range answer becomes 1.",
+    "P5: Previous variation: the rules did not say that a new hand (reshuffle and redeal) happens only when trick_in_hand is 1. Nor did they say exactly how the offer list is ordered. A test that set hands at trick_in_hand 1 had them overwritten by the redeal, and its trick-winner prediction did not match the offer actually built.",
+    "P6: Previous variation: the trick-resolution scratch values (led_suit, best_value, best_seat) and the card strengths were not fully stated, so trick winners were hard to predict from the rules alone.",
+    "P7: Seat balance: with 3 players and a fixed number of hands, the opening lead must rotate evenly or one seat gets an extra lead."
+  ],
+  "changes": [
+    {
+      "what": "3 players, 9 hands of 3 cards each. Each round is one trick, so the game is 27 rounds.",
+      "why": "Keeps the full bid-then-play cycle inside 40 rounds. 9 hands let each seat lead 3 hands.",
+      "fixes": "P1"
+    },
+    {
+      "what": "28-card deck: suits R, B, G of ranks 1-8, plus 2 Wizards and 2 Jesters. A turned Wizard or Jester means no trump.",
+      "why": "Keeps Wizards, Jesters and trump with small state and no extra dealer choice.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Bids are one simultaneous poll (0-3) at the first trick of each hand. Then the three plays are sequential, so there are 4 choice steps per round.",
+      "why": "Fits the choice-step limit. Bids are still revealed before any card is played, so reading them stays central.",
+      "fixes": "P3"
+    },
+    {
+      "what": "The bid fallback is stated precisely. Any answer that is exactly 0, 1, 2 or 3 is kept as given, including 0. Only a missing answer or one outside that set becomes a bid of 1.",
+      "why": "Removes the ambiguity behind the failed test. A legal '0' must stay 0.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The rules state that dealing happens only at the start of a round where trick_in_hand is 1. Hands keep deal order, and a played card is removed without reordering. The offer list is the legal cards in hand order. A missing or illegal play answer plays the first card of the offer.",
+      "why": "Makes the invalid-card fallback predictable and tells testers that given hands survive only at trick_in_hand 2 or 3.",
+      "fixes": "P5"
+    },
+    {
+      "what": "Explicit card strengths (Wizard 100 if none yet, trump 20+rank, led suit = rank, all else 0). A card wins the trick so far only if its strength is strictly greater than best_value, which starts at -1. Exact rules set led_suit.",
+      "why": "Trick winners follow by arithmetic from the stated values. First Wizard wins, and with only Jesters played the first Jester wins.",
+      "fixes": "P6"
+    },
+    {
+      "what": "The leader of hand h is seat ((h-1) mod 3)+1.",
+      "why": "Over 9 hands each seat leads exactly 3 hands.",
+      "fixes": "P7"
+    },
+    {
+      "what": "No talk phase.",
+      "why": "Bids already carry the public signalling. Free talk would mostly invite two players to gang up on the leader without adding inference.",
+      "fixes": "P3"
+    }
+  ],
+  "keeps": [
+    "Wizards always win (first Wizard played), Jesters always lose (unless only Jesters are played, when the first Jester wins).",
+    "A trump card turned from the deck after the deal. A turned Jester means no trump.",
+    "Must follow the led suit if able, while Wizards and Jesters may always be played.",
+    "A Jester lead lets the next suited card set the led suit.",
+    "Bidding the exact number of tricks, with exact scoring of 20 + 10 per trick, otherwise -10 per trick off.",
+    "Hidden hands, public bids, highest total wins."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core (exact bidding plus trick play with hidden hands) is strong reasoning material. It fits the limits once cut to 3 players, 3-card hands and 9 hands, with the fallback rules stated precisely."
+  },
+  "variation": {
+    "name": "Pocket Wizard",
+    "summary": "Three players play 9 hands of 3 tricks with a 28-card deck that includes Wizards and Jesters. At the start of each hand everyone secretly bids how many tricks they will take; the bids are revealed and the tricks are played. Exact bids score big, and the highest total after 27 tricks wins.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "CARDS. The deck has 28 cards: suits R, B and G, each with ranks 1 to 8 (written R1..R8, B1..B8, G1..G8), plus two Wizards (W1, W2) and two Jesters (J1, J2). The full deck in order is R1-R8, B1-B8, G1-G8, W1, W2, J1, J2.\n\nSTATE. Each seat has: hand (an ordered list of cards, private to that seat), bid, tricks_taken, played_card, offer, score, bid_answer. The table has: deck, trump_card, trump_suit, hand_number, trick_in_hand, leader, led_suit, best_value, best_seat, cur_card, cur_seat, cur_strength. At setup: every score is 0, every bid is 0, every tricks_taken is 0, hand_number is 0, trick_in_hand is 1, leader is 1, and the deck holds all 28 cards.\n\nThe game lasts 27 rounds. Each round is one trick, and every 3 rounds make one hand.\n\nR1 New hand. This happens only at the start of a round in which trick_in_hand is 1. In rounds where trick_in_hand is 2 or 3, nothing is dealt and hands are left exactly as they are.\n- hand_number increases by 1.\n- The deck is refilled to the full 28 cards and shuffled. This is the round's only random draw.\n- Every tricks_taken becomes 0.\n- Starting with seat 1, then seat 2, then seat 3, each seat takes the top 3 cards in turn. They are appended to its hand in the order taken, so each seat holds exactly 3 cards.\n- leader becomes seat ((hand_number - 1) mod 3) + 1.\n\nR2 Trump. When a hand is dealt, one further card is taken from the deck and becomes trump_card, leaving exactly 18 cards in the deck. If trump_card is an R, B or G card, trump_suit is that suit. If it is a Wizard or a Jester, trump_suit is 'none' (no trump). trump_card and trump_suit are announced to everyone.\n\nR3 Bidding (only when trick_in_hand is 1). All three seats answer at the same moment, each seeing only its own hand and the trump card: 'How many tricks will you take this hand? Answer 0, 1, 2 or 3.'\n\nR4 Bid validation. An answer that is exactly 0, 1, 2 or 3 becomes that seat's bid unchanged. A legal 0 stays 0. If an answer is missing or is anything else, that seat's bid is 1. All three bids are then announced.\n\nR5 Start of trick. led_suit becomes 'none', best_value becomes -1, and best_seat becomes the leader.\n\nR6 Play order. Seats play one at a time, in the order leader, then the next seat up (after seat 3 comes seat 1), then the next. Every played card is shown to all players at once.\n\nR7 Offer. Just before a seat plays, its offer is built from its hand in hand order.\n- If led_suit is a suit and the seat holds at least one card of that suit, the offer is every card of that suit plus every Wizard and Jester, kept in the order they appear in the hand.\n- Otherwise the offer is the whole hand, in hand order.\n\nR8 Play. The seat is asked to choose one card from its offer. If the answer is missing or not in the offer, the first card of the offer is played. The played card is removed from the hand, and the remaining cards keep their order. It becomes played_card, and is recorded as cur_card with cur_seat.\n\nR9 Led suit. If led_suit is 'none', best_value is below 100, and the card just played is an R, B or G card, led_suit becomes that card's suit. This is checked before strength is computed.\n\nR10 Strength. The strength of the card just played is:\n- 100 if it is a Wizard and best_value is below 100;\n- 0 if it is a Wizard and a Wizard was already played this trick;\n- 0 if it is a Jester;\n- 20 + rank if its suit equals trump_suit;\n- its rank if its suit equals led_suit (and that is not the trump suit);\n- 0 for any other card.\nIf the strength is strictly greater than best_value, best_value becomes that strength and best_seat becomes the seat that played it. A tie never changes the winner. As a result, the first Wizard always wins; if only Jesters are played, the first Jester wins; and after a Jester lead, the first suited card sets the led suit.\n\nR11 Trick award. After all three seats have played, best_seat's tricks_taken increases by 1 and best_seat becomes the leader of the next trick.\n\nR12 Hand scoring (when trick_in_hand is 3, after R11). For each seat:\n- if tricks_taken equals bid, score increases by 20 + 10 \u00d7 tricks_taken;\n- otherwise score decreases by 10 \u00d7 |tricks_taken - bid|.\nAll scores are announced.\n\nR13 Advance. trick_in_hand increases by 1. If it would become 4, it becomes 1 instead.\n\nR14 End. After round 27 (9 hands), the game ends.",
+    "objective": "After 27 rounds, the seat with the highest score wins. If two or three seats tie for the highest score, the game is a draw.",
+    "expected_effect": "Each hand players must judge a 3-card hand against the trump: a Wizard is a near-certain trick, a Jester a near-certain loss, and middling trumps are guesses. Once the simultaneous bids are revealed, everyone knows who wants tricks and who wants to avoid them. Play then becomes deliberate: ducking with low cards, spending a trump to break an opponent's exact bid, or saving a Wizard for the right trick. Simple policies lose to this. 'Always bid 0' busts on Wizard and trump hands. 'Always bid 1' and 'always play the first offered card' miss roughly half the time and cannot steer the trick count. Nine hands average out the deal while keeping each hand's decisions meaningful, and the rotating lead gives every seat 3 hand leads. Talk is left out because the public bids already provide the signalling. The precise fallback, dealing and offer rules make the engine's behaviour predictable, so tests can set state at trick_in_hand 2 or 3 and predict trick winners exactly."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 4,
+    "attributes": 19,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 27
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Scoring per hand (bid b, tricks t): exact b=0 gives +20, b=1 gives +30, b=2 gives +40, b=3 gives +50; a miss costs -10 per trick off. Each hand has 3 tricks among 3 seats, so a seat averages 1 trick per hand.\n\nThoughtless policies, estimated per hand:\n(a) Always bid 1 (also the default for a missing answer) and play the first offered card. P(exactly 1 trick) is about 0.40. EV \u2248 0.40\u00d730 \u2212 0.60\u00d7~12 \u2248 +5.\n(b) Always bid 0 and dump low cards. Holding a Wizard, a trump or a forced high follow often wins a trick anyway, so P(0 tricks) is about 0.45\u20130.5. EV \u2248 0.5\u00d720 \u2212 0.5\u00d7~13 \u2248 +3.5.\n(c) Always bid 3 (the highest bid). This hits only with near-perfect hands, about 0.05. EV \u2248 0.05\u00d750 \u2212 0.95\u00d7~18 \u2248 \u221215.\n(d) Always bid 0, play the first card. EV is similar to or worse than (b).\n(e) Sensible play bids from the hand: count Wizards and high trumps, and bid 0 with Jesters and low off-suit cards. It then steers play toward the bid, ducking or overtaking after seeing earlier cards and the announced bids. A hit rate of about 0.6\u20130.7 at an average value of about 30 gives EV \u2248 +15 per hand.\n\nWinner rule over 9 hands: sensible play outscores each fixed policy by roughly 10 points per hand, about 90 over the game. Against random play each fixed policy wins only sometimes, and none comes close to never losing. No bid is strictly better whatever others do: the right bid depends on the hand, and the outcome depends on opponents' plays.\n\nSeat order: leader rotates as ((hand_number\u22121) mod 3)+1, so over 9 hands each seat leads exactly 3 first tricks. Within a hand the trick winner leads. Bidding is simultaneous, so no seat gets a bidding-order advantage. All three seats can realistically win.\n\nThe game is not a two-player 'higher total' game, and there is no labelled payoff ordering to contradict."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Deck arithmetic: 28 cards, minus 9 dealt, minus 1 trump, leaves the stated 18. Hands empty after 3 tricks, so the re-deal in R1 always yields exactly 3 cards each.\n\nEdge cases are covered:\n- Wizard or Jester as trump card: no trump.\n- Wizard lead: best_value becomes 100, so R9 never sets a led suit and later seats get their whole hand as the offer.\n- Jester lead: strength 0 beats \u22121. The next suited card sets the led suit and wins with rank > 0.\n- All Jesters: the first Jester wins, because ties never change the winner.\n- Second Wizard: strength 0.\n- Void in the led suit: whole hand offered.\n- Invalid bid becomes 1; invalid play becomes the first offered card.\n\nThe game is finite (27 rounds) and decided by arithmetic on the kept scores, with ties declared a draw.\n\nLimits:\n- Choice steps: bid plus 3 plays = 4, which is the maximum (4).\n- Attributes: 7 seat + 12 table = 19 (limit 20).\n- Hidden elements: 1 (hands).\n- Random draws per round: 1 (the shuffle, only when trick_in_hand is 1).\n- Rounds: 27 (limit 40).\n- Steps: about 8 fixed (deal, trump, bid, validate, start, award, score, advance) plus about 3 per seat (offer, play, led suit with strength/compare) \u2248 17\u201318, within 20.\nConditional deal and scoring use per-step `when` conditions, which are supported. No block substitution is needed.\n\nPlays are sequential because order is the point of trick play. Bids are a simultaneous poll.\n\nNo talk phase: this is appropriate. There is no shared outcome to coordinate on, and talk could not bind. The announced bids already serve as the public signal players reason from. No board, clock or judge is needed."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance: the 3-card deal and trump card strongly shape each hand. A Wizard is nearly one guaranteed trick and Jesters are nearly zero. But the score rewards bidding accurately, not holding strong cards: a junk hand bid at 0 scores +20, nearly as much as a strong hand bid at 1 (+30). Across 9 independent deals the luck of card strength largely averages out. I estimate chance decides about 30\u201340% of outcomes between equally skilled players, and much less between a strong and a weak player.\n\nWhen all three play well, the winner comes from accumulated small edges in bidding judgment and trick play, not from a single hidden type or deal. Good play can overcome bad deals, because any hand can be bid exactly.\n\nThings to infer and act on:\n- Opponents' likely holdings, from their announced bids and the trump card.\n- Which cards are still unseen (18 cards remain undealt each hand).\n- Opponents' needs: a seat bid at 0 will dump, a seat bid at 2 will fight. A player can then deliberately set an opponent, by forcing or refusing a trick, or protect its own bid.\n\nA reasoning player is clearly favoured over a careless one (about 10 points per hand in expectation, as estimated under balanced)."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

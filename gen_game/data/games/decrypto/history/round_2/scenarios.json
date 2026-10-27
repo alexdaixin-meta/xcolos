@@ -1,0 +1,806 @@
+[
+  {
+    "name": "Seats 1-2 are Red and seats 3-4 are Blue at setup",
+    "rule": "R1",
+    "players": 4,
+    "rounds": 0,
+    "seed": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "team": "Red"
+        },
+        "2": {
+          "team": "Red"
+        },
+        "3": {
+          "team": "Blue"
+        },
+        "4": {
+          "team": "Blue"
+        }
+      }
+    },
+    "rule_text": "At setup, seats 1 and 2 are team Red and seats 3 and 4 are team Blue."
+  },
+  {
+    "name": "Each team gets 4 keywords and 8 nouns leave the word list (draw is random, only counts asserted)",
+    "rule": "R2",
+    "players": 4,
+    "rounds": 0,
+    "seed": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "word_list": 32
+        },
+        "players": {
+          "1": {
+            "keywords": 4
+          },
+          "2": {
+            "keywords": 4
+          },
+          "3": {
+            "keywords": 4
+          },
+          "4": {
+            "keywords": 4
+          }
+        }
+      }
+    },
+    "rule_text": "At setup, 8 distinct keywords are drawn at random from the 40-noun word_list: the first 4 become Red's keywords 1-4 and the next 4 become Blue's keywords 1-4."
+  },
+  {
+    "name": "Each player holds their own team's 4 keywords (draw is random, only counts asserted)",
+    "rule": "R3",
+    "players": 4,
+    "rounds": 0,
+    "seed": 2,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "keywords": 4
+          },
+          "2": {
+            "keywords": 4
+          },
+          "3": {
+            "keywords": 4
+          },
+          "4": {
+            "keywords": 4
+          }
+        }
+      }
+    },
+    "rule_text": "A team's keywords are visible to its own two players only, never to the opposing team."
+  },
+  {
+    "name": "Teams start with 0 points, 0 exact interceptions and 0 exact decodes",
+    "rule": "R4",
+    "players": 4,
+    "rounds": 0,
+    "seed": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "exact_interceptions": 0,
+          "exact_decodes": 0
+        },
+        "2": {
+          "score": 0,
+          "exact_interceptions": 0,
+          "exact_decodes": 0
+        },
+        "3": {
+          "score": 0,
+          "exact_interceptions": 0,
+          "exact_decodes": 0
+        },
+        "4": {
+          "score": 0,
+          "exact_interceptions": 0,
+          "exact_decodes": 0
+        }
+      },
+      "game": {
+        "red_points": 0,
+        "blue_points": 0,
+        "round": 1
+      },
+      "lens": {
+        "game": {
+          "history": 0
+        }
+      }
+    },
+    "rule_text": "At setup, each team has 0 points, 0 exact interceptions and 0 exact decodes."
+  },
+  {
+    "name": "Odd round: seats 1 and 3 encrypt, seats 2 and 4 decode",
+    "rule": "R5",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "role": "Encryptor"
+        },
+        "2": {
+          "role": "Decoder"
+        },
+        "3": {
+          "role": "Encryptor"
+        },
+        "4": {
+          "role": "Decoder"
+        }
+      }
+    },
+    "rule_text": "When the round is odd, seats 1 and 3 are Encryptors and seats 2 and 4 are Decoders."
+  },
+  {
+    "name": "Even round: seats 2 and 4 encrypt, seats 1 and 3 decode",
+    "rule": "R6",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 2
+      }
+    },
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "role": "Decoder"
+        },
+        "2": {
+          "role": "Encryptor"
+        },
+        "3": {
+          "role": "Decoder"
+        },
+        "4": {
+          "role": "Encryptor"
+        }
+      }
+    },
+    "rule_text": "When the round is even, seats 2 and 4 are Encryptors and seats 1 and 3 are Decoders."
+  },
+  {
+    "name": "Encryptors choose among the 24 codes",
+    "rule": "R7",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "123"
+        },
+        {
+          "seat": 1,
+          "option": "432"
+        },
+        {
+          "seat": 3,
+          "option": "123"
+        },
+        {
+          "seat": 3,
+          "option": "432"
+        }
+      ]
+    },
+    "rule_text": "Each round, each Encryptor secretly chooses one of the 24 codes (three different digits from 1-4), and no other player, including the teammate, sees it before step 10."
+  },
+  {
+    "name": "Valid clues leave both teams not invalid and the round is recorded",
+    "rule": "R8",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "red_invalid": false,
+        "blue_invalid": false
+      },
+      "lens": {
+        "game": {
+          "history": 1
+        }
+      }
+    },
+    "rule_text": "Each round, each Encryptor writes exactly three clues, one per digit of their code, in order."
+  },
+  {
+    "name": "Red's clues ruled invalid: Red is marked invalid, Blue is not",
+    "rule": "R9",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "red_invalid": true,
+        "blue_invalid": false,
+        "red_points": 0,
+        "blue_points": 7
+      }
+    },
+    "rule_text": "When any of a team's clues has a space, has fewer than 2 or more than 20 letters, contains or is contained in one of the team's own keywords (ignoring case), or repeats a clue from an earlier round (ignoring case), that team is marked invalid for the round."
+  },
+  {
+    "name": "Clues are shown, then all players guess; decoders guess correctly",
+    "rule": "R10",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "123"
+        },
+        {
+          "seat": 4,
+          "option": "123"
+        }
+      ],
+      "game": {
+        "red_points": 4,
+        "blue_points": 4
+      }
+    },
+    "rule_text": "All six clues are shown to all four players before guesses are made."
+  },
+  {
+    "name": "All four seats are asked to guess one of the 24 codes",
+    "rule": "R11",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "432"
+        },
+        {
+          "seat": 2,
+          "option": "432"
+        },
+        {
+          "seat": 3,
+          "option": "432"
+        },
+        {
+          "seat": 4,
+          "option": "432"
+        }
+      ]
+    },
+    "rule_text": "Guesses are simultaneous: each Decoder picks one of the 24 codes as a decode of their own team's clues, and each Encryptor picks one of the 24 codes as an interception of the opposing team's clues."
+  },
+  {
+    "name": "Decode guess 123 against code 132 gains 1 point",
+    "rule": "R12",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "132"
+      }
+    ],
+    "expect": {
+      "game": {
+        "red_points": 1,
+        "blue_points": 4
+      },
+      "players": {
+        "1": {
+          "score": 1,
+          "exact_decodes": 0
+        },
+        "3": {
+          "score": 4,
+          "exact_decodes": 1
+        }
+      }
+    },
+    "rule_text": "When a team is not invalid, it gains 1 point for each position where its Decoder's guess matches its true code (e.g. guess 123 against code 132 gains 1)."
+  },
+  {
+    "name": "Exact decode gains 4 points and 1 exact decode",
+    "rule": "R13",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "exact_decodes": 1
+        },
+        "2": {
+          "score": 4,
+          "exact_decodes": 1
+        },
+        "3": {
+          "score": 4,
+          "exact_decodes": 1
+        },
+        "4": {
+          "score": 4,
+          "exact_decodes": 1
+        }
+      }
+    },
+    "rule_text": "When a team's Decoder's guess matches all three positions and the team is not invalid, the team gains 3 + 1 = 4 points and 1 exact decode."
+  },
+  {
+    "name": "Both teams invalid: no decode points or exact decodes, each team gets only the 3 penalty points",
+    "rule": "R14",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "game": {
+        "red_invalid": true,
+        "blue_invalid": true,
+        "red_points": 3,
+        "blue_points": 3
+      },
+      "players": {
+        "1": {
+          "score": 3,
+          "exact_decodes": 0
+        },
+        "3": {
+          "score": 3,
+          "exact_decodes": 0
+        }
+      }
+    },
+    "rule_text": "When a team is marked invalid, it gains 0 decode points that round even if its Decoder's guess is correct."
+  },
+  {
+    "name": "Round 2: interception 123 against code 132 gains 1, exact interception gains 5",
+    "rule": "R15",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 2
+      }
+    },
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "132"
+      }
+    ],
+    "expect": {
+      "game": {
+        "red_points": 5,
+        "blue_points": 6
+      },
+      "players": {
+        "1": {
+          "score": 5,
+          "exact_interceptions": 0,
+          "exact_decodes": 1
+        },
+        "3": {
+          "score": 6,
+          "exact_interceptions": 1,
+          "exact_decodes": 0
+        }
+      }
+    },
+    "rule_text": "In rounds 2-8, a team gains 1 point for each position where its Encryptor's interception matches the opposing team's true code."
+  },
+  {
+    "name": "Round 2: exact interception adds 5 points and 1 exact interception",
+    "rule": "R16",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 2
+      }
+    },
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "red_points": 9,
+        "blue_points": 9
+      },
+      "players": {
+        "1": {
+          "score": 9,
+          "exact_interceptions": 1,
+          "exact_decodes": 1
+        },
+        "4": {
+          "score": 9,
+          "exact_interceptions": 1,
+          "exact_decodes": 1
+        }
+      }
+    },
+    "rule_text": "In rounds 2-8, when a team's interception matches all three positions, the team gains 3 + 2 = 5 points and 1 exact interception."
+  },
+  {
+    "name": "Round 1: exact interceptions score nothing",
+    "rule": "R17",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "exact_interceptions": 0
+        },
+        "2": {
+          "exact_interceptions": 0
+        },
+        "3": {
+          "score": 4,
+          "exact_interceptions": 0
+        },
+        "4": {
+          "exact_interceptions": 0
+        }
+      }
+    },
+    "rule_text": "In round 1, interceptions score 0 points and add no exact interceptions."
+  },
+  {
+    "name": "Blue invalid: Red gains 3 extra points",
+    "rule": "R18",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "blue_invalid": true,
+        "red_invalid": false,
+        "red_points": 7,
+        "blue_points": 0
+      }
+    },
+    "rule_text": "When a team is marked invalid, the opposing team gains 3 points."
+  },
+  {
+    "name": "After round 1 the history holds one entry and the round advances",
+    "rule": "R19",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "history": 1
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "At the end of each round, both true codes, all four guesses and each team's points gained are announced, and both teams' clues and codes are appended to the public history."
+  },
+  {
+    "name": "Teammates share score and exact counts",
+    "rule": "R20",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "132"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 1,
+          "exact_decodes": 0,
+          "exact_interceptions": 0
+        },
+        "2": {
+          "score": 1,
+          "exact_decodes": 0,
+          "exact_interceptions": 0
+        },
+        "3": {
+          "score": 4,
+          "exact_decodes": 1,
+          "exact_interceptions": 0
+        },
+        "4": {
+          "score": 4,
+          "exact_decodes": 1,
+          "exact_interceptions": 0
+        }
+      }
+    },
+    "rule_text": "Both players on a team always have the same score, exact_interceptions and exact_decodes."
+  },
+  {
+    "name": "Game ends after round 8; the team with more points wins",
+    "rule": "R21",
+    "players": 4,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 8,
+        "red_points": 12,
+        "blue_points": 10
+      },
+      "players": {
+        "1": {
+          "score": 12
+        },
+        "2": {
+          "score": 12
+        },
+        "3": {
+          "score": 10
+        },
+        "4": {
+          "score": 10
+        }
+      }
+    },
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 210101,
+        "2": 210101,
+        "3": 190101,
+        "4": 190101
+      },
+      "game": {
+        "round": 9,
+        "red_points": 21,
+        "blue_points": 19
+      }
+    },
+    "rule_text": "The game ends after round 8."
+  },
+  {
+    "name": "Tied points: more exact interceptions wins",
+    "rule": "R22",
+    "players": 4,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 8,
+        "red_points": 10,
+        "blue_points": 10
+      },
+      "players": {
+        "1": {
+          "score": 10,
+          "exact_interceptions": 2
+        },
+        "2": {
+          "score": 10,
+          "exact_interceptions": 2
+        },
+        "3": {
+          "score": 10,
+          "exact_interceptions": 1
+        },
+        "4": {
+          "score": 10,
+          "exact_interceptions": 1
+        }
+      }
+    },
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 190301,
+        "2": 190301,
+        "3": 190201,
+        "4": 190201
+      }
+    },
+    "rule_text": "When the game ends, the team with more points wins; if points are tied, the team with more exact interceptions wins; if still tied, the team with more exact decodes wins; if still tied, it is a draw and all four players share the result."
+  },
+  {
+    "name": "Fully tied teams: all four share the result",
+    "rule": "R22",
+    "players": 4,
+    "seed": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "round": 8,
+        "red_points": 10,
+        "blue_points": 10
+      },
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 10
+        },
+        "3": {
+          "score": 10
+        },
+        "4": {
+          "score": 10
+        }
+      }
+    },
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "standings": {
+        "1": 190101,
+        "2": 190101,
+        "3": 190101,
+        "4": 190101
+      }
+    },
+    "rule_text": "When the game ends, the team with more points wins; if points are tied, the team with more exact interceptions wins; if still tied, the team with more exact decodes wins; if still tied, it is a draw and all four players share the result."
+  },
+  {
+    "name": "A round runs on codes, clues and guesses alone",
+    "rule": "R23",
+    "players": 4,
+    "rounds": 1,
+    "seed": 1,
+    "default": "first",
+    "judge": {
+      "Each of Red's three clues": true,
+      "Each of Blue's three clues": true
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "red_points": 4,
+        "blue_points": 4,
+        "round": 2
+      }
+    },
+    "rule_text": "Players have no talk step: the clues are the only communication."
+  }
+]

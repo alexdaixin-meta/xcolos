@@ -1,0 +1,129 @@
+{
+  "original_summary": "No Thanks! is a push-your-luck card game for 3 to 5 players. A numbered card is offered around the table, and each player either takes it with the chips piled on it or pays one chip to pass it on. Runs of consecutive cards score only their lowest number, chips left in hand subtract from the score, and the lowest score wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Every simple policy can lose. 'Always pay' runs out of chips within about 11 offers and is then forced to take every card it is offered, often with high card values. 'Always take' grabs every card it is offered with small pots and ends with a high sum and no chips. 'Take only when the pot is at least the card value' almost never takes early and is forced into the same high cards once its chips are gone. There are three or more players and the lowest score wins, so the two-player 'difference only' trap does not apply. The first seat decides first on card 1 only; after that, leading moves to whoever took."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "The card order is random, but the decisions repeat about 20 times. These decisions are when to stop paying, how far to let a pot grow on a card that fits your run, and whether to deny a card that fits a rival's run. Their effects add up, so a careful player beats a careless one reliably over a game."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Weak play still scores: you can simply take low cards. Strong play keeps improving through several skills. These are: counting rivals' chips from the public pays; estimating which cards were removed; and timing a take so a rival who must pay is drained."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Three things are hidden: the removed cards, the deck order, and opponents' chips (shown only to their owner, but they can be inferred from the public pays). Players must infer whether a rival can afford to keep passing, and whether a card that would bridge a run still exists."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Score = sum of the lowest card in each run, minus chips left. This is pure arithmetic on tracked numbers."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is text-only and turn-based, but the original has two problems. First, a single card can circle the table without limit, which breaks a 40-round cap. Second, with 5 players a lap is 5 choice steps, above the limit of 4. The previous build also failed two tests because TAKE was never offered to the right seat. The tests are correct as written. The rules did not state the offer order and gating precisely enough, so the builder produced the wrong sequence."
+    }
+  ],
+  "problems": [
+    "P1: The previous rules did not pin down exactly which seat receives offer k. They also did not say that TAKE is offered unconditionally. The build never put TAKE to some seats, and the 'lead 3 gives 3, 4, 1' scenario failed.",
+    "P2: After a TAKE, the rules did not say clearly that the remaining offers that round are skipped (gated on current_card != 0), or that the taker becomes lead_seat.",
+    "P3: In the original, a card can circle indefinitely, so the game has no bounded length within the 40-round cap.",
+    "P4: Five players means five sequential choices per lap, above the limit of 4 choice steps per round.",
+    "P5: The original's score needs run detection at the end, which costs many steps. It must be kept as an incremental card_points total instead."
+  ],
+  "changes": [
+    {
+      "what": "Rules now give the exact formula for each offer step. For k = 1..N, offer k goes to seat ((lead_seat - 1 + k - 1) mod N) + 1, read from the lead_seat attribute. A worked example is included (lead 3 with 4 players gives 3, 4, 1, 2). TAKE is always offered, gated only on current_card != 0. PAY is offered only when the seat has chips >= 1. The option names are exactly 'TAKE' and 'PAY'.",
+      "why": "This removes any room for hard-coding seat 1 first or for gating TAKE on the wrong condition.",
+      "fixes": "P1: The previous rules did not pin down exactly which seat receives offer k."
+    },
+    {
+      "what": "The TAKE effect is spelled out as an ordered list of updates: tableau, card_points, chips += pot, pot = 0, current_card = 0, lap_count = 0, lead_seat = taker. Every later offer in the round is gated on current_card != 0.",
+      "why": "This makes the end of a trick on TAKE explicit and testable.",
+      "fixes": "P2: After a TAKE, the rules did not say clearly that the remaining offers that round are skipped."
+    },
+    {
+      "what": "One round is one lap around the table. If a card completes 2 laps with nobody taking it, it is burned: it moves to the public burned list, and its pot stays in the middle for the next card.",
+      "why": "This bounds the game at 20 cards \u00d7 2 laps = 40 rounds. Carrying the pot forward keeps the tension: refusing a card makes the next card richer.",
+      "fixes": "P3: In the original, a card can circle indefinitely."
+    },
+    {
+      "what": "The player count is limited to 3 to 4.",
+      "why": "This keeps a lap to at most 4 choice steps.",
+      "fixes": "P4: Five players means five sequential choices per lap."
+    },
+    {
+      "what": "card_points is updated when each card is taken. Add c, subtract c+1 if c+1 is already held, and subtract c if c-1 is already held. The running total then always equals the sum of the lowest card of each run.",
+      "why": "This gives correct run scoring with one update step and no end-game scan.",
+      "fixes": "P5: The original's score needs run detection at the end."
+    },
+    {
+      "what": "The deck is 20 of the cards 3 to 35, with 13 cards removed face-down.",
+      "why": "More removed cards mean more uncertainty about runs. It also matches the 40-round bound in P3.",
+      "fixes": "P3: In the original, a card can circle indefinitely."
+    }
+  ],
+  "keeps": [
+    "The core take-or-pay-one-chip decision with a growing pot",
+    "Runs score only their lowest card",
+    "Chips left in hand reduce your score; the lowest score wins",
+    "Hidden removed cards and privately held chips",
+    "The taker flips the next card and decides first"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The game already rewards inference and timing. It needs only a bounded lap rule, a cap of 4 players, and precise offer-order wording so the build matches the tested rules."
+  },
+  "variation": {
+    "name": "No Thanks! (Two-Lap)",
+    "summary": "No Thanks! for 3 to 4 players with a 20-card deck. A card that goes twice around the table untaken is burned, and its chips roll onto the next card. Offer order and take effects are stated exactly.",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "SETUP. Seats are numbered 1 to N (N = 3 or 4), and clockwise means seat s is followed by seat s+1, with seat N followed by seat 1. Shuffle the 33 cards numbered 3 to 35. Put 20 of them face-down in the deck in random order. Put the other 13 in a hidden 'removed' list that no player ever sees. Each player starts with chips = 11 (visible only to that player), an empty tableau (public) and card_points = 0. The game state starts with current_card = 0 (meaning no card on offer), pot = 0, lap_count = 0, lead_seat = 1 and an empty public 'burned' list. The pay cost is always 1 chip.\n\nEACH ROUND (one lap), in this order:\n\nStep 1, DRAW. If current_card = 0 and the deck is not empty, move the top deck card to current_card and announce it. The pot is NOT reset; any chips already in the pot stay with the new card.\n\nStep 2, OFFERS. Make up to N offer steps, for k = 1, 2, ..., N. Offer k goes to the seat k-1 places clockwise from lead_seat, that is seat ((lead_seat - 1 + k - 1) mod N) + 1. Always read the current lead_seat value; it need not be 1. For example, with lead_seat = 3 and N = 4 the order is 3, 4, 1, 2, and with lead_seat = 3 and N = 3 it is 3, 1, 2. An offer step happens only if current_card != 0; otherwise it is skipped. The offered seat sees current_card, the pot, every tableau, the burned list and its own chips. Its options are named exactly 'TAKE' and 'PAY'. TAKE is always offered. PAY is offered only if that seat has chips >= 1; a seat with 0 chips must TAKE.\n- PAY: the seat's chips decrease by 1 and the pot increases by 1. Play passes to the next offer step.\n- TAKE: apply these updates in order. (a) Let c = current_card. (b) Add c to card_points. If card c+1 is already in this seat's tableau, subtract c+1. If card c-1 is already in this seat's tableau, subtract c. (c) Append c to the seat's tableau. (d) Add the pot to the seat's chips and set pot = 0. (e) Set current_card = 0, lap_count = 0 and lead_seat = this seat. Because current_card is now 0, all remaining offer steps this round are skipped.\n\nStep 3, LAP. If current_card != 0 (nobody took it this lap), increase lap_count by 1.\n\nStep 4, BURN. If current_card != 0 and lap_count >= 2, append current_card to the burned list, then set current_card = 0 and lap_count = 0. The pot stays as it is and lead_seat is unchanged.\n\nStep 5, END CHECK. If current_card = 0 and the deck is empty, the game ends. The game can last at most 40 rounds.\n\nSCORING. Each player's final score = card_points - chips. card_points always equals the sum of the lowest card of each run of consecutive numbers in the tableau. All chips and tableaus are revealed at the end.\n\nThere is no talk phase.",
+    "objective": "The lowest final score (card_points minus chips) wins. If two or more players tie for lowest, the game is a draw among them.",
+    "expected_effect": "Play matches classic No Thanks!. Players decide when a growing pot is worth a bad card, which cards extend their own runs, and when to deny a rival's bridge card. They also judge whether a low-chip rival is about to be forced to take. The two-lap burn rule adds a choice: let a card die so its pot boosts the next draw, or grab it now. Talk is left out for two reasons. A message phase would push the round above 4 choice steps. And with no trading or binding deals, talk would add little beyond cheap bluffing. The rival tension already comes from the private chips and the single-winner rule. The explicit offer formula and gating should make the build pass the 'taker collects the pot' and 'lead 3: 3, 4, 1' scenarios."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 8,
+    "choice_steps_per_round": 4,
+    "attributes": 10,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SINGLE DECISION TABLE (change in own score, lower is better; m = marginal card points of taking c, p = pot). TAKE: +m - p. PAY: +1 (one chip lost). The marginal cost m depends on the tableau. Isolated c: m = c. c extends a run upward (c-1 owned): m = 0. c extends a run downward (c+1 owned): m = -1. c joins two runs: m = -(c+1). Examples: card 30 isolated with p=0 gives TAKE +30 vs PAY +1, so PAY. Card 30 with p=12 (a rolled-over pot) gives TAKE +18 vs PAY +1, so PAY. Card 21 when holding 20 with p=0 gives TAKE 0 vs PAY +1, so TAKE. Card 4 isolated with p=4 gives TAKE 0 vs PAY +1, so TAKE. Neither option is better in every case, so no option is strictly dominant.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (lowest card_points - chips).\n(1) Always TAKE (the first option). It takes the first card offered to it. TAKE sets lead_seat to the taker, so every later card is offered to it first, and it takes all of them. With N=3 it ends with about 19 of 20 cards. Expected card sum is about 19 per card, about 360 in total. Even with runs collapsing, its points stay far above 100 against an opponent score near 0. It loses against sensible, random and paying opponents. It never wins.\n(2) Always PAY (the last option). It spends 1 chip per offer and holds 11 chips. Sensible opponents pay about 1 chip each to route high cards past it. After about 11 offers (about card 8 to 10) it has 0 chips and must TAKE every card that reaches it. It then absorbs most of the remaining high cards, roughly 5 to 8 cards and about 80 to 140 points, against about 10 chips' worth of pots. Sensible players finish near 0 to 40. So it loses to sensible play. Against random players (TAKE 50%), cards seldom reach it, and it beats them. That is acceptable: sensible play beating random play is intended, and the policy still loses to sensible opponents.\n(3) Always take when the pot is at least 1 / always the highest-pot action. This takes high cards with small pots (for example 33 at p=1 scores +32) and loses to selective play.\nNo thoughtless policy wins or draws almost every time.\n\nSEAT EDGE. Seat 1 gets the first offer on the first card only. After that, lead_seat follows the most recent taker, as in the original, which is a self-correcting disadvantage (the taker must decide first again). Chip counts are hidden but can be deduced from public pot increments, so information is symmetric. The 2-lap burn costs every player equally (2 chips each) and the pot rolls over, so it does not favour a seat. All 3 or 4 players can realistically win. There is no 'higher total' cooperation structure that one option could break."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES ARE COMPLETE. Each case is defined: draw only when current_card = 0; the offer order formula, with worked examples; PAY only when chips >= 1, otherwise a forced TAKE; TAKE updates (a) to (e) in order; the lap counter, the burn and the end check.\n\nTAKE ARITHMETIC IS CORRECT.\n- Holding {5}, take 4: +4 -5, so points go from 5 to 4 (lowest of run 4-5).\n- Holding {3}, take 4: +4 -4, so points stay 3.\n- Holding {3,5}, take 4: +4 -5 -4, so points go from 8 to 3 (run 3-5).\n\nFINITENESS. A card is either taken in its draw round, or survives lap 1 (lap_count = 1) and is taken or burned in the next round (lap_count = 2). So each card uses at most 2 rounds, and 20 cards x 2 = 40 rounds. This exactly meets the 40-round cap, and the game always ends by arithmetic.\n\nPLATFORM LIMITS. Steps per round are draw + 4 offers + lap + burn + end check = 8 (limit 20). Choice steps are 4 (limit 4). Hidden elements are 3: each player's chips, deck order and the removed list (limit 3). There is 1 random draw per round (limit 1) and 10 attributes (limit 20). Offers are a sequential choice, which is supported and intended (one seat at a time, not simultaneous). Conditions are single-step 'when' or 'if' clauses, not conditional blocks. No board, judge or clock is needed.\n\nTALK. No talk with 3 or 4 players is sensible. Every action (PAY or TAKE) is public through the pot and tableaus, so players reason from observed behaviour. Talk would be non-binding cheap talk that only adds words.\n\nTHE 'SAFE OPTION LATE' TEST. Late rounds are not dominated by one option. On the last card PAY costs 1 point and TAKE costs m - p, which can favour either option. An all-PAY burn costs everyone 2 chips equally and leaves rankings unchanged.\n\nMINOR, NON-FAILING POINT. If the final card burns with a pot, those chips simply count for no one, because scores use only held chips. This is consistent with the formula."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT THERE IS TO INFER.\n- Which of the 13 removed cards are missing: deduced from the drawn and burned cards. For example, a gap at 22 that has not appeared is risky to wait on.\n- Opponents' chip counts: tracked exactly from pot increments, which matters because a seat at 0 chips is forced to TAKE and can be exploited.\n- Opponents' willingness to take: a card extending an opponent's run means they will take it soon.\n\nPLANNING. Players choose when to milk the pot versus grab a run-extender, and when to force a burn so the pot rolls over to the next card.\n\nCHANCE. Card order and the removed set matter, so luck is moderate, roughly 25 to 35% of outcome variance.\n\nWHEN EVERYONE PLAYS THE INTENDED STRATEGY. Each player takes run-extenders cheaply, takes low or isolated cards once p is close to c, and pays otherwise. The winner is then decided by tactical timing (squeezing an extra chip before taking, exploiting low-chip opponents, managing burns), not by the deal alone. No hidden type or deal fixes the winner, and good play can overcome a poor draw.\n\nSKILL GAP. In the policy analysis above, the always-TAKE and always-PAY policies lose by large margins to sensible play. A reasoning player is clearly favoured."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

@@ -1,0 +1,546 @@
+[
+  {
+    "name": "R1/R2/R3: after one 3-player round the deck holds 25 - 9 dealt - 1 trump = 15 cards (chance-free count)",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 15
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          }
+        }
+      },
+      "game": {
+        "round_no": 1
+      }
+    },
+    "rule_text": "When a round starts, then the deck holds all 25 cards: Red, Blue and Green 1 to 7, 2 Wizards and 2 Jesters."
+  },
+  {
+    "name": "R2: with 4 players, 12 cards are dealt and 1 is turned for trump, so 12 remain in the deck (chance-free count)",
+    "rule": "R2",
+    "players": 4,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 4,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 12
+        }
+      },
+      "game": {
+        "round_no": 1
+      }
+    },
+    "rule_text": "When cards are dealt, then each player receives exactly 3 cards into their hand, seen only by the owner, and those cards leave the deck."
+  },
+  {
+    "name": "R3: one card beyond the deal is turned up, leaving 15 in a 3-player deck (chance-free count)",
+    "rule": "R3",
+    "players": 3,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 15
+        }
+      }
+    },
+    "rule_text": "When the deal is done, then one more card from the deck becomes trump_card, face up."
+  },
+  {
+    "name": "R5: each seat's bid is recorded publicly (3 players, total 6 so the dealer is free)",
+    "rule": "R5",
+    "players": 3,
+    "seed": 4,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 3
+        },
+        "2": {
+          "bid": 1
+        },
+        "3": {
+          "bid": 2
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": 3
+        },
+        {
+          "seat": 3,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "When bidding happens, then players bid in turn from the seat after the dealer through the dealer, each a whole number from 0 to 3, and each bid is public before the next player bids."
+  },
+  {
+    "name": "R5: four players all bid, the dealer last",
+    "rule": "R5",
+    "players": 4,
+    "seed": 5,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 4,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 1
+        },
+        "2": {
+          "bid": 0
+        },
+        "3": {
+          "bid": 1
+        },
+        "4": {
+          "bid": 3
+        }
+      }
+    },
+    "rule_text": "When bidding happens, then players bid in turn from the seat after the dealer through the dealer, each a whole number from 0 to 3, and each bid is public before the next player bids."
+  },
+  {
+    "name": "R6: after bids 0 and 0, the dealer (seat 1) is not offered 3",
+    "rule": "R6",
+    "players": 3,
+    "seed": 6,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 1
+        },
+        "2": {
+          "bid": 0
+        },
+        "3": {
+          "bid": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 3
+        }
+      ]
+    },
+    "rule_text": "When the dealer bids, then the dealer may not choose the bid that makes the total of all bids exactly 3."
+  },
+  {
+    "name": "R6: after bids 1 and 1, the dealer is not offered 1",
+    "rule": "R6",
+    "players": 3,
+    "seed": 7,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 2
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 0
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 1
+        }
+      ]
+    },
+    "rule_text": "When the dealer bids, then the dealer may not choose the bid that makes the total of all bids exactly 3."
+  },
+  {
+    "name": "R6: when the earlier bids already total more than 3, the dealer may bid anything, including 3",
+    "rule": "R6",
+    "players": 3,
+    "seed": 8,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 3
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "When the dealer bids, then the dealer may not choose the bid that makes the total of all bids exactly 3."
+  },
+  {
+    "name": "R19: after the 3 tricks the round is scored and counted (round_no 1); scores depend on the deal, so they are not asserted",
+    "rule": "R19",
+    "players": 3,
+    "seed": 9,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_no": 1
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When 3 tricks have been played, then the round is scored."
+  },
+  {
+    "name": "R22: after one round the deal passes to seat 2",
+    "rule": "R22",
+    "players": 3,
+    "seed": 10,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "dealer": 2,
+        "round_no": 1
+      }
+    },
+    "rule_text": "When a round ends, then bids and tricks are reset and the deal passes one seat along (dealer = dealer mod N + 1)."
+  },
+  {
+    "name": "R22: after two rounds the deal is at seat 3, and the second round's bids replace the first's",
+    "rule": "R22",
+    "players": 3,
+    "seed": 11,
+    "rounds": 2,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2,
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 2,
+        "times": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2,
+        "times": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "dealer": 3,
+        "round_no": 2
+      },
+      "players": {
+        "1": {
+          "bid": 2
+        },
+        "2": {
+          "bid": 2
+        },
+        "3": {
+          "bid": 2
+        }
+      }
+    },
+    "rule_text": "When a round ends, then bids and tricks are reset and the deal passes one seat along (dealer = dealer mod N + 1)."
+  },
+  {
+    "name": "R22: in 4 players the dealer goes from seat 4 back to seat 1",
+    "rule": "R22",
+    "players": 4,
+    "seed": 12,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "dealer": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 4,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "dealer": 1,
+        "round_no": 1
+      }
+    },
+    "rule_text": "When a round ends, then bids and tricks are reset and the deal passes one seat along (dealer = dealer mod N + 1)."
+  },
+  {
+    "name": "R23: the game ends after round 12; seat 1's lead of 500 cannot be overturned in one round (max +50 / -30)",
+    "rule": "R23",
+    "players": 3,
+    "seed": 13,
+    "default": "first",
+    "given": {
+      "game": {
+        "round_no": 11,
+        "dealer": 3
+      },
+      "players": {
+        "1": {
+          "score": 500
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "round_no": 12
+      }
+    },
+    "rule_text": "When 12 rounds have been completed, then the game ends and the highest total score wins, with players tied at the top sharing the win."
+  },
+  {
+    "name": "R23: seat 3 far ahead wins at the end of round 12 (4 players)",
+    "rule": "R23",
+    "players": 4,
+    "seed": 14,
+    "default": "first",
+    "given": {
+      "game": {
+        "round_no": 11,
+        "dealer": 4
+      },
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 20
+        },
+        "3": {
+          "score": 400
+        },
+        "4": {
+          "score": -50
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 3,
+      "game": {
+        "round_no": 12
+      }
+    },
+    "rule_text": "When 12 rounds have been completed, then the game ends and the highest total score wins, with players tied at the top sharing the win."
+  }
+]

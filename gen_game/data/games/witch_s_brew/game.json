@@ -1,0 +1,692 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "witch_s_brew",
+    "name": "Witch's Brew: Claims",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Over 3 sets, secretly hold 3 of 6 roles; leaders name roles, holders contest or yield, and the last contester clockwise takes the strong reward."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "response",
+        "visible": "public",
+        "type": "text",
+        "initial": "none"
+      },
+      {
+        "key": "set_pick",
+        "visible": "ally",
+        "type": "text",
+        "initial": "none"
+      }
+    ],
+    "game": [
+      {
+        "key": "set_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "round_in_set",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "round_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leader_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "named_role",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "led_list",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "leader_holds",
+        "visible": "none",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "final_claimant",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "thief_target",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "name_offer",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "num_sets",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "roles_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "role_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "witch_strong",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "witch_weak",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "raven_keeper_strong",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "raven_keeper_weak",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "alchemist_strong",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "alchemist_weak",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "druid_strong",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "druid_weak",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "herb_hag_strong",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "herb_hag_weak",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "thief_steal",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "thief_weak",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "starting_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "overtaken_reward",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting state",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "starting_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "set_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "round_in_set",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "round_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "led_list",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "named_role",
+            "value": "none yet"
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "score"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "set start",
+      "label": "a new set begins",
+      "when": {
+        "calc": "round_in_set == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "set_pick",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "led_list",
+            "value": []
+          }
+        }
+      ],
+      "text": "Set {set_number} of {num_sets} begins. All unused roles are lost and no role has been led yet."
+    },
+    {
+      "use": "poll",
+      "phase": "set start",
+      "label": "choose roles",
+      "when": {
+        "calc": "round_in_set == 1"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Witch + Raven Keeper + Alchemist",
+          "Witch + Raven Keeper + Druid",
+          "Witch + Raven Keeper + Herb Hag",
+          "Witch + Raven Keeper + Thief",
+          "Witch + Alchemist + Druid",
+          "Witch + Alchemist + Herb Hag",
+          "Witch + Alchemist + Thief",
+          "Witch + Druid + Herb Hag",
+          "Witch + Druid + Thief",
+          "Witch + Herb Hag + Thief",
+          "Raven Keeper + Alchemist + Druid",
+          "Raven Keeper + Alchemist + Herb Hag",
+          "Raven Keeper + Alchemist + Thief",
+          "Raven Keeper + Druid + Herb Hag",
+          "Raven Keeper + Druid + Thief",
+          "Raven Keeper + Herb Hag + Thief",
+          "Alchemist + Druid + Herb Hag",
+          "Alchemist + Druid + Thief",
+          "Alchemist + Herb Hag + Thief",
+          "Druid + Herb Hag + Thief"
+        ]
+      },
+      "store": "set_pick",
+      "text": "Set {set_number}: secretly choose the {roles_per_hand} different roles you will hold for this set. Nobody else sees your hand."
+    },
+    {
+      "use": "update",
+      "phase": "set start",
+      "label": "hands are set",
+      "when": {
+        "calc": "round_in_set == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "[r for r in ['Witch', 'Raven Keeper', 'Alchemist', 'Druid', 'Herb Hag', 'Thief'] if r in you.set_pick]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "set start",
+      "label": "your hand",
+      "when": {
+        "calc": "round_in_set == 1"
+      },
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand"
+      ],
+      "text": "Your hand for this set:"
+    },
+    {
+      "use": "update",
+      "phase": "lead",
+      "label": "the leader",
+      "do": [
+        {
+          "set": {
+            "key": "leader_seat",
+            "value": {
+              "calc": "((set_number - 1) + (round_in_set - 1)) % len(players) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "response",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "final_claimant",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "thief_target",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "name_offer",
+            "value": {
+              "calc": "[r for r in ['Witch', 'Raven Keeper', 'Alchemist', 'Druid', 'Herb Hag', 'Thief'] if r not in led_list]"
+            }
+          }
+        }
+      ],
+      "text": "Seat {leader_seat} leads this round."
+    },
+    {
+      "use": "ask",
+      "phase": "lead",
+      "label": "name a role",
+      "to": {
+        "where": "you.seat == leader_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "game": "name_offer"
+        }
+      },
+      "verify": {
+        "bind": "nr"
+      },
+      "text": "You lead. Name one role not yet led this set. You may name a role you do not hold, but if nobody contests and you do not hold it, you get nothing."
+    },
+    {
+      "use": "update",
+      "phase": "lead",
+      "label": "the role is named",
+      "do": [
+        {
+          "set": {
+            "key": "named_role",
+            "value": "$nr"
+          }
+        },
+        {
+          "append": {
+            "key": "led_list",
+            "value": "$nr"
+          }
+        },
+        {
+          "set": {
+            "key": "leader_holds",
+            "value": {
+              "calc": "$nr in [p.hand for p in players if p.seat == leader_seat][0]"
+            }
+          }
+        }
+      ],
+      "text": "Seat {leader_seat} names the {named_role}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 40
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "The {named_role} has been named by seat {leader_seat}. Say one short thing to the table. Nothing said binds anyone."
+    },
+    {
+      "use": "poll",
+      "phase": "respond",
+      "label": "respond",
+      "to": {
+        "where": "you.seat != leader_seat and named_role in you.hand"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "contest",
+          "yield"
+        ]
+      },
+      "store": "response",
+      "text": "You hold the {named_role}, named by seat {leader_seat}. Contest to take over the claim (the last contester clockwise after the leader gets the strong reward; anyone overtaken gets 0), or yield to take the weak reward. Either way the role leaves your hand."
+    },
+    {
+      "use": "tell",
+      "phase": "reveal",
+      "label": "the reveal",
+      "to": "all",
+      "text": "Responses to the {named_role} [seat, response]: {[[p.seat, p.response] for p in players]}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the final claimant",
+      "do": [
+        {
+          "set": {
+            "key": "final_claimant",
+            "value": {
+              "calc": "(max([((p.seat - leader_seat + len(players)) % len(players)) * 10 + p.seat for p in players if p.response == 'contest']) % 10) if count(p.response == 'contest' for p in players) > 0 else leader_seat"
+            }
+          }
+        }
+      ],
+      "text": "Seat {final_claimant} holds the final claim on the {named_role}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the strong reward",
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "final_claimant"
+            },
+            "key": "score",
+            "value": {
+              "calc": "witch_strong if named_role == 'Witch' else (raven_keeper_strong if named_role == 'Raven Keeper' else (alchemist_strong if named_role == 'Alchemist' else (druid_strong if named_role == 'Druid' else herb_hag_strong)))"
+            },
+            "if": {
+              "calc": "(final_claimant != leader_seat or leader_holds) and named_role != 'Thief'"
+            },
+            "text": "Seat {player} takes the strong reward of the {named_role}."
+          }
+        },
+        {
+          "set": {
+            "key": "thief_target",
+            "value": {
+              "calc": "[p.seat for p in players if p.seat != final_claimant and p.score * 100 - ((p.seat - final_claimant + len(players)) % len(players)) == max([q.score * 100 - ((q.seat - final_claimant + len(players)) % len(players)) for q in players if q.seat != final_claimant])][0]"
+            },
+            "if": {
+              "calc": "(final_claimant != leader_seat or leader_holds) and named_role == 'Thief'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "final_claimant"
+            },
+            "key": "score",
+            "value": {
+              "calc": "thief_steal"
+            },
+            "if": {
+              "calc": "thief_target > 0"
+            },
+            "text": "Seat {player} steals {thief_steal} points as the Thief."
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "thief_target"
+            },
+            "key": "score",
+            "value": {
+              "calc": "-thief_steal"
+            },
+            "if": {
+              "calc": "thief_target > 0"
+            },
+            "text": "Seat {player} is robbed of {thief_steal} points."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "(you.seat == leader_seat or you.response == 'contest') and you.seat != final_claimant"
+            },
+            "key": "score",
+            "value": {
+              "calc": "overtaken_reward"
+            },
+            "text": "Seat {player} was overtaken and gets nothing."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the weak reward",
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.response == 'yield'"
+            },
+            "key": "score",
+            "value": {
+              "calc": "witch_weak if named_role == 'Witch' else (raven_keeper_weak if named_role == 'Raven Keeper' else (alchemist_weak if named_role == 'Alchemist' else (druid_weak if named_role == 'Druid' else (herb_hag_weak if named_role == 'Herb Hag' else thief_weak))))"
+            },
+            "text": "Seat {player} yields and takes the weak reward of the {named_role}."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the role is spent",
+      "do": [
+        {
+          "remove": {
+            "players": {
+              "where": "(you.seat == leader_seat or you.response != 'none') and named_role in you.hand"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "named_role"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "next round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round_count",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "key": "round_in_set",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "key": "set_number",
+            "value": 1,
+            "if": {
+              "calc": "round_in_set > len(players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round_in_set",
+            "value": 1,
+            "if": {
+              "calc": "round_in_set > len(players)"
+            }
+          }
+        }
+      ],
+      "text": "Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "after the last round",
+      "when": {
+        "calc": "round_count >= num_sets * len(players)"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round_count >= num_sets * len(players)"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 15,
+    "rounds_max": 15,
+    "actions_max": 2000,
+    "deadline_s": 120
+  },
+  "rules": "Players sit in a fixed clockwise order, numbered 1 to N. Everyone starts with {starting_score} points. The game has {num_sets} sets of N rounds each.\n\nROLES. There are {role_count} roles, each with a strong reward and a weak reward:\n- Witch: strong {witch_strong}, weak {witch_weak}.\n- Raven Keeper: strong {raven_keeper_strong}, weak {raven_keeper_weak}.\n- Alchemist: strong {alchemist_strong}, weak {alchemist_weak}.\n- Druid: strong {druid_strong}, weak {druid_weak}.\n- Herb Hag: strong {herb_hag_strong}, weak {herb_hag_weak}.\n- Thief: the strong reward is to take {thief_steal} points from the other player with the highest current total (ties go to the tied player first clockwise after the Thief). The Thief gains {thief_steal}, that player loses {thief_steal}, and a total may go below 0. Weak {thief_weak}.\n\nSTART OF A SET. At the start of each set, every player secretly and simultaneously chooses exactly {roles_per_hand} different roles to hold for that set, replacing anything left from the previous set. Hands are private. The list of roles led this set is emptied.\n\nLEADER. In set k, the first round's leader is player k. Leadership then passes clockwise each round, so every player leads exactly once per set.\n\nEACH ROUND:\n1. The leader is announced.\n2. The leader names one role that has not yet been led in this set. They may name a role they do not hold. The named role is added to this set's led list.\n3. Talk: every player at the same time writes one short message without seeing the others. All messages are then shown to everyone. Messages bind no one.\n4. Responses: every player other than the leader who holds the named role must respond. All of them choose at the same moment, either CONTEST or YIELD. Players who do not hold it pass automatically (response none).\n5. Reveal: all responses are shown, so everyone learns who held the role.\n6. Resolve: start from the leader and go clockwise. The leader is the first claimant, and each contester, in clockwise order, takes over the claim. The final claimant is the last contester in clockwise order after the leader, or the leader if nobody contested.\n   - The final claimant gets the role's strong reward. Exception: if the final claimant is the leader and the leader does not hold the named role, they get nothing, and nobody gets the strong reward.\n   - The leader, if overtaken, gets {overtaken_reward}. Every contester overtaken by a later contester gets {overtaken_reward}.\n   - Every player who yielded gets the role's weak reward, whether or not anyone contested.\n7. The named role is removed from the hand of the leader (if held) and of every responder. A role cannot be led again this set.\n8. Scores are announced and leadership passes clockwise.\n\nRoles held but never led or responded to during a set are simply lost when the set ends. After round {num_sets} x N the game ends: the player with the highest total points wins, and players tied for the highest total share the result (a draw)."
+}

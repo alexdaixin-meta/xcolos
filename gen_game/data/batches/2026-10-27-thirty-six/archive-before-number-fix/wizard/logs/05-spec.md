@@ -1,0 +1,171 @@
+# 05 spec
+
+- time: 2026-10-27T17:56:37+00:00 (59.9s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 5584e9b341643af7, reply sha256 571ff2cd3e85617b
+
+## Sent
+
+````
+Game: Wizard Triad
+Players in the source: 3 to 3
+Suggested table size, chosen by the designer of these rules (keep it): 3
+
+Rules, as filed in the inventory:
+DECK: 28 cards. Three suits (Red, Blue, Green), each with ranks 1 to 8 (24 cards), plus 2 Wizards and 2 Jesters.
+
+STRUCTURE: The game is 12 hands. Each hand is 3 tricks and each trick is one round, so the game is 36 rounds. Players are P1, P2 and P3, seated in that order. Play always proceeds P1 -> P2 -> P3 -> P1. There is no talk phase.
+
+START OF A HAND (on the first trick of each hand only):
+(1) Shuffle all 28 cards. Deal 3 cards face down to each player. Each player sees only their own cards.
+(2) Turn the next card (the 10th) face up as the trump card. If it is a suited card, that suit is trump for this hand. If it is a Wizard or a Jester, there is no trump this hand.
+(3) Bidding: all three players at the same moment secretly choose a bid of 0, 1, 2 or 3 tricks. A missing or invalid bid counts as 1. Then all bids are revealed to everyone. Bids need not add up to 3.
+(4) The first lead of hand h goes to P1 if h is 1, 4, 7 or 10; to P2 if h is 2, 5, 8 or 11; and to P3 if h is 3, 6, 9 or 12.
+
+EACH TRICK:
+(5) The leader plays one card face up. Then the next player in seat order plays one card face up, then the third player.
+(6) Led suit: the led suit is the suit of the first suited card played in the trick, but only if no Wizard was played before that card. If a Wizard is played before any suited card (for example, a Wizard is led, or a Jester is led and then a Wizard is played), the trick has no led suit. Until a suited card is played, there is no led suit yet.
+(7) Legal plays: a Wizard or a Jester may always be played. If there is a led suit and the player holds a card of it, they must play a Wizard, a Jester or a card of the led suit. Otherwise they may play any card they hold.
+(8) Illegal or unknown choices: if a player names a card they do not hold, or a card they may not legally play, the engine plays a card for them using this priority, checked in order:
+   (a) if there is a led suit and the player holds a card of it, their lowest-ranked card of the led suit;
+   (b) otherwise, a Jester, if they hold one;
+   (c) otherwise, their lowest-ranked suited card, with ties between equal ranks broken Red before Blue before Green (for example, Red 2 is played before Blue 2);
+   (d) otherwise, a Wizard.
+   Step (a) is skipped whenever there is no led suit at that moment.
+(9) Winning the trick:
+   - If any Wizard was played, the first Wizard played wins.
+   - Otherwise, if any trump card was played, the highest-ranked trump wins.
+   - Otherwise, the highest-ranked card of the led suit wins.
+   - With only 2 Jesters in the deck, a trick of three Jesters cannot occur. If no card qualifies under the rules above, the first Jester played wins.
+(10) All played cards stay visible to everyone for the rest of the hand. The trick winner adds 1 to their tricks taken this hand and leads the next trick of the hand.
+
+END OF A HAND (after the third trick):
+(11) Each player compares their tricks taken with their bid.
+   - Exact: they score 30 + 5 x bid. So bid 0 scores 30, bid 1 scores 35, bid 2 scores 40 and bid 3 scores 45.
+   - Not exact: they score -10 x |tricks taken - bid|.
+(12) Scores and all bids and tricks taken are announced. Tricks taken reset to 0 and all cards are collected for the next shuffle.
+
+END OF GAME: after hand 12 (round 36).
+
+How the winner is decided: After hand 12, the player with the highest total score wins. If two or three players tie for the highest total, the game is a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Wizard Triad",
+  "summary": "A three-player trick-taking game over 12 hands of 3 tricks each. Players secretly bid how many tricks they will take, then follow suit, with Wizards, Jesters and trump, and score for hitting the bid exactly.",
+  "players": {"min": 3, "max": 3, "suggested": 3},
+  "parameters": {
+    "deck_size": 28,
+    "suits": 3,
+    "rank_min": 1,
+    "rank_max": 8,
+    "wizards": 2,
+    "jesters": 2,
+    "hands": 12,
+    "tricks_per_hand": 3,
+    "total_rounds": 36,
+    "cards_dealt_per_player": 3,
+    "trump_card_position": 10,
+    "bid_min": 0,
+    "bid_max": 3,
+    "default_bid": 1,
+    "exact_base": 30,
+    "exact_per_bid": 5,
+    "miss_penalty_per_trick": 10,
+    "wizard_strength": 100,
+    "trump_strength_bonus": 20,
+    "jester_strength": 0,
+    "offsuit_strength": -1,
+    "no_card_strength": -1
+  },
+  "attributes": {
+    "player": [
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Cards the player holds this hand, such as 'R5', 'B1', 'G8', 'W1', 'W2', 'J1', 'J2'.", "observable": false},
+      {"key": "bid", "type": "number", "visible": "public", "initial": 0, "meaning": "The player's bid this hand (0-3). It is revealed after the simultaneous poll.", "observable": true},
+      {"key": "tricks_taken", "type": "number", "visible": "public", "initial": 0, "meaning": "Tricks won so far this hand.", "observable": true},
+      {"key": "played_card", "type": "text", "visible": "public", "initial": "", "meaning": "The card this player played in the current trick (empty if not yet played).", "observable": true},
+      {"key": "score", "type": "number", "visible": "public", "initial": 0, "meaning": "Running total score.", "observable": true}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": ["R1","R2","R3","R4","R5","R6","R7","R8","B1","B2","B3","B4","B5","B6","B7","B8","G1","G2","G3","G4","G5","G6","G7","G8","W1","W2","J1","J2"], "meaning": "The undealt cards.", "observable": false},
+      {"key": "trump_card", "type": "text", "visible": "public", "initial": "", "meaning": "The face-up 10th card of this hand.", "observable": true},
+      {"key": "trump_suit", "type": "text", "visible": "public", "initial": "", "meaning": "'R', 'B' or 'G' if the trump card is suited; 'none' if it is a Wizard or a Jester.", "observable": true},
+      {"key": "hand_number", "type": "number", "visible": "public", "initial": 0, "meaning": "The current hand, 1-12.", "observable": true},
+      {"key": "hands_done", "type": "number", "visible": "public", "initial": 0, "meaning": "Number of hands fully scored.", "observable": false},
+      {"key": "trick_in_hand", "type": "number", "visible": "public", "initial": 1, "meaning": "Which trick of the hand is being played (1-3).", "observable": false},
+      {"key": "leader", "type": "number", "visible": "public", "initial": 1, "meaning": "The seat that leads the current trick.", "observable": false},
+      {"key": "led_suit", "type": "text", "visible": "public", "initial": "", "meaning": "'' means no led suit yet; 'R', 'B' or 'G' is the led suit; 'none' means a Wizard came before any suited card.", "observable": false},
+      {"key": "wizard_played", "type": "bool", "visible": "public", "initial": false, "meaning": "Whether a Wizard has been played in the current trick.", "observable": false},
+      {"key": "best_value", "type": "number", "visible": "none", "initial": -1, "meaning": "Strength of the card currently winning the trick.", "observable": false},
+      {"key": "best_seat", "type": "number", "visible": "none", "initial": 0, "meaning": "The seat currently winning the trick.", "observable": false},
+      {"key": "played_cards", "type": "list", "visible": "public", "initial": [], "meaning": "All cards played so far this hand, visible to everyone.", "observable": false}
+    ]
+  },
+  "setup": [
+    "Seats 1, 2 and 3 are P1, P2 and P3. Play order is always 1 -> 2 -> 3 -> 1.",
+    "Every score is set to 0, hand_number to 0, hands_done to 0, and trick_in_hand to 1.",
+    "There is no talk phase."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "effect": "When trick_in_hand == 1: hand_number += 1. All 28 cards are returned to deck; every hand, played_card, bid and tricks_taken is reset to empty or 0; played_cards is cleared. Then 3 random draws are made from deck into each player's hand (remove from deck, append to hand). Then one random card is drawn from deck into trump_card. trump_suit = that card's suit letter if it is suited, else 'none'. leader = ((hand_number - 1) mod 3) + 1."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "When trick_in_hand == 1: each player is sent their own hand, plus trump_card, trump_suit, hand_number and leader."},
+    {"action": "poll", "who": "all players", "answer": "a whole number from 0 to 3", "effect": "When trick_in_hand == 1: each player's bid is set to their answer. A missing or invalid answer sets bid = 1. Nobody sees any bid until all are in."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "When trick_in_hand == 1: all bids are announced (Seat 1, Seat 2, Seat 3)."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Start of trick: led_suit = '', wizard_played = false, best_value = -1, best_seat = 0, and every played_card = ''."},
+    {"action": "ask", "who": "seat leader", "answer": "one card from the offered legal cards in their hand", "effect": "The card (or the fallback card from rule R9 if the answer is missing or invalid) is removed from hand, set as played_card and appended to played_cards. If it is a Wizard: strength = 100, and if led_suit == '' then led_suit = 'none'; wizard_played = true. If it is a Jester: strength = 0. If it is suited with suit s and rank r: if led_suit == '' and wizard_played == false then led_suit = s; strength = 20 + r if s == trump_suit, else r if s == led_suit, else -1. If strength > best_value, then best_value = strength and best_seat = this seat. Announced to all."},
+    {"action": "ask", "who": "seat (leader mod 3) + 1", "answer": "one card from the offered legal cards in their hand", "effect": "Same processing as the leader's play: remove from hand, set played_card, append to played_cards, update led_suit, wizard_played, best_value and best_seat. Announced to all."},
+    {"action": "ask", "who": "seat ((leader + 1) mod 3) + 1", "answer": "one card from the offered legal cards in their hand", "effect": "Same processing as the leader's play: remove from hand, set played_card, append to played_cards, update led_suit, wizard_played, best_value and best_seat. Announced to all."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "tricks_taken of seat best_seat += 1; leader = best_seat. The trick winner is announced."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When trick_in_hand == 3: for each player, if tricks_taken == bid then score += 30 + 5 * bid, else score -= 10 * |tricks_taken - bid|. hands_done += 1. Scores, bids and tricks_taken are announced. Then tricks_taken = 0 for everyone."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "trick_in_hand = (trick_in_hand mod 3) + 1."},
+    {"action": "check", "who": "all players", "answer": null, "effect": "End the game if hands_done == 12; otherwise continue."}
+  ],
+  "ending": {
+    "condition": "hands_done == 12",
+    "rank_by": "you.score",
+    "decided_by": "Each player's standing is their total score after hand 12. The highest total wins; if two or three players tie for the highest total, they share the result (a draw)."
+  },
+  "rules": [
+    {"id": "R1", "text": "When a hand starts (trick_in_hand == 1), then all 28 cards are shuffled into deck and each player is dealt exactly 3 cards into their hand, seen only by them."},
+    {"id": "R2", "text": "When the 10th card (the trump card) is suited, then trump_suit is its suit; when it is a Wizard or a Jester, then trump_suit is 'none' for that hand."},
+    {"id": "R3", "text": "When bidding, then all three players bid 0, 1, 2 or 3 simultaneously, and a missing or invalid bid becomes 1; all bids are then revealed, and they need not sum to 3."},
+    {"id": "R4", "text": "When hand h starts, then the first leader is seat ((h - 1) mod 3) + 1: P1 for hands 1, 4, 7, 10; P2 for hands 2, 5, 8, 11; P3 for hands 3, 6, 9, 12."},
+    {"id": "R5", "text": "When a trick is played, then the leader plays first, then the next seat in order 1 -> 2 -> 3 -> 1, then the third seat, each card face up."},
+    {"id": "R6", "text": "When the first suited card of a trick is played and no Wizard was played before it, then its suit becomes the led suit; when a Wizard is played before any suited card, then the trick has no led suit."},
+    {"id": "R7", "text": "When there is a led suit and a player holds a card of it, then they may play only a Wizard, a Jester or a card of the led suit; otherwise any card they hold is legal."},
+    {"id": "R8", "text": "When a Wizard or a Jester is played, then it is always legal."},
+    {"id": "R9", "text": "When a player's choice is missing or not a legal card they hold, then the engine plays, in order of priority: (a) their lowest led-suit card if a led suit exists and they hold one; (b) else a Jester; (c) else their lowest suited card, with ties broken Red, then Blue, then Green; (d) else a Wizard."},
+    {"id": "R10", "text": "When any Wizard is played in a trick, then the first Wizard played wins the trick."},
+    {"id": "R11", "text": "When no Wizard is played but at least one trump-suit card is, then the highest-ranked trump card wins the trick."},
+    {"id": "R12", "text": "When no Wizard and no trump is played, then the highest-ranked card of the led suit wins the trick."},
+    {"id": "R13", "text": "When no card qualifies under R10-R12, then the first Jester played wins the trick."},
+    {"id": "R14", "text": "When a trick ends, then its winner's tricks_taken increases by 1 and that player leads the next trick of the hand."},
+    {"id": "R15", "text": "When a card is played, then it stays visible in played_cards for the rest of the hand."},
+    {"id": "R16", "text": "When a hand ends and a player's tricks_taken equals their bid, then they score 30 + 5 x bid (bid 0 = 30, 1 = 35, 2 = 40, 3 = 45)."},
+    {"id": "R17", "text": "When a hand ends and a player's tricks_taken differs from their bid, then they lose 10 x |tricks_taken - bid| points (for example, bid 2 and take 0 = -20)."},
+    {"id": "R18", "text": "When a hand ends, then scores, bids and tricks taken are announced, and tricks_taken resets to 0."},
+    {"id": "R19", "text": "When hand 12 (round 36) has been scored, then the game ends and the highest total score wins; a tie for the highest total is a draw."}
+  ],
+  "offers": [
+    {"question": "Bid at the start of each hand", "who": "all three seats, simultaneously", "options": "0, 1, 2 or 3"},
+    {"question": "Card to play in a trick", "who": "the seat whose turn it is (leader, then the next seat, then the third)", "options": "If led_suit is 'R', 'B' or 'G' and the seat holds a card of that suit: only their cards of the led suit plus any Wizards and Jesters they hold. Otherwise (no led suit yet, led_suit 'none', or no card of the led suit held): every card in their hand."}
+  ],
+  "choices": [
+    {"what": "3 players (min = max = suggested = 3)", "why": "The designer fixed the table at 3, and the lead rotation, 3-card hands and deck size are built for exactly 3 seats."},
+    {"what": "No talk step", "why": "The rules say explicitly that there is no talk phase. The strategy lies in judging hand strength for the bid and in playing to hit the bid exactly, including ducking tricks."},
+    {"what": "Card codes such as 'R5', 'W1', 'J2'", "why": "These give a text form for cards in list attributes, so suits and ranks can be compared arithmetically."},
+    {"what": "Trick winner tracked by a running strength value (Wizard 100, trump 20 + rank, led suit = rank, Jester 0, off-suit -1), replaced only when strictly greater", "why": "This reproduces rule (9) by arithmetic. A strict comparison keeps the first Wizard and the first Jester winning ties."},
+    {"what": "Only legal cards are offered", "why": "This enforces rule (7) directly. The fallback priority of rule (8) still applies to missing or invalid answers."}
+  ],
+  "simplifications": [
+    {"what": "A tie for the highest score is a shared win rather than a labelled draw", "why": "The engine has no separate draw outcome: players level at the top share the win."},
+    {"what": "The trump card is drawn at random from the remaining deck rather than taken as the literal 10th card", "why": "With a random shuffle the two are equivalent."}
+  ],
+  "unsupported": []
+}
+```
+````

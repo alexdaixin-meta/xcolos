@@ -1,0 +1,1836 @@
+[
+  {
+    "name": "R1: the 16-card deck splits into 3 removed, 2 dealt, 1 burned and 10 drawable when a hand starts (a raise is conceded, so nothing is drawn)",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 10,
+          "burned": 1,
+          "removed": 3
+        },
+        "players": {
+          "1": {
+            "hand": 1
+          },
+          "2": {
+            "hand": 1
+          }
+        }
+      }
+    },
+    "rule_text": "The deck has 16 cards: five 1s (Guard), two 2s (Priest), two 3s (Baron), two 4s (Handmaid), two 5s (Prince), one 6 (King), one 7 (Countess) and one 8 (Princess)."
+  },
+  {
+    "name": "R2: hand start deals 1 card each, removes 3, burns 1 and leaves 10 drawable",
+    "rule": "R2",
+    "players": 2,
+    "seed": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 10,
+          "burned": 1,
+          "removed": 3
+        },
+        "players": {
+          "1": {
+            "hand": 1
+          },
+          "2": {
+            "hand": 1
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "points": 1
+        },
+        "2": {
+          "points": 0
+        }
+      }
+    },
+    "rule_text": "When a hand starts, 3 random cards go face up to removed and are announced, each player gets 1 card, 1 card is set aside as burned, and 10 drawable cards remain."
+  },
+  {
+    "name": "R3: a new hand resets raised, so seat 1 is offered the raise again",
+    "rule": "R3",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "raised": true,
+        "stake": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "raise"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a hand starts, stake = 1, raised = false, and every player's protected = false, eliminated = false and discard_sum = 0."
+  },
+  {
+    "name": "R4: seat 1 is active on turn 1 of hand 1",
+    "rule": "R4",
+    "players": 2,
+    "seed": 4,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "raise"
+        },
+        {
+          "seat": 2,
+          "option": "concede"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "no raise"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 1
+        },
+        "2": {
+          "points": 0
+        }
+      },
+      "game": {
+        "turn": 1
+      }
+    },
+    "rule_text": "Seat 1 starts hand 1."
+  },
+  {
+    "name": "R5: after seat 1 wins a hand, seat 2 starts the next hand",
+    "rule": "R5",
+    "players": 2,
+    "seed": 5,
+    "rounds": 2,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise",
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "concede"
+      },
+      {
+        "seat": 2,
+        "options_include": "concede",
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "raise"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      },
+      "game": {
+        "turn": 2
+      }
+    },
+    "rule_text": "When a hand had a winner, the other seat starts the next hand; when nobody scored, the seat that did not start it starts the next."
+  },
+  {
+    "name": "R5: after a hand where nobody scored, the seat that did not start it starts the next",
+    "rule": "R5",
+    "players": 2,
+    "seed": 6,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "discard_sum": 0
+        },
+        "2": {
+          "hand": [
+            1
+          ],
+          "discard_sum": 1
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1
+        ],
+        "burned": [
+          5
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "raise"
+      },
+      {
+        "seat": 1,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "raise"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      },
+      "game": {
+        "turn": 2
+      }
+    },
+    "rule_text": "When a hand had a winner, the other seat starts the next hand; when nobody scored, the seat that did not start it starts the next."
+  },
+  {
+    "name": "R6: when raised is true the active player is not asked to raise",
+    "rule": "R6",
+    "players": 2,
+    "seed": 7,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 2,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "answer": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "raise"
+        },
+        {
+          "seat": 1,
+          "option": "no raise"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0
+        },
+        "2": {
+          "points": 0
+        }
+      },
+      "game": {
+        "turn": 1
+      }
+    },
+    "rule_text": "When no raise has been accepted this hand, the active player is asked 'raise' or 'no raise' before drawing; when raised == true, they are not asked."
+  },
+  {
+    "name": "R6: when no raise has been accepted the active player is offered raise and no raise",
+    "rule": "R6",
+    "players": 2,
+    "seed": 8,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": false,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "no raise"
+      },
+      {
+        "seat": 1,
+        "options_include": 1,
+        "answer": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "raise"
+        },
+        {
+          "seat": 1,
+          "option": "no raise"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0
+        },
+        "2": {
+          "points": 0
+        }
+      }
+    },
+    "rule_text": "When no raise has been accepted this hand, the active player is asked 'raise' or 'no raise' before drawing; when raised == true, they are not asked."
+  },
+  {
+    "name": "R7: a conceded raise gives the raiser 1 point and 1 hand won, with no draw",
+    "rule": "R7",
+    "players": 2,
+    "seed": 9,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      },
+      "lens": {
+        "game": {
+          "deck": 10
+        },
+        "players": {
+          "1": {
+            "hand": 1
+          }
+        }
+      },
+      "game": {
+        "turn": 1
+      }
+    },
+    "rule_text": "When the active player raises and the opponent concedes, the active player gains 1 point and 1 hand won, and the hand ends with no draw or play."
+  },
+  {
+    "name": "R8: an accepted raise makes the stake 2, so a Guard elimination pays 2",
+    "rule": "R8",
+    "players": 2,
+    "seed": 10,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": false,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "accept"
+      },
+      {
+        "seat": 1,
+        "options_include": 3,
+        "answer": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 2,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When the active player raises and the opponent accepts, stake becomes 2 and no further raise is possible this hand."
+  },
+  {
+    "name": "R8: after an accepted raise the opponent is not offered a raise on the next turn",
+    "rule": "R8",
+    "players": 2,
+    "seed": 11,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": false,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "accept"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "raise"
+        },
+        {
+          "seat": 2,
+          "option": "no raise"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0
+        },
+        "2": {
+          "points": 0
+        }
+      },
+      "game": {
+        "turn": 2
+      }
+    },
+    "rule_text": "When the active player raises and the opponent accepts, stake becomes 2 and no further raise is possible this hand."
+  },
+  {
+    "name": "R9: the active player draws 1 card and discards 1, ending with 1 card",
+    "rule": "R9",
+    "players": 2,
+    "seed": 12,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "protected": true
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "answer": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 2
+        },
+        "players": {
+          "1": {
+            "hand": 1
+          },
+          "2": {
+            "hand": 1
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "points": 0
+        },
+        "2": {
+          "points": 0
+        }
+      }
+    },
+    "rule_text": "When a turn goes on, the active player loses protection and draws 1 card from deck, then discards one of their two cards."
+  },
+  {
+    "name": "R10: holding 7 with 5, only the 7 may be discarded",
+    "rule": "R10",
+    "players": 2,
+    "seed": 13,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            7
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          5,
+          5,
+          5
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5,
+        "answer": 5
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 7
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 5
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0
+        },
+        "2": {
+          "points": 0
+        }
+      }
+    },
+    "rule_text": "When the active player holds 7 together with 5 or 6, they must discard the 7."
+  },
+  {
+    "name": "R11: discarded ranks count in discard_sum, which breaks an equal-card showdown",
+    "rule": "R11",
+    "players": 2,
+    "seed": 14,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "discard_sum": 0
+        },
+        "2": {
+          "hand": [
+            1
+          ],
+          "discard_sum": 0
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": false,
+        "deck": [
+          1
+        ],
+        "burned": [
+          5
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "no raise"
+      },
+      {
+        "seat": 1,
+        "options_include": 1,
+        "answer": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a card is discarded, its rank is added to its owner's discard_sum."
+  },
+  {
+    "name": "R12: a Handmaid protects its owner from the opponent's correct Guard guess",
+    "rule": "R12",
+    "players": 2,
+    "seed": 15,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            1
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": false,
+        "deck": [
+          2,
+          2,
+          2
+        ],
+        "burned": [
+          5
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4,
+        "answer": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 1,
+        "answer": 1,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      },
+      "game": {
+        "turn": 2
+      }
+    },
+    "rule_text": "When a 4 (Handmaid) is discarded, its owner is protected until the start of their next turn."
+  },
+  {
+    "name": "R13: discarding the Princess by choice eliminates you and the opponent scores",
+    "rule": "R13",
+    "players": 2,
+    "seed": 16,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            8
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 8,
+        "answer": 8
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      }
+    },
+    "rule_text": "When a player discards an 8 (Princess), by choice or through a Prince, they are eliminated."
+  },
+  {
+    "name": "R13: a Prince forcing the Princess discard eliminates its holder",
+    "rule": "R13",
+    "players": 2,
+    "seed": 17,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            8
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          5,
+          5,
+          5
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "opponent"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a player discards an 8 (Princess), by choice or through a Prince, they are eliminated."
+  },
+  {
+    "name": "R14: a correct Guard guess eliminates the unprotected opponent",
+    "rule": "R14",
+    "players": 2,
+    "seed": 18,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            6
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6,
+        "answer": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a 1 (Guard) is discarded, the active player names 2 to 8, and the unprotected opponent is eliminated if their card equals that number."
+  },
+  {
+    "name": "R15: a Priest only shows a card and changes no score",
+    "rule": "R15",
+    "players": 2,
+    "seed": 19,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          2,
+          2,
+          2
+        ],
+        "burned": [
+          1
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      },
+      "game": {
+        "turn": 1
+      }
+    },
+    "rule_text": "When a 2 (Priest) is discarded and the opponent is not protected, the active player privately sees the opponent's card."
+  },
+  {
+    "name": "R16: a Baron eliminates the lower card",
+    "rule": "R16",
+    "players": 2,
+    "seed": 20,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ]
+        },
+        "2": {
+          "hand": [
+            2
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          7,
+          7,
+          7
+        ],
+        "burned": [
+          1
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3,
+        "answer": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a 3 (Baron) is discarded and the opponent is not protected, the players privately see each other's cards and the lower card is eliminated; on equal cards nothing happens."
+  },
+  {
+    "name": "R16: a Baron with equal cards does nothing",
+    "rule": "R16",
+    "players": 2,
+    "seed": 21,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ]
+        },
+        "2": {
+          "hand": [
+            4
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          4,
+          4,
+          4
+        ],
+        "burned": [
+          1
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3,
+        "answer": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0
+        },
+        "2": {
+          "points": 0
+        }
+      }
+    },
+    "rule_text": "When a 3 (Baron) is discarded and the opponent is not protected, the players privately see each other's cards and the lower card is eliminated; on equal cards nothing happens."
+  },
+  {
+    "name": "R17: a Prince on self with an empty deck draws the burned card, which then wins the showdown",
+    "rule": "R17",
+    "players": 2,
+    "seed": 22,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            7
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1
+        ],
+        "burned": [
+          8
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5,
+        "answer": 5
+      },
+      {
+        "seat": 1,
+        "options_include": "self"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a 5 (Prince) is discarded, the target (self or opponent, only self if the opponent is protected) discards their card without effect, adds it to their discard_sum, and draws 1 card, the burned card if the deck is empty."
+  },
+  {
+    "name": "R17: a Prince cannot target a protected opponent",
+    "rule": "R17",
+    "players": 2,
+    "seed": 23,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "protected": true
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5,
+        "answer": 5
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "self"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "opponent"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0
+        },
+        "2": {
+          "points": 0
+        }
+      }
+    },
+    "rule_text": "When a 5 (Prince) is discarded, the target (self or opponent, only self if the opponent is protected) discards their card without effect, adds it to their discard_sum, and draws 1 card, the burned card if the deck is empty."
+  },
+  {
+    "name": "R18: a King swaps the cards, so the swapped 7 wins the showdown",
+    "rule": "R18",
+    "players": 2,
+    "seed": 24,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            6
+          ]
+        },
+        "2": {
+          "hand": [
+            7
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6,
+        "answer": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a 6 (King) is discarded and the opponent is not protected, the two players swap their cards."
+  },
+  {
+    "name": "R19: a King against a protected opponent has no effect",
+    "rule": "R19",
+    "players": 2,
+    "seed": 25,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            6
+          ]
+        },
+        "2": {
+          "hand": [
+            7
+          ],
+          "protected": true
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6,
+        "answer": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      }
+    },
+    "rule_text": "When a 1, 2, 3 or 6 is discarded while the opponent is protected, it has no effect."
+  },
+  {
+    "name": "R20: an elimination at stake 2 gives the other player 2 points and 1 hand won",
+    "rule": "R20",
+    "players": 2,
+    "seed": 26,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "hand": [
+            6
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 2,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6,
+        "answer": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 3,
+          "hands_won": 2
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      }
+    },
+    "rule_text": "When a player is eliminated, the other player gains points equal to stake (1 or 2) and 1 hand won."
+  },
+  {
+    "name": "R21: at the showdown the higher card gains the stake",
+    "rule": "R21",
+    "players": 2,
+    "seed": 27,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ]
+        },
+        "2": {
+          "hand": [
+            6
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 2,
+        "raised": true,
+        "deck": [
+          2
+        ],
+        "burned": [
+          3
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 2,
+          "hands_won": 1
+        }
+      }
+    },
+    "rule_text": "When no one is eliminated and 1 card or fewer remains in the deck (burned included), the higher card gains the stake; on equal cards the higher discard_sum gains it; if both are equal, nobody scores."
+  },
+  {
+    "name": "R22: reaching 5 points ends the match with that player winning",
+    "rule": "R22",
+    "players": 2,
+    "seed": 28,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "points": 4,
+          "hands_won": 4
+        },
+        "2": {
+          "points": 3,
+          "hands_won": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "raise"
+      },
+      {
+        "seat": 2,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 5005,
+        "2": 3003
+      },
+      "players": {
+        "1": {
+          "points": 5,
+          "hands_won": 5
+        },
+        "2": {
+          "points": 3,
+          "hands_won": 3
+        }
+      },
+      "game": {
+        "turn": 1
+      }
+    },
+    "rule_text": "When a player reaches 5 points, the match ends and they win."
+  },
+  {
+    "name": "R23: at turn 40 with level points, more hands won wins",
+    "rule": "R23",
+    "players": 2,
+    "seed": 29,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "points": 2,
+          "hands_won": 3
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "points": 2,
+          "hands_won": 2
+        }
+      },
+      "game": {
+        "turn": 39,
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "answer": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 2003,
+        "2": 2002
+      },
+      "game": {
+        "turn": 40
+      }
+    },
+    "rule_text": "When turn 40 ends with nobody at 5, more points wins, then more hands won, and otherwise the match is a draw."
+  },
+  {
+    "name": "R23: at turn 40 with level points and hands won, both share the win",
+    "rule": "R23",
+    "players": 2,
+    "seed": 30,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "points": 2,
+          "hands_won": 2
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "points": 2,
+          "hands_won": 2
+        }
+      },
+      "game": {
+        "turn": 39,
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": true,
+        "deck": [
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "answer": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 2002,
+        "2": 2002
+      },
+      "game": {
+        "turn": 40
+      }
+    },
+    "rule_text": "When turn 40 ends with nobody at 5, more points wins, then more hands won, and otherwise the match is a draw."
+  },
+  {
+    "name": "R24: when the hand goes on, the other seat is active next turn",
+    "rule": "R24",
+    "players": 2,
+    "seed": 31,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ]
+        },
+        "2": {
+          "hand": [
+            3
+          ]
+        }
+      },
+      "game": {
+        "new_hand_due": false,
+        "active_seat": 1,
+        "starter_seat": 1,
+        "stake": 1,
+        "raised": false,
+        "deck": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "burned": [
+          2
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "raise"
+      },
+      {
+        "seat": 1,
+        "options_include": "concede"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "raise"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      },
+      "game": {
+        "turn": 2
+      }
+    },
+    "rule_text": "When a hand has not ended, the other player becomes active next turn; when it has ended, the next turn starts a new hand."
+  }
+]

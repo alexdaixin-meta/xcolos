@@ -1,0 +1,163 @@
+# 04 spec
+
+- time: 2026-10-27T18:17:06+00:00 (54.1s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 288f985f75f3d8bf, reply sha256 9799b9840d4225cb
+
+## Sent
+
+````
+Game: Modern Art: Sealed Gallery
+Players in the source: 4 to 4
+Suggested table size, chosen by the designer of these rules (keep it): 4
+
+Rules, as filed in the inventory:
+SETUP: The deck has 36 painting cards: 14 by artist Amber, 12 by Blue, 10 by Crimson. Shuffle it and deal 9 cards to each of the 4 players as a hidden hand. Each player starts with 100 money, known only to them, though all payments are announced. Every artist starts with a cumulative value of 0. Seats are numbered 1-4, and seat 1 is the first auctioneer.
+
+TURN (one engine round):
+1) Announce the turn and the auctioneer.
+2) The auctioneer chooses one card from their hand and reveals it. If the auctioneer has no cards, the turn passes to the next seat. This cannot happen in practice, because at most 30 cards are ever played.
+3) The card leaves the hand, and that artist's played-this-season count goes up by 1.
+4) If that count is now 4, the season ends. This card is not auctioned and no one owns it. Go to SEASON END.
+5) Otherwise, there is talk. Every player writes one short message at the same time without seeing the others. All messages are then shown. Talk binds no one.
+6) There is a sealed bid. All 4 players, auctioneer included, at the same time submit a whole-number bid from 0 up to their current money.
+7) The highest bid wins. Ties are broken in favour of the auctioneer, then in seat order clockwise from the auctioneer. If every bid is 0, the auctioneer gets the card free.
+8) A non-auctioneer winner pays their bid to the auctioneer. An auctioneer who wins pays their bid to the bank.
+9) The winner adds the painting to their owned paintings of that artist. All bids, the buyer and the price are announced.
+10) The auctioneer role passes to the next seat.
+
+SEASON END:
+a) Rank the artists by played-this-season count. Ties go to the rarer artist: Crimson beats Blue, and Blue beats Amber.
+b) The first artist's cumulative value rises by 30. The second's rises by 20. The third gains nothing.
+c) Each player receives, from the bank, (number of owned paintings of the first artist × its cumulative value) plus (number of owned paintings of the second artist × its cumulative value). Paintings of the third artist pay nothing this season, even if that artist has a cumulative value from earlier seasons.
+d) All owned paintings are discarded, and all played-this-season counts reset to 0. Payouts are announced. Unplayed cards stay in hands.
+e) The season count goes up by 1. If it is 3, the game ends. Otherwise the auctioneer role passes to the next seat and play continues.
+
+GAME END: The game ends after the third season. At most 30 turns are possible.
+
+How the winner is decided: After season 3, the player with the most money wins. If two or more players tie for most money, the game is a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Modern Art: Sealed Gallery",
+  "summary": "Four art dealers take turns putting paintings by three artists up for sealed-bid auction. Each season ends when an artist's fourth painting appears, and the season's top two artists pay their owners. After three seasons the most money wins.",
+  "players": {"min": 4, "max": 4, "suggested": 4},
+  "parameters": {
+    "player_count": 4,
+    "deck_size": 36,
+    "amber_cards": 14,
+    "blue_cards": 12,
+    "crimson_cards": 10,
+    "hand_size": 9,
+    "starting_money": 100,
+    "season_end_count": 4,
+    "first_artist_gain": 30,
+    "second_artist_gain": 20,
+    "third_artist_gain": 0,
+    "seasons": 3,
+    "max_turns": 30,
+    "min_bid": 0,
+    "rarity_amber": 1,
+    "rarity_blue": 2,
+    "rarity_crimson": 3
+  },
+  "attributes": {
+    "player": [
+      {"key": "money", "type": "number", "visible": "ally", "initial": 100, "meaning": "The player's money. It is known only to the owner, but every payment is announced.", "observable": true},
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Hidden hand of painting cards, each one 'Amber', 'Blue' or 'Crimson'. Dealt 9 at setup.", "observable": false},
+      {"key": "owned_amber", "type": "number", "visible": "public", "initial": 0, "meaning": "Amber paintings bought this season.", "observable": true},
+      {"key": "owned_blue", "type": "number", "visible": "public", "initial": 0, "meaning": "Blue paintings bought this season.", "observable": true},
+      {"key": "owned_crimson", "type": "number", "visible": "public", "initial": 0, "meaning": "Crimson paintings bought this season.", "observable": true},
+      {"key": "message", "type": "text", "visible": "public", "initial": "", "meaning": "This turn's talk message.", "observable": false},
+      {"key": "bid", "type": "number", "visible": "ally", "initial": 0, "meaning": "This turn's sealed bid. All bids are announced after the auction.", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": "14 x 'Amber', 12 x 'Blue', 10 x 'Crimson'", "meaning": "The shuffled painting deck. It is empty after the deal.", "observable": false},
+      {"key": "auctioneer", "type": "number", "visible": "public", "initial": 1, "meaning": "Seat of the current auctioneer.", "observable": true},
+      {"key": "current_card", "type": "text", "visible": "public", "initial": "", "meaning": "The artist of the painting revealed this turn.", "observable": false},
+      {"key": "played_amber", "type": "number", "visible": "public", "initial": 0, "meaning": "Amber cards played this season.", "observable": true},
+      {"key": "played_blue", "type": "number", "visible": "public", "initial": 0, "meaning": "Blue cards played this season.", "observable": true},
+      {"key": "played_crimson", "type": "number", "visible": "public", "initial": 0, "meaning": "Crimson cards played this season.", "observable": true},
+      {"key": "value_amber", "type": "number", "visible": "public", "initial": 0, "meaning": "Amber's cumulative value.", "observable": true},
+      {"key": "value_blue", "type": "number", "visible": "public", "initial": 0, "meaning": "Blue's cumulative value.", "observable": true},
+      {"key": "value_crimson", "type": "number", "visible": "public", "initial": 0, "meaning": "Crimson's cumulative value.", "observable": true},
+      {"key": "season_ending", "type": "bool", "visible": "public", "initial": false, "meaning": "True when this turn's card was the 4th of its artist this season.", "observable": false},
+      {"key": "winner_seat", "type": "number", "visible": "public", "initial": 0, "meaning": "The seat that won this turn's auction.", "observable": false},
+      {"key": "price", "type": "number", "visible": "public", "initial": 0, "meaning": "The winning bid this turn.", "observable": false},
+      {"key": "first_artist", "type": "text", "visible": "public", "initial": "", "meaning": "The top-ranked artist at season end.", "observable": false},
+      {"key": "second_artist", "type": "text", "visible": "public", "initial": "", "meaning": "The second-ranked artist at season end.", "observable": false},
+      {"key": "season", "type": "number", "visible": "public", "initial": 0, "meaning": "The number of seasons completed.", "observable": true}
+    ]
+  },
+  "setup": [
+    "Fill the deck with 14 'Amber', 12 'Blue' and 10 'Crimson' cards (36 in total).",
+    "Deal 9 cards to each of the 4 players. Each deal is a random draw from the deck, appended to that player's hand and removed from the deck.",
+    "Set each player's money to 100, all owned and played counts to 0, all artist values to 0, and season to 0.",
+    "Set auctioneer to seat 1."
+  ],
+  "round": [
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce the season (season + 1) and that seat {auctioneer} is the auctioneer."},
+    {"action": "ask", "who": "the seat equal to auctioneer", "answer": "one artist name that appears in their hand: Amber, Blue or Crimson", "effect": "Set current_card to the answer and reveal it to all."},
+    {"action": "update", "who": "the auctioneer", "answer": null, "effect": "Remove one copy of current_card from the auctioneer's hand. Add 1 to played_<current_card>. Set season_ending = (played_<current_card> == 4). Announce the card and its new count."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "When season_ending: announce that the 4th {current_card} ends the season, that the card is not auctioned, and that no one owns it."},
+    {"action": "poll", "who": "all players", "answer": "a short text message", "effect": "When not season_ending: store each answer in message, then broadcast {\"to\": \"all\", \"text\": \"Seat {seat} says: {value}\"}. Talk binds no one."},
+    {"action": "poll", "who": "all players", "answer": "a whole number from 0 to the player's money", "effect": "When not season_ending: store each answer in bid. No one sees a bid until all are in."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When not season_ending: work out key = bid * 10 + (4 - ((seat - auctioneer + 4) mod 4)) for each player. Set winner_seat to the seat with the highest key, and price to that seat's bid. This breaks ties toward the auctioneer, then clockwise, and gives the card to the auctioneer free if every bid is 0."},
+    {"action": "update", "who": "winner_seat and auctioneer", "answer": null, "effect": "When not season_ending: winner_seat's money -= price. If winner_seat != auctioneer, the auctioneer's money += price; otherwise the price goes to the bank. winner_seat's owned_<current_card> += 1. Announce all bids, the buyer and the price."},
+    {"action": "update", "who": "the table", "answer": null, "effect": "When season_ending: give each artist the key played * 10 + rarity (Amber 1, Blue 2, Crimson 3). first_artist = the highest key and second_artist = the middle key. value_<first_artist> += 30 and value_<second_artist> += 20. Announce the ranking and the values."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When season_ending: each player's money += owned_<first_artist> * value_<first_artist> + owned_<second_artist> * value_<second_artist>, paid by the bank. Announce each payout."},
+    {"action": "update", "who": "all players and the table", "answer": null, "effect": "When season_ending: set every owned_amber, owned_blue and owned_crimson to 0 and every played_amber, played_blue and played_crimson to 0. season += 1. Set season_ending to false. Hands are untouched."},
+    {"action": "update", "who": "the table", "answer": null, "effect": "auctioneer = (auctioneer mod 4) + 1."},
+    {"action": "check", "who": "the table", "answer": null, "effect": "If season == 3, end the game; otherwise continue."}
+  ],
+  "ending": {
+    "condition": "season == 3",
+    "rank_by": "you.money",
+    "decided_by": "After season 3, the player with the most money wins. Players tied for the most money share the result, which is a draw among them."
+  },
+  "rules": [
+    {"id": "R1", "text": "When the game is set up, the deck holds 14 Amber, 12 Blue and 10 Crimson cards, each player is dealt 9 hidden cards, each player has 100 money, and every artist value is 0."},
+    {"id": "R2", "text": "When a turn begins, the seat equal to auctioneer chooses one card from its own hand, and that card is removed from the hand and revealed."},
+    {"id": "R3", "text": "When a card of an artist is revealed, that artist's played-this-season count rises by 1."},
+    {"id": "R4", "text": "When a revealed card makes its artist's count 4, the card is not auctioned, no player's owned count changes, and the season ends."},
+    {"id": "R5", "text": "When a card is auctioned, every player first sends one talk message at the same time, and all messages are then shown to everyone."},
+    {"id": "R6", "text": "When a card is auctioned, all 4 players, the auctioneer included, bid at the same time a whole number from 0 up to their current money."},
+    {"id": "R7", "text": "When bids are in, the highest bid wins the card."},
+    {"id": "R8", "text": "When bids tie for highest, the auctioneer wins if tied, otherwise the tied seat first clockwise from the auctioneer wins."},
+    {"id": "R9", "text": "When every bid is 0, the auctioneer gets the card for 0."},
+    {"id": "R10", "text": "When a non-auctioneer wins with a bid of X, the winner's money falls by X and the auctioneer's money rises by X."},
+    {"id": "R11", "text": "When the auctioneer wins with a bid of X, the auctioneer's money falls by X and no player receives it."},
+    {"id": "R12", "text": "When a player wins an auction, that player's owned count for the card's artist rises by 1, and all bids, the buyer and the price are announced."},
+    {"id": "R13", "text": "When a season ends, artists rank by played-this-season count, and ties go to the rarer artist: Crimson beats Blue, and Blue beats Amber."},
+    {"id": "R14", "text": "When a season ends, the first artist's value rises by 30, the second's by 20, and the third's by 0."},
+    {"id": "R15", "text": "When a season ends, each player receives from the bank owned(first) * value(first) + owned(second) * value(second), and the third artist pays nothing even if its value is above 0."},
+    {"id": "R16", "text": "When season payouts are done, all owned counts and played counts reset to 0, hands keep their unplayed cards, and season rises by 1."},
+    {"id": "R17", "text": "When a turn ends, whether or not a season ended, the auctioneer passes to the next seat (4 passes to 1)."},
+    {"id": "R18", "text": "When season reaches 3, the game ends, and the player with the most money wins, with tied leaders drawing."}
+  ],
+  "offers": [
+    {"question": "Choose a card to reveal", "who": "the auctioneer only", "options": "each distinct artist name (Amber, Blue, Crimson) that appears at least once in the auctioneer's hand; no other seat is asked"},
+    {"question": "Talk message", "who": "all 4 seats, only when the card is being auctioned", "options": "any short text"},
+    {"question": "Sealed bid", "who": "all 4 seats, only when the card is being auctioned", "options": "a whole number from 0 to that seat's current money"}
+  ],
+  "choices": [
+    {"what": "Exactly 4 players, suggested 4", "why": "The designer fixed 4, and the deck deals exactly 9 cards to each of 4 players. Fewer players would leave no rivals to bid against; more would not fit the deal."},
+    {"what": "Talk kept as a simultaneous poll before each bid", "why": "The source requires it. It also earns its place: players disagree about prices, and they can use it to talk up artists or bluff about their holdings."},
+    {"what": "Bid tie-break encoded as the key bid * 10 + (4 - clockwise distance from the auctioneer)", "why": "This gives the source's tie order, auctioneer first and then clockwise, in plain arithmetic, and it also covers the all-zero case."},
+    {"what": "Artist ranking encoded as the key played * 10 + rarity (Amber 1, Blue 2, Crimson 3)", "why": "This gives the source's tie rule, rarer artist wins, in plain arithmetic."},
+    {"what": "Cards are stored as artist names", "why": "Paintings of the same artist are indistinguishable in these rules."},
+    {"what": "The 'auctioneer has no cards' skip is not built as a step", "why": "The source says it cannot happen: at most 30 cards are played and each hand holds 9."},
+    {"what": "Money is marked observable", "why": "It is the score, and every payment is announced, even though money is formally known only to its owner."}
+  ],
+  "simplifications": [
+    {"what": "The season-end block is written as individual steps each guarded by 'when season_ending', and the auction steps are guarded by 'when not season_ending'", "why": "The step list is flat, but per-step conditions express the same flow exactly."},
+    {"what": "A tie for most money is a shared win among the tied leaders", "why": "The engine has no separate draw. The rules call this a draw, and sharing the top is how that is reported."}
+  ],
+  "unsupported": []
+}
+```
+````

@@ -1,0 +1,1379 @@
+[
+  {
+    "name": "R1: a new hand deals 3 cards to each seat and 1 trump card; after the first trick the deck holds 18 and each hand 2 (the cards themselves are random)",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "answer": 0,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "answer": 0,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 18
+        },
+        "players": {
+          "1": {
+            "hand": 2
+          },
+          "2": {
+            "hand": 2
+          },
+          "3": {
+            "hand": 2
+          }
+        }
+      },
+      "game": {
+        "hand_number": 1
+      }
+    },
+    "rule_text": "When a hand starts (trick_in_hand == 1), then all 28 cards are shuffled into deck and each player is dealt exactly 3 cards into their hand, seen only by them."
+  },
+  {
+    "name": "R2: with a suited trump (G), a green card played off-suit beats the led red card",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "G3",
+        "trump_suit": "G",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R8",
+            "B1"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "G1",
+            "B2"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "R2",
+            "B3"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R8"
+      },
+      {
+        "seat": 2,
+        "options_include": "G1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "R8",
+          "tricks_taken": 0
+        },
+        "2": {
+          "played_card": "G1",
+          "tricks_taken": 1
+        },
+        "3": {
+          "played_card": "R2",
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rule_text": "When the 10th card (the trump card) is suited, then trump_suit is its suit; when it is a Wizard or a Jester, then trump_suit is 'none' for that hand."
+  },
+  {
+    "name": "R3: simultaneous bids 2, 0 and 3 are recorded as given, although they do not sum to 3",
+    "rule": "R3",
+    "players": 3,
+    "seed": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2,
+        "answer": 2,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "answer": 0,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 3,
+        "answer": 3,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 2
+        },
+        "2": {
+          "bid": 0
+        },
+        "3": {
+          "bid": 3
+        }
+      }
+    },
+    "rule_text": "When bidding, then all three players bid 0, 1, 2 or 3 simultaneously, and a missing or invalid bid becomes 1; all bids are then revealed, and they need not sum to 3."
+  },
+  {
+    "name": "R4: after hand 1 is scored, the next round starts hand 2 with a fresh deal",
+    "rule": "R4",
+    "players": 3,
+    "seed": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 1,
+        "hand_number": 1,
+        "hands_done": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "answer": 0,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "answer": 0,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "answer": 0,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      },
+      "lens": {
+        "game": {
+          "deck": 18
+        },
+        "players": {
+          "1": {
+            "hand": 2
+          },
+          "2": {
+            "hand": 2
+          },
+          "3": {
+            "hand": 2
+          }
+        }
+      }
+    },
+    "rule_text": "When hand h starts, then the first leader is seat ((h - 1) mod 3) + 1: P1 for hands 1, 4, 7, 10; P2 for hands 2, 5, 8, 11; P3 for hands 3, 6, 9, 12."
+  },
+  {
+    "name": "R5: leader seat 2 leads red, then seats 3 and 1 must follow red; seat 1's R7 wins",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 2,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 2
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R7",
+            "G4"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "R5",
+            "G2"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "R3",
+            "G8"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "R5"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "R7",
+          "tricks_taken": 1
+        },
+        "2": {
+          "played_card": "R5",
+          "tricks_taken": 0
+        },
+        "3": {
+          "played_card": "R3",
+          "tricks_taken": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "G8"
+        },
+        {
+          "seat": 1,
+          "option": "G4"
+        }
+      ]
+    },
+    "rule_text": "When a trick is played, then the leader plays first, then the next seat in order 1 -> 2 -> 3 -> 1, then the third seat, each card face up."
+  },
+  {
+    "name": "R6: a led Wizard leaves the trick with no led suit, so later seats may play any card",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "W1",
+            "R1"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "R4",
+            "G6"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "G2",
+            "R8"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "W1"
+      },
+      {
+        "seat": 2,
+        "options_include": "G6"
+      },
+      {
+        "seat": 3,
+        "options_include": "R8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "W1",
+          "tricks_taken": 1
+        },
+        "2": {
+          "played_card": "G6",
+          "tricks_taken": 0
+        },
+        "3": {
+          "played_card": "R8",
+          "tricks_taken": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "R4"
+        },
+        {
+          "seat": 2,
+          "option": "G6"
+        },
+        {
+          "seat": 3,
+          "option": "R8"
+        },
+        {
+          "seat": 3,
+          "option": "G2"
+        }
+      ]
+    },
+    "rule_text": "When the first suited card of a trick is played and no Wizard was played before it, then its suit becomes the led suit; when a Wizard is played before any suited card, then the trick has no led suit."
+  },
+  {
+    "name": "R7: a seat holding the led suit may not play another suit; a seat without it may play anything",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G1"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G8"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "G5",
+            "J2"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R5"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "R5",
+          "tricks_taken": 1
+        },
+        "2": {
+          "played_card": "R2",
+          "tricks_taken": 0
+        },
+        "3": {
+          "tricks_taken": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "G8"
+        }
+      ],
+      "offered": [
+        {
+          "seat": 3,
+          "option": "G5"
+        },
+        {
+          "seat": 3,
+          "option": "J2"
+        }
+      ]
+    },
+    "rule_text": "When there is a led suit and a player holds a card of it, then they may play only a Wizard, a Jester or a card of the led suit; otherwise any card they hold is legal."
+  },
+  {
+    "name": "R8: a Jester and a Wizard are legal even when holding the led suit; the Wizard wins",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G1"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "J1"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "R6",
+            "W2"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R5"
+      },
+      {
+        "seat": 2,
+        "options_include": "J1"
+      },
+      {
+        "seat": 3,
+        "options_include": "W2"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "R5",
+          "tricks_taken": 0
+        },
+        "2": {
+          "played_card": "J1",
+          "tricks_taken": 0
+        },
+        "3": {
+          "played_card": "W2",
+          "tricks_taken": 1
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "J1"
+        },
+        {
+          "seat": 3,
+          "option": "W2"
+        }
+      ]
+    },
+    "rule_text": "When a Wizard or a Jester is played, then it is always legal."
+  },
+  {
+    "name": "R9: an invalid answer falls back to the seat's lowest card of the led suit (R2 rather than R6)",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R4",
+            "G1"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "R6",
+            "R2"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "G2",
+            "G3"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R4"
+      },
+      {
+        "seat": 2,
+        "options_include": "R6",
+        "answer": "X9"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "R4",
+          "tricks_taken": 1
+        },
+        "2": {
+          "played_card": "R2",
+          "tricks_taken": 0
+        },
+        "3": {
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rule_text": "When a player's choice is missing or not a legal card they hold, then the engine plays, in order of priority: (a) their lowest led-suit card if a led suit exists and they hold one; (b) else a Jester; (c) else their lowest suited card, with ties broken Red, then Blue, then Green; (d) else a Wizard."
+  },
+  {
+    "name": "R10: when two Wizards are played, the first one wins, even against trump",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "W1",
+            "R1"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "W2",
+            "G3"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "B8",
+            "B7"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "W1"
+      },
+      {
+        "seat": 2,
+        "options_include": "W2"
+      },
+      {
+        "seat": 3,
+        "options_include": "B8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "W1",
+          "tricks_taken": 1
+        },
+        "2": {
+          "played_card": "W2",
+          "tricks_taken": 0
+        },
+        "3": {
+          "played_card": "B8",
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rule_text": "When any Wizard is played in a trick, then the first Wizard played wins the trick."
+  },
+  {
+    "name": "R11: the highest trump beats the led suit and a lower trump",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R8",
+            "G4"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "B2",
+            "G7"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "B6",
+            "G1"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R8"
+      },
+      {
+        "seat": 2,
+        "options_include": "B2"
+      },
+      {
+        "seat": 3,
+        "options_include": "B6"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "R8",
+          "tricks_taken": 0
+        },
+        "2": {
+          "played_card": "B2",
+          "tricks_taken": 0
+        },
+        "3": {
+          "played_card": "B6",
+          "tricks_taken": 1
+        }
+      }
+    },
+    "rule_text": "When no Wizard is played but at least one trump-suit card is, then the highest-ranked trump card wins the trick."
+  },
+  {
+    "name": "R12: with no Wizard and no trump, the highest card of the led suit wins over a higher off-suit card",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R3",
+            "G4"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "R7",
+            "G1"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "G8",
+            "G7"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R3"
+      },
+      {
+        "seat": 3,
+        "options_include": "G8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "R3",
+          "tricks_taken": 0
+        },
+        "2": {
+          "played_card": "R7",
+          "tricks_taken": 1
+        },
+        "3": {
+          "played_card": "G8",
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rule_text": "When no Wizard and no trump is played, then the highest-ranked card of the led suit wins the trick."
+  },
+  {
+    "name": "R13: two Jesters and no other card played: the first Jester wins",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "J1"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "J2"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "J1"
+      },
+      {
+        "seat": 2,
+        "options_include": "J2"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "played_card": "J1",
+          "tricks_taken": 1
+        },
+        "2": {
+          "played_card": "J2",
+          "tricks_taken": 0
+        },
+        "3": {
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rule_text": "When no card qualifies under R10-R12, then the first Jester played wins the trick."
+  },
+  {
+    "name": "R14: the trick winner (seat 2) leads the next trick, so its red lead wins and every bid is made",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "J1",
+        "trump_suit": "none",
+        "hand_number": 1,
+        "hands_done": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R3",
+            "G2"
+          ],
+          "bid": 1,
+          "tricks_taken": 1,
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            "R7",
+            "R1"
+          ],
+          "bid": 2,
+          "tricks_taken": 0,
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            "G5",
+            "G6"
+          ],
+          "bid": 0,
+          "tricks_taken": 0,
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R3"
+      },
+      {
+        "seat": 2,
+        "options_include": "R7"
+      },
+      {
+        "seat": 3,
+        "options_include": "G6"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 35,
+          "tricks_taken": 0
+        },
+        "2": {
+          "score": 40,
+          "tricks_taken": 0
+        },
+        "3": {
+          "score": 30,
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rule_text": "When a trick ends, then its winner's tricks_taken increases by 1 and that player leads the next trick of the hand."
+  },
+  {
+    "name": "R15: cards played stay in played_cards (3 from trick 1 plus 3 from trick 2)",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 2,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1,
+        "played_cards": [
+          "R1",
+          "G4",
+          "B2"
+        ]
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "R3",
+            "G6"
+          ],
+          "tricks_taken": 0
+        },
+        "2": {
+          "hand": [
+            "R7",
+            "G1"
+          ],
+          "tricks_taken": 0
+        },
+        "3": {
+          "hand": [
+            "G8",
+            "G7"
+          ],
+          "tricks_taken": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R3"
+      },
+      {
+        "seat": 3,
+        "options_include": "G8"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "played_cards": 6
+        }
+      },
+      "players": {
+        "1": {
+          "played_card": "R3"
+        },
+        "2": {
+          "played_card": "R7"
+        },
+        "3": {
+          "played_card": "G8"
+        }
+      }
+    },
+    "rule_text": "When a card is played, then it stays visible in played_cards for the rest of the hand."
+  },
+  {
+    "name": "R16: exact bids score 30 + 5 x bid (bid 3 gives +45, bid 0 gives +30)",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 3,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1,
+        "hands_done": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "W1"
+          ],
+          "bid": 3,
+          "tricks_taken": 2,
+          "score": 10
+        },
+        "2": {
+          "hand": [
+            "R3"
+          ],
+          "bid": 0,
+          "tricks_taken": 0,
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            "G4"
+          ],
+          "bid": 0,
+          "tricks_taken": 0,
+          "score": -20
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "W1"
+      },
+      {
+        "seat": 2,
+        "options_include": "R3"
+      },
+      {
+        "seat": 3,
+        "options_include": "G4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 55
+        },
+        "2": {
+          "score": 30
+        },
+        "3": {
+          "score": 10
+        }
+      }
+    },
+    "rule_text": "When a hand ends and a player's tricks_taken equals their bid, then they score 30 + 5 x bid (bid 0 = 30, 1 = 35, 2 = 40, 3 = 45)."
+  },
+  {
+    "name": "R17: missed bids lose 10 per trick of difference",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 3,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1,
+        "hands_done": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "W1"
+          ],
+          "bid": 0,
+          "tricks_taken": 2,
+          "score": 50
+        },
+        "2": {
+          "hand": [
+            "R3"
+          ],
+          "bid": 2,
+          "tricks_taken": 0,
+          "score": 50
+        },
+        "3": {
+          "hand": [
+            "G4"
+          ],
+          "bid": 1,
+          "tricks_taken": 0,
+          "score": 50
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "W1"
+      },
+      {
+        "seat": 2,
+        "options_include": "R3"
+      },
+      {
+        "seat": 3,
+        "options_include": "G4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 20
+        },
+        "2": {
+          "score": 30
+        },
+        "3": {
+          "score": 40
+        }
+      }
+    },
+    "rule_text": "When a hand ends and a player's tricks_taken differs from their bid, then they lose 10 x |tricks_taken - bid| points (for example, bid 2 and take 0 = -20)."
+  },
+  {
+    "name": "R18: after a hand is scored, tricks_taken resets to 0 while the bids stay as they were",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 3,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 1,
+        "hands_done": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "W1"
+          ],
+          "bid": 2,
+          "tricks_taken": 1,
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            "R3"
+          ],
+          "bid": 1,
+          "tricks_taken": 1,
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            "G4"
+          ],
+          "bid": 0,
+          "tricks_taken": 0,
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "W1"
+      },
+      {
+        "seat": 2,
+        "options_include": "R3"
+      },
+      {
+        "seat": 3,
+        "options_include": "G4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "tricks_taken": 0,
+          "bid": 2,
+          "score": 40
+        },
+        "2": {
+          "tricks_taken": 0,
+          "bid": 1,
+          "score": 35
+        },
+        "3": {
+          "tricks_taken": 0,
+          "bid": 0,
+          "score": 30
+        }
+      }
+    },
+    "rule_text": "When a hand ends, then scores, bids and tricks taken are announced, and tricks_taken resets to 0."
+  },
+  {
+    "name": "R19: the game ends after hand 12 is scored and the highest total wins",
+    "rule": "R19",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 3,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 12,
+        "hands_done": 11
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "W1"
+          ],
+          "bid": 3,
+          "tricks_taken": 2,
+          "score": 100
+        },
+        "2": {
+          "hand": [
+            "R3"
+          ],
+          "bid": 0,
+          "tricks_taken": 0,
+          "score": 120
+        },
+        "3": {
+          "hand": [
+            "G4"
+          ],
+          "bid": 1,
+          "tricks_taken": 0,
+          "score": 150
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "W1"
+      },
+      {
+        "seat": 2,
+        "options_include": "R3"
+      },
+      {
+        "seat": 3,
+        "options_include": "G4"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 145,
+        "2": 150,
+        "3": 140
+      },
+      "players": {
+        "1": {
+          "score": 145
+        },
+        "2": {
+          "score": 150
+        },
+        "3": {
+          "score": 140
+        }
+      }
+    },
+    "rule_text": "When hand 12 (round 36) has been scored, then the game ends and the highest total score wins; a tie for the highest total is a draw."
+  },
+  {
+    "name": "R19: two seats level at the top after hand 12 share the win",
+    "rule": "R19",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "game": {
+        "trick_in_hand": 3,
+        "leader": 1,
+        "trump_card": "B1",
+        "trump_suit": "B",
+        "hand_number": 12,
+        "hands_done": 11
+      },
+      "players": {
+        "1": {
+          "hand": [
+            "W1"
+          ],
+          "bid": 3,
+          "tricks_taken": 2,
+          "score": 105
+        },
+        "2": {
+          "hand": [
+            "R3"
+          ],
+          "bid": 0,
+          "tricks_taken": 0,
+          "score": 120
+        },
+        "3": {
+          "hand": [
+            "G4"
+          ],
+          "bid": 1,
+          "tricks_taken": 0,
+          "score": 150
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "W1"
+      },
+      {
+        "seat": 2,
+        "options_include": "R3"
+      },
+      {
+        "seat": 3,
+        "options_include": "G4"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 150,
+        "2": 150,
+        "3": 140
+      }
+    },
+    "rule_text": "When hand 12 (round 36) has been scored, then the game ends and the highest total score wins; a tie for the highest total is a draw."
+  }
+]

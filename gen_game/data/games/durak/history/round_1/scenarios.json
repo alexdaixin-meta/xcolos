@@ -1,0 +1,1059 @@
+[
+  {
+    "name": "First round of a fresh game: 8 cards each, 20 set aside, defaults give Clubs trump and a take",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 20
+        }
+      },
+      "players": {
+        "1": {
+          "hand_count": 7,
+          "penalty": 0
+        },
+        "2": {
+          "hand_count": 9,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 1,
+        "trump": "Clubs"
+      }
+    },
+    "rule_text": "When a deal starts (bout_counter is 0), all 36 cards are shuffled, each player receives 8 cards in hand, and the remaining 20 stay set aside, unused."
+  },
+  {
+    "name": "Fresh deal deals all 36 codes: 8 in each hand, 20 left in the deck",
+    "rule": "R1",
+    "players": 2,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 20
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 1
+      }
+    },
+    "rule_text": "The deck has 36 cards: suits Clubs, Diamonds, Hearts, Spades, each with ranks 6, 7, 8, 9, 10, 11 (J), 12 (Q), 13 (K) and 14 (A)."
+  },
+  {
+    "name": "Deal 2 starts with seat 2 as first attacker making the offer",
+    "rule": "R3",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 0,
+        "round_number": 10,
+        "attacker_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Hearts+Spades"
+      },
+      {
+        "seat": 1,
+        "options_include": "Spades"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 9
+        },
+        "2": {
+          "hand_count": 7
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 1,
+        "trump": "Spades"
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Hearts+Spades"
+        },
+        {
+          "seat": 1,
+          "option": "Spades"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Hearts+Spades"
+        },
+        {
+          "seat": 2,
+          "option": "Spades"
+        }
+      ]
+    },
+    "rule_text": "When deal 1 or 3 starts, seat 1 is the first attacker; when deal 2 or 4 starts, seat 2 is the first attacker."
+  },
+  {
+    "name": "First attacker offers Diamonds+Spades and the defender may only pick one of those",
+    "rule": "R4",
+    "players": 2,
+    "seed": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Diamonds+Spades"
+      },
+      {
+        "seat": 2,
+        "options_include": "Diamonds"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": "Diamonds",
+        "deal_number": 1,
+        "bout_counter": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Diamonds+Spades"
+        },
+        {
+          "seat": 2,
+          "option": "Spades"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Clubs"
+        },
+        {
+          "seat": 2,
+          "option": "Hearts"
+        },
+        {
+          "seat": 2,
+          "option": "Diamonds+Spades"
+        }
+      ]
+    },
+    "rule_text": "When a deal starts, the first attacker names two different suits as the offer; if the answer is not two different suits, the offer is Hearts and Spades."
+  },
+  {
+    "name": "First defender picks the second offered suit as trump",
+    "rule": "R5",
+    "players": 2,
+    "seed": 5,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Clubs+Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Hearts"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": "Hearts"
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Clubs"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Spades"
+        },
+        {
+          "seat": 2,
+          "option": "Diamonds"
+        }
+      ]
+    },
+    "rule_text": "When the offer is made, the first defender picks one offered suit as trump for the whole deal; if the answer is not an offered suit, the first offered suit becomes trump."
+  },
+  {
+    "name": "A defence card that beats the attack card discards both cards",
+    "rule": "R6",
+    "players": 2,
+    "seed": 6,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            72,
+            83
+          ],
+          "hand_count": 3
+        },
+        "2": {
+          "hand": [
+            94,
+            104,
+            114
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 3,
+        "round_number": 3,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "judge": {
+      "The defender named exactly one different card": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2,
+          "penalty": 0
+        },
+        "2": {
+          "hand_count": 2,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "bout_counter": 4,
+        "trump": "Spades"
+      }
+    },
+    "rule_text": "Card X beats card Y only when X is the same suit as Y and of higher rank, or when X is trump and Y is not."
+  },
+  {
+    "name": "An attack with too many cards for the defender becomes a single card",
+    "rule": "R7",
+    "players": 2,
+    "seed": 7,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            62,
+            63
+          ],
+          "hand_count": 3
+        },
+        "2": {
+          "hand": [
+            94
+          ],
+          "hand_count": 1
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 3,
+        "round_number": 3,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2
+        },
+        "2": {
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "bout_counter": 4
+      }
+    },
+    "rule_text": "When attacking, the attacker places 1 to 3 cards of the same rank from hand, and never more cards than the defender holds."
+  },
+  {
+    "name": "An illegal attack is replaced by one card, which the defender takes",
+    "rule": "R8",
+    "players": 2,
+    "seed": 8,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            72,
+            83,
+            131
+          ],
+          "hand_count": 4
+        },
+        "2": {
+          "hand": [
+            94,
+            104,
+            114
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 2,
+        "round_number": 2,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Hearts"
+      }
+    },
+    "judge": {
+      "Every card the attacker named is in the attacker's hand": false
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 3
+        },
+        "2": {
+          "hand_count": 4
+        }
+      },
+      "game": {
+        "bout_counter": 3
+      }
+    },
+    "rule_text": "When an attack is illegal (a card not in hand, mixed ranks, or too many cards), it is replaced by the attacker's single lowest-ranked card, with ties going to the earliest suit in the order Clubs, Diamonds, Hearts, Spades."
+  },
+  {
+    "name": "An illegal defence counts as TAKE",
+    "rule": "R9",
+    "players": 2,
+    "seed": 9,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            72,
+            83
+          ],
+          "hand_count": 3
+        },
+        "2": {
+          "hand": [
+            94,
+            104,
+            114
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 3,
+        "round_number": 3,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "judge": {
+      "The defender named exactly one different card": false
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2
+        },
+        "2": {
+          "hand_count": 4
+        }
+      },
+      "game": {
+        "bout_counter": 4
+      }
+    },
+    "rule_text": "When defending, the defender says TAKE or names one different card from hand for each attack card that legally beats it; any illegal or incomplete defence counts as TAKE."
+  },
+  {
+    "name": "A successful defence discards the attack and defence cards",
+    "rule": "R10",
+    "players": 2,
+    "seed": 10,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            72,
+            83,
+            92
+          ],
+          "hand_count": 4
+        },
+        "2": {
+          "hand": [
+            94,
+            104,
+            114
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 4,
+        "round_number": 4,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "judge": {
+      "The defender named exactly one different card": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 3,
+          "penalty": 0
+        },
+        "2": {
+          "hand_count": 2,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "bout_counter": 5
+      }
+    },
+    "rule_text": "When the defence succeeds, all attack and defence cards are discarded, and the defender becomes the attacker for the next bout."
+  },
+  {
+    "name": "When the defender takes, the attack card goes into the defender's hand",
+    "rule": "R11",
+    "players": 2,
+    "seed": 11,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            72,
+            83
+          ],
+          "hand_count": 3
+        },
+        "2": {
+          "hand": [
+            94,
+            104,
+            114
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 3,
+        "round_number": 3,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2,
+          "penalty": 0
+        },
+        "2": {
+          "hand_count": 4,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "bout_counter": 4,
+        "deal_number": 1
+      }
+    },
+    "rule_text": "When the defender takes, the attack cards go into the defender's hand, and the same player attacks again next bout."
+  },
+  {
+    "name": "Resolving a bout raises bout_counter by 1 and updates both hand counts",
+    "rule": "R12",
+    "players": 2,
+    "seed": 12,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            72,
+            83,
+            93,
+            101
+          ],
+          "hand_count": 5
+        },
+        "2": {
+          "hand": [
+            94,
+            104
+          ],
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 6,
+        "round_number": 16,
+        "attacker_seat": 1,
+        "offer": [
+          "Clubs",
+          "Spades"
+        ],
+        "trump": "Clubs"
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 4
+        },
+        "2": {
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "bout_counter": 7,
+        "deal_number": 2,
+        "trump": "Clubs"
+      }
+    },
+    "rule_text": "When a bout resolves, the cards played, the result and both hand sizes are announced, and bout_counter rises by 1."
+  },
+  {
+    "name": "The deal ends when a player reaches 0 cards",
+    "rule": "R13",
+    "players": 2,
+    "seed": 13,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "hand": [
+            94,
+            104,
+            114
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 5,
+        "round_number": 5,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "judge": {
+      "The defender named exactly one different card": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 0
+        },
+        "2": {
+          "penalty": 2
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 0
+      }
+    },
+    "rule_text": "When a bout resolves with either player at 0 cards or bout_counter at 10, the deal ends."
+  },
+  {
+    "name": "Only one player at 0 cards: the other adds the hand size they hold",
+    "rule": "R14",
+    "players": 2,
+    "seed": 14,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61
+          ],
+          "hand_count": 1,
+          "penalty": 2
+        },
+        "2": {
+          "hand": [
+            94,
+            104,
+            114,
+            124
+          ],
+          "hand_count": 4,
+          "penalty": 1
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 5,
+        "round_number": 5,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 2
+        },
+        "2": {
+          "penalty": 6
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 0
+      }
+    },
+    "rule_text": "When a deal ends with exactly one player at 0 cards, the other player adds their hand size to their penalty (e.g. holding 5 cards adds 5)."
+  },
+  {
+    "name": "Both players at 0 cards: no penalty",
+    "rule": "R15",
+    "players": 2,
+    "seed": 15,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61
+          ],
+          "hand_count": 1,
+          "penalty": 3
+        },
+        "2": {
+          "hand": [
+            74
+          ],
+          "hand_count": 1,
+          "penalty": 5
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 7,
+        "round_number": 17,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "judge": {
+      "The defender named exactly one different card": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 3
+        },
+        "2": {
+          "penalty": 5
+        }
+      },
+      "game": {
+        "deal_number": 3,
+        "bout_counter": 0
+      }
+    },
+    "rule_text": "When a deal ends with both players at 0 cards, nobody's penalty changes."
+  },
+  {
+    "name": "10-bout cap with 4 vs 1 cards: the larger hand adds 3",
+    "rule": "R16",
+    "players": 2,
+    "seed": 16,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            62,
+            63,
+            64,
+            71
+          ],
+          "hand_count": 5
+        },
+        "2": {
+          "hand": [
+            74,
+            84
+          ],
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 9,
+        "round_number": 9,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "judge": {
+      "The defender named exactly one different card": true
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 3
+        },
+        "2": {
+          "penalty": 0
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 0
+      }
+    },
+    "rule_text": "When a deal ends at 10 bouts with both holding cards, the player with more cards adds the difference to their penalty (e.g. 7 vs 3 adds 4); equal hands add nothing."
+  },
+  {
+    "name": "10-bout cap with equal hands (3 vs 3): nobody scores",
+    "rule": "R16",
+    "players": 2,
+    "seed": 17,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            62,
+            63,
+            64
+          ],
+          "hand_count": 4,
+          "penalty": 1
+        },
+        "2": {
+          "hand": [
+            74,
+            84
+          ],
+          "hand_count": 2,
+          "penalty": 2
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "bout_counter": 9,
+        "round_number": 9,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 1
+        },
+        "2": {
+          "penalty": 2
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "bout_counter": 0
+      }
+    },
+    "rule_text": "When a deal ends at 10 bouts with both holding cards, the player with more cards adds the difference to their penalty (e.g. 7 vs 3 adds 4); equal hands add nothing."
+  },
+  {
+    "name": "Round 40 ends the deal as if capped and ends the game",
+    "rule": "R17",
+    "players": 2,
+    "seed": 18,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            62,
+            63,
+            64
+          ],
+          "hand_count": 4,
+          "penalty": 0
+        },
+        "2": {
+          "hand": [
+            74,
+            84,
+            94,
+            104
+          ],
+          "hand_count": 4,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "deal_number": 3,
+        "bout_counter": 5,
+        "round_number": 39,
+        "attacker_seat": 1,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Spades"
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -2
+      },
+      "players": {
+        "1": {
+          "penalty": 0
+        },
+        "2": {
+          "penalty": 2
+        }
+      }
+    },
+    "rule_text": "When round 40 finishes during a deal, that deal is scored as if it had reached its 10-bout cap."
+  },
+  {
+    "name": "After deal 4 the lower total penalty wins",
+    "rule": "R18",
+    "players": 2,
+    "seed": 19,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            62,
+            63
+          ],
+          "hand_count": 3,
+          "penalty": 10
+        },
+        "2": {
+          "hand": [
+            74,
+            84,
+            94
+          ],
+          "hand_count": 3,
+          "penalty": 7
+        }
+      },
+      "game": {
+        "deal_number": 4,
+        "bout_counter": 9,
+        "round_number": 35,
+        "attacker_seat": 2,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Hearts"
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -12,
+        "2": -7
+      },
+      "players": {
+        "1": {
+          "penalty": 12
+        },
+        "2": {
+          "penalty": 7
+        }
+      },
+      "game": {
+        "deal_number": 5
+      }
+    },
+    "rule_text": "When deal 4 has ended, the game ends: the player with the lower total penalty wins, and equal totals are a draw."
+  },
+  {
+    "name": "Equal totals after deal 4 are a draw shared by both seats",
+    "rule": "R18",
+    "players": 2,
+    "seed": 20,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            61,
+            62,
+            63
+          ],
+          "hand_count": 3,
+          "penalty": 5
+        },
+        "2": {
+          "hand": [
+            74,
+            84,
+            94
+          ],
+          "hand_count": 3,
+          "penalty": 5
+        }
+      },
+      "game": {
+        "deal_number": 4,
+        "bout_counter": 9,
+        "round_number": 35,
+        "attacker_seat": 2,
+        "offer": [
+          "Hearts",
+          "Spades"
+        ],
+        "trump": "Hearts"
+      }
+    },
+    "judge": {
+      "The defender named exactly one different card": true
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": -5,
+        "2": -5
+      },
+      "players": {
+        "1": {
+          "penalty": 5
+        },
+        "2": {
+          "penalty": 5
+        }
+      },
+      "game": {
+        "deal_number": 5
+      }
+    },
+    "rule_text": "When deal 4 has ended, the game ends: the player with the lower total penalty wins, and equal totals are a draw."
+  }
+]

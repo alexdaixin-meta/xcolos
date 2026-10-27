@@ -1,0 +1,182 @@
+{
+  "original_summary": "Big Two is a shedding card game. Players play singles, pairs, triples or poker hands that must top the last play, and the first to empty their hand wins. The previous XColos variation cut it to a 3-player, 40-card, suitless climbing game over three 12-round hands, with one circuit per trick and lowest total penalty winning.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "Thoughtless policies do lose: always-pass keeps 12 cards and always-highest wastes 10s. But one near-mechanical policy does about as well as anything: lead the lowest pair, beat with the lowest legal card, keep 10s to top on turn 4 as leader, never bomb. The leader acts first and last in each trick, so the trick winner tends to keep the lead."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "bad",
+      "evidence": "Testing put chance at about 50-60% of the result. The number of pairs in 12 random cards ranges from about 2 to 6, and holding two or more 10s swings 6-10 penalty per hand. The gap between a skilled and a greedy player with equal cards is only 2-4."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "A weak player still scores. A strong one has little to improve, because each card shed is worth exactly 1 at any time and responses are nearly forced, so holding back rarely pays."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Opponents' hands are hidden, but card counting gives little to act on. An opponent's best move hardly depends on yours, so opponent modelling barely matters."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Penalties are pure arithmetic on cards left, bomb costs and going-out bonuses."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "Text-only and turn-based, with 16 steps, 3 choices per round and 36 rounds, all inside the limits."
+    }
+  ],
+  "problems": [
+    "P1 Deal luck dominates: a fully random 12-card deal gives anywhere from about 2 to 6 pairs and 0 to 3 10s, which decides about a third of games.",
+    "P2 No hold-versus-shed tension: every card is worth exactly -1 whenever it is shed, so play is near-mechanical.",
+    "P3 Leader snowball: the leader acts first AND last in each trick and keeps the lead cheaply by topping on turn 4.",
+    "P4 Little to infer: hidden holdings are wide but uninformative, and nothing makes a good guess about an opponent's cards change the best move.",
+    "P5 Duplicate dealing, as suggested, would leak information: in hand 2 you remember your hand-1 holding, now sitting with the next seat, so you would know nearly every card. So the luck fix has to come from somewhere else."
+  ],
+  "changes": [
+    {
+      "what": "Balanced deal: every player always receives one card of each value 1-10. Only the 10 'extra' cards (one of each value) are shuffled: 2 go to each player and 4 are set aside. Every hand therefore has exactly two pairs (at the two extra values) and eight unpaired cards, and at least one 10.",
+      "why": "Hand strength now differs only in WHICH two values are paired, not in how many pairs or 10s a player has, so deal luck shrinks sharply without repeating deals.",
+      "fixes": "P1 Deal luck dominates"
+    },
+    {
+      "what": "Reject duplicate dealing; reshuffle only the extras each hand.",
+      "why": "Duplicate dealing would turn hands 2 and 3 into near-perfect information. The balanced deal cuts luck without that leak.",
+      "fixes": "P5 Duplicate dealing would leak information"
+    },
+    {
+      "what": "The trick winner subtracts 1 from their penalty.",
+      "why": "High cards now have two uses that compete. You can spend them to win tricks (worth 1 point plus the lead) or keep them for later contests, while a 10 still held at the end costs 2.",
+      "fixes": "P2 No hold-versus-shed tension"
+    },
+    {
+      "what": "Each trick is a single pass of three turns (leader, next seat, third seat). The leader no longer acts again at the end.",
+      "why": "Leading now guarantees one card shed but means acting first, while the last responder has the edge in the contest. This removes the cheap lead retention.",
+      "fixes": "P3 Leader snowball"
+    },
+    {
+      "what": "At each deal, seats 1, 2 and 3 each privately see one different aside card. The fourth aside card is seen by nobody.",
+      "why": "Every player knows 3 of the 10 extras and must infer where the other 7 are (4 with opponents, 3 aside). Whether a pair can be topped, or whether an opponent still holds a second 10, becomes a real deduction from plays and passes.",
+      "fixes": "P4 Little to infer"
+    },
+    {
+      "what": "Remove triples and bombs. They are impossible anyway, because no value appears more than twice in a hand.",
+      "why": "Simplifies the rules and frees steps; the pair is now the rare, strong shape.",
+      "fixes": "P2 No hold-versus-shed tension"
+    },
+    {
+      "what": "Use 13 rounds per hand and 39 rounds in total.",
+      "why": "Gives room to shed all 12 cards, so going out remains possible but only for a player who wins the lead often enough to dump unpaired low cards.",
+      "fixes": "P2 No hold-versus-shed tension"
+    }
+  ],
+  "keeps": [
+    "Climbing and shedding: each play must strictly beat the last play of the same shape, or you pass.",
+    "The trick winner leads next, with a free choice of shape.",
+    "Penalty for cards left in hand, doubled for holding the top rank (the analogue of holding 2s in Big Two).",
+    "A bonus for going out first.",
+    "Singles and pairs as the core shapes, and high cards as the scarce resource."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The climbing-shedding core works on the platform. The balanced deal, the trick-win bonus, the three-turn trick and the private aside peeks turn it into a contest of card inference and timing rather than the deal."
+  },
+  "variation": {
+    "name": "Big Two: Balanced Climb",
+    "summary": "Three players play three hands of a suitless climbing game. Everyone holds one card of each value plus two random extras, which form their two pairs. Tricks are one pass of three turns and each trick won is worth a point. Players infer the hidden extras to decide when to spend their high cards.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "DECK: 40 cards, four copies of each value 1 to 10. There are no suits. 10 is highest and 1 is lowest.\n\nSEATS: Seats 1, 2 and 3. Turn order is 1, then 2, then 3, then back to 1.\n\nSTRUCTURE: Exactly 39 rounds in three hands of 13 rounds: hand 1 is rounds 1-13, hand 2 is rounds 14-26 and hand 3 is rounds 27-39. If a hand ends early, its remaining rounds are void: nobody is asked anything and nothing changes. The next hand still starts exactly at round 14 or 27. Penalties carry over between hands; everyone starts at 0.\n\nDEAL (rounds 1, 14 and 27): Collect all 40 cards. Give each player one card of every value 1 to 10 (30 cards in all). The remaining 10 cards, one of each value, are the EXTRAS. Shuffle the extras. Deal 2 to each player privately and place the other 4 face down as aside cards A1, A2, A3 and A4. Seat 1 privately sees A1, seat 2 privately sees A2 and seat 3 privately sees A3. Nobody sees A4. Each player now holds 12 cards: their two extra values form pairs and the other eight values are held once. The first leader is seat 1 in hand 1, seat 2 in hand 2 and seat 3 in hand 3.\n\nINFORMATION: Each player sees their own hand and their one aside card. Everyone sees every play and pass, the discard pile, each player's card count and all penalties.\n\nPLAYS: A play is a single (one card) or a pair (two cards of the same value), valued at the card's value. A player holding a pair may play just one card of it as a single. A single is beaten only by a strictly higher single, and a pair only by a strictly higher pair.\n\nTRICK (one per round while the hand is active): The current play starts empty.\n- Turn 1: the leader must play any single or pair.\n- Turn 2: the next seat in turn order either plays something that beats the current play, or passes.\n- Turn 3: the third seat either beats the current play or passes.\nA player with no cards passes automatically. Played cards go face up to the discard pile. The owner of the current play after turn 3 wins the trick: they subtract 1 from their penalty and lead the next round.\n\nOPTION ORDER: When leading, the options are all legal leads in ascending value, with the single listed before the pair at the same value. When responding, the options are all legal beats in ascending value, then Pass last.\n\nEND OF HAND: A hand ends at the end of the first round in which any player holds no cards, or at the end of round 13, 26 or 39, whichever comes first. Each player then adds 1 to their penalty for each card left in hand, plus 1 more for each 10 left. Each player holding no cards subtracts 3. Penalties may go below zero.\n\nROUND STEPS:\n1. On a deal round, shuffle the extras.\n2. On a deal round, deal base cards, extras and aside cards.\n3. On a deal round, privately show A1, A2 and A3 to seats 1, 2 and 3.\n4. On a deal round, mark the hand active and set the leader.\n5. If the hand is active, clear the current play.\n6. The leader chooses a lead.\n7. Remove the led cards and set the current play's value, shape and owner.\n8. The second seat chooses to beat or pass.\n9. If they beat, resolve the play as in step 7.\n10. The third seat chooses to beat or pass.\n11. If they beat, resolve the play as in step 7.\n12. The owner subtracts 1 from their penalty and becomes the leader.\n13. If any player has 0 cards, or this is round 13, 26 or 39, mark the hand ending.\n14. If the hand is ending, score seat 1.\n15. If the hand is ending, score seat 2.\n16. If the hand is ending, score seat 3 and mark the hand inactive.\n\nThe engine stores each score as the negative of the penalty.",
+    "objective": "After round 39, the player with the lowest total penalty (highest score) wins. Total penalty is the sum of cards-left penalties, minus 1 per trick won, minus 3 for each hand in which the player went out. If two or three players tie for lowest, the game is a draw.",
+    "expected_effect": "Every hand holds the same eight unpaired values plus two pairs, so results turn on timing and inference rather than the deal. Key decisions:\n- When to spend your 10 (or second 10) to take a trick worth 1 point plus the lead.\n- When to lead a pair, which can only be topped by a higher pair that may sit in an opponent's hand or among the aside cards.\n- Whether to break a pair.\n- How to dump unpaired low cards, which only shed when you lead.\nThe aside peeks and the record of plays and passes let a strong player locate the 7 unknown extras. Leading means acting first, so lead retention is no longer automatic. Some luck remains in which values are paired; a pair of 10s is worth roughly 1-3 points per hand, and three hands average this out. Talk is left out. All three compete for a single win, so promises could not bind, and talk would mostly be cheap claims about holdings that replace the card-counting inference the game is built on."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 3,
+    "attributes": 18,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 39
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Per-hand arithmetic. Each player holds 12 cards. The expected number of 10s per hand is 12 x 4/40 = 1.2. An untouched hand therefore costs about 12 + 1.2 = 13.2 penalty, or about 40 over three hands. Going out is worth the cards shed, plus 3 (the bonus), plus 1 for each 10 shed.\n\nBomb arithmetic. A triple sheds 3 cards (-3 at hand end) and costs +3 immediately, so it nets 0. It also hands the next lead to the seat after the bomber, not to the bomber. Bombing is therefore neither free nor dominant. It is a tactical tool: it denies a trick, keeps the 12-round clock in mind and can enable going out. Leading a triple is banned, so a triple cannot be used to keep the lead.\n\nThoughtless policies against each opponent action, scored by the WINNER RULE (lowest penalty wins):\n(a) Always pass when responding, lowest legal lead when leading. This player leads once per hand at most, at the hand start in its rotation hand. Its low single is beaten by anything higher, and it never wins a trick again, so it sheds about 1 card per hand. Penalty is about 12-13 per hand, about 38 in total. A sensible or random player who beats even occasionally sheds several cards. This policy loses almost every game against both.\n(b) Always last option: highest lead when leading, Pass when responding. A 10 lead holds against everything except a costly triple, so this player keeps the lead for a few rounds. It sheds its top cards (good, since 10s cost 2). Once its highest card is beatable, it loses the lead and, never responding, never regains it. It typically sheds 3-6 cards per hand, against sensible players who shed 8-12 or go out for -3. It loses.\n(c) Always first option: lowest lead, lowest legal beat. Because a triple is listed at its own value, a low triple (e.g. 3-3-3, listed at 3) sorts before a single 10. This policy therefore bombs whenever it holds any triple and cannot beat with a lower card. Each bomb nets 0 and gives the lead away. Lowest-beat is a reasonable greedy heuristic. Against random play it often wins. Against sensible play that saves 10s and pairs for control, uses turn 4 and avoids feeding leads, it loses regularly. It is not a never-lose policy.\n\nNo option is strictly better whatever the opponents do. Pass, beat-low, beat-high and bomb each lose in some states.\n\nSeat edge. The leader acts twice per trick (turns 1 and 4) and gets the last word, so holding the lead is self-reinforcing. The first leader of each hand rotates (seat 1, 2, 3 across the three hands), so each seat gets this edge exactly once. There is no information asymmetry by seat. All three players can realistically win.\n\nThere is no labelled payoff ordering to misstate, and this is not a two-player 'higher total' cooperation game.",
+          "required_changes_note": "none"
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Limits as stated: 16 steps per round (<=20), 4 choice steps (<=4), 16 attributes (<=20), 2 hidden elements (hands and the aside pile, <=3), 36 rounds (<=40). The single shuffle per hand is 1 random draw in a round (<=1). Turns are sequential by design, which is legitimate because order is the point of a climbing game. No talk with 3 players is sensible: there is nothing to negotiate that the play itself does not express. There is no board, clock or judge, and the winner is pure arithmetic.\n\nProblem 1, a contradiction in the round structure. 'Each hand lasts up to 12 rounds, so the game has 36 rounds in total' contradicts 'A hand ends at the end of the first round in which at least one player has no cards left ... The next hand is then dealt.' Suppose hand 1 ends early in round 8. Either hand 2 starts in round 9, in which case the game ends after hand 3 before round 36 and the engine's fixed 36 rounds have undefined rounds left over. Or hand 2 waits until round 13, in which case rounds 9-12 have no defined content. The rules do not say which. The rule 'leader of the first trick is seat 2 in hand 2' also cannot be placed in a fixed round without this answer.\n\nProblem 2, the step budget is not shown and looks over 20. Per round the engine needs:\n- 4 choice steps;\n- for each play: a legality check (shape, value above the current play, triple beats a single or pair), card removal, updating the current play's value, shape and owner, and a +3 bomb update;\n- next-lead assignment (winner, or the seat after the bomber);\n- an empty-hand check;\n- conditional at hand start: a 40-card shuffle and dealing 36 cards plus 4 aside (shared_deck_draw is a workaround costing remove/append steps);\n- conditional at hand end: 3 card-count penalties, 3 ten-surcharges and 3 going-out bonuses, plus setting the hand's first leader.\nWritten as a flat list of single steps with `when` conditions, this plausibly exceeds 20. The stated 16 is unsupported.\n\nProblem 3, minor ambiguities. It is unclear whether a player holding a triple (not four of a kind) may split it into a single or a pair. The rule mentions only four of a kind. It is also unclear whether hand sizes are public."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance enters through the deal: the number of 10s, the triples and the pair structure. The 4 aside cards add uncertainty to counting. A hand with two triples and two 10s is clearly stronger than one with no pairs. Three independent deals average this out somewhat, and the lead rotation is fair.\n\nSkill decisions remain substantial:\n- counting the public discard pile (36 of 40 cards end up in hands, and every play and pass is public), to infer who can still beat a 10 or a pair;\n- choosing between single and pair leads to control the tempo under a 12-round clock;\n- using the turn-4 last word;\n- deciding when a net-zero bomb is worth giving the lead to the next seat, which means modelling who sits after you;\n- the tension that 10s are both the best control cards and the costliest to hold (2 each);\n- timing going out for the -3 bonus.\n\nEstimate: deal luck accounts for roughly 35-45% of single-hand outcomes and somewhat less over three hands.\n\nWhen all three play well, the outcome is not decided by the deal alone. Penalties are close (each typically 0-8 per hand), and lead control, bomb timing and counting errors swing several points. A weak deal can be partly rescued by holding back control cards and denying leads. A reasoning player is clearly favoured over a thoughtless one (policies a-c above lose by tens of points). There is real hidden information to infer (opponents' hands and the 4 unseen cards) and a concrete way to act on it (when to pass, beat or bomb)."
+        },
+        "required_changes": [
+          "Resolve the round-structure contradiction. Recommended: fix each hand to a 12-round slot (rounds 1-12, 13-24, 25-36). Once a hand has ended early, the remaining rounds of that slot are void: no choices, every turn auto-passes. The next deal happens in rounds 13 and 25 exactly. Alternatively, state that hands run back to back and that the game ends at the end of hand 3 even if that is before round 36, with the engine ending early by condition.",
+          "Publish a flat per-round step list showing it fits in at most 20 steps. Use single steps with `when` conditions for the hand-start deal (shuffle and deal as one operation if the engine allows it) and the hand-end scoring. Combine legality checking and state updates per turn. If the list exceeds 20, simplify, for example by dropping the 10 surcharge or computing hand-end penalties for all players in one calc step.",
+          "Clarify that a player holding exactly three of a value may play one or two of them as a single or a pair, not only when holding four.",
+          "State explicitly that each player's remaining hand size is public information."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Payoff unit: under the end-of-hand rule every card shed is worth -1 penalty, a 10 is worth -2, and going out is worth an extra -3. A triple costs +3 but sheds 3 cards. For values 1-9 that nets 0 and also hands the lead to the next seat. For a triple of 10s it nets -3. So no single option is strictly better in every state.\n\nThoughtless policies under the winner rule (lowest total penalty wins):\n(a) Always Pass when responding, lowest lead. This player wins a trick only when both others pass. They shed about 1 card per hand on the opening lead, ending each hand with about 11 cards and about 12 penalty. Greedy opponents typically go out (-3) or end near 0-4. This policy loses almost every game.\n(b) Always first option (lowest single lead, lowest beat). It never leads pairs, so it sheds 1 card per lead where sensible play sheds 2. Over about 4 leads per hand a sensible player gains about 4 cards, worth 4 or more penalty, per hand. It usually beats random play, which passes on about 1/k of turns and dumps high cards early, but it loses to sensible play. It is not a never-lose policy.\n(c) Always last option: lead the highest pair, otherwise the highest single, and always Pass when responding. This is like (a): it loses.\n(d) Always highest beat. It dumps 10s and bombs. Bombs net 0 but give away the lead, so it bleeds lead turns, each worth 1-2 sheds, and loses to (b)-style play.\n\nSeats: the first-trick leader rotates 1/2/3 across the three hands, and turn order is symmetric, so no seat has a structural edge over the game. Information is symmetric: all plays are public and each player has one private hand. All three players can realistically win.",
+          "evidence_note": ""
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules cover every case.\n- Leads are singles or pairs only.\n- Beats follow the same shape and a strictly higher value, or a triple bomb.\n- Option order is fully specified, with Pass last.\n- Auto-pass applies with 0 cards or when the player owns the play.\n- The next leader after a bomb is defined. That seat always holds cards, because the hand ends at the end of any round in which someone reaches 0.\n- Void rounds are handled by per-step 'when' conditions, so no conditional block is needed.\n\nThe game is finite: 36 rounds, scored by arithmetic on card counts, 10-counts and bomb costs, with ties a draw.\n\nLimits are met: 16 steps (\u226420), 4 choice steps (steps 4, 6, 8, 10; \u22644), 18 attributes (\u226420), 2 hidden elements (\u22643), 1 random draw (the shuffle, only on deal rounds; \u22641), 36 rounds (\u226440).\n\nThere is no board, judge or clock. All choices are sequential by design, so no simultaneous poll is required. Having no talk with 3 players is acceptable: it is a pure shedding race with no outcome that players jointly prefer and could negotiate. Proposals would add only words, as in the original Big Two.\n\nThe repeated-game cooperation test does not apply, because there is no cooperate/defect option."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Why the play is nearly mechanical:\n- Each card is worth exactly -1 whenever it is shed, and a trick is only one circuit (4 turns).\n- The leader acts first and last, gets two plays, and keeps the lead whenever they can top the last play on turn 4.\n- So near-optimal play is close to mechanical: lead your lowest pair (else lowest single), beat with your lowest legal card, keep 10s to top on turn 4 as leader, and split triples rather than bomb.\n- Holding back gains little. A held card only pays if it later fills a turn you would otherwise pass, and there are only about 12 rounds per hand.\n\nWhen all three follow this strategy, the result is set by the deal:\n- The number of pairs in 12 cards from a 4x10 deck varies widely, roughly 2 to 6 pairs.\n- Holding 10s gives lead retention and avoids the double penalty.\n- Holding 2+ 10s is how one keeps winning tricks and shedding 2 cards per round.\n- A rough estimate: a hand with 5 pairs and two 10s goes out about 3-4 rounds before a hand with 2 pairs and no 10s, a swing of about 6-10 penalty in one hand. The gap between a skilled and a greedy player with equal cards is about 2-4 per hand.\n- Three hands average some of this out, but with about 1/3 of games plausibly decided by who got the better holdings, I estimate chance at about 50-60% of the result.\n\nThe only hidden information is opponents' hands, and that is mostly deducible from the public discard plus the 4 aside cards. Card counting tells you whether your pair will be topped, but responses are near-forced, so there is little to act on. Opponent modelling barely matters, because an opponent's best move hardly depends on yours. A strong reasoner is not clearly favoured over a greedy one, and the deal often decides the winner."
+        },
+        "required_changes": [
+          "Reduce deal luck with duplicate dealing: deal three 12-card holdings once at round 1 and store them (game-list workaround). In hand 2 and hand 3, give the same three holdings rotated one seat (seat 1 gets seat 3's hand 1 cards, and so on), with the same 4 aside cards. Every player then plays every holding once and the deal cancels out.",
+          "Create a real hold-versus-shed tradeoff so play is not mechanical. Example: award the winner of each trick -1 penalty (stored per player in an existing attribute). Spending a high card early to shed now then competes with saving it to win tricks and keep the lead. Alternatively, make passing the only way to keep the lead: the current owner may decline to beat and still keeps the trick.",
+          "Make information matter: let each player see one of the 4 aside cards (a private reveal at the deal), or have leads made face-down and revealed only on turn 4. Card counting and inferring opponents' holdings would then change the best lead or beat, giving an opponent-modelling decision that is not just 'play lowest'."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Main decision numbers. Every card you shed saves 1 penalty, or 2 for a 10. A trick won gives -1, and going out gives -3. You play at most once per round. A hand allows 13 rounds for 12 cards, and with two pairs you need only 10 plays. So the real decisions are when to beat, which card to beat with, and when to lead a pair. A pair can only be beaten by a higher pair, and each opponent holds only 2 random pairs.\n\nThoughtless policies under the WINNER RULE:\n(a) ALWAYS LAST. As leader it plays the highest single or pair; as responder it always passes. It leads its 10 and wins, then leads 9. Anyone holding a 10 beats it, and since it never responds it never regains the lead. It finishes the hand holding about 9-10 cards, so about +10 or more, while opponents who shed about one card a trick finish near 0 or -3. It loses to sensible play and to random play (random still beats about half the time). It loses almost every hand.\n(b) ALWAYS FIRST. It leads the lowest single (the single is listed before the pair, so it never leads a pair) and beats with the lowest card that wins. Against sensible play it gives up pair tempo. Take a sensible holder of pair 9 or pair 10: it leads the pair, sheds 2 while the others usually shed 0, and wins the trick. That is a swing of about 2-3 penalty per pair lead. The sensible player also saves its 10 to take back the lead late. So always-first loses a clear share of games to sensible play. It is not a never-lose policy. Against random play it usually wins, which is expected.\n(c) ALWAYS PASS as responder. This is the same as (a) for responses and loses.\n\nNo option is strictly better. Beating is usually right, but spending a 9 that the third seat will overbid with a 10 can be worse than keeping it. Leading a low pair can be worse than a single if opponents hold higher pairs.\n\nSeats. The fixed order 1\u21922\u21923 gives the last responder an edge inside a trick. But the trick winner leads next and so moves to the worst position, which balances itself. The first leader rotates 1/2/3 across the three hands, and each seat privately sees one aside card. There is no structural seat edge. All three can win.\n\nNote: penalties are small integers and play is symmetric, so ties for lowest (a draw) are fairly common, perhaps 15-25%. That is acceptable."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "The limits are met: steps 16 \u2264 20, choices 3 \u2264 4, rounds 39 \u2264 40, one shuffle per deal round, hidden elements 2 (hands and asides). About 18 attributes is plausible if each hand is stored as a list (3 hands, 4 asides, 3 penalties, play value/shape/owner, leader, active, ending, extras deck). No board, clock or judge is needed. Leaving out talk is acceptable: this is pure competitive shedding, so there is no shared outcome to coordinate and play can be read from the plays themselves.\n\nThe step list contradicts the prose and breaks scoring:\n(1) Only step 5 carries 'if the hand is active'. Steps 6-13 have no such condition. Suppose a hand ends in round 11. In round 12, step 6 still asks the leader to lead, and step 12 still gives -1 for a trick in a 'void' round. Step 13 then sees a player with 0 cards (or round 13) and marks the hand ending again. Steps 14-16 then score cards-left a second time, and the player who went out gets -3 a second time. The prose says void rounds change nothing, but the engine runs the steps.\n(2) Steps 8 and 10 say 'the second seat' and 'the third seat', while the prose says 'the next seat in turn order'. When seat 3 leads, a model could read step 8 as seat 2 rather than seat 1.\n(3) It is not stated what happens when the extras shuffle in step 1 coincides with a round that is still void. This is minor, but it follows from the same missing condition."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Information structure. Every player's base hand of 1-10 once each is common knowledge. The only hidden cards are the 2 extras per player. You know 3 of the 10 extras (your 2 plus your aside card), so 7 candidates cover the opponents' 4 extras and the 3 other asides. Discards narrow this quickly, since a second copy of a value played reveals a pair. The game is therefore close to perfect information, and good play is mostly the obvious greedy line: beat with the minimum card, lead pairs, keep the 10 for the end. That leaves a small skill gap.\n\nThe deal of extras decides a lot.\n- Extras {9,10}: pair 10 is an unbeatable lead (shed 2, win the trick). Pair 9 can only be beaten by pair 10, which this player holds. That is two guaranteed tempo leads, worth about +2 to +3 each against each opponent.\n- Extras {1,2}: both pair leads are beaten by any higher pair. Kept as singles, the player gets only low beats.\n- Holding the extra 10 (probability 0.2 per player) also gives a second unbeatable single.\n\nThe swing between a good and a bad extras deal is about 3-5 penalty per hand. Typical winning margins between competent players are 1-3 points. With all three playing the intended strategy, the winner is essentially whoever received the higher pairs. The three re-deals average this only partly, since they are three independent draws. Chance often decides the winner, and a better reasoner is only modestly favoured."
+        },
+        "required_changes": [
+          "Put the condition 'when the hand is active' on steps 6-16, not only step 5, so void rounds really change nothing. Make step 13 fire only once per hand, for example by marking the hand inactive and ending in the same step and checking 'active and not yet ended'.",
+          "Rewrite steps 8 and 10 as 'the seat after the leader in turn order' and 'the seat after that', matching the prose.",
+          "Neutralise extras luck with a duplicate format. Shuffle and deal the extras and asides only in round 1. In hand 2, rotate the hand-1 extras and asides one seat (seat 1's set goes to seat 2, and so on), and in hand 3 rotate again. Each seat then plays every extras set once and the totals compare skill on identical deals. Keep A4 unseen each time.",
+          "Optionally, to deepen inference, make the asides worth something, for example let a player who correctly names an opponent's hidden pair at hand end subtract 1. This rewards tracking discards over greedy play, while staying within 4 choice steps."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

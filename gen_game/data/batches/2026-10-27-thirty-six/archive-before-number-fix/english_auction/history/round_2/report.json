@@ -1,0 +1,599 @@
+{
+  "game": "english_auction",
+  "attempts": [
+    "players are sent text with a `{name}` that was never filled in: placeholder: players are shown the literal {budget} (in `prompt`: 'Item 1, bidding turn 1 of 3. Standing bid 0, leader seat 0 (0 = none). Answer 0 to pass, o'); use only names the step can fill in (see the broadcast rule: {value} and {seat}) | placeholder: players are shown the literal {budget} (in `prompt`: 'Item 1, bidding turn 1 of 3. Standing bid 0, leader seat 0 (0 = none). Answer 0 to pass, o'); use only names the step can fill in (see the broadcast rule: {value} and {seat}) | placeholder: players are shown the literal {budget} (in `prompt`: 'Item 1, bidding turn 1 of 3. Standing bid 0, leader seat 0 (0 = none). Answer 0 to pass, o'); use only names the step can fill in (see the broadcast rule: {value} and {seat})",
+    "it plays, but part of it does nothing: game attribute `value_set` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Start state: budgets 30, scores 0, spent 0, empty table",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Every seat gets a 6-entry values list (random order, only the count is asserted)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A values list that is already set is not overwritten: seat 1 with value 13 for item 1 wins it at 4 and scores 9",
+      "passed": false,
+      "failures": [
+        "rule R2 is broken: When setup runs and a player's values list is empty, then that player receives a random ordering of [3,5,7,9,11,13], which sums to 48. When a list is already set, then it is not overwritten.",
+        "seat 1 budget: expected 26, got 30",
+        "seat 1 score: expected 9, got 0",
+        "seat 1 spent: expected 4, got 0",
+        "game leader: expected 1, got 0",
+        "game standing_bid: expected 4, got 0",
+        "game last_price: expected 4, got 0",
+        "Ada: the rule for 4 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 11, 9, 7, 5, 3], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Results are public: after seat 2 wins item 1 at 3, all budgets and scores are shown and each seat still holds 6 values",
+      "passed": false,
+      "failures": [
+        "rule R3 is broken: When values are dealt, then a player's values list is visible only to that player, while all budgets, scores, spent, eligibility flags, standing_bid, leader and last_price are public.",
+        "seat 2 budget: expected 27, got 30",
+        "seat 2 score: expected 6, got 0",
+        "seat 2 spent: expected 3, got 0",
+        "Blaise: the rule for 3 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 9, 5, 3, 11, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [9, 3, 5, 7, 11, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Round 3 sells item 3: seat 1's value is entry 3 of its list (13), so winning at 4 scores 9",
+      "passed": false,
+      "failures": [
+        "rule R4 is broken: When round r is played (r from 1 to 6), then item r is sold, and a player's value for it is entry r of their own values list, counting from 1.",
+        "seat 1 budget: expected 26, got 30",
+        "seat 1 score: expected 9, got 0",
+        "seat 1 spent: expected 4, got 0",
+        "game last_price: expected 4, got 0",
+        "game leader: expected 1, got 0",
+        "Ada: the rule for 4 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [3, 5, 13, 7, 9, 11], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 3, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Talk binds nobody: a round where everyone talks and then passes leaves the item unsold",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Standing bid and leader reset at round start: an old standing bid of 9 does not stop a bid of 1",
+      "passed": false,
+      "failures": [
+        "rule R6 is broken: When the talk phase of a round ends, then standing_bid becomes 0, leader becomes 0 and every player becomes eligible.",
+        "seat 1 budget: expected 29, got 30",
+        "seat 1 score: expected 4, got 0",
+        "seat 1 spent: expected 1, got 0",
+        "game leader: expected 1, got 0",
+        "game standing_bid: expected 1, got 0",
+        "game last_price: expected 1, got 0",
+        "Ada: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 3, 7, 9, 11, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Three bidding turns: bids 1/2, 3/4 and 5/6 leave seat 2 paying 6",
+      "passed": false,
+      "failures": [
+        "rule R7 is broken: When a round is played, then it has exactly 3 bidding turns. In each turn, all players answer at the same time with 0 (pass) or a whole number from 1 to their current budget.",
+        "seat 2 budget: expected 24, got 30",
+        "seat 2 score: expected 7, got 0",
+        "seat 2 spent: expected 6, got 0",
+        "game leader: expected 2, got 0",
+        "game standing_bid: expected 6, got 0",
+        "game last_price: expected 6, got 0",
+        "seat 1 was never offered 0, but should have been",
+        "seat 1 was never offered 30, but should have been",
+        "Ada: the rule for 1 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 3 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 5 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 2 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 4 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 6 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 9, 5, 3, 11, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 11, 9, 7, 5, 3], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "A bid from a seat that passed earlier (ineligible) counts as no bid",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When a player bids, then the bid is valid only if the player is eligible, the bid is at least standing_bid + 1 (at least 1 in turn 1), and the bid is at most the player's budget. A pass or an invalid bid counts as no bid.",
+        "seat 2 budget: expected 27, got 30",
+        "seat 2 score: expected 2, got 0",
+        "seat 2 spent: expected 3, got 0",
+        "game leader: expected 2, got 0",
+        "game standing_bid: expected 3, got 0",
+        "game last_price: expected 3, got 0",
+        "Ada: the rule for 0 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 10 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 3 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 9, 5, 3, 11, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 3, 7, 9, 11, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "A bid equal to the standing bid (not standing_bid + 1) is invalid",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When a player bids, then the bid is valid only if the player is eligible, the bid is at least standing_bid + 1 (at least 1 in turn 1), and the bid is at most the player's budget. A pass or an invalid bid counts as no bid.",
+        "seat 1 budget: expected 25, got 30",
+        "seat 1 score: expected 4, got 0",
+        "seat 1 spent: expected 5, got 0",
+        "game leader: expected 1, got 0",
+        "game standing_bid: expected 5, got 0",
+        "game last_price: expected 5, got 0",
+        "Ada: the rule for 5 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 3 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [9, 3, 5, 7, 11, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "A unique highest bid of 6 against 4 takes the lead at 6",
+      "passed": false,
+      "failures": [
+        "rule R9 is broken: When exactly one player made the highest valid bid in a turn (for example a single bid of 6 against a bid of 4), then standing_bid becomes that amount and leader becomes that player's seat.",
+        "seat 1 budget: expected 24, got 30",
+        "seat 1 score: expected 5, got 0",
+        "seat 1 spent: expected 6, got 0",
+        "game leader: expected 1, got 0",
+        "game standing_bid: expected 6, got 0",
+        "game last_price: expected 6, got 0",
+        "Ada: the rule for 6 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 4 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [11, 3, 5, 7, 9, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Two bids of 6 tie, so nobody leads; the lower 4 does not win and the item goes unsold",
+      "passed": false,
+      "failures": [
+        "rule R10 is broken: When two or more players tie on the highest valid bid (for example two bids of 6), or nobody made a valid bid, then standing_bid and leader stay unchanged. A lower valid bid never wins.",
+        "Ada: the rule for 6 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 6 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 4 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "The leader stays eligible after passing; a seat that passed cannot come back with 9",
+      "passed": false,
+      "failures": [
+        "rule R11 is broken: When a turn ends, then a player stays eligible for the next turn only if they made a valid bid in that turn (winning, tied or beaten) or they are the leader. Every other player is ineligible for the rest of the round.",
+        "seat 1 budget: expected 24, got 30",
+        "seat 1 score: expected 7, got 0",
+        "seat 1 spent: expected 6, got 0",
+        "game leader: expected 1, got 0",
+        "game standing_bid: expected 6, got 0",
+        "game last_price: expected 6, got 0",
+        "Ada: the rule for 5 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 0 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 6 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 0 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 9 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 2 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 11, 9, 7, 5, 3], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "An outbid seat that made a valid bid stays eligible and can raise to win",
+      "passed": false,
+      "failures": [
+        "rule R11 is broken: When a turn ends, then a player stays eligible for the next turn only if they made a valid bid in that turn (winning, tied or beaten) or they are the leader. Every other player is ineligible for the rest of the round.",
+        "seat 3 budget: expected 24, got 30",
+        "seat 3 score: expected 1, got 0",
+        "seat 3 spent: expected 6, got 0",
+        "game leader: expected 3, got 0",
+        "game standing_bid: expected 6, got 0",
+        "game last_price: expected 6, got 0",
+        "Ada: the rule for 5 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 2 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 6 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 9, 5, 3, 11, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 3, 5, 9, 11, 13], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Standing bid and leader are public after the turns: seat 2 leads at 4",
+      "passed": false,
+      "failures": [
+        "rule R12 is broken: When a turn ends, then standing_bid, leader and every eligibility flag are announced to all.",
+        "seat 2 budget: expected 26, got 30",
+        "seat 2 score: expected 7, got 0",
+        "seat 2 spent: expected 4, got 0",
+        "game leader: expected 2, got 0",
+        "game standing_bid: expected 4, got 0",
+        "Blaise: the rule for 4 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 9, 5, 3, 11, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [11, 3, 5, 7, 9, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Value 3 bought at price 8 gives a score of -5",
+      "passed": false,
+      "failures": [
+        "rule R13 is broken: When turn 3 ends with leader not 0 and standing_bid p, then the leader's budget decreases by p, their spent increases by p, and their score increases by (their value for item r) minus p. This can be negative: value 3 at price 8 gives -5.",
+        "seat 1 budget: expected 22, got 30",
+        "seat 1 score: expected -5, got 0",
+        "seat 1 spent: expected 8, got 0",
+        "game last_price: expected 8, got 0",
+        "game leader: expected 1, got 0",
+        "Ada: the rule for 8 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [3, 5, 7, 9, 11, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Unsold item sets last_price to 0 even if it was 7 before",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sold item sets last_price to the price",
+      "passed": false,
+      "failures": [
+        "rule R14 is broken: When turn 3 ends, then last_price is set to standing_bid if there is a leader, and to 0 if leader is 0 (the item goes unsold). The round's result is announced.",
+        "seat 3 budget: expected 28, got 30",
+        "seat 3 score: expected 7, got 0",
+        "seat 3 spent: expected 2, got 0",
+        "game last_price: expected 2, got 0",
+        "game leader: expected 3, got 0",
+        "Cleo: the rule for 2 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [13, 9, 5, 3, 11, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [9, 3, 5, 7, 11, 13], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 1, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Game ends after round 6; unspent budget counts for nothing, seat 1 wins with score 8",
+      "passed": false,
+      "failures": [
+        "rule R15 is broken: When round 6 has been resolved, then the game ends, and unspent budget is worth nothing.",
+        "winner: expected 'seat 1', got 'seat 2'",
+        "seat 1 standing: expected 8, got 0",
+        "seat 1 score: expected 8, got 0",
+        "seat 1 budget: expected 5, got 10",
+        "game last_price: expected 5, got 0",
+        "Ada: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 10, \"score\": 0, \"spent\": 0, \"values\": [3, 5, 7, 9, 11, 13], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 4, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 25, \"score\": 2, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 6, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    },
+    {
+      "name": "Two seats level at the top score share the win",
+      "passed": false,
+      "failures": [
+        "rule R16 is broken: When the game ends, then the player with the strictly highest score wins. If two or more players share the highest score, then they share the result (a draw).",
+        "winner: expected 'seats 1 and 2', got 'seat 2'",
+        "seat 1 standing: expected 5, got 3",
+        "seat 1 score: expected 5, got 3",
+        "seat 1 budget: expected 27, got 30",
+        "Ada: the rule for 3 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table value_set: [] -> [3, 5, 7, 9, 11, 13]; seat 1 needs_deal: False -> True; seat 2 needs_deal: False -> True; seat 3 needs_deal: False -> True; seat 1 values: [] -> [13]; seat 2 values: [] -> [5]; seat 3 values: [] -> [7]; seat 1 values: [13] -> [13, 9]; seat 2 values: [5] -> [5, 13]; seat 3 values: [7] -> [7, 13]; seat 1 values: [13, 9] -> [13, 9, 5]; seat 2 values: [5, 13] -> [5, 13, 11]; seat 3 values: [7, 13] -> [7, 13, 3]; seat 1 values: [13, 9, 5] -> [13, 9, 5, 3] .... Final: players {\"seat 1\": {\"budget\": 30, \"score\": 3, \"spent\": 0, \"values\": [3, 7, 9, 11, 13, 5], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 2\": {\"budget\": 30, \"score\": 5, \"spent\": 0, \"values\": [5, 13, 11, 9, 3, 7], \"eligible\": false, \"bid\": 0, \"valid_bid\": false, \"needs_deal\": false}, \"seat 3\": {\"budget\": 30, \"score\": 0, \"spent\": 0, \"values\": [7, 13, 3, 5, 11, 9], \"eligible\": false, \"bid\": 0, \"vali; table {\"round\": 6, \"turn\": 3, \"standing_bid\": 0, \"leader\": 0, \"last_price\": 0, \"value_set\": [3, 5, 7, 9, 11, 13], \"top_bid\": 0, \"top_count\": 0, \"starting_budget\": 30, \"starting_score\": 0, \"starting_spent\": 0, \"rounds\": 6, \"items\": 6, \"bidding_turns_per_round\": 3, \"value_1\": 3, \"value_2\": 5, \"value_3\": 7, \"value_4\": 9, \"value_5\": 11, \"value_6\": 13, \"values_sum\": 48, \"min_first_bid\": 1, \"min_raise\": 1, \"pass_bid\": 0, \"no_lea"
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        6
+      ],
+      "results": {
+        "seat 3": 7,
+        "seat 2": 5,
+        "seat 1": 13,
+        "seats 1 and 2": 1,
+        "seat 5": 6,
+        "seat 6": 7,
+        "seat 4": 1
+      },
+      "turns_min": 72,
+      "turns_max": 144
+    }
+  },
+  "tier1": {
+    "flags": [
+      "always taking the first option as seat 1 wins 97% of decided matches against random seats",
+      "always taking the first option as seat 2 wins 95% of decided matches against random seats"
+    ],
+    "notes": [],
+    "random_results": {
+      "seat 3": 21,
+      "seat 2": 17,
+      "seat 1": 18,
+      "seats 1 and 2": 3,
+      "seats 1 and 3": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 57,
+        "loss": 2,
+        "draw": 1,
+        "win_rate": 0.97
+      },
+      "first@seat2": {
+        "win": 56,
+        "loss": 3,
+        "draw": 1,
+        "win_rate": 0.95
+      },
+      "last@seat1": {
+        "win": 1,
+        "loss": 59,
+        "draw": 0,
+        "win_rate": 0.02
+      },
+      "last@seat2": {
+        "win": 2,
+        "loss": 57,
+        "draw": 1,
+        "win_rate": 0.03
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 108.0,
+      "prompt_chars_avg": 246,
+      "prompt_chars_max": 291
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 6 players, 4 suggested",
+      "why": "The designer set 3 to 6 with 4 suggested. Three is the smallest table where an auction has several rivals, so ties and drop-outs matter. Above 6, talk gets long and each player wins too few of the 6 items for their choices to matter."
+    },
+    {
+      "what": "Talk kept as a simultaneous poll broadcast to all",
+      "why": "The source requires simultaneous messages shown to all. Talk earns its place because players have conflicting private values: they may signal, bluff about which items they value, or try to arrange not to bid against each other."
+    },
+    {
+      "what": "The strategy a thoughtful player follows",
+      "why": "Each player has a budget of 30 against values totaling 48, so they must save money for their high-value items. Bidding in every turn keeps a player eligible, tied bids win nothing, and players must guess rivals' values from talk and past prices."
+    },
+    {
+      "what": "Bids are polled from ineligible players too, and their bids are simply invalid",
+      "why": "The source says each turn polls all players, and the validity check handles eligibility."
+    },
+    {
+      "what": "Leader stores the seat number, with 0 meaning no leader",
+      "why": "The source uses 0 for no leader, and seats are numbered from 1."
+    },
+    {
+      "what": "The value set is listed as six numeric parameters value_1 to value_6",
+      "why": "Each parameter must be a single number. The set itself is kept as the public table list value_set."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A draw at the top is expressed as a shared win among the players tied for highest score",
+      "why": "The engine has no separate draw. Players level at the top share the win, which is the arithmetic equivalent of the source's draw."
+    },
+    {
+      "what": "The three bidding turns are one block of steps run by a repeat until turn == 3",
+      "why": "This avoids writing the same steps three times. The behavior is identical."
+    },
+    {
+      "what": "Scratch attributes top_bid, top_count and valid_bid are added",
+      "why": "The engine needs stored intermediate values to compute the highest unique valid bid by arithmetic."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 12,
+    "choice_steps_per_round": 2,
+    "attributes": 33,
+    "hidden_elements": 5
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "An English (ascending) auction: bidders with private valuations raise a standing bid in turn order until a full round passes with no raise. The last bidder wins and earns value minus price; everyone else earns zero. The reviewed variation made it a six-item budgeted auction with three simultaneous bidding turns per item, talk, and a rotating priority tie-break.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "weak",
+        "evidence": "No thoughtless policy dominates. Always-pass ends on 0 and loses to anyone who buys one item below value. Always-max bids 30 on item 1, scores at most 13-30=-17 and is bankrupt for the rest of the game. However, the priority tie-break gives a built-in seat edge for N=4 (summed weights 15/17/15/13) and N=5 (20/19/18/17/16, with seat 1 also first in round 6). Ties are common because bids are small integers."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "A budget of 30 against a value total of 48 forces players to choose which items to contest. Reading rivals' interest from talk and bids, and pacing the budget, separates good play from bad. The value lists are permutations of the same set, so luck of the deal is small."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "weak",
+        "evidence": "Turns 1 and 2 are weakly dominated: a bid placed early commits you and leaks information, and it cannot deter anyone, because rivals can still bid standing+1 in turn 3 with no reply possible. Optimal play collapses to one sealed bid in turn 3, which removes the ascending-auction depth."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Values are private, and only the set {3,...,13} is common knowledge. Players must infer rivals' values for each item from talk and bids and plan their budget across 6 rounds."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Scores are value minus price, summed. The winner is the strictly highest score, otherwise a draw. It is pure arithmetic."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "good",
+        "evidence": "Simultaneous polls, numeric bids, private values and talk are all supported. The round fits in about 15 steps and 4 choice steps, with 6 rounds and no board."
+      }
+    ],
+    "problems": [
+      "P1: The rotating priority tie-break creates a systematic seat advantage for N=4 and N=5. Integer bids make ties frequent, so the advantage matters.",
+      "P2: Bids in turns 1 and 2 are weakly dominated by waiting and sniping in turn 3. The ascending auction degenerates into a first-price sealed bid, and the early turns only duplicate the talk channel."
+    ],
+    "changes": [
+      {
+        "what": "Remove priority weights entirely. A turn has a winner only if exactly one player made the highest valid bid. If two or more players tie at the top, nobody wins that turn and the standing bid and leader stay as they were. A lower bid never wins because of a tie above it.",
+        "why": "The rule treats every seat the same in every round, for any N from 3 to 6. A tie also becomes a strategic risk, because a tied bid wins nothing, rather than a matter of seat luck.",
+        "fixes": "P1"
+      },
+      {
+        "what": "Add an activity rule. Turn 1 is open to everyone. In turn 2 or turn 3, a player may bid only if they made a valid bid in the previous turn, or they are the leader at the start of that turn. A player who drops out cannot return for that item.",
+        "why": "Waiting now forfeits the right to snipe. To contest the final turn you must enter at a binding price in earlier turns. Early bids become real commitments and signals, the field visibly narrows as in an English auction, and turn-3 bidders know exactly who they face and what those players committed.",
+        "fixes": "P2"
+      },
+      {
+        "what": "Record each player's eligibility in a visible yes/no attribute that is announced after each turn.",
+        "why": "Everyone can reason about who is still in, and the engine can enforce eligibility with a simple condition.",
+        "fixes": "P2"
+      }
+    ],
+    "keeps": [
+      "Ascending bidding on each item, where the leader pays their last bid and earns value minus price",
+      "Private valuations drawn from a common, known set, with every list worth the same total of 48",
+      "Six items sold one per round with a shared budget of 30, forcing a choice of which items to fight for",
+      "Simultaneous non-binding talk before each item",
+      "The strictly highest total score wins; a tie at the top is a draw"
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "Both failures are rule-level and fixable within the limits. A seat-neutral tie rule removes the seat edge, and an activity rule restores the ascending structure."
+    },
+    "variation": {
+      "name": "Budgeted English Auction with Activity Rule",
+      "summary": "Six items are auctioned one per round to 3 to 6 bidders with private values and a shared-size budget. Each item gets three simultaneous bidding turns. You can only keep bidding if you bid in the previous turn or are leading, and an exact tie at the top wins nothing.",
+      "players": {
+        "min": 3,
+        "max": 6,
+        "suggested": 4
+      },
+      "rules": "R1 Setup. There are N players (3 to 6). Each player starts with budget 30, score 0 and spent 0. Before round 1, each player whose values list is empty receives a private values list: a random ordering of [3,5,7,9,11,13], so every list sums to 48. A list that is already set is never overwritten. Table state starts at standing_bid 0, leader 0 (0 means no leader) and last_price 0.\nR2 Privacy. A player's values list is visible only to that player. Everyone sees all budgets, scores, eligibility flags, standing_bid, leader and last_price. Everyone knows the value set is {3,5,7,9,11,13}.\nR3 Items. The game has 6 rounds. In round r, item r is sold. A player's value for item r is entry r of their own list, counting from 1.\nR4 Talk. At the start of each round, every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Messages bind nobody.\nR5 Round reset. After talk, set standing_bid to 0 and leader to 0, and mark every player eligible.\nR6 Bidding turns. Each round has exactly 3 bidding turns. Each turn is a simultaneous poll of all players. Each player answers pass (0) or a whole number from 1 up to their current budget.\nR7 Validity. A bid is valid only if all three conditions hold:\n(a) the bidder is eligible for this turn;\n(b) the bid is at least standing_bid + 1 (in turn 1 that means at least 1);\n(c) the bid is at most the bidder's budget.\nPass, and any bid that is not valid, counts as no bid.\nR8 Turn result. Find the highest valid bid.\n- If exactly one player made it, standing_bid becomes that amount and leader becomes that player.\n- If two or more players made it (a tie), or nobody made a valid bid, standing_bid and leader stay unchanged.\n- A lower valid bid never wins.\nR9 Eligibility. After each turn, a player is eligible for the next turn only if they made a valid bid in this turn (winning, tied or beaten), or they are the leader after this turn. Everyone else is marked ineligible for the rest of the round. After each turn, standing_bid, leader and all eligibility flags are announced.\nR10 Resolution. After turn 3:\n- If leader is not 0, the leader's budget decreases by standing_bid, their spent increases by standing_bid, and their score increases by (their value for item r) minus standing_bid. This can be negative.\n- last_price is set to standing_bid. If leader is 0, the item goes unsold and last_price is 0.\n- The round's result is announced.\nR11 End. After round 6 the game ends. Unspent budget is worth nothing.",
+      "objective": "After round 6, the player with the strictly highest score wins. If two or more players share the highest score, the game is a draw.",
+      "expected_effect": "Waiting no longer pays, because a player who skips a turn cannot come back for that item. Players must enter in turn 1 and keep bidding to stay in, so prices rise step by step and the field narrows publicly, as in a real English auction. Entering at a low price in turn 1 is cheap, but the bid binds if nobody raises. In turn 2 a player must decide whether staying in is worth a higher committed price, knowing exactly who else is still in. Turn 3 is a final bid among known survivors whose earlier bids reveal information. The tie rule is identical for every seat. Matching a rival exactly blocks both bids, which turns ties into a risk to manage. Talk passes both tests. Players disagree because each wants items cheaply while rivals overpay or stay out, and only one player can win. A player who honours a proposal such as 'you take item 2, I take item 3' can be undercut, or can let a rival buy below value and fall behind. Simple policies all lose to sensible play: always-pass ends on 0, always-max goes bankrupt with a negative score, and always minimum-raise overpays on low-value items and runs out of budget for high-value ones."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 15,
+      "choice_steps_per_round": 4,
+      "attributes": 11,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 6
+    },
+    "critic": {
+      "rounds": 2,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "fail",
+            "evidence": "WIN/LOSS OF THOUGHTLESS POLICIES. (a) Always pass (first option, code 0): score 0 every round, final score 0. Any opponent who buys one item below value, for example value 9 at price 4, finishes on +5 and beats it. Against random bidders it can win or draw, because random full-range bids usually produce negative scores, but against sensible play it loses. (b) Always the highest bid (whole budget): round 1, turn 1 it bids 30. It wins the item, scores at most 13-30 = -17 and has budget 0 for the rest of the game. It loses to everyone who stays at 0 or above. (c) Bid 1 in turn 1 only: it wins only unopposed items, about +3 to +12 each, and loses whenever a sensible rival bids 2 or more. It beats always-pass but does not dominate. No option is strictly better whatever the opponents do, so the payoff side is sound. A per-item table shows this: buying item r at price p yields v_r - p, so v=13 gives +13-p and v=3 gives +3-p. Budget 30 against a value total of 48 forces a choice over which items to fight for, and that is a genuine trade-off. FAILURES. (1) Seat edge from tie-breaks. Bids are small integers, so ties in turn 3 are common, and ties go to priority weight. The rotation does not divide 6 rounds evenly for N=4 or N=5. Summed priority weights over the game: N=4: seat1 4+1+2+3+4+1=15, seat2 3+4+1+2+3+4=17, seat3 2+3+4+1+2+3=15, seat4 1+2+3+4+1+2=13. N=5: seat1 5+1+2+3+4+5=20, seat2 19, seat3 18, seat4 17, seat5 16. This is a systematic seat gradient, and in N=5 seat 1 also gets top priority in the last round. Only N=3 and N=6 are symmetric. (2) Turns 1 and 2 are weakly dominated. A bid placed in turn 1 or 2 is irrevocable and does nothing that the same bid in turn 3 could not do. It cannot deter anyone, because rivals can still bid standing_bid+1 in turn 3 and nobody can respond after turn 3. It also leaks information and commits you before you see rivals' interest. The policy 'pass turns 1-2, then make one sealed bid in turn 3' therefore weakly dominates early bidding. The 'English' ascending auction collapses into a first-price sealed bid, with turns 1-2 kept only as a bluffing channel. That duplicates the talk step."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Stated limits: 17 steps (max 20), 4 choice steps (talk plus 3 polls; max 4), 18 attributes (max 20), 1 hidden element (the values list), 1 random draw (dealing, once, before round 1; max 1 per round), 6 rounds (max 40). All are within limits. Every situation is covered. The validity window is explicit for each turn. A player with budget 0 can only pass. Budget can never go negative, because a bid must be at most the budget and is charged once. key = bid*10 + weight is unambiguous, since weight is at most 6, which is under 10. Priority weight is arithmetic: N - ((seat - start) mod N). Resolution, the unsold case and negative scores are all specified, and the game is finite at 6 rounds. The winner is found by comparing scores. Nothing needs a board, a clock, trades or binding agreements. Talk is simultaneous and justified: players compete for the same items, so talk can carry value bluffs and proposals for bidding rings ('I skip item 3 if you skip item 4'). Following such a proposal can cost you, and breaking it is tempting, especially in round 6. Talk is therefore something to reason about rather than something to copy. last_price is redundant but harmless."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Every player holds the same multiset {3,5,7,9,11,13}, so total value is equal. Chance enters only through alignment: whether your high values fall on the same items as rivals' high values. For N=6, P(someone holds 13 on a given item) = 1-(5/6)^6 \u2248 0.67, so contested items are common and prices are pushed toward the second-highest value. Under good play, the deal decides perhaps 30-40% of outcomes, for example a player whose 13 and 11 face only low rival values. It does not decide the winner alone. There is substantial inference. Each list is a permutation, so a rival who bid high on item 1 has probably used up a high value, and that narrows the rest of their list. Budget levels are public. Bidding history, including spending-down, shows who can still contest later items. A reasoning player buys cheap where rivals' remaining values are likely low, saves budget for the item where they hold 13, and shades sealed bids based on rivals' budgets. A naive player overpays early or runs out of budget. Reasoning is clearly favoured."
+          },
+          "required_changes": [
+            "Remove the seat edge for N=4 and N=5. Either restrict players to 3 or 6 so that 6 rounds rotate priority evenly, or replace the priority tie-break with an arithmetic one that is seat-neutral over the game. Example: ties go to the tied bidder with the lower current score, then the lower total spent. Another option: an exact tie at the top means no valid bid wins that turn.",
+            "Make the three bidding turns a real ascending auction instead of a disguised sealed bid. Add an activity rule: a player may bid in turn 3 only if they made a valid bid in turn 1 or turn 2 (or: only the current leader and players who bid in turn 2 may bid in turn 3). Waiting then forfeits the right to snipe, and early bidding becomes a genuine commitment and signal."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "SETUP. Each player holds a private permutation of [3,5,7,9,11,13], so everyone's values total 48. Budget is 30, which is less than 33 (13+11+9), so no one can buy all their best items. Bids are simultaneous, so no seat has an edge from move order. Every player sees the same public information, so no seat has an information edge.\n\nMAIN DECISION, one item, value v, standing bid s:\n| Action | Outcome | Payoff |\n|---|---|---|\n| Win at s | item | v - s |\n| Lose | nothing | 0 |\n| Win at s > v | item | negative |\nThis is a first-price contest with shading, constrained by budget. No option beats the others whatever opponents do. If you bid b < v, an opponent bidding b+1 takes the item. If you bid v, your profit is 0.\n\nTHOUGHTLESS POLICIES, judged by the winner rule:\n- Always pass: score 0. Against sensible opponents, each sensible player wins some items below value and scores more than 0, so always-pass loses. Against random bidders, it can win, because random bidders often overpay and go negative. That is a weakness of the random opponents, not a degenerate policy: it never beats sensible play.\n- Always bid full budget: bids 30 in turn 1 of round 1 and wins as the unique highest. Score is at most 13 - 30 = -17, and the budget is then 0. It loses to everyone except other overbidders.\n- Always bid the minimum (standing+1): in turn 1 every such player bids 1, ties and keeps leader at 0. A sensible player who bids 2+ beats them. When it does win, it pays very little, but it is outbid by anyone with a moderate value, so it wins rarely.\n- Always bid exactly your value: profit is 0 on every win. Anyone who shades and wins scores above 0, so this policy loses.\n- Jump-bid v-1 in turn 1 on high values: wins at most 1-2 per item and leaves the budget unused. A shading player buying two mid items at a margin of 4-6 beats it.\n\nNo policy never loses. Both or all players can realistically win.\n\nTIE RULE. A tied top bid blocks the item, and a lone lower bid cannot win. This adds a spoiling risk, but it is symmetric.\n\nThe auction label matches the arithmetic: a rising standing bid, the leader pays the standing bid, and value minus price is scored. This is not a cooperation game, so the 'safe option dominates late rounds' failure does not apply. In round 6, unspent budget is worthless, so bidding up to min(v, budget) is the rational play. That is intended endgame planning, not a degenerate strategy."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "RULES COVERAGE. The rules cover every situation:\n- validity of bids (eligibility, minimum standing+1, budget cap);\n- tie handling at the top (no change);\n- no-bid handling;\n- eligibility (made a valid bid or is leader);\n- unsold items (leader 0, so last_price is 0);\n- negative scores;\n- a budget of 0 (only pass is possible);\n- final ties (a draw).\n\nFINITE AND ARITHMETIC. The game has 6 rounds of 3 turns each. All quantities are integers the game keeps: budget, score, spent, values, eligible, standing_bid, leader and last_price.\n\nLIMITS. Every stated figure is within the platform limits:\n| Item | Stated | Limit |\n|---|---|---|\n| steps_per_round | 15 | 20 |\n| choice_steps_per_round | 4 (1 talk + 3 bid polls) | 4 |\n| attributes | 11 | 20 |\n| hidden_elements | 1 (values list) | 3 |\n| random_draws_per_round | 1 (one dealing step, guarded so it never overwrites) | 1 |\n| rounds | 6 | 40 |\nAll choices are simultaneous polls, as required. No board, clock, judge, trading or binding agreement is needed.\n\nTALK. With 3-6 players, interests conflict: everyone wants items cheaply, and claims like 'I'll take item 3, you take 4' are tempting but not binding. Following a proposal can cost a player, because deferring to a bluffer means losing a high-value item. Talk is simultaneous and gives players something to reason about, since claims can be checked against later bids. Talk is therefore appropriate.\n\nMINOR REDUNDANCY. R7(c) duplicates the R6 poll range. This is harmless."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "WHAT CHANCE DECIDES. The deal is the only chance element, and it is equalised: every player holds the same multiset {3,...,13}. Chance decides only which rounds a player's high values collide with opponents' high values. Example: my 13 lands where the others hold 3 and 5, so I win cheaply.\n\nWHAT REASONING ADDS.\n- Inference: each player holds each value exactly once. A player who bid aggressively in round 2 has likely used their 13 or 11, so the set of values they have left shrinks round by round.\n- Planning: the budget of 30 must be rationed across 6 items.\n- Opponent modelling: players must judge how far to shade in simultaneous re-bids, when to jump-bid in turn 1 to shut others out through the activity rule, and whether to trust or exploit talk claims.\n\nWHEN EVERYONE PLAYS WELL. The deal shapes the opportunities, but it does not fix the winner. Simultaneous shading and tie-spoiling decisions are mixed-strategy contests, and late-round inference about opponents' remaining values differs between players. A careless spender loses even with a favourable deal, so good play can overcome the deal.\n\nESTIMATE. Roughly 30-40% of outcome variance comes from deal alignment. The remainder comes from bidding and inference skill. A reasoning player is clearly favoured over a naive one, as the always-value and always-max policies show."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 2,
+  "design_flags_left": [
+    "always taking the first option as seat 1 wins 97% of decided matches against random seats",
+    "always taking the first option as seat 2 wins 95% of decided matches against random seats"
+  ],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "Every scenario where a player is scripted to bid failed the same way: the scripted bid (4, 6, 2, 7) was never among the options the game offered, so every seat fell back to 0, nothing sold, and budgets and scores stayed at 30 and 0. The rules plainly allow any whole-number bid from min_bid up to the remaining budget, so the tests are right and the game's bid choice is built wrong.",
+      "guidance": "Rebuild the bid choice in each of the three bidding turns as a simultaneous numeric choice. It must offer pass_code (0) and every whole number from min_bid (1) up to that player's current budget, for example a range built from attributes rather than a short fixed list. Check that the submitted value actually reaches the `bid` attribute. Then set `bid_valid` per the rules: turn 1 needs bid >= min_bid and bid <= budget; turns 2 and 3 need bid >= standing_bid + min_raise and bid <= budget. Compute the winner with the tiebreak key (bid * tiebreak_multiplier plus a priority term from prio_pos, so the earlier seat in this round's priority wins ties). Write `standing_bid` and `leader` only when a valid bid exists. At resolution the leader pays: subtract standing_bid from budget, add (their values[round] minus standing_bid) to score, and set last_price = standing_bid, or set it to 0 if unsold. Do not reset `standing_bid`, `leader` and `last_price` for the next round before the round's results are recorded, because the tests read leader and standing_bid after the round. Also make sure the game starts at the given `round` (the log shows 'r1' while the test set round 3), so that values[round] picks the right item and the priority order starts at seat ((round-1) mod N)+1.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "In every failing scenario the scripted bid (4, 6, 2, 7) was never matched because the game never offered that amount as an option. Every recorded move was 0, so no item was ever sold. The tests read the rules correctly; the game file's bidding choice does not offer whole-number bids, so the auction never runs.",
+      "guidance": "Make each of the three bidding turns a simultaneous numeric choice. Its options must include pass_code (0) and every whole number from min_bid up to the player's remaining budget, or the platform's numeric_bids range form. A bid of 4 must be selectable when the budget is 30.\n\nAfter each poll:\n- Mark bids valid only if they are at least min_bid (turn 1), or at least standing_bid + min_raise (turns 2 and 3), and do not exceed the bidder's budget.\n- Pick the highest valid bid. Break ties by priority, for example with a key of bid*tiebreak_multiplier plus a priority term derived from first_seat.\n- Set standing_bid and leader.\n\nAt resolution, when leader != no_leader_code:\n- Subtract standing_bid from the leader's budget.\n- Add values[round] - standing_bid to the leader's score.\n- Set last_price = standing_bid; otherwise set last_price = 0.\n\nLeave standing_bid and leader showing the resolved round's values until the next round starts. The tests read them after resolution.\n\nAlso check the setup. The trace shows seat 1's dealt values being replaced by the sorted list. That came from the test's `given` here, but make sure the deal itself never overwrites values.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "In every failing scenario each seat only ever played 0, and the harness reports that the scripted bid (4, 6, 2, 7) was never offered as an option. The rules allow any whole-number bid from 1 up to the bidder's remaining budget, so the game's bidding choice is not presenting the legal bid amounts. The tests themselves are consistent with the rules.",
+      "guidance": "Fix the bidding step in all three bidding turns. Each turn must be a simultaneous poll where every player's options are pass (pass_code = 0) plus every whole number from min_bid up to that player's current budget; a numeric bid in that range also works. Do not offer only pass or a fixed short list. Then check the validity logic: in turn 1 a valid bid is >= min_bid and <= budget; in turns 2 and 3 it is >= standing_bid + min_raise and <= budget. Pick the highest valid bid, breaking ties by this round's priority order starting at seat ((round-1) mod N)+1 (e.g. key = bid*tiebreak_multiplier + priority rank). Set standing_bid and leader, and keep them when no valid bid is made. At resolution the leader pays standing_bid from budget and adds (values[round] - standing_bid) to score, with values indexed by the current round; set last_price; then reset standing_bid and leader to 0 for the next round. Also make sure the dealing step does not overwrite a values list that is already set (the test 'given' values must survive), or that dealing happens before 'given' is applied.",
+      "missing": ""
+    },
+    {
+      "round": 2,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "In every failing scenario, a seat scripted to bid when 4 (or 1) is among its options actually played 0 on all three turns, so no valid bid ever registered and budgets, scores and last_price never changed. This points to the game's bidding poll not offering the whole-number amounts 1..budget as choosable options (or not recording the chosen amount as the bid), not to a problem with the rules or the tests.",
+      "guidance": "Make each bidding turn a simultaneous poll of all players whose options are pass (pass_bid = 0) plus every whole number from min_first_bid (1) up to that player's current budget, built from the budget attribute and not hard-coded. Store each answer in the player's bid. Then apply R7 to decide validity: the player must be eligible, the bid must be at least standing_bid + min_raise, and it must not exceed budget. Compute top_bid and top_count over the valid bids, and set standing_bid and leader only when top_count == 1. Update eligibility per R9: valid bidders and the current leader stay eligible. After turn 3, apply R10: if leader != 0, take standing_bid from the leader's budget, add it to spent, add (values[round] - standing_bid) to score, and set last_price = standing_bid; otherwise set last_price = 0. Do the R5 reset (standing_bid 0, leader 0, all players eligible) at the start of each round, after the simultaneous talk step. Check this against the scenario 'seat 1 bids 4 on item 1 with values [13,...]', which should end with budget 26, score 9, spent 4, leader 1, standing_bid 4 and last_price 4.",
+      "missing": ""
+    },
+    {
+      "round": 2,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "In every failing scenario the scripted seat was told to bid an amount it is allowed to bid (4, 3 or 1, all within budget 30). The game still recorded 0 for every move, so its bid poll never offers those amounts. The tests follow R6\u2013R10 correctly; all-pass leading to everyone ineligible and no sale is the right outcome, but only because the bids were never available.",
+      "guidance": "Fix the bidding poll in R6 so it is a simultaneous numeric bid of all players. Each player's options must be pass (pass_bid = 0) plus every whole number from 1 up to that player's current budget. Do not offer only 0, and do not narrow the range in a way that drops valid amounts; any bid below standing_bid + min_raise or from an ineligible player is simply treated as invalid under R7. Check that the recorded bid feeds the valid_bid, top_bid and top_count logic. Check that a unique top valid bid sets standing_bid and leader. Check that R9 eligibility keeps bidders and the leader. Check that R10 resolution after turn 3 reduces budget, increases spent, adds value[round] minus standing_bid to score, and sets last_price, using entry `round` of the leader's values list. Also make sure setup gives a values list only to players whose list is empty."
+    },
+    {
+      "round": 2,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "All four failing scenarios show the same thing: no seat ever makes a winning bid, so nothing is sold. In the given-values scenario seat 1 answered 0 in all three turns although its rule was to pick 4 whenever 4 was offered. That means the game file never offered a real bid (or treated every bid as invalid), so the fault is in the file, not the rules or the tests.",
+      "guidance": "1) Bid options: each bidding poll must offer every player pass (pass_bid) plus every whole number from min_first_bid up to that player's current budget. Do not shrink the option list by eligibility or standing_bid. Check validity (R7: eligible, bid >= standing_bid + min_raise, bid <= budget) only when the turn is scored. 2) Round reset (R5): after the talk poll of each round, and before bidding turn 1, set standing_bid = 0, leader = no_leader_code and eligible = true for every player. The final state shows everyone ineligible with no valid bid, which suggests eligibility was never set true, or bids were never recorded into `bid`/`valid_bid` before resolution. 3) Resolve each turn as R8 says: count how many valid bids equal the top bid. If exactly one, set standing_bid to it and leader to that seat. Then update eligibility (R9): eligible = made a valid bid, or is the leader. 4) After turn 3 (R10): if leader is not 0, the leader pays standing_bid out of budget, adds it to spent, and adds values[round] - standing_bid to score (1-based index). Set last_price = standing_bid, or 0 if unsold. 5) Dealing (R1): deal only to a player whose values list is empty. Never set needs_deal or append to a list that is already set. The trace shows needs_deal turned true for seat 1 and entries appended even though its list was given. Make sure the deal check reads the given list at setup.",
+      "missing": ""
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 15,
+      "choice_steps_per_round": 4,
+      "attributes": 11,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 6
+    },
+    "measured": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 2,
+      "attributes": 33,
+      "hidden_elements": 5
+    }
+  },
+  "verdict": "needs_review"
+}

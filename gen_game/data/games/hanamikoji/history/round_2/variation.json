@@ -1,0 +1,175 @@
+{
+  "original_summary": "Hanamikoji is a two-player card game. Over repeated hands of four alternating turns each, players use four one-shot actions (Secret, Trade-off, Gift, Competition) to commit Item cards to seven Geisha of different Charm values. Gift and Competition force the opponent to choose between offered splits. A player wins by holding the majority on enough Geisha, by count or by Charm.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "The previous variation was tested. No thoughtless policy was undefeated: always the first action, always pick 1, always take the higher-Charm option and always Secret a G5 can all lose to sensible splitting. However, the win was checked after every hand and about 70-80% of games ended after hand 1. In every hand the non-starter acts in round 8 with almost full information and resolves the starter's round-7 offer. So in most games Player 2 had an uncompensated structural edge. That is a seat edge, which this criterion forbids."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Building Gift and Competition offers so that every pick still leaves you ahead in the Geisha that matter, and choosing well as the picker, are real skills. Timing the Secret and Trade-off actions is also a skill. Each player spends 10 cards over the hand, and the opponent's choices shape about 7 of them, so splitting skill dominates. The deal adds variance, especially when a game is decided by a single hand."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Weak players still win Geisha by pushing majorities. Strong players plan the order of their four actions, bait with Gift offers, read hidden Secret and Trade-off cards from what has been revealed, and count the remaining copies. Play is not solved."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands, the removed card, the deck and the face-down Secret and Trade-off cards are hidden. Players must infer what the opponent holds and kept from their offers, picks and action order, and plan four actions in advance."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Majorities are counts per Geisha. Charm is a sum. The win checks are thresholds. Card legality is the check 'the count of each number named is at most the count in hand'."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "It is turn-based and text-only, with at most three choices per round and no board. Five Geisha keep the state small. The previous version could reach 40 rounds, which is right at the limit."
+    }
+  ],
+  "problems": [
+    "P1 Seat edge: most games were decided by a single hand, and in every hand the non-starter has a large last-mover information advantage that nothing compensated.",
+    "P2 Starting turns were uneven: Player 1 started hands 1, 3 and 5 and Player 2 only hands 2 and 4.",
+    "P3 Simply alternating the hands and checking only after even hands is not enough if markers carry over hand by hand. The second hand of a pair overwrites the first wherever it decides a Geisha, so one player's last-mover hand would count more than the other's.",
+    "P4 Luck of a single deal decides too much when one hand decides the game.",
+    "P5 The length was 40 rounds, right at the platform limit.",
+    "P6 The card-legality check was worded loosely."
+  ],
+  "changes": [
+    {
+      "what": "Hands are played in pairs: hands 1 and 2 form pair 1, and hands 3 and 4 form pair 2. Within a pair, Player 1 starts the first hand and Player 2 starts the second. Kept counts add up across both hands of the pair, and Geisha markers move only after the second hand of a pair, by comparing these combined counts.",
+      "why": "Each player gets the last-mover position exactly once in every scored contest, and both hands of a pair weigh the same. Both players play the second hand knowing the full first-hand result, so the extra information is shared.",
+      "fixes": "P1"
+    },
+    {
+      "what": "There are at most 2 pairs (4 hands, 32 rounds). Each player starts exactly 2 hands.",
+      "why": "The number of starts is equal, and the game is shorter and well inside the limit.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Markers are updated only from combined pair totals, never from a single hand. At the start of hand 3 the pair totals reset to zero, and markers already placed stay where they are when a later pair ties on that Geisha.",
+      "why": "Neither hand of a pair can overwrite the other, so both last-mover hands count equally.",
+      "fixes": "P3"
+    },
+    {
+      "what": "At the end of the first hand of a pair, the Secrets are revealed and both players' running pair totals are announced.",
+      "why": "Both players play the second hand with the same full knowledge of where they stand, and the deal's swing is averaged over 32 counted cards instead of 16.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The win is checked after hands 2 and 4 only. After hand 4 the tiebreak is higher Charm, then more Geisha, otherwise a draw.",
+      "why": "This gives a clean end, and the game always stops at a point where the seats are balanced.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Legality is stated as 'for each Geisha number, how many times you name it must be at most how many of that number are in your hand'.",
+      "why": "The check becomes pure arithmetic.",
+      "fixes": "P6"
+    },
+    {
+      "what": "The maximum length is 32 rounds instead of 40.",
+      "why": "This gives margin under the 40-round limit.",
+      "fixes": "P5"
+    }
+  ],
+  "keeps": [
+    "The four one-shot actions Secret, Trade-off, Gift and Competition, with the opponent choosing for Gift and Competition.",
+    "Geisha with Charm values equal to their number of Item cards (five Geisha, 3, 3, 4, 5 and 6).",
+    "One card removed unseen each hand, hidden hands of 6 cards, and a deck of 8.",
+    "Majority per Geisha decides its Victory Marker, and ties leave the marker where it is.",
+    "The dual win condition: Charm threshold first, then Geisha count.",
+    "Starting turns alternate between hands."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core is strong and fits the platform. Scoring hands in mirrored pairs removes the last-mover seat edge and halves the luck of the deal, while staying well within the limits."
+  },
+  "variation": {
+    "name": "Hanamikoji: Paired Hands",
+    "summary": "A two-player Hanamikoji on five Geisha. Hands are played in pairs, each player starts one hand of every pair, and Geisha are won by combined majorities over the pair. At most two pairs (32 rounds) are played.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "COMPONENTS\n- 5 Geisha, G1 to G5, with Charm G1=3, G2=3, G3=4, G4=5, G5=6 (total 21).\n- 21 Item cards: three of G1, three of G2, four of G3, five of G4 and six of G5. A card is written as its Geisha number, 1 to 5.\n- 5 Victory Markers, one per Geisha. Each is on Player 1's side, on Player 2's side, or neutral. All start neutral.\n- Each player has four action markers: Secret, Trade-off, Gift and Competition.\n- Each player has pair totals: five counts, one per Geisha, of the cards they have kept during the current pair of hands.\n\nSTRUCTURE\n- There are at most 4 hands of 8 rounds each (32 rounds).\n- Hands 1 and 2 form pair 1. Hands 3 and 4 form pair 2.\n- Player 1 starts hands 1 and 3. Player 2 starts hands 2 and 4.\n- In each hand, the starting player is active in rounds 1, 3, 5 and 7, and the other player is active in rounds 2, 4, 6 and 8. The player who is not active is the opponent.\n\nSTART OF EACH HAND (before its round 1)\n- Shuffle all 21 Items.\n- Remove the top card face down. Nobody sees it, and it plays no part this hand.\n- Deal 6 cards to each player as a private hand. Each player sees only their own hand, as a sorted list of numbers.\n- The other 8 cards form the face-down deck.\n- Both players' four actions become unused, and both Secrets are emptied.\n- At the start of hands 1 and 3 only, both players' pair totals are reset to 0 0 0 0 0.\n- Victory Markers always stay where they are.\n\nEACH ROUND\n1. The game announces the hand, the round, the active player, each player's unused actions, both players' pair totals and the marker positions.\n2. The active player draws the top deck card and is privately shown their hand.\n3. Choice 1: the active player names one unused action: Secret, Trade-off, Gift or Competition.\n4. Choice 2: the active player writes the cards the action uses, as space-separated numbers with repeats written out (for example '5 5 2'). The cards are legal if, for each Geisha number, the number of times it is written is at most the number of that card in the player's hand.\n   - Secret: exactly 1 number. That card is set face down as their Secret.\n   - Trade-off: exactly 2 numbers. Those cards are discarded face down and do not count.\n   - Gift: exactly 3 numbers, revealed in the order written as offer 1, 2 and 3.\n   - Competition: exactly 4 numbers, all revealed. The first two form pair A and the last two form pair B.\n   The named cards leave the active player's hand.\n5. Choice 3, only for Gift or Competition: the opponent writes one digit.\n   - Gift: 1, 2 or 3. The opponent adds that card to their pair totals, and the active player adds the other two to theirs.\n   - Competition: 1 for pair A or 2 for pair B. The opponent adds the chosen pair to their pair totals, and the active player adds the other pair to theirs.\n6. The action becomes spent. The game publicly announces the action, and for Gift or Competition the revealed cards and the split. For Secret and Trade-off it announces only that the action was used.\n\nDEFAULTS\n- Illegal or missing action: the first unused action in the order Secret, Trade-off, Gift, Competition is used.\n- Illegal card answer (wrong count, unreadable or not in hand): the required number of lowest-numbered cards in hand are used, in ascending order. For Competition, the first two of them form pair A.\n- Illegal or missing pick: counts as 1.\n- Cards always work out: each player holds 6 + 4 = 10 cards and spends 1 + 2 + 3 + 4 = 10.\n\nEND OF EACH HAND (after round 8)\n- Each player's Secret is revealed and added to their pair totals.\n- The game announces both Secrets and both players' pair totals.\n\nEND OF EACH PAIR (after hands 2 and 4, following the end-of-hand step)\n- For each Geisha, compare the two players' pair totals. A strictly higher total moves that Geisha's marker to that player's side. A tie leaves the marker where it is (neutral, or on a side from pair 1).\n- Charm is the sum of the Charm values of the Geisha on a player's side. Geisha count is the number of markers on a player's side.\n- The game announces all markers, Charm and Geisha counts.\n- Win check:\n  - If a player has 11 or more Charm, they win.\n  - Otherwise, if a player has 3 or more Geisha, they win.\n  - Otherwise, after pair 1 the game continues with hand 3.\n  - After pair 2 with no winner, the higher Charm wins. If Charm is equal, the higher Geisha count wins. If both are equal, the game is a draw.",
+    "objective": "After hand 2 and after hand 4: a player with 11 or more Charm from markers on their side wins. Otherwise a player with 3 or more markers on their side wins. Total Charm is 21 and there are 5 Geisha, so at most one player can meet each condition, and Charm is checked first. If nobody has won after hand 4, the higher Charm wins, then the higher Geisha count, and otherwise the game is a draw.",
+    "expected_effect": "Every scored contest now contains one hand where each player is the starter and one where each is the last mover, so the move-order edge cancels. Both hands count equally, and the second is played with both players fully informed of the first, which turns the pair into a two-stage plan. In hand 1 players build a lead or a position. In hand 2 they defend or chase specific Geisha with known deficits, and offers can be targeted. The swing from the deal is spread over 32 counted cards, so splitting skill and reading hidden Secrets matter more. Most games should end after pair 1, and a stalemate goes to a second pair in which earlier markers hold on ties. Thoughtless policies still lose: a player who always picks 1 receives the worst offer, and fixed action orders reveal intent and waste high cards. No talk phase is used, since this is a two-player game."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 19,
+    "choice_steps_per_round": 3,
+    "attributes": 15,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 32
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Symmetry: both players have the same four actions, the same 6-card deal and 4 draws each. The starting seat alternates, P1 in hands 1, 3, 5 and P2 in hands 2, 4. Through hands 1 to 4 the seats are exactly symmetric. Only hand 5 is lopsided: P2 is the second mover, who acts last with more information. Hand 5 is reached only when no one has won after 4 hands, so the residual edge is small. Card budget: hand size before the active player's 4th action is 6 + 4 - (sum of the 3 actions already used). The worst case is Competition last: 10 - 6 = 4 cards, exactly enough. So no default can strand a player. Threshold arithmetic: 11 + 11 = 22 > 21 Charm, and 4 + 4 = 8 > 7 Geisha, so neither threshold can be reached by both players. A mixed case is possible, for example P1 holds G4+G6+G7 = 12 Charm in 3 Geisha while P2 holds G1+G2+G3+G5 = 4 Geisha. The rule checks Charm first, so P1 wins. That is consistent and matches the original. Winner rule against each thoughtless policy: (a) Always first action with lowest cards (S, T, G, C) and always pick 1. Against sensible play: the sensible active player lists the worst card first in a Gift, and puts the weak pair as pair A in a Competition. The always-1 picker therefore always takes the worst offer and loses Geisha races. Result: LOSES most games, does not win or draw almost always. (b) Always pick last (3, or pair B): exploited the same way, mirrored. LOSES. (c) Always lead with Competition (the biggest reveal) and always pick the larger pair: it spends 4 cards when it knows least, gives the opponent the choice of the better pair, and tips its hand. Sensible play reads the reveal and counter-places its Secret. LOSES on average. (d) Random against random: about 50/50. Random against sensible: sensible favoured. Dominance: no action is better whatever the opponent does. Secret's value depends on contested Geisha. Trade-off is good only when the cards would otherwise feed the opponent. The value of Gift and Competition depends on the order offered and on the opponent's need. No pick rule is strictly better either, because the best pick depends on current counts and on markers already held. Both players can realistically win. Draws need equal Charm and equal Geisha count after 5 hands, which is rare."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Rules content is complete: deal, draw, the four actions, picks, defaults for an illegal action, illegal cards and an illegal pick, scoring, winning and the hand-5 tiebreak are all specified. The game is finite (at most 40 rounds) and decided by arithmetic. It is two-player with no talk, which is fine. It is not a repeated cooperation game, so the late-round betrayal test does not apply. The failure is that the complexity claim is not credible. The step list is flat, so hand-start, per-round and scoring steps all sit in one list gated by `when`. Minimal count: (1) Hand start: shuffle, remove 1, deal P1, deal P2, reset action markers and kept areas = 5 steps. (2) Per round: announce, draw, choice 1, default and validate the action, choice 2, validate and default the cards, apply Secret/Trade-off/reveal, choice 3 when Gift or Competition, apply the pick to both kept areas, spend the marker, public announce = 10 to 11 steps. (3) Scoring: reveal Secrets into the kept areas, then compare 7 Geisha and move markers. There is no lookup or per-attribute compare operand, so this is a workaround costing several steps. Then 2 Charm sums, 2 Geisha counts, the threshold win check and the hand-5 tiebreak, about 6 to 11 steps. Total is about 21 to 27, which exceeds the 20 limit; the stated 15 is understated. The attribute figure of 14 is also doubtful. Seven Victory Markers plus per-Geisha kept counts for 2 players is already 7 + 14 = 21 if kept counts are numbers. Add 8 action-marker flags, 2 hands, 2 Secrets, the deck, the removed card, and the hand and round counters. Only aggressive packing into lists could fit 20, and then every scoring comparison needs calc counting, which adds steps. Minor: the card-answer format (separators, whether duplicates are written as '7 7') is unstated. The default rule covers bad input, but legal intent may be misparsed."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Hidden information: the opponent's hand, their Secret, their Trade-off and the removed card. The distribution is public (2,2,2,3,3,4,5 = 21). From revealed Gift and Competition cards plus kept counts, a player can bound the opponent's Secret and Trade-off contents and their remaining hand. There is real inference with a way to act on it: action ordering (when to spend Competition), how to order a Gift so the opponent faces a dilemma, and which pair to take given the markers already held, which carry over between hands. Chance: one shuffle per hand decides the deal and draw order. Within a hand, the deal may swing perhaps 30 to 40% of the outcome. Markers persist and the game runs up to 5 hands, so a skilled player recovers from bad deals; skill compounds. When both players play well, the winner is not decided by the deal alone. Good Gift and Competition construction and good picks shift close Geisha, and tie-retention rewards defending markers. Overall chance is estimated at about 30 to 35% of the result, and the better reasoner is clearly favoured."
+        },
+        "required_changes": [
+          "Playable: give an explicit step-by-step budget showing steps_per_round <= 20 and attributes <= 20 in the flat list, merging steps as needed. Do all of hand-start in at most 3 steps (one shuffle-and-deal step with multiple operations, one reset step). Store the 7 Victory Markers as a single list attribute, and each player's kept area and used actions as one list each. Do all 7 Geisha comparisons, marker moves, Charm sums and Geisha counts in at most 2 calc steps with per-operation `if` conditions. Fold the threshold check and the hand-5 tiebreak into one gated step.",
+          "Playable: if that consolidation cannot reach 20 steps, cut scope, for example to 5 Geisha with 15 Items, so the scoring comparison fits.",
+          "Playable: state the exact card-answer format, for example 'space-separated Geisha numbers, repeats written out, e.g. 7 7 3'."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "WIN CONDITIONS: Charm G1-G5 = 3,3,4,5,6 (total 21). The only two-Geisha set reaching 11 is G4+G5 = 11; G5+G3 = 10 falls short. Any three Geisha reach at least 3+3+4 = 10 Charm and win on count. Charm is checked first, so 'P1 holds G4+G5 while P2 holds G1,G2,G3' resolves to P1. The win rules are consistent.\n\nGAME LENGTH: 20 cards are in play and 4 are traded off, leaving 16 counted cards. If all 5 Geisha are decided in hand 1, the split is 3-2 or 4-1, so someone has 3 Geisha and the game ends. With one tie, the 4 decided Geisha split 3-1 (ends) or 2-2 (ends only if one side has G4+G5). Ties are only likely on G1/G2, which have 3 cards with 1 removed. Rough estimate: about 70-80% of games end after hand 1.\n\nSEAT EDGE: In every hand the non-starter is active in round 8. That player has seen everything before acting: all Gift and Competition reveals, every split, all draws, and both opponents' spent markers. They then take the last action, often Competition or Gift, with only one card left unseen to them in the opponent's region. The starter acts in round 1 with the least information and has their round-7 offer resolved by the non-starter. In the original game this edge is evened out by alternating starters over several rounds. Here the game is usually a single hand, so P2 has a structural information edge in most games. P1 also starts 3 of 5 hands, which is a further asymmetry if games run long. The design offers no compensation, such as a Charm tiebreak bonus or a mirrored second hand.\n\nTHOUGHTLESS POLICIES (winner rule):\n(a) Always the first unused action (Secret, Trade-off, Gift, Competition) with the lowest cards: reveals intent and hands G1/G2 cards to Secret and Trade-off. Loses to sensible play, which takes G4/G5 majorities. Against random play it wins or loses depending on the deal.\n(b) As chooser, always pick 1: the active player orders the offer worst-first ('1 5 5'), so this player always receives the worst card. Loses to sensible play.\n(c) As chooser, always take the higher-Charm option: reasonable, but the offerer can split so that any pick leaves a region tied or lost. Not unbeatable.\n(d) Always Secret a G5: no guarantee, since the opponent can still outcount G5 with 6 copies in the deck.\nNo option is strictly dominant and no policy is undefeated, so that part passes.\n\nThe fail rests on the uncompensated move-order and information advantage in a game that is usually decided in one hand."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES COVERAGE: Every situation is specified:\n- action choice, card naming with repeats, Gift and Competition picks;\n- defaults for an illegal action, illegal cards and an illegal pick;\n- card conservation: 6 + 4 = 10 cards held, 1 + 2 + 3 + 4 = 10 spent, and the 8-card deck runs out exactly in round 8;\n- tie handling, marker persistence, win priority and the final tiebreak.\nThe game is finite at 40 rounds or fewer and is decided by arithmetic on kept counts and markers.\n\nLIMITS:\n- Steps: per-round steps are announce, draw, choice 1, choice 2, validate and remove, conditional choice 3, and apply split/secret/discard. Hand setup (shuffle, remove, deal, reset) is gated by a `when` on round 1. Scoring (reveal secrets, 5 compares, Charm and count sums, win check) is gated on round 8. The total fits within 18 steps if kept counts are list attributes.\n- Choice steps: 3 of a maximum 4.\n- Attributes: two kept-count lists, a marker list, two action lists, two hands, two secrets, the deck and two totals stay under 20.\n- Hidden elements: hands, secrets and deck = 3. The removed card can simply be excluded from the deck.\n- Random draws: one shuffle per hand.\nEarly ending can be handled by `when` conditions that skip the remaining hands. There is no board or real clock, and choices are sequential by design.\n\nTALK: With two players, the absence of talk is correct. The fixed-length cooperation question does not apply, since this is not a social dilemma.\n\nMINOR: Checking that the named cards are in hand is a multiset test. It is arithmetic (count per Geisha) but should be written as a count comparison so no referee is needed."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT THERE IS TO INFER:\n- the opponent's hand, from revealed Gift and Competition cards plus counting the 21-card composition;\n- the opponent's Secret, from their offers and picks;\n- the Trade-off contents;\n- which Geisha the opponent is chasing, from how they order offers.\nEach player can act on these inferences through offer construction and pick choice. Sensible play beats the thoughtless policies above. In particular, a chooser who reasons about the offer exploits a naive offerer, and vice versa.\n\nCHANCE: The deal matters. With 6 cards from a 21-card pool, one player can hold 4-5 G5s. Because most games are one hand, variance is higher than in the original. Gift and Competition still force a player to share strong cards, which limits how much a lucky hand is worth. Estimated chance contribution: about 25-35%.\n\nEQUAL GOOD PLAY: The result is driven by the deal plus the seat edge noted under balanced, not by the deal alone. A stronger reasoner is clearly favoured."
+        },
+        "required_changes": [
+          "Remove the uncompensated seat edge. Recommended: check the winning conditions only after hands 2 and 4, play at most 4 hands (32 rounds) so each player starts equally often, and apply the hand-4 tiebreak (Charm, then Geisha count, then draw). Alternative: keep the per-hand win check, but if the game would end after a hand started by P1, play one more hand started by P2 and decide on the combined result.",
+          "Optional, for clarity: state the card-legality check as 'for each Geisha number, the count named is at most the count in hand' so it is pure arithmetic."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Seats: P1 starts hands 1 and 3 and P2 starts hands 2 and 4, so each player starts exactly one hand in each pair. Within a hand the second player acts last and sees more, but this edge alternates and cancels over every pair. No seat has a net edge.\n\nCards kept per hand: Secret 1 + own Gift 2 + opponent's Gift 1 + own Competition 2 + opponent's Competition 2 = 8 for each player. The economy is symmetric.\n\nCharm totals are 3,3,4,5,6 = 21, so 11 or more is a strict majority. With 5 Geisha, 3 or more is a strict majority. At most one player meets each condition. Mixed case: A holds G4+G5 (11 Charm, 2 Geisha) and B holds G1+G2+G3 (10 Charm, 3 Geisha). Charm is checked first, so A wins. The labelled ordering matches the arithmetic.\n\nThoughtless policies, judged by the WINNER RULE:\n(a) Always pick 1 as opponent. The active player puts the lowest-value card first in every Gift and the weaker pair as A in every Competition. The picker then concedes about 1-2 cards of contested Geisha per hand, roughly 3 per pair, which decides 2-3 Geisha against sensible play. It loses most games, and against random play it is about 50/50.\n(b) Always take the first unused action (Secret first), playing default lowest cards. This spends Secret on round 1 before the hand is known and gifts low cards blindly. Sensible play wins the high-Charm G4 and G5 contests, so the policy usually loses. Against random play it is near even.\n(c) Always take the last action (Competition first). This reveals 4 of 7 cards early and gives the opponent a choice with full information. It is exploitable and does not dominate.\n(d) Always pick the higher-count offer. Opponents can bait it with a high-number card on an already-won Geisha, so it is not dominant.\n\nNo action is strictly better regardless of the opponent: Secret hides but keeps only 1, and Trade-off denies but keeps 0. No policy never loses. Both players can realistically win, and draws need equal Charm and an equal Geisha count, which is rare."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules cover every situation:\n- Action legality, card-multiset legality, Gift and Competition reveal order, and the opponent's pick are all specified.\n- Defaults exist for an illegal action (first unused), illegal cards (lowest cards ascending, first two as pair A) and an illegal pick (counts as 1).\n- The card count closes: 6 dealt + 4 drawn = 10 cards, and 1+2+3+4 = 10 spent. The 8-card deck matches 8 draws.\n- Pair totals reset only at hands 1 and 3. Markers persist. Ties leave the marker where it is.\n- The final tiebreak chain is Charm, then Geisha count, then draw.\n\nThe game is finite: at most 32 rounds, ending after hand 2 or hand 4. It is decided by arithmetic on stored counts.\n\nLimits:\n- 19 steps (max 20).\n- 3 choice steps (max 4).\n- 15 attributes, workable as per-player list attributes.\n- 3 hidden elements: the two hands and the deck. The removed card is part of the deck order, and Secrets and discards can be kept inside per-player hidden state.\n- 1 random draw, the shuffle at the start of a hand. The top-card draw is deterministic.\n- 32 rounds (max 40).\n\nEngine fit: no board, clock or judge is needed. The opponent's pick is a single-player choice, so a simultaneous poll is not required. As a two-player game, talk is not required."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance enters through the deal, the 1 removed card and the draw order, in 4 independent hands.\n\nPairing hands smooths the luck. Pair totals sum about 16 kept cards per player across two deals, and markers carry over between pairs, so one bad deal rarely decides a Geisha. I estimate chance decides about 25-35% of results among equal players. This is typical of Hanamikoji, and good play overcomes it.\n\nThere is plenty to infer:\n- the opponent's hand, from what they reveal in Gift and Competition;\n- the removed card and the deck, by counting from the known 3/3/4/5/6 distribution;\n- the opponent's Secret and Trade-off contents, by elimination at the end of a hand.\n\nPlanning matters in action timing, in carrying hand-1 totals into hand 2, and in choosing between Charm and Geisha-count races (G4+G5 = 11 versus three cheap Geisha). Constructing Gifts and Competitions requires opponent modelling.\n\nWith equal good play, the winner varies with the deal, but stronger card-counting and better split construction clearly shift results. The outcome is not determined by a hidden draw alone."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

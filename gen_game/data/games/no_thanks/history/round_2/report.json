@@ -1,0 +1,432 @@
+{
+  "game": "no_thanks",
+  "attempts": [
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup: deck holds 20 cards, removed holds 13",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Setup: each player starts with 11 chips, empty tableau, 0 card points",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Setup: no card on offer, empty pot, nothing burned",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round start with no card draws the only deck card and keeps the pot",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round start with a card already on offer draws nothing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A seat with chips is offered both TAKE and PAY",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Paying costs 1 chip and raises the pot by 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Taking 11 between held 10 and 12 merges the runs",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Taker collects the pot and no further offers are made",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When a seat TAKEs, then its chips rise by the pot, the pot becomes 0, current_card becomes 0, lead_seat becomes that seat, and no further offers are made that round.",
+        "Dara: the rule for 'TAKE' was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "Offers go clockwise from the lead seat (lead 3: 3, 4, 1)",
+      "passed": false,
+      "failures": [
+        "rule R9 is broken: When offer k is made, then it goes to the seat k-1 places clockwise from lead_seat, for k = 1..N, and only while current_card != 0.",
+        "Blaise: the rule for 'TAKE' was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "A seat with 0 chips may only TAKE",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "First full lap of pays keeps the card and grows the pot",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Second full lap burns the card, keeps the pot, and the next round starts at seat 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends when the deck is empty and the last card is taken",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 40 even with cards left",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Chips left in the pot at the end belong to no one",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Lowest final score (card points minus chips) wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        4
+      ],
+      "results": {
+        "seat 3": 10,
+        "seat 1": 9,
+        "seat 2": 13,
+        "seat 4": 8
+      },
+      "turns_min": 30,
+      "turns_max": 47
+    }
+  },
+  "tier1": {
+    "flags": [
+      "always taking the last option as seat 1 wins 97% of decided matches against random seats",
+      "always taking the last option as seat 2 wins 100% of decided matches against random seats"
+    ],
+    "notes": [],
+    "random_results": {
+      "seat 3": 24,
+      "seat 1": 16,
+      "seat 2": 20
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "first@seat2": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "last@seat1": {
+        "win": 58,
+        "loss": 2,
+        "draw": 0,
+        "win_rate": 0.97
+      },
+      "last@seat2": {
+        "win": 60,
+        "loss": 0,
+        "draw": 0,
+        "win_rate": 1.0
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 38.3,
+      "prompt_chars_avg": 130,
+      "prompt_chars_max": 130
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 4 players, suggested 4",
+      "why": "The designer's count is kept. Three seats is the smallest table where pressing your luck against several rivals is tense. Four keeps each lap short and each refusal costly."
+    },
+    {
+      "what": "No talk step",
+      "why": "The rules contain no table talk. The strategy is when to pay to drive up the pot and when to take a card that extends a run; adding talk would add a mechanic."
+    },
+    {
+      "what": "Tie-break by shared win",
+      "why": "Players level at the top share the win, which is the engine's form of the source's draw."
+    },
+    {
+      "what": "chips marked observable",
+      "why": "The final score depends on chips, so an outside observer must read them, though players see only their own."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "Lowest score wins, expressed as ranking by chips - card_points (highest wins)",
+      "why": "The engine ranks highest first, so the score is negated."
+    },
+    {
+      "what": "card_points kept incrementally on each take instead of recomputed from runs",
+      "why": "The incremental formula in R5 equals the sum of the lowest cards of each run, and it is simple arithmetic."
+    },
+    {
+      "what": "Four fixed offer steps, the fourth skipped when N = 3",
+      "why": "The step list is flat; each offer is one ask step with an arithmetic condition."
+    },
+    {
+      "what": "A round_number counter was added",
+      "why": "It enforces the 40-round bound stated in the rules."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 4,
+    "attributes": 26,
+    "hidden_elements": 5
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "No Thanks! is a 3-5 player push-your-luck card game. A face-up card collects chips as players pay one chip each to refuse it, until someone takes the card and its chips. Runs of consecutive cards score only their lowest number, unspent chips subtract from your score, and the lowest score wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "Always TAKE collects nearly every card, scores well over 150 points and loses. Always PAY runs out of chips around card 11 and is then forced to take every later card, including the high ones, with no chips left to offset them. Seat order matters only a little, because the lead passes to whoever takes. With 3 or more players and a lowest-score-wins rule, one rival's loss is not automatically another's gain."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "Good play beats weak play reliably. It means milking a card you plan to take anyway, taking a card that extends your run, and forcing chip-poor opponents to eat high cards. The order of the cards is random, but every player faces the same card, so the draw rarely decides the game on its own."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Novices can still finish with moderate scores. Experts keep improving at reading opponents' chip counts, judging how long a card can be milked, and judging when a run can still be completed given the removed cards."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Chip counts are hidden and must be inferred from paying history. The removed cards are unknown, so a gap in a run may never be fillable. Each card needs an opponent model: will they pass this back to me with more chips on it, or take it?"
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "The score is pure arithmetic: the sum of the lowest card of each run, minus chips. The lowest score wins. No judgement is needed."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "It is turn-based and text-only, but the original has unbounded passing laps and up to 5 sequential offers per card (the limit is 4 choice steps per round). In the previous build, a card stayed current over several rounds and the offer and draw steps were conditioned wrongly. After an all-PAY lap the game stopped offering TAKE, so test R11 failed."
+      }
+    ],
+    "problems": [
+      "P1: In the original, a card can circle forever while everyone pays, so the number of rounds is unbounded and the 40-round limit can be broken.",
+      "P2: With 5 players, one lap needs 5 sequential choices, more than the 4 choice steps allowed per round.",
+      "P3: In the previous build, after a full all-PAY lap the next round's offers were not made. Seats were never shown TAKE, so test R11 failed. The cause was that the offer steps and the draw step were gated on lap or draw state instead of only on whether a card is current.",
+      "P4: The previous variation had two lap parameters (laps_to_stay = 1 and laps_to_burn = 2) that describe the same event. This invited contradictory conditions in the end-of-round step.",
+      "P5: Run scoring ('lowest number of each run') needs a calculation over the whole tableau, which is fragile to build. It needs an incremental arithmetic form.",
+      "P6: 'The taker flips the next card and decides first' must happen in the next round, with a clear lead-seat rule. Otherwise the engine skips or reorders seats."
+    ],
+    "changes": [
+      {
+        "what": "Each round is at most one lap of offers on the current card. If everyone pays, lap_count goes up by 1. After laps_to_burn = 2 full all-PAY laps, the card is burned (removed from play unscored), its pot stays in the middle for the next card, and the lead seat moves one place clockwise. The deck has 20 cards, so the game lasts at most 20 x 2 = 40 rounds.",
+        "why": "This bounds the game length while keeping 'pay to refuse' tension. The pot carried over from a burned card makes the next card more tempting.",
+        "fixes": "P1"
+      },
+      {
+        "what": "The player count is set to 3-4.",
+        "why": "A lap is then at most 4 sequential choice steps.",
+        "fixes": "P2"
+      },
+      {
+        "what": "The rules now state the order of operations exactly. Offer step k goes to the k-th seat clockwise from lead_seat, and its only condition is that a card is current (current_card is not 0). TAKE is always offered. PAY is offered only if the seat has at least pay_cost chips. The draw step runs only when current_card is 0. The end-of-lap step runs only if the card is still current after all offers. When lap_count becomes 1, nothing else changes: same card, same pot, same lead seat.",
+        "why": "This removes the conditions that suppressed the offers after the first all-PAY lap. The tests written from the rules (R1-R4, R11) are correct and match these rules.",
+        "fixes": "P3"
+      },
+      {
+        "what": "The rules use one lap parameter, laps_to_burn = 2, plus pay_cost = 1. Both are stored as game attributes.",
+        "why": "Removing the redundant parameter leaves a single, unambiguous burn condition.",
+        "fixes": "P4"
+      },
+      {
+        "what": "Card points are updated incrementally when a card c is taken: add c, subtract (c+1) if c+1 is already in the tableau, and subtract c if c-1 is already in the tableau.",
+        "why": "This always equals 'sum of the lowest card of each run' and needs only membership checks and one arithmetic update. Example: holding 10 and 12, then taking 11, gives 11 - 12 - 11 = -12, so the points go from 22 to 10, which is correct.",
+        "fixes": "P5"
+      },
+      {
+        "what": "Whoever takes a card becomes lead_seat. The rest of that round's offers are skipped. The next round draws a new card and offers it to the taker first.",
+        "why": "This keeps the original 'taker decides first on the next card' as a clean between-round rule.",
+        "fixes": "P6"
+      }
+    ],
+    "keeps": [
+      "Cards 3-35 with some removed unseen, so a run gap may be unfillable.",
+      "The core choice: pay one chip to refuse the card, or take the card and all the chips on it.",
+      "Hidden chip counts.",
+      "Runs score only their lowest card, and leftover chips subtract from the score.",
+      "Lowest final score wins.",
+      "The taker decides first on the next card."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The original is already a strong reasoning game. It needs bounded laps, at most 4 players, and precisely ordered offer, draw and burn steps so the build matches the rules."
+    },
+    "variation": {
+      "name": "No Thanks! (Bounded Laps)",
+      "summary": "No Thanks! for 3-4 players. A card that goes twice round the table unclaimed is burned, its chips carry to the next card, and run scoring is computed incrementally.",
+      "players": {
+        "min": 3,
+        "max": 4,
+        "suggested": 4
+      },
+      "rules": "SETUP. (R1) Take the 33 cards numbered 3 to 35. Remove 13 of them at random, unseen by anyone; they stay hidden all game. The other 20 cards, shuffled, form the deck. (R2) Each player starts with 11 chips, an empty tableau and 0 card points. A player's chip count is visible only to that player. Tableaus, the current card, the pot and the number of burned cards are public. (R3) Game state: current_card = 0 (meaning no card), pot = 0, lap_count = 0, lead_seat = 1, an empty burned list, pay_cost = 1, laps_to_burn = 2. Seats are numbered 1 to N clockwise.\n\nEACH ROUND, in this exact order:\n\nStep 1, DRAW (R4). Only if current_card = 0 and the deck is not empty: draw the top deck card at random, make it current_card, and set lap_count = 0. The pot is NOT changed, so it may hold chips left over from a burned card. If current_card is not 0, skip this step: the same card and pot continue.\n\nStep 2, ANNOUNCE. Show everyone the current card, the pot, every tableau, the number of cards left in the deck and the number of burned cards.\n\nSteps 3 to 6, OFFERS (R5). Offer k (k = 1 to N) goes to the seat k-1 places clockwise from lead_seat. Make an offer only while current_card is not 0. The options are TAKE (always offered) and PAY (offered only if that seat has at least pay_cost = 1 chip).\n- PAY: the seat moves 1 chip from its hand into the pot.\n- TAKE: the seat adds the current card c to its tableau. Its card points change by c, minus (c+1) if c+1 was already in its tableau, minus c if c-1 was already in its tableau. It gains all chips in the pot, and the pot becomes 0. Then current_card becomes 0 and lead_seat becomes the taker's seat. No further offers are made this round.\n\nStep 7, END OF LAP (R11). Only if current_card is still not 0 (everyone paid): add 1 to lap_count.\n- If lap_count is now less than laps_to_burn (that is, lap_count = 1): change nothing else. The same card and pot stay current, lead_seat stays the same, and next round's offers start again at lead_seat with TAKE offered to every seat.\n- If lap_count = laps_to_burn = 2: put the card into the burned list (it scores for no one), set current_card = 0, keep the pot as it is, and move lead_seat one seat clockwise.\n\nStep 8, ANNOUNCE RESULT. Tell everyone who paid and who took (or that the card was burned). Players' own chip counts are shown only to themselves.\n\nStep 9, END CHECK. If the deck is empty and current_card = 0, the game ends. Otherwise start the next round. The game cannot last more than 40 rounds.\n\nSCORING. Each player's final score = card points minus chips in hand. Card points equal the sum of the lowest card of each run of consecutive numbers in the tableau. Any chips left in the pot at the end belong to no one.",
+      "objective": "Each player's final score is card points minus remaining chips. The single player with the lowest final score wins. If two or more players tie for lowest, the game is a draw.",
+      "expected_effect": "Play stays recognisably No Thanks!: milk cards you intend to take, punish opponents you believe are low on chips, and take cards that extend your runs. The burn rule adds a new decision. After one all-PAY lap, everyone knows a second lap burns the card, so paying again is a bet that nobody else wants it. A large pot carried from a burned card turns the next card into a contest. Simple policies lose: always TAKE collects nearly every card and scores far higher than anyone, and always PAY is bled dry and then forced to take everything. Talk is left out. Players disagree (only one can win), but chip-count claims are cheap and unverifiable, and the hidden chips are inferred better from the public paying history, so a talk phase would add steps without adding a decision."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 4,
+      "attributes": 13,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 40
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "TAKE update check: adding c with only c+1 held gives c-(c+1) = -1, which is correct because the run's lowest card drops from c+1 to c. With only c-1 held it gives c-c = 0, correct. With both held, two runs a..c-1 and c+1..b merge with lowest a, so the change should be -(c+1); the formula gives c-(c+1)-c = -c-1, correct. Scoring is lowest-wins: final score = card points - chips in hand.\n\nThoughtless policies, 4 players, 20 cards averaging about 19, about 3 burns expected:\n(a) ALWAYS TAKE. After its first take this seat becomes lead_seat, so it gets the first offer on every later card and takes it with pot 0. It ends with roughly 15-20 cards. Even with several runs that is over 150 points against about 11 chips, so a score above 140. A sensible opponent who takes 0-2 low cards scores about 0-20 and wins. Random play also beats it, because random players never get offered most cards. It loses almost every game.\n(b) ALWAYS PAY. It spends 11 chips in about 11 offers, roughly the first 3-6 cards, then must take (PAY needs at least 1 chip). Once it takes it becomes lead and takes every remaining card with pots near 0. Score is about 100 or more. It loses.\n(c) ALWAYS TAKE ON THE SECOND LAP / PAY ON THE FIRST. It takes every card that survives one lap, including 30s, for a pot of about 4. Net cost per card is about c-4. Sensible players simply let it absorb high cards, so it loses.\n\nNo option is strictly better. TAKE is right for low or run-extending cards with a pot; PAY is right for high cards, and only while chips last.\n\nBurn arithmetic: burning costs each player 2 points (2 chips) and moves 2N = 8 chips onto the next card. That pot goes to the seat clockwise of the old lead. This is a real collective-action trade-off: each player prefers someone else to take, but all prefer the burn to taking 35.\n\nSeat edge: seat 1 leads the first card, and after that the lead follows takers and burns. Seat effects are mild, as in the original, and every seat can win.",
+            "issues": []
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules cover every state:\n- DRAW happens only when no card is current.\n- The offer order is defined from lead_seat.\n- PAY is gated on chips, so a seat with no chips must TAKE.\n- After a TAKE no further offers are made.\n- The lap counter has explicit branches for lap 1 and lap 2.\n- The pot carry-over is stated.\n- The end condition is defined, and chips left in the pot are explicitly unowned.\n\nFiniteness: each card lasts at most 2 rounds, either taken or burned at the end of lap 2. 20 cards \u00d7 2 = 40 rounds maximum, which matches the stated cap exactly. The winner is pure arithmetic on tracked numbers.\n\nLimits: 12 steps (\u226420); 4 choice steps for N=4 (\u22644); 13 attributes (\u226420); 2 hidden elements, the burned/removed cards and chip hands (\u22643); 1 random draw per round (\u22641); 40 rounds (\u226440). No board, clock, judge, trading or conditional block is needed. Offers are sequential choices, which fits the game, since order is the point.\n\nTalk: none. This is sensible. Offers are sequential and each player sees the preceding pays and takes before choosing, so nobody is left blindly guessing. A burn proposal would be non-binding cheap talk in a game where everyone prefers someone else to take, so omitting it is defensible.",
+            "issues": [
+              "Chip counts are nominally hidden but fully deducible from announced pays and takes (everyone starts at 11). This is fine as an inference task, but should be acknowledged."
+            ]
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Chance enters through the deal order and the 13 removed cards, which make runs uncertain. Skill matters in several ways:\n- Valuing pot against card, roughly take when pot \u2265 c minus run savings.\n- Tracking opponents' chips from announced history, to know who is forced to take.\n- Predicting who will defect from a burn.\n- Planning runs.\n- Timing chip spending over 20 cards.\n\nUnder mutual good play the winner depends on run-building and on pot capture after burns, not on draws alone. A skilled player consistently beats always-take, always-pay and random play by over 100 points. Estimated chance share of the outcome among competent players is about 25-35%, similar to the original.",
+            "issues": []
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 2,
+  "design_flags_left": [
+    "always taking the last option as seat 1 wins 97% of decided matches against random seats",
+    "always taking the last option as seat 2 wins 100% of decided matches against random seats"
+  ],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "In three scenarios the game never actually put a PAY/TAKE choice to the seats: 'moves played' is empty, yet seat 1 ended up holding card 20 with offer ['TAKE']. So the offer step is being resolved inside the file instead of being presented as a real choice. The rules are clear and the engine supports sequential choices, so this is an implementation error.",
+      "guidance": "Implement the offer as a real per-seat sequential choice. Starting at lead_seat and going clockwise, present a choice step to each seat in turn while the card is still untaken (gate each step with a `when` on taken == false and on the seat not yet having been offered this round). The options should be PAY and TAKE. When the seat's chips are 0, offer only TAKE, but still pose it as a choice step that the player answers. Do not auto-apply TAKE or skip the poll. Make sure the step that draws a card from the deck when current_card is 0 runs before the offers, so a card is on offer when the first seat is asked. On TAKE: add the pot to the taker's chips, append the card to their tableau, update card_points by the run rule, set pot to 0, current_card to 0 and lead_seat to the taker, and skip the remaining offers. When all seats PAY: increment lap_count. If it equals laps_to_stay, keep the card and lead_seat for the next round. If it equals laps_to_burn, append the card to burned, set current_card to 0, keep the pot, and advance lead_seat clockwise. The game ends only when the deck is empty and current_card is 0. Then set final_score = card_points - chips and use the specified rank_by ending."
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The test follows rule 5: after a lap where everyone pays, the card stays current and the next round offers it again from the same lead seat. The game never offered TAKE to the scripted seats in that next round, so the second lap is not being run correctly.",
+      "guidance": "Fix the end-of-round lap handling and the offer sequence.\n1. When every player paid this round, add 1 to lap_count.\n2. If lap_count now equals laps_to_stay (1):\n   - keep current_card and pot exactly as they are;\n   - leave lead_seat unchanged;\n   - do not draw a new card, burn the card or end the game.\n3. Burn only when lap_count reaches laps_to_burn (2). Then append the card to `burned`, set current_card to 0, keep the pot and advance lead_seat clockwise.\n4. In every round, offer the card to each seat in clockwise order starting from lead_seat. Every offer must include both PAY and TAKE, with only TAKE when the seat has 0 chips.\n5. Stop offering once someone takes. Each step's `when` condition must check that current_card is still non-zero and that nobody has taken this round. It must not depend on a flag that the first lap left set, such as an 'all paid' or 'taken' marker that is never reset.\n6. Reset any per-round scratch values at the start of each round so the second lap's offers actually fire. Make sure the drawing step only runs when current_card is 0, so it does not replace the card that stayed current.\n7. Keep every number in a parameter attribute (pay_cost, laps_to_stay, laps_to_burn, etc.).",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "The test matches the rules: after a full lap of PAYs with lap_count becoming 1, the card stays current and is offered again starting at lead_seat. The game never offered TAKE to Ada or Cleo, so it does not run that second offering round correctly.",
+      "guidance": "Check the end-of-round handling when every seat paid.\n1. Increment lap_count.\n2. If lap_count == laps_to_stay (1), keep current_card and pot unchanged. Do not draw a new card or reset lap_count. Leave lead_seat unchanged. In the next round, offer the same card to the seats in clockwise order starting at lead_seat.\n3. Only when lap_count == laps_to_burn (2):\n   - append the card to `burned`;\n   - set current_card to 0;\n   - keep the pot;\n   - advance lead_seat by one clockwise.\n4. Make sure every offer step in every round presents both PAY and TAKE. Only PAY is removed when the seat has 0 chips, so TAKE is always offered.\n5. Make sure the game does not end or skip seats after the first all-PAY lap. The draw step must have a `when` condition of current_card == 0, so it does not replace a card that should stay current.\n6. Keep the parameters (laps_to_stay, laps_to_burn, pay_cost) as attributes rather than literal numbers.",
+      "missing": ""
+    },
+    {
+      "round": 2,
+      "fix": 0,
+      "decision": "fix_tests",
+      "reason": "The game did what the rules require: seat 1 had 0 chips, could not PAY, and ended up taking the card. Its tableau became [10], it collected the pot (chips 0 -> 2) and current_card returned to 0. The test failed only because it expected seat 1 to be shown a choice containing TAKE. With a single legal option the move can be resolved without a poll ('moves played' is empty), which gives the same outcome.",
+      "guidance": "For the scenario 'A seat with 0 chips may only TAKE', do not assert that seat 1 is presented an options list including TAKE. A forced single option may be applied automatically. Assert the result after the round instead: seat 1's tableau contains the given current card; seat 1's chips equal 0 plus the given pot; pot = 0; current_card = 0; card_points updated per the run rule; lead_seat = 1. Also check that seat 1 never paid, so its chips never went below 0. Keep the given state minimal (seat 1 chips 0, a known current card and pot, lead_seat 1) so the outcome is deterministic.",
+      "missing": ""
+    },
+    {
+      "round": 2,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The rules say TAKE is offered to every seat whenever current_card is not 0. In three separate scenarios the game never offered TAKE to the seat in question, including a 0-chip seat whose only legal option is TAKE. So the offer steps in the file are mis-built; the tests and rules are not the problem.",
+      "guidance": "Rework the offer steps (R5/R9/R10).\n1. Each offer k (k = 1..N) must go to the seat k-1 places clockwise from lead_seat, computed with modular arithmetic from a table attribute such as lead_seat.\n2. Each offer step's `when` should be only `current_card != no_card_value`. Do not add conditions on lap_count, chips or other scratch values that could suppress the whole offer.\n3. Inside the offer, the option must be named exactly `TAKE` and always be present.\n4. `PAY` is the only conditional option, available only when that seat's chips >= pay_cost.\n5. A 0-chip seat must still get the offer, with TAKE as its only option. Do not skip the step when only one option remains.\n6. TAKE must:\n   - append current_card to the taker's tableau and update card_points (+c, minus (c+1) if c+1 is already in the tableau, minus c if c-1 is);\n   - add pot to the taker's chips, then set pot to 0;\n   - set current_card to no_card_value and lead_seat to the taker's seat.\n   After that, later offers that round are skipped because current_card is now 0.\n7. Make sure the offers also work when a scenario supplies current_card, lead_seat and pot directly in the given state, rather than only after a draw: use those attributes rather than values cached at draw time.",
+      "missing": ""
+    },
+    {
+      "round": 2,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "The rules say TAKE is always offered to each seat while a card is current. In both failing scenarios the game never put TAKE to a seat that the rules say should get an offer, so the take path, and probably the offer order from lead_seat, is missing or wrongly gated in the file. The tests that only use PAY pass, which points at the TAKE option and its offer order rather than at the tests.",
+      "guidance": "Make each of the N offer steps, for k = 1..N, offer TAKE to the seat k-1 places clockwise from lead_seat, i.e. ((lead_seat - 1 + k - 1) mod N) + 1. Offer TAKE unconditionally, gated only on current_card != no_card_value. Offer PAY only when that seat's chips >= pay_cost. Do not hard-code seat order or start offers at seat 1; read the lead_seat table attribute, including when it is given at a value other than 1 (e.g. lead 3 with 4 players gives 3, 4, 1, 2). On TAKE: append current_card to the taker's tableau and update card_points (+c, -(c+1) if c+1 is already held, -c if c-1 is already held). Add the pot to the taker's chips, set pot = 0, current_card = 0 and lead_seat = the taker's seat. Gate every later offer step that round on current_card != 0 so no further offers are made. Check that the option names are exactly 'TAKE' and 'PAY'."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 4,
+      "attributes": 13,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 40
+    },
+    "measured": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 4,
+      "attributes": 26,
+      "hidden_elements": 5
+    }
+  },
+  "verdict": "needs_review"
+}

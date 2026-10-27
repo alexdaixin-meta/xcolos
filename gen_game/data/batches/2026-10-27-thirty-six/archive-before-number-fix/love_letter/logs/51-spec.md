@@ -1,0 +1,171 @@
+# 51 spec
+
+- time: 2026-10-27T19:39:14+00:00 (62.1s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 c0b204128dd7e90e, reply sha256 4a32758364128515
+
+## Sent
+
+````
+Game: Love Letter Duel: Long Courtship
+Players in the source: 2 to 2
+Suggested table size, chosen by the designer of these rules (keep it): 2
+
+Rules, as filed in the inventory:
+CARDS (16): rank 1 Guard x5, rank 2 Priest x2, rank 3 Baron x2, rank 4 Handmaid x2, rank 5 Prince x2, rank 6 King x1, rank 7 Countess x1, rank 8 Princess x1.
+
+ZONES: deck (hidden order); out_of_play (6 cards: position 1 is the face-down burned card, positions 2-6 are face up); each player's hand (hidden, seen only by its owner); each player's discards (public). Every card is always in exactly one zone, so the zones total 16.
+
+HIDDEN ELEMENTS: hands, deck order, burned card.
+
+GAME STATE: deck, out_of_play, deck_count, active_seat (starts 1), hand_over (starts 1), discard_choice, guess.
+
+PLAYER STATE: hand, discards, discard_sum (reset each hand), career_sum (whole game, starts 0), tokens (start 0), protected, eliminated.
+
+The game lasts exactly 40 rounds. Each round is one turn of the active player:
+1. NEW HAND (only if hand_over = 1). Return all cards to the deck and shuffle it; this is the round's only random draw. Move the top 6 cards to out_of_play (the first one to position 1, face down). Deal 1 card to each player's hand. Set deck_count = 8. Set protected, eliminated and discard_sum to 0 for both players. Set hand_over = 0.
+2. If a new hand was just dealt, announce: 'The face-up out-of-play cards are ranks a, b, c, d, e' (positions 2-6).
+3. START TURN. Set the active player's protected to 0. They take the top deck card, and deck_count goes down by 1. Privately tell them: 'You kept rank X and just drew rank Y.'
+4. CHOICE. The active player chooses which of their two ranks to discard; store it in discard_choice.
+5. COUNTESS. If they hold rank 7 together with rank 5 or rank 6, set discard_choice = 7.
+6. DISCARD. Move the chosen card to their discards. Add its rank to their discard_sum and career_sum. Announce 'Seat s discards rank r (name).'
+7. GUARD GUESS (if discard_choice = 1). The active player names a rank from 2 to 8; store it in guess.
+8. GUARD RESOLVE (if discard_choice = 1). If the opponent is protected, announce that the card has no effect. Otherwise, if the opponent's card equals guess, set the opponent's eliminated = 1 and announce a hit; if not, announce a miss.
+9. PRIEST (if discard_choice = 2). If the opponent is protected, announce no effect. Otherwise, privately tell the active player the opponent's rank, and announce publicly that Seat s looked at Seat o's card.
+10. BARON (if discard_choice = 3). If the opponent is protected, announce no effect. Otherwise compare the two hand cards: the owner of the lower one gets eliminated = 1, and the result is announced with the losing rank. If the cards are equal, announce a tie and nobody is out.
+11. HANDMAID (if discard_choice = 4). Set the active player's protected = 1 and announce it.
+12. PRINCE (if discard_choice = 5). The target is the opponent, or the active player if the opponent is protected. The target moves their hand card to their discards, adds its rank to their discard_sum and career_sum, and the rank is announced. If that card was rank 8, the target's eliminated = 1. Otherwise the target draws the top deck card if deck_count > 0 (deck_count goes down by 1), or else takes the burned card from out_of_play position 1.
+13. KING (if discard_choice = 6). If the opponent is protected, announce no effect. Otherwise the two players swap hand cards, and the swap is announced.
+14. PRINCESS (if discard_choice = 8). The active player's eliminated = 1; announce it.
+15. SHOWDOWN (if nobody is eliminated and (deck_count = 0 or this is round 40)). Announce both hand ranks. The owner of the lower card gets eliminated = 1. If the cards are equal, the owner of the lower discard_sum gets eliminated = 1. If those are also equal, announce that the hand is tied and set hand_over = 1.
+16. AWARD (if exactly one player is eliminated). The other player gains 1 token; announce the new total. Set hand_over = 1. The eliminated player becomes active_seat for the next hand.
+17. PASS (if no token was awarded this round). active_seat switches to the other seat.
+18. END CHECK. After round 40 the game ends.
+
+How the winner is decided: After round 40, the player with more tokens wins. If tokens are equal, the player with the higher career_sum (total ranks they discarded over the whole game, including cards a Prince forced them to discard) wins. If both are equal, the game is a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Love Letter Duel: Long Courtship",
+  "summary": "A two-player Love Letter duel over exactly 40 turns. Each turn one player draws, discards one of two cards and resolves its effect. Winning a hand earns a token; most tokens wins, with total discarded ranks as the tie-break.",
+  "players": {"min": 2, "max": 2, "suggested": 2},
+  "parameters": {
+    "total_rounds": 40,
+    "deck_size": 16,
+    "guard_count": 5, "priest_count": 2, "baron_count": 2, "handmaid_count": 2, "prince_count": 2, "king_count": 1, "countess_count": 1, "princess_count": 1,
+    "guard_rank": 1, "priest_rank": 2, "baron_rank": 3, "handmaid_rank": 4, "prince_rank": 5, "king_rank": 6, "countess_rank": 7, "princess_rank": 8,
+    "out_of_play_size": 6,
+    "face_up_out_of_play": 5,
+    "burned_cards": 1,
+    "cards_dealt_per_player": 1,
+    "deck_count_after_deal": 8,
+    "guard_guess_min": 2,
+    "guard_guess_max": 8,
+    "tokens_per_hand_won": 1,
+    "starting_tokens": 0,
+    "starting_career_sum": 0,
+    "starting_active_seat": 1,
+    "rank_tiebreak_multiplier": 1000
+  },
+  "attributes": {
+    "player": [
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Ranks of the cards in this player's hand: 1 card between turns, 2 during their own turn.", "observable": false},
+      {"key": "discards", "type": "list", "visible": "public", "initial": [], "meaning": "Ranks this player has discarded this hand, in order.", "observable": true},
+      {"key": "discard_sum", "type": "number", "visible": "public", "initial": 0, "meaning": "Sum of ranks discarded this hand; reset at each new hand.", "observable": false},
+      {"key": "career_sum", "type": "number", "visible": "public", "initial": 0, "meaning": "Sum of all ranks discarded over the whole game, including cards a Prince forced out.", "observable": true},
+      {"key": "tokens", "type": "number", "visible": "public", "initial": 0, "meaning": "Hands won.", "observable": true},
+      {"key": "protected", "type": "number", "visible": "public", "initial": 0, "meaning": "1 if protected by a Handmaid until this player's next turn starts.", "observable": false},
+      {"key": "eliminated", "type": "number", "visible": "public", "initial": 0, "meaning": "1 if knocked out of the current hand.", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": [1,1,1,1,1,2,2,3,3,4,4,5,5,6,7,8], "meaning": "Ranks of the undrawn cards; order is hidden.", "observable": false},
+      {"key": "burned_card", "type": "list", "visible": "none", "initial": [], "meaning": "Out-of-play position 1: the face-down burned card (0 or 1 rank).", "observable": false},
+      {"key": "face_up", "type": "list", "visible": "public", "initial": [], "meaning": "Out-of-play positions 2-6: five face-up ranks.", "observable": true},
+      {"key": "deck_count", "type": "number", "visible": "public", "initial": 0, "meaning": "Number of cards left in the deck.", "observable": true},
+      {"key": "active_seat", "type": "number", "visible": "public", "initial": 1, "meaning": "Seat taking this round's turn.", "observable": false},
+      {"key": "hand_over", "type": "number", "visible": "public", "initial": 1, "meaning": "1 if a new hand must be dealt at the start of the next round.", "observable": false},
+      {"key": "discard_choice", "type": "number", "visible": "public", "initial": 0, "meaning": "Rank the active player discards this turn.", "observable": false},
+      {"key": "guess", "type": "number", "visible": "public", "initial": 0, "meaning": "Rank named with a Guard.", "observable": false},
+      {"key": "round_number", "type": "number", "visible": "public", "initial": 0, "meaning": "Current round, from 1 to 40.", "observable": true},
+      {"key": "new_hand", "type": "number", "visible": "none", "initial": 0, "meaning": "Scratch flag: 1 if a hand was dealt this round.", "observable": false},
+      {"key": "token_awarded", "type": "number", "visible": "none", "initial": 0, "meaning": "Scratch flag: 1 if a token was awarded this round.", "observable": false}
+    ]
+  },
+  "setup": [
+    "Two seats are filled. Each player starts with tokens 0 and career_sum 0, an empty hand and empty discards.",
+    "The table starts with active_seat 1, hand_over 1 and round_number 0. The deck holds all 16 ranks: 1 x5, 2 x2, 3 x2, 4 x2, 5 x2, 6, 7, 8."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "effect": "round_number += 1; new_hand = 0; token_awarded = 0."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When hand_over = 1: empty every hand, every player's discards, burned_card and face_up, and set deck to all 16 ranks. Draw 1 random rank from deck into burned_card, then 5 random ranks from deck into face_up. Draw 1 random rank from deck into each player's hand. Set deck_count = 8. For both players set protected = 0, eliminated = 0 and discard_sum = 0. Set hand_over = 0 and new_hand = 1."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "When new_hand = 1, announce: 'The face-up out-of-play cards are ranks {face_up}.'"},
+    {"action": "update", "who": "seat active_seat", "answer": null, "effect": "Set the active player's protected = 0. Move 1 random rank from deck to the active player's hand; deck_count -= 1. Privately tell the active player: 'You kept rank X and just drew rank Y.'"},
+    {"action": "ask", "who": "seat active_seat", "answer": "one of the ranks in their hand", "effect": "Store the chosen rank in discard_choice."},
+    {"action": "update", "who": "seat active_seat", "answer": null, "effect": "Countess: if the active player's hand contains 7 and also contains 5 or 6, set discard_choice = 7."},
+    {"action": "update", "who": "seat active_seat", "answer": null, "effect": "Move one card of rank discard_choice from the active player's hand to their discards. Add discard_choice to their discard_sum and career_sum. Announce 'Seat s discards rank r (name).'"},
+    {"action": "ask", "who": "seat active_seat", "answer": "a whole number from 2 to 8", "effect": "When discard_choice = 1: store the number in guess."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When discard_choice = 1: if the opponent's protected = 1, announce no effect. Otherwise, if the opponent's hand card = guess, set the opponent's eliminated = 1 and announce a hit; if not, announce a miss."},
+    {"action": "update", "who": "seat active_seat", "answer": null, "effect": "When discard_choice = 2: if the opponent's protected = 1, announce no effect. Otherwise privately tell the active player the opponent's hand rank, and announce 'Seat s looked at Seat o's card.'"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When discard_choice = 3: if the opponent's protected = 1, announce no effect. Otherwise compare the two hand cards. The owner of the lower one gets eliminated = 1, and the loser and the losing rank are announced. If the cards are equal, announce a tie and nobody is out."},
+    {"action": "update", "who": "seat active_seat", "answer": null, "effect": "When discard_choice = 4: set the active player's protected = 1 and announce it."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When discard_choice = 5: the target is the opponent, or the active player if the opponent's protected = 1. Move the target's hand card to their discards, add its rank to their discard_sum and career_sum, and announce the rank. If the rank was 8, set the target's eliminated = 1. Otherwise, if deck_count > 0, move 1 random rank from deck to the target's hand and deck_count -= 1; if deck_count = 0, move the burned_card rank to the target's hand."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When discard_choice = 6: if the opponent's protected = 1, announce no effect. Otherwise swap the two players' hand lists and announce the swap."},
+    {"action": "update", "who": "seat active_seat", "answer": null, "effect": "When discard_choice = 8: set the active player's eliminated = 1 and announce it."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Showdown, when the sum of eliminated = 0 and (deck_count = 0 or round_number = 40): announce both hand ranks. The owner of the lower hand card gets eliminated = 1. If the cards are equal, the owner of the lower discard_sum gets eliminated = 1. If those are also equal, announce that the hand is tied and set hand_over = 1."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Award, when the sum of eliminated = 1: the player with eliminated = 0 gains tokens += 1, and the new total is announced. Set hand_over = 1, token_awarded = 1, and active_seat = the seat of the eliminated player."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Pass, when token_awarded = 0: active_seat = 3 - active_seat."},
+    {"action": "check", "who": "all players", "answer": null, "effect": "End the game if round_number = 40; otherwise continue."}
+  ],
+  "ending": {
+    "condition": "round_number = 40",
+    "rank_by": "you.tokens * 1000 + you.career_sum",
+    "decided_by": "The player with more tokens wins. If tokens are equal, the higher career_sum wins. If both are equal, the players share the result as a draw."
+  },
+  "rules": [
+    {"id": "R1", "text": "The deck has 16 cards: rank 1 x5, rank 2 x2, rank 3 x2, rank 4 x2, rank 5 x2, rank 6 x1, rank 7 x1, rank 8 x1."},
+    {"id": "R2", "text": "When hand_over = 1 at the start of a round, then all 16 cards are gathered, 1 goes to burned_card, 5 go face up to face_up, each player gets 1 card, deck_count = 8, protected, eliminated and discard_sum are 0 for both players, and hand_over = 0."},
+    {"id": "R3", "text": "When a new hand is dealt, then the 5 face_up ranks are announced and the burned card stays hidden."},
+    {"id": "R4", "text": "When a turn starts, then the active player's protected = 0, they draw 1 card from the deck, deck_count drops by 1, and they are privately told the rank they kept and the rank they drew."},
+    {"id": "R5", "text": "When the active player chooses a rank, then it is stored in discard_choice."},
+    {"id": "R6", "text": "When the active player holds rank 7 together with rank 5 or rank 6, then discard_choice = 7."},
+    {"id": "R7", "text": "When a card is discarded, then it moves to the player's discards, its rank is added to discard_sum and career_sum, and 'Seat s discards rank r (name)' is announced."},
+    {"id": "R8", "text": "When discard_choice = 1, then the active player names a rank from 2 to 8 as guess."},
+    {"id": "R9", "text": "When a Guard is played against a protected opponent, then it has no effect."},
+    {"id": "R10", "text": "When a Guard's guess equals an unprotected opponent's card, then the opponent's eliminated = 1 and a hit is announced; otherwise a miss is announced."},
+    {"id": "R11", "text": "When a Priest is played against an unprotected opponent, then the active player is privately told the opponent's rank and the look is announced publicly; against a protected opponent it has no effect."},
+    {"id": "R12", "text": "When a Baron is played against an unprotected opponent, then the holder of the lower hand card gets eliminated = 1 and the losing rank is announced; on equal cards a tie is announced and nobody is out."},
+    {"id": "R13", "text": "When a Handmaid is played, then the active player's protected = 1 until their next turn starts."},
+    {"id": "R14", "text": "When a Prince is played, then its target is the opponent, or the active player if the opponent is protected."},
+    {"id": "R15", "text": "When a Prince target discards, then the rank is added to the target's discard_sum and career_sum and announced; if it was rank 8, the target's eliminated = 1."},
+    {"id": "R16", "text": "When a Prince target did not discard rank 8, then the target draws from the deck if deck_count > 0 (deck_count drops by 1); otherwise the target takes the burned card."},
+    {"id": "R17", "text": "When a King is played against an unprotected opponent, then the two hand cards are swapped and the swap is announced; against a protected opponent it has no effect."},
+    {"id": "R18", "text": "When a Princess is discarded by the active player, then their eliminated = 1."},
+    {"id": "R19", "text": "When nobody is eliminated and (deck_count = 0 or it is round 40), then both hands are revealed and the lower card's owner gets eliminated = 1."},
+    {"id": "R20", "text": "When showdown cards are equal, then the lower discard_sum is eliminated; if discard_sum is also equal, then the hand is tied, no token is awarded, and hand_over = 1."},
+    {"id": "R21", "text": "When exactly one player is eliminated, then the other gains 1 token, hand_over = 1, and the eliminated player is active_seat for the next hand."},
+    {"id": "R22", "text": "When no token was awarded in a round, then active_seat switches to the other seat."},
+    {"id": "R23", "text": "When round 40 ends, then the game ends; more tokens wins, then higher career_sum, and if both are equal it is a draw."}
+  ],
+  "offers": [
+    {"question": "Which rank to discard", "who": "the active seat", "options": "If the hand contains 7 together with 5 or 6: only 7. Otherwise: each distinct rank in their two-card hand (one option if both cards are the same rank)."},
+    {"question": "Guard guess", "who": "the active seat, only when discard_choice = 1", "options": "any whole number from 2 to 8"}
+  ],
+  "choices": [
+    {"what": "Exactly 2 players", "why": "The designer fixed the duel at 2. All card effects target 'the opponent', and the game is two-person deduction and bluffing about one hidden card."},
+    {"what": "No talk step", "why": "The source has no table talk. Adding it would be a new mechanic."},
+    {"what": "Out-of-play split into burned_card (hidden) and face_up (public)", "why": "Position 1 is face down while positions 2-6 are face up, so they need different visibility."},
+    {"what": "Ranking expression tokens*1000 + career_sum", "why": "career_sum can never reach 1000 in 40 rounds (at most about 16 per round), so tokens come first and career_sum breaks ties. Equal values share the win, which is the draw."},
+    {"what": "When the hand holds 7 with 5 or 6, only 7 is offered", "why": "A seat is never offered what it may not do. The Countess step still enforces it."},
+    {"what": "Scratch flags new_hand, token_awarded and round_number added", "why": "Needed to condition the face-up announcement, the pass step and the round-40 showdown with arithmetic."}
+  ],
+  "simplifications": [
+    {"what": "Deck draws are random picks from the deck list instead of taking the top card of one shuffle per hand", "why": "The engine draws at random. The deck order is hidden and unseen, so each draw has the same distribution as a single shuffle."}
+  ],
+  "unsupported": []
+}
+```
+````

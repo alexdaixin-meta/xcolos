@@ -1,0 +1,674 @@
+# 07 scenarios
+
+- time: 2026-10-27T16:46:30+00:00 (88.0s)  model: claude-opus-5-5
+- system prompt: [system/8e9a17ed-scenarios.md](system/8e9a17ed-scenarios.md) (sha256 8e9a17ed7c2a08b3)
+- sent sha256 7a2c7fbca7ffa684, reply sha256 6e8aa91437e08a46
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Cat in the Sack: Sealed Stages (Revised)",
+  "summary": "Each round every player secretly adds one card to a shared sack and writes a message. The sack is then auctioned over up to three sealed-bid stages, with one more card revealed at each stage. After 9 rounds the highest cat points + mice wins.",
+  "players": {
+    "min": 3,
+    "max": 5,
+    "suggested": 4
+  },
+  "parameters": {
+    "cat_value_1": -8,
+    "cat_value_2": -5,
+    "cat_value_3": 3,
+    "cat_value_4": 5,
+    "cat_value_5": 8,
+    "cat_value_6": 11,
+    "cat_value_7": 15,
+    "cats_per_hand": 7,
+    "rabbit_value": 0,
+    "dogs_per_hand": 2,
+    "hand_size_dealt": 10,
+    "cards_set_aside_per_player": 1,
+    "hand_size_kept": 9,
+    "starting_mice": 15,
+    "starting_cat_points": 0,
+    "rounds": 9,
+    "message_max_words": 30,
+    "max_stages": 3,
+    "pass_reward_stage_1": 2,
+    "pass_reward_stage_2": 3,
+    "pass_reward_stage_3": 4,
+    "all_pass_stage_1_reward": 2,
+    "stage_3_outbid_bonus": 5,
+    "initial_standing_bid": 0,
+    "rank_tiebreak_multiplier": 1000
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "seat",
+        "type": "number",
+        "visible": "public",
+        "initial": "1..N in fixed seat order",
+        "meaning": "the player's fixed seat number",
+        "observable": false
+      },
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "ally",
+        "initial": "the 10 identical cards minus one random card set aside (9 cards)",
+        "meaning": "cards the player can still put in the sack; card codes are cat_-8, cat_-5, cat_3, cat_5, cat_8, cat_11, cat_15, rabbit, large_dog, small_dog",
+        "observable": false
+      },
+      {
+        "key": "mice",
+        "type": "number",
+        "visible": "public",
+        "initial": 15,
+        "meaning": "the player's mice, used for bidding; counts toward the score",
+        "observable": true
+      },
+      {
+        "key": "cat_points",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "total value of the cats won in sacks; may be negative",
+        "observable": true
+      },
+      {
+        "key": "played_card",
+        "type": "text",
+        "visible": "ally",
+        "initial": "",
+        "meaning": "the card the player put face down in the sack this round",
+        "observable": false
+      },
+      {
+        "key": "message",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "the player's message this round (at most 30 words), shown after all are written",
+        "observable": false
+      },
+      {
+        "key": "bid",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "the number written at the current stage; 0 is a pass, and an illegal number is treated as 0",
+        "observable": false
+      },
+      {
+        "key": "in_auction",
+        "type": "bool",
+        "visible": "public",
+        "initial": true,
+        "meaning": "whether the player is still in the auction this round",
+        "observable": false
+      }
+    ],
+    "game": [
+      {
+        "key": "round_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "rounds started so far",
+        "observable": false
+      },
+      {
+        "key": "start_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": "a random seat",
+        "meaning": "seat of the current start player",
+        "observable": true
+      },
+      {
+        "key": "set_aside",
+        "type": "list",
+        "visible": "none",
+        "initial": "the one random card removed from each player's 10",
+        "meaning": "the cards set aside unseen at setup",
+        "observable": false
+      },
+      {
+        "key": "sack_owners",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "seat owning each sack position, in seat order starting with the start player",
+        "observable": false
+      },
+      {
+        "key": "sack_cards",
+        "type": "list",
+        "visible": "none",
+        "initial": [],
+        "meaning": "card faces in sack position order (each owner knows their own card through played_card)",
+        "observable": false
+      },
+      {
+        "key": "sack_revealed",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "sack cards revealed so far, in position order",
+        "observable": false
+      },
+      {
+        "key": "stage",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "current auction stage, 1 to 3",
+        "observable": false
+      },
+      {
+        "key": "standing_bid",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "the current standing bid",
+        "observable": false
+      },
+      {
+        "key": "leader_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "seat of the current leader; 0 means no leader",
+        "observable": false
+      },
+      {
+        "key": "sack_done",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "whether this round's auction is settled",
+        "observable": false
+      },
+      {
+        "key": "sack_winner",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "seat that took the sack this round; 0 means nobody",
+        "observable": false
+      },
+      {
+        "key": "sack_value",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "total value of the cats left in the opened sack after the dog rule",
+        "observable": false
+      },
+      {
+        "key": "discard_pile",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "opened sack cards, discarded face up with their owners",
+        "observable": false
+      },
+      {
+        "key": "unopened_pile",
+        "type": "list",
+        "visible": "none",
+        "initial": [],
+        "meaning": "unrevealed cards of sacks discarded without being opened",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Each player is given the same 10 cards: cat_-8, cat_-5, cat_3, cat_5, cat_8, cat_11, cat_15, rabbit, large_dog, small_dog.",
+    "One random card is removed from each player's hand and appended to set_aside, unseen by everyone; each hand keeps 9 cards.",
+    "Each player's mice is set to 15 and cat_points to 0; both are public.",
+    "Seats are numbered 1..N in a fixed order, and start_seat is set to a random seat.",
+    "Each player is sent their own state."
+  ],
+  "round": [
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "short text, at most 30 words",
+      "effect": "message := the text; nobody sees any message until the messages are shown in step 4"
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "one card from own hand",
+      "effect": "played_card := the chosen card; the card is removed from hand; nobody sees another player's choice"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "round_number += 1; sack_owners := seats in seat order beginning with start_seat; sack_cards := each owner's played_card in that order; sack_revealed := []; standing_bid := 0; leader_seat := 0; stage := 1; sack_done := false; sack_winner := 0; sack_value := 0; every in_auction := true; every bid := 0. Announce whose card is in each position."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "broadcast every message labelled by seat: 'Seat {seat} says: {message}'"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "append sack_cards[1] to sack_revealed and announce it; stage := 1"
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "a whole number from 0 to own mice",
+      "effect": "bid := the number; if bid < standing_bid + 1 or bid > mice, then bid := 0 (pass)"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce every bid by seat. If every bid = 0: every player's mice += 2, sack_cards are appended to unopened_pile, sack_winner := 0, sack_done := true. Otherwise: every player with bid = 0 sets in_auction := false and mice += 2; standing_bid := highest bid; leader_seat := the first seat with that bid, in seat order from the seat after start_seat with start_seat last; announce standing_bid, leader_seat and everyone's mice; if exactly one player has in_auction = true, then sack_winner := leader_seat and sack_done := true."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when sack_done = false and count(in_auction) >= 2: stage := 2; append sack_cards[2] to sack_revealed and announce it; bid := 0 for all"
+    },
+    {
+      "action": "poll",
+      "who": "players with in_auction = true, when sack_done = false and stage = 2",
+      "answer": "a whole number from 0 to own mice",
+      "effect": "bid := the number; if bid < standing_bid + 1 or bid > mice, then bid := 0"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when sack_done = false and stage = 2: announce bids. If every in_auction player bid 0: sack_winner := leader_seat (the previous leader, at the current standing_bid, with no reward); every in_auction player other than leader_seat gains mice += 3; sack_done := true. Otherwise: each in_auction player with bid 0 sets in_auction := false and mice += 3; standing_bid := highest bid; leader_seat := the first seat with that bid in the tie order; announce standing_bid, leader_seat and mice; if exactly one in_auction remains, then sack_winner := leader_seat and sack_done := true."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when sack_done = false and count(in_auction) >= 2: stage := 3; append sack_cards[3] to sack_revealed and announce it; bid := 0 for all"
+    },
+    {
+      "action": "poll",
+      "who": "players with in_auction = true, when sack_done = false and stage = 3",
+      "answer": "a whole number from 0 to own mice",
+      "effect": "bid := the number; if bid < standing_bid + 1 or bid > mice, then bid := 0"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when sack_done = false and stage = 3: announce bids. If every in_auction player bid 0: sack_winner := leader_seat; every in_auction player other than leader_seat gains mice += 4; sack_done := true. Otherwise: each in_auction player with bid 0 sets in_auction := false and mice += 4; standing_bid := highest bid; leader_seat := the first seat with that bid in the tie order; announce standing_bid, leader_seat and mice; if exactly one in_auction remains, then sack_winner := leader_seat and sack_done := true."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when sack_done = false: sack_winner := leader_seat; every player with bid >= 1 at stage 3 and seat != leader_seat gains mice += 5; sack_done := true"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when sack_winner != 0: reveal all sack_cards (sack_revealed := sack_cards). Dog rule: if large_dog is in the sack and small_dog is not, remove the highest-valued cat; if small_dog is in the sack and large_dog is not, remove the lowest-valued cat; if no cat is present, nothing is removed; if both dogs are present, neither has any effect. sack_value := sum of the values of the cats remaining (rabbit 0; dogs and removed cats count nothing). The sack_winner pays mice -= standing_bid and gains cat_points += sack_value. All sack cards are appended face up to discard_pile with their owners. Announce the result."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "if sack_winner != 0, then start_seat := sack_winner; otherwise start_seat := the next seat after start_seat (wrapping from N to 1)"
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "end the game if round_number >= 9; otherwise continue to the next round"
+    }
+  ],
+  "ending": {
+    "condition": "round_number >= 9",
+    "rank_by": "(you.cat_points + you.mice) * 1000 + you.cat_points",
+    "decided_by": "Each player's score is cat points + mice, and the highest score wins. Among tied players, the one with more cat points wins. Players still tied share the win (a draw among them)."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "At setup, each player has the same 10 cards (cats -8, -5, 3, 5, 8, 11, 15; rabbit 0; large dog; small dog), and one random card from each hand goes to set_aside unseen, leaving 9 cards per hand."
+    },
+    {
+      "id": "R2",
+      "text": "At setup, each player has 15 mice and 0 cat_points, both public, and start_seat is a random seat."
+    },
+    {
+      "id": "R3",
+      "text": "Each round, every player simultaneously chooses one card from their hand; it leaves the hand and becomes their played_card."
+    },
+    {
+      "id": "R4",
+      "text": "Each round, every player writes one message of at most 30 words; all messages are shown to everyone, labelled by seat, only after all are written."
+    },
+    {
+      "id": "R5",
+      "text": "The sack is ordered in seat order beginning with the start player, so sack position 1 is the start player's card; everyone knows the owner of each position."
+    },
+    {
+      "id": "R6",
+      "text": "At stage 1, sack card 1 is revealed to all, the standing bid is 0 and there is no leader."
+    },
+    {
+      "id": "R7",
+      "text": "At each stage, the players still in simultaneously write a number; 0 is a pass, and a bid must be at least standing_bid + 1 and at most the bidder's mice, or it counts as a pass."
+    },
+    {
+      "id": "R8",
+      "text": "After each stage, every player's bid (0 for a pass) is announced by name."
+    },
+    {
+      "id": "R9",
+      "text": "When every player passes at stage 1, then every player gains 2 mice, nobody takes the sack, it is discarded unopened, and play goes to choosing the next start player."
+    },
+    {
+      "id": "R10",
+      "text": "When every player still in passes at stage 2, then the previous leader takes the sack at the standing bid with no reward, and every other passer gains 3 mice."
+    },
+    {
+      "id": "R11",
+      "text": "When every player still in passes at stage 3, then the previous leader takes the sack at the standing bid with no reward, and every other passer gains 4 mice."
+    },
+    {
+      "id": "R12",
+      "text": "When not everyone passed, then each passer leaves the auction for the round and gains 2 mice at stage 1, 3 at stage 2 or 4 at stage 3."
+    },
+    {
+      "id": "R13",
+      "text": "When not everyone passed, then the standing bid becomes the highest bid at that stage, and its bidder becomes the leader."
+    },
+    {
+      "id": "R14",
+      "text": "When several players make the highest bid, then the leader is the first of them in seat order, counting from the player after the start player, with the start player last."
+    },
+    {
+      "id": "R15",
+      "text": "After a stage is resolved, the new standing bid, the leader and every player's mice are announced."
+    },
+    {
+      "id": "R16",
+      "text": "When exactly one player remains in after a stage, then that player wins the sack at the standing bid just set and the remaining stages are skipped."
+    },
+    {
+      "id": "R17",
+      "text": "Stage 2 reveals sack card 2 and stage 3 reveals sack card 3, and each is played only if two or more players are still in."
+    },
+    {
+      "id": "R18",
+      "text": "When two or more players are still in after stage 3 is resolved, then the leader wins the sack at the standing bid, and each other player who bid at stage 3 gains 5 mice."
+    },
+    {
+      "id": "R19",
+      "text": "When the sack is opened, all its cards are revealed."
+    },
+    {
+      "id": "R20",
+      "text": "When exactly one dog is in the sack, then the large dog removes the highest-valued cat or the small dog removes the lowest-valued cat; when no cat is present nothing is removed, and when both dogs are present neither has any effect."
+    },
+    {
+      "id": "R21",
+      "text": "The sack winner pays their winning bid in mice and adds the total value of the remaining cats to cat_points, which may go negative; the rabbit is worth 0."
+    },
+    {
+      "id": "R22",
+      "text": "Opened sack cards are discarded face up, so everyone can see which cards each player has used."
+    },
+    {
+      "id": "R23",
+      "text": "When someone took the sack, then the sack winner becomes the start player; otherwise the start player passes to the next seat."
+    },
+    {
+      "id": "R24",
+      "text": "The game ends after round 9, when every hand is empty."
+    },
+    {
+      "id": "R25",
+      "text": "At the end, the highest cat_points + mice wins; a tie goes to the most cat_points, and players still tied draw."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Message for this round",
+      "who": "every seat",
+      "options": "free text of at most 30 words"
+    },
+    {
+      "question": "Card to put in the sack",
+      "who": "every seat",
+      "options": "any card currently in that seat's hand"
+    },
+    {
+      "question": "Stage 1 bid",
+      "who": "every seat",
+      "options": "a whole number from 0 to that seat's mice; 0 is a pass"
+    },
+    {
+      "question": "Stage 2 bid",
+      "who": "seats with in_auction = true, only if two or more are still in",
+      "options": "a whole number from 0 to that seat's mice; 0 or any number at or below the standing bid is a pass; a seat that has left the auction is not asked"
+    },
+    {
+      "question": "Stage 3 bid",
+      "who": "seats with in_auction = true, only if two or more are still in",
+      "options": "a whole number from 0 to that seat's mice; 0 or any number at or below the standing bid is a pass; a seat that has left the auction is not asked"
+    }
+  ],
+  "choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "The designer chose 4, so it is kept. 3 is the least number of players for a sack with three staged reveals and a real auction among rivals. 5 is the most: a sack of 5 cards fills every position, and more seats would leave too many hidden cards and messages to reason about."
+    },
+    {
+      "what": "Talk kept as a simultaneous poll shown to everyone",
+      "why": "The rules require one simultaneous message per round. Players disagree over who should take the sack, so claims about their own card are worth bluffing and worth doubting."
+    },
+    {
+      "what": "Card codes such as cat_15, rabbit, large_dog, small_dog",
+      "why": "The cards need text names so the engine can store and compare them in lists."
+    },
+    {
+      "what": "Cat values listed as separate parameters cat_value_1 to cat_value_7",
+      "why": "Each parameter must be a single number."
+    },
+    {
+      "what": "Tie-break encoded as (cat_points + mice) * 1000 + cat_points",
+      "why": "The ranking must be one expression. Cat points can never exceed 210 in absolute value, so a one-point score difference always outweighs the cat-points term."
+    },
+    {
+      "what": "Unopened sacks go to a hidden unopened_pile",
+      "why": "The rules say such a sack is discarded without being opened, so its unrevealed cards must stay unseen."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The message and the card choice are two consecutive polls instead of one combined answer",
+      "why": "A poll gathers one answer. Neither answer is shown until both polls are complete, so they stay simultaneous in effect."
+    },
+    {
+      "what": "Bids are offered as any number from 0 to the bidder's mice, with numbers at or below the standing bid treated as a pass",
+      "why": "This matches the rule that an illegal number counts as a pass, while keeping the offered range simple."
+    },
+    {
+      "what": "'Go to step 7/9' is done with when-conditions on sack_done and sack_winner",
+      "why": "The step list is flat. Skipping single steps by condition gives the same flow."
+    }
+  ],
+  "unsupported": []
+}
+
+OBSERVABLE (the only attributes you may assert on): player: mice, cat_points; table: start_seat.
+````
+
+## Reply
+
+````
+```json
+[
+  {"name": "Setup: each hand keeps 9 cards and 3 cards are set aside (3 players)", "rule": "R1", "players": 3, "rounds": 0, "seed": 1,
+   "expect": {"lens": {"game": {"set_aside": 3}, "players": {"1": {"hand": 9}, "2": {"hand": 9}, "3": {"hand": 9}}}}},
+
+  {"name": "Setup: 15 mice and 0 cat points each", "rule": "R2", "players": 4, "rounds": 0, "seed": 2,
+   "expect": {"players": {"1": {"mice": 15, "cat_points": 0}, "2": {"mice": 15, "cat_points": 0}, "3": {"mice": 15, "cat_points": 0}, "4": {"mice": 15, "cat_points": 0}}}},
+
+  {"name": "Playing a card removes it from the hand (9 -> 8)", "rule": "R3", "players": 3, "rounds": 1, "seed": 3, "default": "decline",
+   "expect": {"lens": {"players": {"1": {"hand": 8}, "2": {"hand": 8}, "3": {"hand": 8}}}}},
+
+  {"name": "Message round is played and the round continues normally (all pass, +2 each)", "rule": "R4", "players": 3, "rounds": 1, "seed": 4, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "expect": {"players": {"1": {"mice": 17}, "2": {"mice": 17}, "3": {"mice": 17}}}},
+
+  {"name": "Sack holds one card per seat, one owner per position", "rule": "R5", "players": 3, "rounds": 1, "seed": 5, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 2}},
+   "expect": {"lens": {"game": {"sack_owners": 3, "sack_cards": 3}}}},
+
+  {"name": "Standing bid starts at 0, so a bid of 1 is legal and wins when alone", "rule": "R6", "players": 3, "rounds": 1, "seed": 6, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 1, "options_include": 1}],
+   "expect": {"players": {"1": {"mice": 14, "cat_points": 18}, "2": {"mice": 17, "cat_points": 0}, "3": {"mice": 17, "cat_points": 0}}, "game": {"start_seat": 1}}},
+
+  {"name": "A stage 2 bid at or below the standing bid counts as a pass", "rule": "R7", "players": 3, "rounds": 1, "seed": 7, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "rules": [{"seat": 1, "options_include": 5},
+             {"seat": 2, "options_include": 3}, {"seat": 2, "options_include": 4}],
+   "expect": {"players": {"1": {"mice": 10, "cat_points": 18}, "2": {"mice": 18, "cat_points": 0}, "3": {"mice": 17, "cat_points": 0}}, "game": {"start_seat": 1}}},
+
+  {"name": "Bids are announced and the auction resolves from them (single bidder wins)", "rule": "R8", "players": 3, "rounds": 1, "seed": 8, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_3"]}, "2": {"hand": ["cat_5"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 2, "options_include": 3}],
+   "expect": {"players": {"1": {"mice": 17}, "2": {"mice": 12, "cat_points": 8}, "3": {"mice": 17}}, "game": {"start_seat": 2}}},
+
+  {"name": "All pass at stage 1: +2 each, sack unopened, start moves to next seat (wraps 3 -> 1)", "rule": "R9", "players": 3, "rounds": 1, "seed": 9, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "expect": {"players": {"1": {"mice": 17, "cat_points": 0}, "2": {"mice": 17, "cat_points": 0}, "3": {"mice": 17, "cat_points": 0}},
+              "game": {"start_seat": 1}, "lens": {"game": {"unopened_pile": 3}}}},
+
+  {"name": "All in pass at stage 2: previous leader takes sack, other passer +3", "rule": "R10", "players": 3, "rounds": 1, "seed": 10, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "rules": [{"seat": 1, "options_include": 5}, {"seat": 2, "options_include": 3}],
+   "expect": {"players": {"1": {"mice": 10, "cat_points": 18}, "2": {"mice": 18, "cat_points": 0}, "3": {"mice": 17, "cat_points": 0}}, "game": {"start_seat": 1}}},
+
+  {"name": "All in pass at stage 3: previous leader takes sack, other passer +4", "rule": "R11", "players": 3, "rounds": 1, "seed": 11, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "rules": [{"seat": 1, "options_include": 2}, {"seat": 1, "options_include": 5},
+             {"seat": 2, "options_include": 2}, {"seat": 2, "options_include": 4}],
+   "expect": {"players": {"1": {"mice": 10, "cat_points": 18}, "2": {"mice": 19, "cat_points": 0}, "3": {"mice": 17, "cat_points": 0}}, "game": {"start_seat": 1}}},
+
+  {"name": "Passers leave with +3 at stage 2 and +4 at stage 3", "rule": "R12", "players": 3, "rounds": 1, "seed": 12, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "rules": [{"seat": 1, "options_include": 1},
+             {"seat": 2, "options_include": 2}, {"seat": 2, "options_include": 4}, {"seat": 2, "options_include": 6},
+             {"seat": 3, "options_include": 3}, {"seat": 3, "options_include": 5}],
+   "expect": {"players": {"1": {"mice": 18, "cat_points": 0}, "2": {"mice": 9, "cat_points": 18}, "3": {"mice": 19, "cat_points": 0}}, "game": {"start_seat": 2}}},
+
+  {"name": "Highest bid sets the standing bid and its bidder leads (seat 1 pays 7)", "rule": "R13", "players": 3, "rounds": 1, "seed": 13, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "rules": [{"seat": 1, "options_include": 7}, {"seat": 2, "options_include": 3}],
+   "expect": {"players": {"1": {"mice": 8, "cat_points": 18}, "2": {"mice": 18, "cat_points": 0}, "3": {"mice": 17, "cat_points": 0}}, "game": {"start_seat": 1}}},
+
+  {"name": "Tied top bid: leader is first after the start player (start 1 -> seat 2 leads)", "rule": "R14", "players": 3, "rounds": 1, "seed": 14, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 1, "options_include": 4}, {"seat": 2, "options_include": 4}, {"seat": 3, "options_include": 4}],
+   "expect": {"players": {"1": {"mice": 18, "cat_points": 0}, "2": {"mice": 11, "cat_points": 18}, "3": {"mice": 18, "cat_points": 0}}, "game": {"start_seat": 2}}},
+
+  {"name": "After a stage the new mice totals are correct (passers +2, winner pays)", "rule": "R15", "players": 4, "rounds": 1, "seed": 15, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_8"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}, "4": {"hand": ["cat_5"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 4, "options_include": 6}],
+   "expect": {"players": {"1": {"mice": 17}, "2": {"mice": 17}, "3": {"mice": 17}, "4": {"mice": 9, "cat_points": 16}}, "game": {"start_seat": 4}}},
+
+  {"name": "One player left after stage 1 wins at once at the bid just set", "rule": "R16", "players": 3, "rounds": 1, "seed": 16, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 3, "options_include": 9}],
+   "expect": {"players": {"1": {"mice": 17}, "2": {"mice": 17}, "3": {"mice": 6, "cat_points": 18}}, "game": {"start_seat": 3}}},
+
+  {"name": "Stages 2 and 3 are played while two or more remain", "rule": "R17", "players": 3, "rounds": 1, "seed": 17, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "rules": [{"seat": 1, "options_include": 1},
+             {"seat": 2, "options_include": 2}, {"seat": 2, "options_include": 4}, {"seat": 2, "options_include": 6},
+             {"seat": 3, "options_include": 3}, {"seat": 3, "options_include": 5}],
+   "expect": {"players": {"1": {"mice": 18}, "2": {"mice": 9, "cat_points": 18}, "3": {"mice": 19}}}},
+
+  {"name": "Two still in after stage 3: tied leader wins, other stage-3 bidder +5", "rule": "R18", "players": 3, "rounds": 1, "seed": 18, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 3}},
+   "rules": [{"seat": 1, "options_include": 1}, {"seat": 1, "options_include": 2}, {"seat": 1, "options_include": 5},
+             {"seat": 2, "options_include": 1}, {"seat": 2, "options_include": 3}, {"seat": 2, "options_include": 5}],
+   "expect": {"players": {"1": {"mice": 10, "cat_points": 18}, "2": {"mice": 20, "cat_points": 0}, "3": {"mice": 17, "cat_points": 0}}, "game": {"start_seat": 1}}},
+
+  {"name": "Opened sack: all cards counted (cat_5 + cat_8 + cat_11 = 24)", "rule": "R19", "players": 3, "rounds": 1, "seed": 19, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_5"]}, "2": {"hand": ["cat_8"]}, "3": {"hand": ["cat_11"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 1, "options_include": 2}],
+   "expect": {"players": {"1": {"mice": 13, "cat_points": 24}}}},
+
+  {"name": "Large dog alone removes the highest cat (15 removed, 3 left)", "rule": "R20", "players": 3, "rounds": 1, "seed": 20, "default": "decline",
+   "given": {"players": {"1": {"hand": ["large_dog"]}, "2": {"hand": ["cat_15"]}, "3": {"hand": ["cat_3"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 1, "options_include": 1}],
+   "expect": {"players": {"1": {"mice": 14, "cat_points": 3}}}},
+
+  {"name": "Small dog alone removes the lowest cat (-8 removed, 11 left)", "rule": "R20", "players": 3, "rounds": 1, "seed": 21, "default": "decline",
+   "given": {"players": {"1": {"hand": ["small_dog"]}, "2": {"hand": ["cat_-8"]}, "3": {"hand": ["cat_11"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 1, "options_include": 1}],
+   "expect": {"players": {"1": {"mice": 14, "cat_points": 11}}}},
+
+  {"name": "Both dogs present: no effect (-8 stays)", "rule": "R20", "players": 3, "rounds": 1, "seed": 22, "default": "decline",
+   "given": {"players": {"1": {"hand": ["large_dog"]}, "2": {"hand": ["small_dog"]}, "3": {"hand": ["cat_-8"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 2, "options_include": 1}],
+   "expect": {"players": {"2": {"mice": 14, "cat_points": -8}}}},
+
+  {"name": "Dog with no cat present removes nothing (value 0)", "rule": "R20", "players": 3, "rounds": 1, "seed": 23, "default": "decline",
+   "given": {"players": {"1": {"hand": ["large_dog"]}, "2": {"hand": ["rabbit"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 1, "options_include": 1}],
+   "expect": {"players": {"1": {"mice": 14, "cat_points": 0}}}},
+
+  {"name": "Winner pays the bid and cat points may go negative (-8 -5 + rabbit = -13)", "rule": "R21", "players": 3, "rounds": 1, "seed": 24, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_-8"]}, "2": {"hand": ["cat_-5"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 3, "options_include": 2}],
+   "expect": {"players": {"1": {"mice": 17}, "2": {"mice": 17}, "3": {"mice": 13, "cat_points": -13}}}},
+
+  {"name": "Opened sack cards go to the discard pile (3 cards)", "rule": "R22", "players": 3, "rounds": 1, "seed": 25, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 1, "options_include": 1}],
+   "expect": {"lens": {"game": {"discard_pile": 3}}}},
+
+  {"name": "Sack winner becomes start player (start 1, seat 3 wins -> 3)", "rule": "R23", "players": 3, "rounds": 1, "seed": 26, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "rules": [{"seat": 3, "options_include": 1}],
+   "expect": {"game": {"start_seat": 3}}},
+
+  {"name": "No sack winner: start passes to the next seat (1 -> 2)", "rule": "R23", "players": 3, "rounds": 1, "seed": 27, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"]}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"start_seat": 1}},
+   "expect": {"game": {"start_seat": 2}}},
+
+  {"name": "Game ends after round 9 with hands empty", "rule": "R24", "players": 3, "seed": 28, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"], "mice": 20}, "2": {"hand": ["cat_3"]}, "3": {"hand": ["rabbit"]}}, "game": {"round_number": 8, "start_seat": 1}},
+   "expect": {"winner": 1, "standings": {"1": 22000, "2": 17000, "3": 17000},
+              "players": {"1": {"mice": 22}, "2": {"mice": 17}, "3": {"mice": 17}},
+              "lens": {"players": {"1": {"hand": 0}, "2": {"hand": 0}, "3": {"hand": 0}}}}},
+
+  {"name": "Tied score broken by cat points", "rule": "R25", "players": 3, "seed": 29, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"], "mice": 10, "cat_points": 10}, "2": {"hand": ["cat_3"], "mice": 15, "cat_points": 5}, "3": {"hand": ["rabbit"], "mice": 5, "cat_points": 0}},
+             "game": {"round_number": 8, "start_seat": 1}},
+   "expect": {"winner": 1, "standings": {"1": 22010, "2": 22005, "3": 7000}}},
+
+  {"name": "Fully tied players share the win", "rule": "R25", "players": 3, "seed": 30, "default": "decline",
+   "given": {"players": {"1": {"hand": ["cat_15"], "mice": 10, "cat_points": 5}, "2": {"hand": ["cat_3"], "mice": 10, "cat_points": 5}, "3": {"hand": ["rabbit"], "mice": 5, "cat_points": 0}},
+             "game": {"round_number": 8, "start_seat": 1}},
+   "expect": {"winner": [1, 2], "standings": {"1": 17005, "2": 17005, "3": 7000}}}
+]
+```
+````

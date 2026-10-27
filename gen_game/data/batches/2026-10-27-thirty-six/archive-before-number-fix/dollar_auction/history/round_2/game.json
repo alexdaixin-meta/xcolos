@@ -1,0 +1,816 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "dollar_auction",
+    "name": "Escalation Auction",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 3
+    },
+    "blurb": "Six sealed all-pay auctions with three raise stages each: everyone pays what they commit, only a sole top bidder wins their private prize."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      },
+      {
+        "key": "prize_points",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "committed",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "final_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "values",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "current_value",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pool",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "raise_amt",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "prize_deck",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "auction",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "top_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "top_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "auction_winner",
+        "visible": "public",
+        "type": "text",
+        "initial": "none"
+      },
+      {
+        "key": "starting_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      },
+      {
+        "key": "auctions",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "raise_stages",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "min_winning_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "prize_value_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "prize_value_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "prize_value_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "prize_value_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 25
+      },
+      {
+        "key": "prize_value_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "prize_value_6",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "prize_values_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 140
+      },
+      {
+        "key": "initial_prize_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "initial_committed",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "initial_final_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "min_raise",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winning_top_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting purses",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "starting_coins"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "prize_points",
+            "value": {
+              "calc": "initial_prize_points"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "committed",
+            "value": {
+              "calc": "initial_committed"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "final_score",
+            "value": {
+              "calc": "initial_final_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "current_value",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the table",
+      "do": [
+        {
+          "set": {
+            "key": "auction",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "top_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "top_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "auction_winner",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "prize_deck",
+            "value": {
+              "calc": "[prize_value_1, prize_value_2, prize_value_3, prize_value_4, prize_value_5, prize_value_6]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal private values",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "values",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pool",
+            "value": {
+              "calc": "prize_deck"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": {
+              "calc": "you.pool[int(uniform(0, len(you.pool)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "pool",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": {
+              "calc": "you.pool[int(uniform(0, len(you.pool)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "pool",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": {
+              "calc": "you.pool[int(uniform(0, len(you.pool)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "pool",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": {
+              "calc": "you.pool[int(uniform(0, len(you.pool)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "pool",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": {
+              "calc": "you.pool[int(uniform(0, len(you.pool)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "pool",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": {
+              "calc": "you.pool[int(uniform(0, len(you.pool)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": "all",
+            "key": "values",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "pool",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "your starting state",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "start",
+      "label": "the next auction",
+      "do": [
+        {
+          "adjust": {
+            "key": "auction",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "committed",
+            "value": {
+              "calc": "initial_committed"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "current_value",
+            "value": {
+              "calc": "you.values[auction - 1]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "start",
+      "label": "your value",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "current_value"
+      ],
+      "text": "Your private value for this auction:"
+    },
+    {
+      "use": "tell",
+      "phase": "start",
+      "label": "auction opens",
+      "to": "all",
+      "text": "Auction {auction} of {auctions}. Coins [seat, coins]: {[[p.seat, p.coins] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table. It is not binding and changes no numbers."
+    },
+    {
+      "use": "poll",
+      "phase": "raise",
+      "label": "raise stage 1",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_raise"
+        },
+        "max": {
+          "calc": "you.coins - you.committed"
+        }
+      },
+      "store": "raise_amt",
+      "text": "Auction {auction}, raise stage 1 of {raise_stages}. Choose a raise: a whole number from {min_raise} up to your coins minus what you have committed this auction. All raises are revealed together."
+    },
+    {
+      "use": "update",
+      "phase": "raise",
+      "label": "add raise 1",
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "committed",
+            "value": {
+              "calc": "you.raise_amt"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "raise_amt",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "raise",
+      "label": "committed after stage 1",
+      "to": "all",
+      "text": "After stage 1, committed [seat, committed]: {[[p.seat, p.committed] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "raise",
+      "label": "raise stage 2",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_raise"
+        },
+        "max": {
+          "calc": "you.coins - you.committed"
+        }
+      },
+      "store": "raise_amt",
+      "text": "Auction {auction}, raise stage 2 of {raise_stages}. Choose a raise: a whole number from {min_raise} up to your coins minus what you have committed this auction. All raises are revealed together."
+    },
+    {
+      "use": "update",
+      "phase": "raise",
+      "label": "add raise 2",
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "committed",
+            "value": {
+              "calc": "you.raise_amt"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "raise_amt",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "raise",
+      "label": "committed after stage 2",
+      "to": "all",
+      "text": "After stage 2, committed [seat, committed]: {[[p.seat, p.committed] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "raise",
+      "label": "raise stage 3",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_raise"
+        },
+        "max": {
+          "calc": "you.coins - you.committed"
+        }
+      },
+      "store": "raise_amt",
+      "text": "Auction {auction}, raise stage 3 of {raise_stages} (the last). Choose a raise: a whole number from {min_raise} up to your coins minus what you have committed this auction. All raises are revealed together."
+    },
+    {
+      "use": "update",
+      "phase": "raise",
+      "label": "add raise 3",
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "committed",
+            "value": {
+              "calc": "you.raise_amt"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "raise_amt",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "raise",
+      "label": "committed after stage 3",
+      "to": "all",
+      "text": "After stage 3, committed [seat, committed]: {[[p.seat, p.committed] for p in players]}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "payment",
+      "do": [
+        {
+          "set": {
+            "key": "top_bid",
+            "value": {
+              "calc": "max([p.committed for p in players])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_count",
+            "value": {
+              "calc": "count(p.committed == top_bid for p in players)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "-min(you.committed, you.coins)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "prize",
+      "do": [
+        {
+          "set": {
+            "key": "auction_winner",
+            "value": {
+              "calc": "[p.seat for p in players if p.committed == top_bid][0] if (top_count == winning_top_count and top_bid >= min_winning_bid) else 'none'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.committed == top_bid"
+            },
+            "key": "prize_points",
+            "value": {
+              "calc": "you.current_value"
+            },
+            "if": {
+              "calc": "top_count == winning_top_count and top_bid >= min_winning_bid"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "auction result",
+      "to": "all",
+      "text": "Auction {auction} winner: {auction_winner}. Top bid {top_bid}, held by {top_count} player(s). Coins [seat, coins]: {[[p.seat, p.coins] for p in players]}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "reset and score",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "committed",
+            "value": {
+              "calc": "initial_committed"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "final_score",
+            "value": {
+              "calc": "you.coins + you.prize_points"
+            },
+            "if": {
+              "calc": "auction >= auctions"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "after the last auction",
+      "when": {
+        "calc": "auction >= auctions"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "auction >= auctions"
+      },
+      "rank_by": "you.final_score",
+      "text": "Winner: {result}. Final scores [seat, coins + prize points]: {[[p.seat, p.final_score] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 6,
+    "rounds_max": 6,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Escalation Auction: {auctions} sealed all-pay auctions. Everyone starts with {starting_coins} coins and 0 prize points.\n\nPrivate values: at setup each player is dealt their own values list, a random order of {prize_deck} (total {prize_values_total}), visible only to its owner. Entry k is your value for auction k. Lists are dealt independently, so two players may hold the same value for the same auction.\n\nEach round is one auction. At its start the auction number rises by 1, every player's committed is set to 0, and each player is privately told their value for this auction. Everyone is told the auction number and every player's coins.\n\nTalk: every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Messages are not binding and change no numbers.\n\nRaise stages ({raise_stages} per auction): all players choose at the same time a raise, a whole number from {min_raise} up to (your own coins minus your own committed). Immediately after each stage, each player's committed increases by the raise they chose, and every player's committed total is announced to all. You can never commit more than your coins in one auction: with 40 coins and 30 committed, your options are exactly 0 to 10.\n\nResolution, payment: after the third stage, top_bid is the highest committed and top_count is the number of players whose committed equals top_bid. Every player's coins decrease by their committed, whether or not they won (bids of 20, 15 and 0 leave 80, 85 and 100 from 100 each).\n\nResolution, prize: if exactly {winning_top_count} player holds the top bid and top_bid is at least {min_winning_bid}, that player is the auction winner and adds their own value for this auction to their prize points. Otherwise (a tie for the top bid, or everyone bid 0) there is no winner and nobody gets a prize, but everyone still pays what they committed. The winner and every player's coins are announced, and each player's committed is reset to 0.\n\nEnd: after the {auctions}th auction, each player's final score = coins + prize points. The highest final score wins; players tied for the highest final score share the win as a draw."
+}

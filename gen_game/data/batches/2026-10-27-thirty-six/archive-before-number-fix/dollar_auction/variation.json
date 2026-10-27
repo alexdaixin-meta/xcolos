@@ -1,0 +1,134 @@
+{
+  "original_summary": "The Dollar Auction is a two-player auction in which players take turns raising a public bid for a $1 bill. Both the winner and the runner-up pay their bids, so players get drawn into escalating far past the prize's worth.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "bad",
+      "evidence": "With two players and a higher-net-total winner rule, the second mover can always top the first player's bid. Never bidding is safe: it scores 0. Opening at 0.05 and then quitting is close to dominant against a cautious rival. Against a stubborn rival, both players lose without limit. The play reduces to a war of attrition with a known value and nothing hidden."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The result depends on who blinks first in an escalation where neither player has information the other lacks. Skill shows only as 'don't enter' or 'quit early'."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "Once a player sees that the sunk cost is irrelevant, the one-shot game is largely solved. Repeating it adds nothing because the prize and the stakes never change."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "bad",
+      "evidence": "The information is perfect. The prize value is public and the bids are public, so there is no type or signal to infer."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Payoffs follow from arithmetic: 1 minus the bid for the winner, minus the bid for the others."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is text-only and turn-based. However, the alternating raises have no fixed length, so it could run without end. It is also limited to two players, which brings in the higher-total trap."
+    }
+  ],
+  "problems": [
+    "P1: Two players with a higher-total winner make it zero-sum by difference. Staying out or quitting first is safe, and escalation is pure attrition.",
+    "P2: Nothing is hidden. The prize value is common knowledge, so there is nothing to infer about opponents.",
+    "P3: Alternating open-ended raises have unbounded length and do not fit fixed-round play.",
+    "P4: A single auction with a known value is quickly solved, so there is no planning over rounds.",
+    "P5 (previous build): the raise poll offered only 0, because the option upper bound evaluated to 0 instead of each player's own coins minus committed. As a result raises were never applied, coins never fell, top_bid stayed 0 and top_count was always 3.",
+    "P6 (previous build): dealing values with a per-player pool/pick loop used many steps and attributes and was error-prone."
+  ],
+  "changes": [
+    {
+      "what": "Three players, each with a 100-coin budget that carries across 6 auctions. Final score is coins left plus prize points, and the highest final score wins.",
+      "why": "A third player breaks the pure-difference logic. The shared budget forces players to plan which auctions to fight for.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Each player privately holds their own random order of the same six prize values [10, 15, 20, 25, 30, 40], one value per auction.",
+      "why": "This creates hidden private values to infer from rivals' bidding. Every player's values sum to 140, so the deal changes what to fight for, not who is ahead.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Each auction is exactly 3 simultaneous raise stages. Committed totals are announced after each stage. All committed coins are paid by everyone. The prize goes only to a unique top bidder with at least 1 committed.",
+      "why": "This keeps the all-pay escalation and sunk-cost tension in a fixed, bounded number of steps. A tie at the top wins nothing but still costs everyone, which is the dollar-auction trap.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Six auctions, with values and budget carrying between them.",
+      "why": "Players must budget across auctions and read rivals' remaining coins and likely high-value auctions.",
+      "fixes": "P4"
+    },
+    {
+      "what": "Before every raise stage, a per-player attribute max_raise is set to that same player's own coins minus their own committed. The poll offers exactly the whole numbers 0..max_raise for that player. The chosen raise is stored in raise_amt and added to committed straight after the poll.",
+      "why": "This makes the poll bound the player's own computed value, never a table value, an uninitialised attribute or a constant. With 100 coins a player is offered 0..100. With coins 40 and committed 30 the player is offered 0..10. Committed can never exceed coins.",
+      "fixes": "P5"
+    },
+    {
+      "what": "Values are dealt in one setup step, giving each player an independent shuffled copy of the value list. In each auction, current_value is the entry at position 'auction', counting from 1.",
+      "why": "This removes the pool/pick loop, uses no random draws inside rounds and needs fewer steps.",
+      "fixes": "P6"
+    },
+    {
+      "what": "Add one simultaneous message per auction before stage 1.",
+      "why": "Players can bluff about their value (\"this one is my 40, stay out\") or propose sharing auctions. Only one player can win, so promises are worth testing. This gives players something to reason about.",
+      "fixes": "P2"
+    }
+  ],
+  "keeps": [
+    "Everyone pays what they bid, winners and losers alike.",
+    "Bids escalate in visible steps, and sunk costs pull players deeper.",
+    "A prize that can be overpaid for, with ruinous ties at the top.",
+    "Net payoff is the prize value minus the bid."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The all-pay escalation is a rich strategic core. Private values, a carried budget and three players make it a game of inference and planning. The build bug is fixed by an explicit per-player bound."
+  },
+  "variation": {
+    "name": "Sealed Escalation: Three-Way Dollar Auction",
+    "summary": "Three players each have 100 coins and play 6 all-pay auctions. Each auction has 3 simultaneous raise stages, and every player pays everything they commit. Only a unique top bidder wins the prize, valued privately by each player. The highest coins-plus-prizes total wins.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "R1 Setup. Every player has coins = 100, prize_points = 0, committed = 0, max_raise = 0, raise_amt = 0, current_value = 0 and final_score = 0. The table has auction = 0, top_bid = 0, top_count = 0 and auction_winner = 'none'. The table prize_deck is [10, 15, 20, 25, 30, 40].\n\nR2 Deal. At setup each player's values is set to an independent random shuffle of prize_deck, a list of 6 entries summing to 140. A player's values list is visible only to that player. Two players may hold the same value for the same auction.\n\nR3 Round start. There are 6 rounds, and one round is one auction. At the start of a round:\n- auction increases by 1.\n- Every player's committed becomes 0.\n- Each player's current_value becomes the entry of their values at position auction, counting from 1.\n- Each player is told privately their current_value.\n- Everyone is told the auction number and every player's coins and prize_points.\n\nR4 Talk. Everyone writes one short message at the same time. All messages are then shown to everyone. Messages bind no one.\n\nR5 Bound. Immediately before each raise stage, each player's max_raise is set to that same player's coins minus that same player's committed.\n\nR6 Raise stages. Each auction has exactly 3 raise stages. In each stage all players choose at the same moment.\n- Each player's options are exactly the whole numbers from 0 to their own max_raise. For example, 0..100 with coins 100 and committed 0; 0..55 with coins 85 and committed 30; 0..10 with coins 40 and committed 30.\n- The choice is stored in raise_amt.\n- Immediately after the stage, each player's committed increases by their raise_amt.\n- Everyone is then told every player's committed.\n\nR7 Limit. A player's committed can never exceed their coins within one auction. This is guaranteed by R5 and R6.\n\nR8 Resolution. After the third stage:\n- top_bid = the largest committed among players.\n- top_count = the number of players whose committed equals top_bid.\n- Every player's coins decreases by their committed.\n- If top_count = 1 and top_bid \u2265 1, the player with committed = top_bid adds their own current_value to prize_points, and auction_winner = that player. Otherwise auction_winner = 'none' and no one gains prize_points.\n- Everyone is told the auction_winner and top_bid.\n\nR9 End. After auction 6, each player's final_score = coins + prize_points. The game ends.",
+    "objective": "The player with the highest final_score (coins left plus prize points) wins. If two or more players tie for the highest final_score, the game is a draw.",
+    "expected_effect": "Players must infer which auctions rivals value highly from the size and timing of their raises, and from the remaining budgets. They must also budget 100 coins across 6 auctions and decide when to stop escalating once coins are sunk.\n\nSimple policies all lose against some opponent:\n- Always 0 keeps 100 but loses to anyone who wins prizes cheaply.\n- Always all-in in auction 1 spends everything for at most 40.\n- A fixed small raise each stage is beaten by any slightly higher fixed raise.\n- Matching others produces ties that cost everyone and win nothing.\n\nTalk matters because players disagree about who should take each prize, and only one player can win the game. A player who honours a claim like \"this is my 40, I'll take it, you take the next\" may be feeding a rival who lied about their value or who breaks the deal later. Following blindly can lose, and reading bluffs pays."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 4,
+    "attributes": 16,
+    "hidden_elements": 1,
+    "random_draws_per_round": 0,
+    "rounds": 6
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Each auction is a 3-player all-pay auction. Winner's net change = v - b. Loser's net change = -b. If the top bid is tied, all tied players pay and nobody scores. If everyone bids 0, top_bid < 1, so nobody scores and nobody pays. Example auction with values (A40, B20, C10):\n\n| (A, B, C) total committed | A | B | C |\n|---|---|---|---|\n| (0, 0, 0) | 0 | 0 | 0 |\n| (1, 0, 0) | +39 | 0 | 0 |\n| (5, 5, 0) | -5 | -5 | 0 (tie, no prize) |\n| (21, 20, 0) | +19 | -20 | 0 |\n| (41, 20, 0) | -1 | -20 | 0 |\n\nThoughtless policies, judged by the WINNER RULE:\n(a) Always 0, the first option. Final score is exactly 100.\n- Against two random bidders: a random bidder commits about 50 coins in stage 1 alone, and over 6 auctions winning about two prizes (about 47) cannot cover that. Both end far below 100, so always-0 beats random.\n- Against one sensible exploiter plus another always-0: the exploiter bids 1 every auction, wins all 6 and ends about 100 - 6 + 140 = 234. Always-0 loses.\n- Against two sensible players: they dissipate rent against each other, but private values leave positive expected surplus. Whenever one of them nets anything above 0, always-0 loses.\nSo always-0 is not a never-lose policy. It is a respectable baseline, not dominant.\n(b) Always the maximum, the last option. It commits 100 in stage 1 of auction 1, wins at most 40 and ends at 40 or less. It loses to everything except another all-in player.\n(c) Always 1. It ties with any other 1-bidder and is beaten by 2, so it is easily exploited.\nNo option is strictly better whatever the opponents do. Bidding 0 forgoes v - b > 0 when the others are passive. Any positive bid risks -b.\nSeats: all choices are simultaneous and the rules are symmetric. Every player's values sum to 140, so no seat has an edge in move order or total prize.\nCooperation: talk can propose a rotation (one designated bidder bids 1, the others bid 0). Defecting with a bid of 2 steals the prize, so the tension is real. Late rounds are not won by the safe option: bidding 0 in auction 6 just forgoes whatever the others take.\nThe 'escalation' label matches the numbers. Stage 1-2 commitments are public sunk costs that deter, but they are paid even if you lose.\nAll three players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules cover setup, the deal, round start, talk, bounds, three simultaneous numeric raise stages, resolution including ties and the all-zero case, and the end with a draw rule.\n- Options at every stage are explicit: 0..coins-committed.\n- The game is finite (6 rounds) and scored purely by arithmetic on kept numbers.\n- Complexity is within every limit:\n  - Choice steps: talk plus 3 stages = 4 (limit 4).\n  - Steps: 18 of 20.\n  - Attributes: about 13 counted (designer states 16), under 20.\n  - Hidden elements: 1, the private values list.\n  - Random draws per round: 0. The shuffle happens once at setup.\n  - Rounds: 6.\n- Needs no judge, board or clock. Engine features used: private_values, simultaneous_choice, numeric_bids, free_text_talk, fixed_rounds.\n- Talk is justified: players genuinely disagree over who takes each prize, a rotation proposal can be betrayed at cost to the follower, and messages hint at private values. Talk is simultaneous as required.\n- In the fixed-length repeated structure, the last auction is a one-shot all-pay contest, but bidding 0 does not win it automatically. Late rounds stay contested."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The only chance element is the order of each player's 6 values. Totals are identical (140), so luck affects only how values line up across players per auction. Example: holding 40 when the others hold 10 and 15 lets you win cheaply.\nOutcomes are driven by choices: coin outlays range from 0 to 100 per auction, while prizes are 10-40. Bad bidding (overpaying, top ties, escalation wars) costs far more than any alignment advantage, which is plausibly a 20-40 point swing at most.\nWith all players bidding sensibly (shading bids below value, conceding auctions where an opponent likely values more, using early stages to signal), the winner depends on reading opponents' values from talk and stage 1-2 commitments and on choosing which auctions to contest. It is not decided by the deal alone.\nThere is real hidden information to infer:\n- opponents' current values, narrowed over rounds because each opponent's values are a permutation of the known deck;\n- their remaining coins, which are public;\n- their willingness to escalate.\nThere are levers to act on it: the bid size, the timing across stages, and proposals in talk.\nEstimated chance share of the result: about 20-25%."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

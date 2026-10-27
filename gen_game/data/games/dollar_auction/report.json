@@ -1,0 +1,380 @@
+{
+  "game": "dollar_auction",
+  "attempts": [],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup: totals start at 0, round 0, schedule deck emptied into seats and unused type",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Prize value is 12 in own high-value round: North sole bid 8 in round 1 gives +4",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Prize value is 6 outside own high-value round: East sole bid 8 in round 1 goes negative to -2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A round with talk and all zero bids advances the round without changing totals",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Bids 2, 4 and 6 are revealed; sole top bid with no tie means no escalation",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "All bids 0: no total changes",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Strict highest bid 8 at prize 12 gives +4; a bid of 4 costs 2; a bid of 0 costs nothing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tie at 6: non-tied seat bidding 4 loses 2 and is not asked; tied seats both DROP and lose 3",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Three-way tie at 4, all RAISE: each pays 3 for raising plus half the bid, total -5",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tie at 6, lone raiser at prize 12 gets +3, dropper loses 3, outside bid 2 loses 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tie at 8 with zero raisers: nobody gets the prize, each tied seat loses 4",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tie at 6 with two raisers: each raiser loses 3 plus half the bid, total -6",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After the round, bids, escalation choices and totals are visible",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 12; highest total wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 12; seats level at the top share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        3
+      ],
+      "results": {
+        "seat 1": 8,
+        "seat 3": 5,
+        "seat 2": 6,
+        "seats 1 and 2": 1
+      },
+      "turns_min": 72,
+      "turns_max": 85
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 1": 25,
+      "seat 3": 16,
+      "seat 2": 16,
+      "seats 1 and 2": 2,
+      "seats 1 and 3": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 32,
+        "loss": 25,
+        "draw": 3,
+        "win_rate": 0.56
+      },
+      "first@seat2": {
+        "win": 20,
+        "loss": 32,
+        "draw": 8,
+        "win_rate": 0.38
+      },
+      "last@seat1": {
+        "win": 36,
+        "loss": 21,
+        "draw": 3,
+        "win_rate": 0.63
+      },
+      "last@seat2": {
+        "win": 29,
+        "loss": 28,
+        "draw": 3,
+        "win_rate": 0.51
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 79.7,
+      "prompt_chars_avg": 122,
+      "prompt_chars_max": 283
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 players (min, max and suggested 3)",
+      "why": "The designer fixed the table at 3. Three seats are dealt from four types, so one type stays hidden, which the deduction depends on. A fourth seat would leave no unused type, and fewer seats would remove the multi-way ties."
+    },
+    {
+      "what": "Talk kept, as a simultaneous poll broadcast to all",
+      "why": "The rules require simultaneous talk. Players disagree over who should win each prize, and claims about one's own schedule can be bluffs, so the talk gives players something to reason about."
+    },
+    {
+      "what": "Type stored as schedule_slot = round % 4 value (North 1, East 2, South 3, West 0)",
+      "why": "This makes the 12-or-6 prize value a single arithmetic test."
+    },
+    {
+      "what": "In a no-winner escalation, the tied players pay half the bid as well as the 3 for raising",
+      "why": "This follows the rules exactly: every tied player pays half, and raisers have also paid 3."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The escalation poll and its resolution are steps that always appear in the round, with a when-condition, instead of a separate block",
+      "why": "The engine's step list is flat. A conditional step reproduces step 6 exactly."
+    },
+    {
+      "what": "The winner's payment and prize are applied as one net change (prize_value - bid)",
+      "why": "The arithmetic result is identical."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 3,
+    "attributes": 28,
+    "hidden_elements": 7
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "The dollar auction: two players take turns raising a public bid for a $1 prize. Both the winner and the runner-up pay their bids, so bidding tends to escalate past the prize's value. The previous adaptation, Escalation Ledger II, made it a 3-player, 12-round sealed-bid all-pay auction with hidden high-value schedules and a RAISE/DROP tie-break.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "bad",
+        "evidence": "In the original, the first mover can open high and the whole game turns on one escalation trap. In Ledger II, a value-16 player's RAISE strictly dominated DROP (+12 or +4, against 0), and a bid of 6 (the top bid) was near-forced in your own rounds. 'Always bid 6 and RAISE' beat both random and non-punishing play (about +30 against about 0). Only the 3 rounds of the undealt type were genuinely contested."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "No dice are rolled, but a mechanical policy won. Skill showed only in the 3 empty rounds and in the decision to spite, which costs the spiter as much as or more than its target and helps the bystander."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "weak",
+        "evidence": "Most of Ledger II's rounds are solved: H bids 6 and raises, and L bids 0. The original two-player auction is solved by 'never bid' or 'open at 0.95'."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "weak",
+        "evidence": "The hidden schedule existed, but it hardly mattered: once H's action was forced, there was little to infer. The original has nothing hidden at all."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Every payment and prize is arithmetic on bids and choices."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "good",
+        "evidence": "Ledger II is turn-based, text-only, uses simultaneous polls and runs 12 rounds, all within the limits. The original's open-ended alternating raises would need an unbounded loop."
+      }
+    ],
+    "problems": [
+      "P1: RAISE in escalation strictly dominated DROP for the high-value player, because two raisers each still received half the prize.",
+      "P2: The top bid (6) could not be outbid, so H bidding 6 nearly guaranteed a profit in its own rounds.",
+      "P3: 'Always bid the maximum and RAISE' beat random and non-punishing play. Beating it required opponents to sacrifice repeatedly.",
+      "P4: Punishing a greedy bidder cost the punisher as much as or more than the target, so punishment was not credible and mainly helped the bystander.",
+      "P5: Only the 3 undealt-type rounds were genuinely contested, so the hidden type rarely changed what to do."
+    ],
+    "changes": [
+      {
+        "what": "If two or more tied players RAISE, nobody receives the prize. Each raiser pays the raise cost of 3 and half of their bid.",
+        "why": "Raising against another raiser is now worse than dropping, for H and L alike. Escalation becomes a real chicken game for every value.",
+        "fixes": "P1"
+      },
+      {
+        "what": "The bid menu is 0, 2, 4, 6 or 8, and the maximum (8) is above an ordinary player's value (6) but below the high value (12).",
+        "why": "No bid is unbeatable. Any player can block H with 8 at a modest cost (6-8 = -2), and H can outbid a lower bid. No bid guarantees anyone a profit.",
+        "fixes": "P2"
+      },
+      {
+        "what": "The high value drops from 16 to 12, and the ordinary value stays at 6.",
+        "why": "Bidding the maximum in a round where you are not high-value now loses 2 even when uncontested. The maniac bleeds without anyone needing to punish it.",
+        "fixes": "P3"
+      },
+      {
+        "what": "Players who bid and do not receive the prize pay only half their bid. The winner pays in full.",
+        "why": "Contesting or blocking becomes cheaper than the damage it does. An L who blocks with 8 loses 2 while H loses its gain plus half its bid, so a threat to block is credible.",
+        "fixes": "P4"
+      },
+      {
+        "what": "Every round is contestable. Ls can profit by winning cheap rounds (bid 2 or 4 against 6), and H must guess how hard to bid without knowing whether its rivals will challenge, and in a round it does not own whether anyone is high-value at all.",
+        "why": "Reading opponents' schedules from their bids and talk now changes the best bid in every round.",
+        "fixes": "P5"
+      }
+    ],
+    "keeps": [
+      "All-pay bidding: losers still pay part of their bid, so overbidding is costly.",
+      "Escalation past the point of profit (bids up to 8 for a prize worth 6), the dollar-auction trap.",
+      "The RAISE/DROP showdown between tied top bidders.",
+      "Hidden high-value schedules with one undealt type, 3 players, 12 rounds and simultaneous talk."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "With a no-prize double-raise, partial refunds and a cap above the ordinary value, every bid and escalation becomes a genuine read of opponents within the limits."
+    },
+    "variation": {
+      "name": "Escalation Ledger III",
+      "summary": "Three players bid secretly for a prize in each of 12 rounds. Each player privately knows which 3 rounds the prize is worth 12 to them; in all other rounds it is worth 6. Losing bidders pay half their bid, and ties go to a RAISE/DROP showdown in which two raisers both lose.",
+      "players": {
+        "min": 3,
+        "max": 3,
+        "suggested": 3
+      },
+      "rules": "SETUP\nThere are four schedule types:\n- North: high-value rounds 1, 5 and 9.\n- East: high-value rounds 2, 6 and 10.\n- South: high-value rounds 3, 7 and 11.\n- West: high-value rounds 4, 8 and 12.\nThree different types are dealt at random, one to each player, and each player is told only their own type. The fourth type goes to nobody, and nobody is told which it is. In that type's rounds, the prize is worth 6 to everyone.\nEvery total starts at 0. Totals may go below 0.\nIn each round the prize is worth 12 to a player if it is one of that player's high-value rounds, and 6 otherwise.\n\nEACH ROUND (rounds 1 to 12)\n1. Announce the round number.\n2. Talk: every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Nothing is binding, and players may lie.\n3. Bid: every player secretly and simultaneously chooses 0, 2, 4, 6 or 8.\n4. Reveal all bids.\n5. Resolve:\n   (a) All bids 0: nobody pays and nobody wins.\n   (b) One bid strictly highest: that player wins. The winner pays the full bid and receives their own value of the prize (12 or 6). Every other player pays half of their own bid.\n   (c) Two or three players tie for the highest bid (above 0): go to step 6. Players not in the tie pay half of their own bid.\n6. Escalation, tied players only: each tied player secretly and simultaneously chooses RAISE or DROP. Every player who chooses RAISE pays 3.\n   - Exactly one raiser: that player wins. The winner pays the full bid (plus the 3) and receives their own value of the prize. The other tied players pay half their bid.\n   - Two or more raisers, or no raisers: nobody receives the prize. Every tied player pays half their bid; raisers have also paid 3.\n7. Update all totals, then announce every bid, every escalation choice and every total.\n\nEND\nAfter round 12 the game ends.",
+      "objective": "After round 12, the player with the highest total wins. If two or three players share the highest total, they draw.",
+      "expected_effect": "No action is dominant.\n- H in a tie: raising earns +5 to +8 more than dropping if the other drops, and 3 less if the other raises.\n- L in a tie: the same chicken applies at low bids. At a bid of 8, raising is purely spite.\n- No bid guarantees H a profit, because anyone can block with 8 for a cost of 2.\n\nSimple policies all lose to sensible play:\n- Always 8 and RAISE: it scores 3x4 - 9x2 = -6 against opponents who simply bid 0 when it is present, while they score 0.\n- Always 6: it is outbid by H bidding 8 in H's rounds (H +4, maniac -3) and ends near 0, against sensible players near +12.\n- Always 0: it ends at 0, below anyone who takes a cheap round (+10 in an own round won with a bid of 2).\n- Always 2 or 4: it is overbid in the opponents' high rounds and pays half each time.\n\nThe lottery trap is avoided: every player gets exactly 3 high-value rounds, so types matter for when to fight, not for who ends ahead.\n\nPlay centres on inference:\n- Whose round is this, and is it the undealt type's?\n- Will my rival contest, block or yield?\n- How high must I bid?\n\nTalk passes both tests. Everyone wants the prize, so players disagree each round. A player claims 'this is my round, stay out' (true or a bluff), threatens to block, or proposes taking turns. A player who just follows lets a rival bank +10 rounds and falls behind, and a player who believes a bluff yields a round they could have won for 2 or 4.\n\nThis is a competitive auction with highest-total-wins, not a cooperation game, so the endgame-unraveling concern does not apply. Blocking the leader late in the game is a legitimate, costed tactic."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 3,
+      "attributes": 17,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "critic": {
+      "rounds": 3,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "fail",
+            "evidence": "Net result of one round for a bidder (prize value minus bid if they win, minus bid if they lose). Low-value round (value 5): bid 1 gives +4 / -1, bid 3 gives +2 / -3, bid 6 gives -1 / -6. High-value round (value 15): bid 1 gives +14 / -1, bid 3 gives +12 / -3, bid 6 gives +9 / -6. In escalation, a RAISE costs 4 more. In every round exactly one type is high-value. In 3 of the 12 rounds that type is undealt, so nobody holds it.\n\nThoughtless policies under the WINNER RULE (reach 20 or more):\n(a) Always 0: total stays 0 and never reaches 20. Against sensible play it loses. It does not survive.\n(b) Always 6, always RAISE (the spoiler). Its own ceiling is 3 x (15-6) + 9 x (5-6) = 27 - 9 = 18, which is below 20, so it can never win. But no other player can ever win a prize against it. A bid below 6 loses to it outright. A bid of 6 forces escalation. There the spoiler always raises, so the opponent either drops and the spoiler takes the prize, or raises too and nobody wins. Every other total therefore only falls and stays at or below 0. Nobody reaches 20, so the game is a draw with no winner.\n- Against sensible play: draw.\n- Against random play: draw (a random player who ties at 6 either drops or double-raises, and gets no prize either way).\n- Against another spoiler: draw.\nAlways-6/RAISE NEVER LOSES. This fails by rule, even though no single option is strictly better in one round.\n\nThe threshold rule also makes the 'escalation' largely cooperative. If all three truthfully claim their types and each bids 1 in their own high rounds, each scores 3 x 14 = 42 and all draw. Denying a rival costs 6 to remove their 15. So any player who prefers a sole win to a draw is pushed toward spoiling, which collapses the game to the no-winner draw.\n\nSeat and schedule edge: North collects its high rounds earliest, while West sees more of the history before its high rounds. This is a minor asymmetry, but it is untested."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Every round (talk, bid, reveal, all-pay, resolve, escalation, scoring) is fully specified and decided by arithmetic on totals the game keeps.\n- The game is finite: 12 rounds.\n- Limits: steps 12 (max 20), choice steps 3 (talk, bid, escalation; max 4), attributes 16 (max 20), hidden elements 1 (max 3). The single random draw is the setup deal. Rounds 12 (max 40).\n- No judge, board or clock is needed. Escalation is a single conditional step.\n- Talk is simultaneous. It suits a game where players contest the low-value rounds and can bluff about their types, so a claim can cost a player who follows it.\n- Minor gap: the rules never say that totals may go negative. It is implied by the all-pay rule and should be stated.\n- Late rounds: a player who already has 20 or more simply bids 0 to stay there, which the rules allow. The fixed length does not create an unclear situation."
+          },
+          "reasoning_over_luck": {
+            "verdict": "fail",
+            "evidence": "Chance is small. The deal is symmetric (3 high rounds each), and the only luck is schedule timing and which type is undealt. Perhaps 10% of the outcome is chance.\n\nThere is something to infer: rivals' types from their claims and bids, and the undealt type from the rounds where nobody bids high.\n\nHowever, the result does not reward reasoning:\n- If everyone plays the cooperative good strategy, all three reach 42 and draw.\n- If anyone plays the thoughtless always-6/RAISE policy, everyone draws with no winner, however well the others reason.\n- Because denial is cheap (6 to cancel a rival's 15), a strong player who tries for a sole win invites spoiling and ends in a draw.\n\nA strong reasoner is therefore not clearly favoured over a thoughtless one. The modal outcome is a draw regardless of skill."
+          },
+          "required_changes": [
+            "Replace the 20-point threshold with a relative winner rule: the highest total after round 12 wins and equal totals draw. Then re-verify that always-6/RAISE loses to sensible play (its ceiling of 18 must be beaten by players who bid 0 against it and contest its high rounds).",
+            "Break the escalation blocker so that always RAISE cannot cancel every prize. For example: if more than one tied player raises, the prize goes to the raiser with the lowest current total (ties broken by lowest seat number). Alternatively, every raiser beyond the first refunds nothing and the prize still goes to someone. A constant spoiler must then concede prizes.",
+            "Add a worked check to the design showing, under the new winner rule, who wins or draws for always-0, always-1, always-6/RAISE and always-6/DROP against sensible and random opponents. Each must lose most games.",
+            "State explicitly that totals may go negative."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "fail",
+            "evidence": "PRIZE VALUES. In each of the 9 assigned rounds one player (H) values the prize at 16 and the other two (L) at 6. In the 3 rounds of the undealt type, all three value it at 6.\n\nESCALATION SUB-GAME. Raising costs 4 more. Payoffs below are in addition to the bid already paid. Rows are my choice; columns are the other tied player's choice (a 3-way tie behaves the same way).\n\nH (value 16):\n| H \\ other | other DROP | other RAISE |\n|---|---|---|\n| RAISE | 16-4 = +12 | 8-4 = +4 |\n| DROP | 0 | 0 |\nRAISE strictly dominates DROP whatever the opponent does. It is also better in relative terms: it cuts a raising opponent from +2 to -1.\n\nL (value 6):\n| L \\ other | other DROP | other RAISE |\n|---|---|---|\n| RAISE | +2 | 3-4 = -1 |\n| DROP | 0 | 0 |\nThis is a real chicken game.\n\nSo in any escalation involving the high-value player, the choice is not a choice. This is exactly the 'option strictly better whatever the opponent does' that the check forbids.\n\nCONSEQUENCE FOR THE BID STEP. Because H always raises, H bidding 6 guarantees one of three results:\n- +10 when no one else bids 6;\n- +6 when a tied L drops;\n- -2 when a tied L raises. L then ends at -7, so L's spite costs L 5 more than it costs H.\nBidding 6 is therefore near-forced in your own high rounds. L bidding 6 can never net above 0 (at best 6-6), so in money terms it is weakly dominated by bidding 0. Only 3 of 12 rounds, the undealt type's, are genuinely contested.\n\nTHOUGHTLESS POLICIES.\n\n(a) Always bid 6 and always RAISE.\n- Against random play (uniform bids, random raise): it is strictly highest with probability (3/4)^2 = 0.5625. Its expected value is about +5.4 per own round and about -2.4 per other round, roughly -5 overall. Random players lose about 2.5 per round in bids, roughly -25 to -30. The maniac wins almost always.\n- Against profit-maximising sensible players, who yield to it in their own rounds (0 rather than -2): the maniac makes +30 against their roughly 0 and wins.\n- It is beaten only if both opponents spite it in all 6 of their high rounds: maniac 3x10 - 6x7 = -12, each punisher -6. Each punisher pays to do this, and the bystander benefits.\n\n(b) Always bid 0: total exactly 0. It loses to anyone who takes empty rounds with a bid of 1 (+5 each) or own rounds with a bid of 6 (+10).\n\n(c) Always bid 1: it is overbid by 3 or 6 and loses.\n\nSEAT AND INFORMATION. Seat order is irrelevant because all moves are simultaneous. Type order matters a little: West's round 12 comes after all retaliation is over, and North reveals itself first. All three players can realistically win.\n\nVERDICT. The strictly dominant RAISE for value-16 players and the near-forced bid of 6 make most rounds mechanical. The maniac policy also beats random and non-punishing play. Fail."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules cover every case:\n- Bids come from a closed set: 0, 1, 3 or 6.\n- Every bidder pays their bid.\n- An all-zero round, a strict winner, and 2- or 3-way ties at the top are each specified.\n- Escalation covers 0, 1, or 2+ raisers.\n- A half-prize is defined by the receiver's own value (8 or 3); a full prize is 16 or 6.\n- Totals may go negative.\n- The winner is the highest total after 12 rounds, and shared highest totals draw.\nEverything is arithmetic on stored totals and dealt types, and no judge is needed. The escalation step runs only for tied players. That is a single step with a `when` condition, which is supported. Simultaneous choices are polls.\n\nComplexity against limits:\n| Item | Stated | Limit |\n|---|---|---|\n| steps_per_round | 12 | 20 |\n| choice_steps | 3 (talk, bid, escalation) | 4 |\n| attributes | 15 | 20 |\n| hidden_elements | 1 (types) | 3 |\n| random draws per round | 0 (one setup deal) | 1 |\n| rounds | 12 | 40 |\nAll are within limits.\n\nTalk is simultaneous and placed where players disagree: who contests the empty rounds, whether to spite a high player, and bluffing about one's type. Following a proposal can cost a player, so talk is justified.\n\nIn the fixed-length endgame the safe bid of 0 does not win late rounds; relative standings keep contesting or ceding meaningful in round 12. The line 'seat order is random' has no effect, but it causes no ambiguity."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "The only chance is the setup deal of types, including which type is undealt.\n\nInference: in rounds 1-4 each player must work out who holds which type, and which cycle position is the undealt all-6 round. They do this from bids and possibly lying talk. That identifies the contested rounds and who can be spited. After the first cycle this is mostly revealed, so the inference is shallow but real.\n\nOpponent modelling decides the rest:\n- chicken in the 3 empty rounds;\n- whether tied low-value players raise against each other;\n- spite and kingmaking in a 3-player relative game.\n\nIf all players use the same good strategy (6 in own rounds, 0 in others' rounds, symmetric play in empty rounds), totals come out equal and the game is a draw. The winner is not set by the deal. Deal effects, such as North's early reveal and West's round-12 slot, are modest; I estimate they decide under 15% of outcomes. A reasoning player clearly beats random and naive players."
+          },
+          "required_changes": [
+            "Remove the strictly dominant RAISE for high-value players. Change escalation so that if two or more tied players RAISE, nobody receives the prize and each raiser still pays 4. Then H faces a chicken game (+12 if alone, -4 if both raise, against 0 for DROP), and so does L (+2 if alone, -4 if both raise, against 0). Both players' escalation choices become genuine decisions.",
+            "Weaken the always-bid-6 policy. With the change above, a low-value player who matches a bid of 6 and raises costs H 10 (6+4) for no prize. Make sure this threat is credible: for example, lower the cost of a losing bid (refund half of non-winning bids) so the punisher's sacrifice is smaller than H's loss. Then check by table that no bid guarantees a high-value player a positive net whatever the others do.",
+            "After the changes, re-verify by table that always-6-and-raise loses to sensible play without both opponents needing to sacrifice in every one of their high rounds."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Payoffs. Value v is 12 in a player's own high round and 6 otherwise. A sole highest bidder nets v-b. Every other bidder pays b/2. Escalation for two tied players at bid b: raise alone gives v-b-3; drop gives -b/2; both raise gives -b/2-3 each.\n\nEscalation tables (row player's payoff vs the other tied player):\n- v=6, b=8: R/R -7, R/D -5, D/R -4, D/D -4. DROP is dominant for a non-owner.\n- v=12, b=8: R/R -7, R/D +1, D/R -4, D/D -4. The owner should RAISE.\n- v=6, b=2: R/R -4, R/D +1, D/R -1, D/D -1. This is chicken, with no dominant option.\n\nMain bid decision in a round valued (12,6,6). A non-owner's break-even bid is 6 (6-6=0); 4 is the highest bid that still profits (+2). The owner's choice is 6 or 8:\n- At 6 the owner nets +6 against non-owner bids of 4 or less.\n- On a tie at 6 the non-owner is indifferent between raise and drop (-3 either way), and the owner's raise nets +3.\n- At 8 the owner always wins outright, or wins the escalation if a non-owner ties and drops (12-8-3=+1).\n\nSpoiling. A spoiler who ties at 8 pays 4 to cut the owner from +4 to +1. That is a relative swing of -4 vs -3, so it is a losing deal in a 3-player race. The 6-or-8 choice therefore turns on a read of the opponents. No bid is dominant.\n\nThoughtless policies, judged by the winner rule:\n- Always 0 (also the first option) scores exactly 0. Sensible owners take their 3 rounds for about +4 to +6 each (12+), plus shares of the 3 unassigned rounds, so always-0 LOSES to sensible play.\n- Random bidding (uniform over 0..8) loses money:\n  - In a v=6 round, bid 2 wins only 0.04 of the time, for EV about -0.8; bid 8 has EV about -1.3 before tie costs.\n  - In a v=12 round, bid 8 has EV about 0.64\u00d74 + 0.36\u00d7(-3.5) \u2248 +1.3.\n  - So a random player totals roughly -8 over 12 rounds. Always-0 beats random players, but that is passive vs random, not a policy that never loses.\n- Always 8 with always RAISE:\n  - No one else can ever win a prize. To beat it you must tie at 8, and then both raise, so nobody wins.\n  - Unopposed it scores 3\u00d7(+4) + 9\u00d7(-2) = -6.\n  - Opponents bidding 0 stay at 0, so always-8 LOSES. With drop instead it pays 4 in each contested owner round, and also loses.\n- Always last option (8, DROP): same result, it loses.\n\nSeats. All choices are simultaneous, so move order gives no edge. Every type has 3 high rounds. North's round 1 comes before anything is revealed, and West's round 12 is last; these are mild timing differences, not decisive. All three players can realistically win. There is no labelled payoff ordering to contradict."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Rules completeness:\n- Bids are even, so all halves are integers.\n- Every tie case is covered: 2 or 3 tied players, with one raiser, several raisers, or none.\n- Non-tied players pay half their bid.\n- The winner pays the full bid, plus 3 if they raised.\n- Values per player and round are fully specified.\n- Totals may go negative, and the game ends after round 12 with a clear arithmetic winner and draw rule.\n\nLimits: 13 steps (\u226420), 3 choice steps (talk, bid, escalate; \u22644), 17 attributes (\u226420), 1 hidden element (\u22643), 0 random draws per round (the type deal is setup), 12 rounds (\u226440). Simultaneous choices are polls. Per-player values need a table attribute beside the score, which is a supported workaround. No board, clock, judge, trading or binding agreements are needed.\n\nTalk is simultaneous and fits the game. Players genuinely conflict over who takes each round, especially the 3 unassigned rounds, which are chicken games. They can bluff about their type early, and following a proposal can cost them, so talk gives them something to reason about.\n\nLate rounds: staying out of an owner's round remains rational even after a betrayal, because spoiling loses ground relative to the owner. The game does not collapse to a safe option every late round."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Chance enters only at setup: the type deal and which type goes to nobody.\n\nIf everyone plays the intended strategy (owners bid 6 or 8 in their rounds, non-owners mostly stay out), each player banks a similar amount from their own 3 rounds. The winner is then decided by:\n- the three value-6 chicken rounds, through escalation reads and talk;\n- the owner's 6-versus-8 read;\n- early inference of types from rounds 1-4 bids and messages, including bluffing about the unassigned type.\n\nThe deal does not decide the result. Timing differences are minor, and I estimate chance at about 15-20% of the outcome. Hidden information exists early and can be acted on: you can contest rounds you believe are unassigned, or bid low against owners you have misread. Opponent modelling of bids and raises persists all game. A reasoning player clearly beats random or passive play: random play totals about -8, passive play scores 0, and sensible play scores 12 or more."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 3,
+      "attributes": 17,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "measured": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 3,
+      "attributes": 28,
+      "hidden_elements": 7
+    }
+  },
+  "verdict": "ready_for_review"
+}

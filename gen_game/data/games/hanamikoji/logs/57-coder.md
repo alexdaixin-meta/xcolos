@@ -1,0 +1,3380 @@
+# 57 coder
+
+- time: 2026-10-27T11:26:20+00:00 (168.4s)  model: claude-opus-5-5
+- system prompt: [system/16a5676c-coder.md](system/16a5676c-coder.md) (sha256 16a5676c082f6d22)
+- sent sha256 3151b5aa5bbc0dce, reply sha256 745ce5f2279f42ef
+
+## Sent
+
+````
+# Task: write the XColos game file for "Hanamikoji: Five Geisha"
+
+Write the game below as one complete game definition for the XColos engine. Reply with ONE JSON object and nothing else.
+
+## The game
+
+Players: 2 to 2; set `meta.players` to {"min": 2, "max": 2, "suggested": 2} (the suggested size is the one the game plays best at).
+
+COMPONENTS.
+- There are 5 Geisha, numbered 1 to 5, with Charm 3, 3, 4, 5, 6.
+- There are 21 Item cards. Each card shows a Geisha number: three 1s, three 2s, four 3s, five 4s and six 5s.
+- Each Geisha has a marker. Each marker is on Player 1's side, Player 2's side, or in the middle. All markers start in the middle.
+
+PLAYER STATE.
+- hand: private cards.
+- secret: 0 or 1 face-down card.
+- unused_actions: a list.
+- kept: the cards placed on the player's side, visible to both.
+- charm.
+- geisha_count.
+- standing.
+
+GAME STATE.
+- deck, removed_card, discard (hidden).
+- hand_number (1–4), round_in_hand (1–8), starting_seat.
+- marker_1 to marker_5.
+
+ACTION NAMES.
+The four actions are spelled exactly: Secret, Trade-off, Gift, Competition.
+
+STRUCTURE.
+The game is 4 hands of 8 rounds, 32 rounds in total. Hands 1 and 2 form Pair 1; hands 3 and 4 form Pair 2. Player 1 is the starting seat in hands 1 and 3; Player 2 is the starting seat in hands 2 and 4.
+
+START OF A HAND (round_in_hand = 1, before anything else).
+1. Shuffle all 21 Items and set 1 aside face-down as removed_card. Nobody sees it.
+2. Deal 6 cards privately to each player. The remaining 8 cards form the deck.
+3. Empty both secrets. Empty the discard.
+4. Set both players' unused_actions to [Secret, Trade-off, Gift, Competition].
+5. If this is hand 1 or hand 3, empty both players' kept lists. In hands 2 and 4, kept lists carry over unchanged. Markers always carry over.
+
+EACH ROUND (one turn).
+1. The active player is the starting seat in odd rounds (1, 3, 5, 7) and the other player in even rounds (2, 4, 6, 8). Each player therefore takes 4 turns per hand.
+2. The active player draws the top card of the deck into their hand.
+3. The active player chooses one action. The options offered are exactly the actions currently in their unused_actions list. The list is never rebuilt from the round number.
+4. That action is removed from their unused_actions list.
+5. The active player names the hand cards the action uses, by Geisha number, from cards they actually hold.
+6. The action is resolved:
+   - Secret: move 1 hand card face-down to the player's secret.
+   - Trade-off: move 2 hand cards face-down to the discard. They are out of play for this hand.
+   - Gift: reveal 3 hand cards. The opponent chooses 1 of them, and it goes to the opponent's kept. The other 2 go to the active player's kept.
+   - Competition: reveal 4 hand cards split into Pair A (2 cards) and Pair B (2 cards). The opponent chooses Pair A or Pair B, and it goes to the opponent's kept. The other pair goes to the active player's kept.
+
+CARD BUDGET.
+Each player holds 6 cards and draws 4 per hand, 10 in total. The actions use exactly 1+2+3+4 = 10 cards, so the chosen action is always affordable. In round 8 the active player has exactly one action left, which may be Trade-off, and must take it.
+
+END OF A HAND (after round 8).
+Each player's secret card is revealed and appended to their kept list.
+
+END OF A PAIR (after hands 2 and 4 only, after the step above). Run these steps in this order:
+(a) For each Geisha g, count the cards of number g in each player's kept. If one player's count is strictly higher, marker_g moves to that player's side. On a tie the marker stays where it is.
+(b) For each player, charm is the total Charm of the Geisha whose markers are on their side, and geisha_count is the number of markers on their side. standing = charm.
+(c) Win check:
+   - A player with charm 11 or more wins.
+   - Otherwise, a player with geisha_count 3 or more wins.
+   - Both players cannot reach the same goal. If one reaches 11 charm and the other reaches 3 Geisha, the 11-charm player wins.
+   - If someone wins, the game ends.
+
+AFTER HAND 4.
+If no one has won, the player with the higher charm wins. If charm is tied, the player with the higher geisha_count wins. Otherwise the game is a draw.
+
+How the winner is decided: The win check runs at the end of each pair, after hand 2 and after hand 4. A player whose markers total 11 or more Charm wins. Otherwise, a player holding 3 or more markers wins; if one player has 11 Charm and the other has 3 markers, the 11-Charm player wins. If no one has won after hand 4, the higher Charm wins, then the higher Geisha count; otherwise the game is a draw.
+
+## The game as a script
+
+This is the same game written out as a script: its state, how it starts, what happens in each step and how it ends. Convert it into the
+file step by step. Every item under STATE becomes a declared attribute (hidden ones too). Every INITIALIZATION line becomes a step in `setup`
+that really changes that state. Every EACH ROUND line becomes a step in `steps`, in this order. EVALUATION becomes the `end` rules and the check
+that fires them. Do not drop a piece of state because it looks hard: write the steps that make it work.
+
+GAME: Hanamikoji: Five Geisha (2 to 2 players, best with 2)
+
+Two players each take four one-shot actions per hand to place Item cards for five Geisha, aiming for 11 Charm or 3 Geisha at the end of each pair of hands.
+
+STATE (every item below must exist in the file):
+  - each player: hand (list, starts []); only its owner sees it. Item cards held privately, each a Geisha number 1-5
+  - each player: secret (list, starts []); only its owner sees it. 0 or 1 face-down card set aside by Secret this hand
+  - each player: pending (list, starts []); only its owner sees it. cards picked from hand for the current action, in pick order (picks 1-2 are Pair A and picks 3-4 are Pair B in Competition)
+  - each player: unused_actions (list, starts ['Secret', 'Trade-off', 'Gift', 'Competition']); everyone sees it. actions not yet taken this hand
+  - each player: kept (list, starts []); everyone sees it. cards placed on this player's side, visible to both
+  - each player: charm (number, starts 0); everyone sees it. total Charm of Geisha whose markers are on this player's side
+  - each player: geisha_count (number, starts 0); everyone sees it. number of markers on this player's side
+  - each player: standing (number, starts 0); everyone sees it. equals charm; the score
+  - the table: deck (list, starts []); hidden from all players. undealt Item cards this hand
+  - the table: removed_card (list, starts []); hidden from all players. the 1 card set aside face-down each hand
+  - the table: discard (list, starts []); hidden from all players. Trade-off cards, out of play this hand
+  - the table: hand_number (number, starts 1); everyone sees it. current hand, 1-4
+  - the table: round_in_hand (number, starts 1); everyone sees it. current round within the hand, 1-8
+  - the table: starting_seat (number, starts 1); everyone sees it. seat that acts in odd rounds: 1 in hands 1 and 3, 2 in hands 2 and 4
+  - the table: active_seat (number, starts 1); everyone sees it. seat taking this round's turn
+  - the table: last_action (text, starts ''); everyone sees it. action chosen this round
+  - the table: marker_1 (number, starts 0); everyone sees it. Geisha 1 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+  - the table: marker_2 (number, starts 0); everyone sees it. Geisha 2 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+  - the table: marker_3 (number, starts 0); everyone sees it. Geisha 3 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+  - the table: marker_4 (number, starts 0); everyone sees it. Geisha 4 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+  - the table: marker_5 (number, starts 0); everyone sees it. Geisha 5 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+  - the table: game_over (number, starts 0); everyone sees it. 1 once a player has won at a pair end, or hand 4 is complete
+  - parameters, each kept as a table attribute: geisha_count_total = 5, charm_geisha_1 = 3, charm_geisha_2 = 3, charm_geisha_3 = 4, charm_geisha_4 = 5, charm_geisha_5 = 6, items_total = 21, items_geisha_1 = 3, items_geisha_2 = 3, items_geisha_3 = 4, items_geisha_4 = 5, items_geisha_5 = 6, removed_per_hand = 1, deal_per_player = 6, deck_after_deal = 8, hands = 4, rounds_per_hand = 8, rounds_total = 32, turns_per_player_per_hand = 4, secret_cards = 1, tradeoff_cards = 2, gift_cards = 3, gift_cards_to_opponent = 1, competition_cards = 4, competition_pair_size = 2, win_charm = 11, win_geisha = 3
+
+INITIALIZATION (runs once before round 1; each line is a setup step that really changes the state it names):
+  1. Seat 1 is Player 1 and seat 2 is Player 2.
+  2. All five markers start in the middle (marker_1 to marker_5 = 0).
+  3. hand_number = 1, round_in_hand = 1, starting_seat = 1, game_over = 0.
+  4. Each player's kept list is empty, and charm, geisha_count and standing are 0.
+
+EACH ROUND (steps in order; the round repeats until an ending):
+  1. [update] all players. What happens: When round_in_hand == 1: build deck as the 21 Items (three 1s, three 2s, four 3s, five 4s, six 5s). Draw 1 at random into removed_card. Draw 6 at random into each player's hand; the remaining 8 stay in deck. Set each secret, pending and discard to empty. Set each unused_actions to [Secret, Trade-off, Gift, Competition]. If hand_number is 1 or 3, set each kept to empty; in hands 2 and 4, kept carries over. Markers carry over.
+  2. [update] all players. What happens: active_seat = starting_seat if round_in_hand is odd, otherwise the other seat (3 - starting_seat).
+  3. [update] seat active_seat. What happens: Draw 1 card at random from deck (the top of a shuffled deck), append it to the active player's hand and remove it from deck.
+  4. [sync] all players. What happens: Each player sees their own hand and secret, and both players' kept, unused_actions, markers and counters.
+  5. [ask] seat active_seat answers: one of the active player's unused_actions. What happens: last_action = the choice; remove it from the active player's unused_actions.
+  6. [ask] seat active_seat answers: one Geisha number present in the active player's hand. What happens: Move that card from hand to pending (pick 1).
+  7. [ask] seat active_seat answers: one Geisha number present in the active player's hand. What happens: When last_action is Trade-off, Gift or Competition: move that card from hand to pending (pick 2).
+  8. [ask] seat active_seat answers: one Geisha number present in the active player's hand. What happens: When last_action is Gift or Competition: move that card from hand to pending (pick 3).
+  9. [ask] seat active_seat answers: one Geisha number present in the active player's hand. What happens: When last_action is Competition: move that card from hand to pending (pick 4). Picks 1-2 form Pair A and picks 3-4 form Pair B.
+  10. [update] seat active_seat. What happens: When last_action is Secret: move the 1 pending card to the active player's secret, face-down.
+  11. [update] seat active_seat. What happens: When last_action is Trade-off: move the 2 pending cards to discard, face-down.
+  12. [tell] all players. What happens: When last_action is Gift: announce the 3 pending cards. When last_action is Competition: announce Pair A (picks 1-2) and Pair B (picks 3-4).
+  13. [ask] the seat that is not active_seat answers: one of the 3 revealed Gift cards, by Geisha number. What happens: When last_action is Gift: append the chosen card to the opponent's kept, append the other 2 pending cards to the active player's kept, and empty pending.
+  14. [ask] the seat that is not active_seat answers: Pair A or Pair B. What happens: When last_action is Competition: append the chosen pair to the opponent's kept, append the other pair to the active player's kept, and empty pending.
+  15. [update] all players. What happens: When round_in_hand == 8: reveal each player's secret card, append it to their kept, and empty secret.
+  16. [update] all players. What happens: When round_in_hand == 8 and hand_number is 2 or 4: (a) for each g in 1-5, count the cards of number g in each player's kept; if Player 1's count is strictly higher, marker_g = 1; if Player 2's is strictly higher, marker_g = 2; on a tie marker_g is unchanged. (b) Each player's charm = sum of the Charm (3,3,4,5,6) of g whose marker_g equals their seat; geisha_count = number of markers equal to their seat; standing = charm. (c) game_over = 1 if either charm >= 11, or either geisha_count >= 3, or hand_number == 4.
+  17. [tell] all players. What happens: When round_in_hand == 8 and hand_number is 2 or 4: announce marker_1 to marker_5 and each player's charm and geisha_count.
+  18. [check] all players. What happens: End the game if game_over == 1; otherwise continue.
+  19. [update] all players. What happens: If round_in_hand < 8: round_in_hand += 1. Otherwise: round_in_hand = 1, hand_number += 1, starting_seat = 3 - starting_seat.
+
+RULES (each is tested by an independent scenario; the game must play every one exactly):
+  R1. When the game starts, all 5 markers are in the middle (value 0).
+  R2. When a hand starts, 1 of the 21 Items is set aside as removed_card, each player is dealt 6 cards, and 8 cards remain in deck.
+  R3. When a hand starts, both secrets and the discard are emptied and both unused_actions are reset to [Secret, Trade-off, Gift, Competition].
+  R4. When hand 1 or hand 3 starts, both kept lists are emptied; when hand 2 or 4 starts, kept lists and markers are unchanged.
+  R5. Player 1 is starting_seat in hands 1 and 3, and Player 2 in hands 2 and 4.
+  R6. In rounds 1, 3, 5 and 7 the starting seat is active; in rounds 2, 4, 6 and 8 the other seat is active.
+  R7. At the start of each turn the active player draws 1 card from deck into hand.
+  R8. The active player is offered exactly the actions in their unused_actions, and the chosen action is removed from that list.
+  R9. In a player's 4th turn of a hand, exactly one action remains and it must be taken.
+  R10. When Secret is chosen, 1 hand card moves face-down to the player's secret.
+  R11. When Trade-off is chosen, 2 hand cards move face-down to discard and do not score this hand.
+  R12. When Gift is chosen, 3 hand cards are revealed, the opponent picks 1 for their kept, and the other 2 go to the active player's kept.
+  R13. When Competition is chosen, 4 hand cards are revealed as Pair A and Pair B of 2 cards each, the opponent picks one pair for their kept, and the other pair goes to the active player's kept.
+  R14. Cards named for an action must be cards the active player holds.
+  R15. After round 8 of every hand, each player's secret card is appended to their kept.
+  R16. After hands 2 and 4, for each Geisha g, marker_g moves to the side of the player with strictly more g cards in kept; on a tie it stays where it is.
+  R17. After hands 2 and 4, charm = the summed Charm (3,3,4,5,6) of a player's markers, geisha_count = their number of markers, and standing = charm.
+  R18. At a pair end, a player with charm >= 11 wins and the game ends.
+  R19. At a pair end, if no one has charm >= 11, a player with geisha_count >= 3 wins and the game ends.
+  R20. If one player has 11 charm and the other has 3 Geisha, the 11-charm player wins.
+  R21. If no one has won after hand 4, the higher charm wins; if charm is tied, the higher geisha_count wins; otherwise the game is a draw.
+  R22. After hand 2, if no one has won, play continues to hand 3.
+
+OFFERS (what each seat is offered when it is asked; a seat is never offered what it may not do, and nothing is refused afterwards):
+  - Choose an action | asked: the active seat only | options: exactly the entries of the active player's unused_actions (4 in the first turn of a hand, 1 in the last)
+  - Pick a card for the action (picks 1-4) | asked: the active seat only | options: each distinct Geisha number still in the active player's hand; pick 1 always, pick 2 for Trade-off, Gift or Competition, pick 3 for Gift or Competition, pick 4 for Competition only
+  - Choose a Gift card | asked: the non-active seat, only when last_action is Gift | options: the Geisha numbers of the 3 revealed cards
+  - Choose a Competition pair | asked: the non-active seat, only when last_action is Competition | options: Pair A, Pair B
+
+EVALUATION (how the game ends and who wins; decided by calculation):
+  - the game ends when: game_over == 1
+  - each player's standing: (you.charm >= 11) * 10000 + (you.geisha_count >= 3) * 1000 + you.charm * 10 + you.geisha_count (worked out for every player, `you` being that player; the highest wins and players level at the top share the win)
+  - how the result is decided: A player with 11 or more Charm wins first. Otherwise a player with 3 or more Geisha wins. If nobody has won after hand 4, the higher Charm wins, then the higher Geisha count. Players level on all of these share the result, which is a draw.
+  - the end screen states the final scores or deciding figures, and a short model-written summary of how the game went
+
+## Recipe: a shared deck and hidden hands (tested on the engine)
+
+When the script has a deck and hands, both must exist as attributes, and setup must really deal. Declare the hand as a PLAYER attribute
+`{"key": "hand", "visible": "ally", "type": "list", "initial": []}` (only its owner sees it; a player attribute is never `none`) and the
+deck as a TABLE attribute `{"key": "deck", "visible": "none", "type": "list", "initial": [every card, one entry per copy]}`, plus a table text
+attribute `pick` (visible `none`, initial `""`) to hold the card just drawn. Then ONE draw, of a random card into seat N's hand, is three operations
+in an `update`'s `do` list, in this order:
+
+  {"set":    {"key": "pick", "value": {"calc": "deck[int(uniform(0, len(deck)))]"}}},
+  {"append": {"player": N, "key": "hand", "value": {"calc": "pick"}}},
+  {"remove": {"key": "deck", "value": {"calc": "pick"}}}
+
+Dealing two cards to three seats is that block repeated twice for each seat (6 draws), never a fixed list written into `initial`: the deal
+is random and different each match, and every player's hand must differ. A card coming back is `{"append": {"key": "deck", ...}}` and
+`{"remove": {"player": N, "key": "hand", ...}}`. "Has a card of role R" is `"R" in you.hand`. Use `{"if": {"calc": ...}}` on an operation to make
+it conditional. Never declare `hand` or `deck` and then leave them unchanged: the rules would then claim cards that do not exist.
+
+## Pattern: offer each seat only what it may do (tested on the engine)
+
+A question's options may come from state, and the state can differ for every player. So make who may do what part of the OFFER, never a check
+afterwards. Declare a PLAYER list attribute (say `offer`, visible `ally`), and set it for everyone in one `update` just before the question,
+from each player's own attributes and the table's:
+
+  {"set": {"players": "all", "key": "offer",
+           "value": {"calc": "['wait'] + (['buy'] if you.coins >= price else []) + (['block'] if you.seat == target else [])"}}}
+
+then ask with `"answer": {"type": "choice", "options": {"attribute": "offer"}}` and `to` naming who is asked. `you` is each player in turn, and a
+list can be built with `+` and `(... if ... else [])`. Whatever a seat may not do is not in its list: a seat that cannot pay is not offered the
+paid action, only the target of an action is offered a block against it, a player already out is not asked. Do the same for a target: put the
+legal seats in a list attribute.
+
+When a player is eliminated, set the PLATFORM status as well as your own counters: declare a status for it (`{"id": "out", "acts": false}`) next to `playing` and
+run `{"set_status": {"player": N, "to": "out", "text": "Seat {player} is out."}}`. Without it the platform and the console show the player as still in the game, and the
+prompts list them as playing, whatever your own `alive` attribute says. Name the cards it reveals in the same announcement.
+
+Do NOT offer a broad list and then refuse illegal answers and ask again (a `repeat` that asks, checks, and asks again, or an update that removes
+an option the player just picked). It costs a model call, it lets a model choose something illegal, and the pipeline reports it as a failure:
+"an option is offered and then refused". If you find yourself writing a step called "refuse...", "check the answer is legal" or "not allowed",
+you are filling the wrong list: fix the offer.
+
+## Rounds and the safety cap
+
+If the script ends when someone wins (the last player standing, a target reached) and not after a set number of rounds, do not add a fixed
+round count to the rules. The game file still has a `limits` block: set `limits.rounds` to the generous cap the script gives (the number of
+rounds it says a match may run at most) and `limits.rounds_max` to at least that. The ending's `when` holds for the real ending AND when the cap
+is reached, and its `rank_by` also ranks the players as the script says at the cap, so a match that hits the cap still ends with a winner.
+
+## The interface the file must use
+
+Independent tests were written against these names and you cannot see them, so use them exactly.
+
+- each player: `kept` (list, visible: public, starts []): cards placed on this player's side, visible to both
+- each player: `charm` (number, visible: public, starts 0): total Charm of Geisha whose markers are on this player's side
+- each player: `geisha_count` (number, visible: public, starts 0): number of markers on this player's side
+- each player: `standing` (number, visible: public, starts 0): equals charm; the score
+- the table: `marker_1` (number, visible: public, starts 0): Geisha 1 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+- the table: `marker_2` (number, visible: public, starts 0): Geisha 2 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+- the table: `marker_3` (number, visible: public, starts 0): Geisha 3 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+- the table: `marker_4` (number, visible: public, starts 0): Geisha 4 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+- the table: `marker_5` (number, visible: public, starts 0): Geisha 5 marker: 0 middle, 1 Player 1's side, 2 Player 2's side
+- parameters (each must be an attribute holding this value, never a number buried in a step): geisha_count_total = 5, charm_geisha_1 = 3, charm_geisha_2 = 3, charm_geisha_3 = 4, charm_geisha_4 = 5, charm_geisha_5 = 6, items_total = 21, items_geisha_1 = 3, items_geisha_2 = 3, items_geisha_3 = 4, items_geisha_4 = 5, items_geisha_5 = 6, removed_per_hand = 1, deal_per_player = 6, deck_after_deal = 8, hands = 4, rounds_per_hand = 8, rounds_total = 32, turns_per_player_per_hand = 4, secret_cards = 1, tradeoff_cards = 2, gift_cards = 3, gift_cards_to_opponent = 1, competition_cards = 4, competition_pair_size = 2, win_charm = 11, win_geisha = 3
+- the game ends with ONE ending whose `rank_by` is `(you.charm >= 11) * 10000 + (you.geisha_count >= 3) * 1000 + you.charm * 10 + you.geisha_count`: worked out for every player (`you` is that player), the highest wins and players level at the top share the win
+- anything else the game needs to keep track of is yours to design: name it as you like.
+
+## How the platform works
+
+The complete file format reference and two example games are in your system prompt. Follow them exactly: every key an
+action accepts is listed there, and the loader refuses any other. The outcome must be decided by arithmetic: write ONE
+ending, whose `when` is a calc condition and whose `rank_by` is the ranking in the interface below; no `result`, no `winner`, no prose
+ending, no `llm` in an ending. Use calc for any rule that is arithmetic. For a spec step marked `judged`, make that step's `when` `{"prose": "<the judged sentence, verbatim>"}`: a referee answers it
+true or false at play time. You may add `llm` wording to a tell, sync or update (never an ask or poll, never an outcome branch), but always keep its `text`, which is used when no
+model answers. Choices made at the same moment are a `poll`. The end screen announces only the result: the ending's `text` says who won (`{result}`) and the final scores or deciding figures with
+placeholders such as `{players[0].score}`, in a line or two, with no retelling of how the game went. End with `rank_by` as both examples do.
+
+- Mistakes the loader has refused before, so avoid them:
+  * A PLAYER attribute's `visible` is one of public, ally or others, never `none`. (`none` is only for table
+    attributes.) For something only its owner should see, use `ally`.
+  * A `poll` step has no `each` key, and no key the format reference does not list for `poll`. `each` belongs to `ask`.
+  * Do not write a `deal` block unless it has the `into` it requires. Set starting values with `initial` on
+    attributes, or with `set` operations in `setup`, instead.
+  * Every key must be one the reference lists for that action; a misspelled or invented key is refused.
+  * TALK that everyone hears is a `poll` with a free-text answer and `"broadcast": {"to": "all", "text": "Seat {seat} says: {value}"}`
+    (or `"broadcast": "all"` with no `text`, which shows each message word for word). A broadcast may use ONLY `{value}` (what that
+    player answered), `{seat}` (who) and table attributes: a name bound by `verify` is not set yet, so `{talk_msg}` reaches players as
+    the literal braces, and the loader refuses it.
+  * WHO answered what (who challenged, who blocked, who raised a hand) is `"store": "attr"` on the `poll` or `ask`, naming a PLAYER
+    attribute declared under `attributes.player` (a `text` attribute for a choice). Each player's own answer is written to it and a calc reads
+    them all: `count(p.said == 'Challenge' for p in players)`, `min([p.seat for p in players if p.said == 'Challenge'])`. A `verify`
+    tally gives ONE winning value and loses who gave which: one "Challenge" against three "Pass" tallies to "Pass". Never write a seat
+    number into a calc by guessing (`2 if active_seat == 1 else 1`); read it from a stored answer. Reset the stored attribute with a `set`
+    to `""` (`players: "all"`) before each poll, so last round's answers do not count.
+  * `meta.players` carries `min`, `max` and `suggested`, exactly as the task gives them: the console fills a table to the suggested size and the real-model tests play at it.
+  * THE RULES TEXT SAYS BOTH OUTCOMES. For every decision point (a challenge, a block, a claim, a cost), say what happens when it is true AND when it is false,
+    and whether the action still goes ahead; a player decides on this text and nothing else, and a check compares it with each numbered rule.
+  * THE RULES TEXT PLAYERS READ IS THE DESIGN'S. `meta.rules` (the brief) says each mechanic in the design's own words and in its order: how a challenge is resolved,
+    what a block costs, who counts when several answer. Do not paraphrase a mechanic: a reordered sentence is a different rule.
+  * BOOKKEEPING IS HIDDEN. An attribute that only the game's own steps read (a scratch value, a counter, a copy of an option list, who is blocking) is declared
+    hidden (`none` on the table, `ally` on a player), not `public`: every public attribute is printed into every player's prompt on every turn.
+  * THE DEAL REMOVES WHAT IT DEALS. Every card put into a hand is taken out of the deck in the same step (see the deck recipe); after setup, deck plus hands holds
+    exactly the cards the rules start with, and no card appears more often than the rules say.
+  * OFFER ONLY WHAT A SEAT MAY DO. Build each seat's option list from its own state (see the offer pattern) and never refuse an answer afterwards
+    and ask again: an option that is offered, taken and then taken back fails the pipeline's check.
+  * A QUESTION WITH ONE POSSIBLE ANSWER IS NEVER WORTH ASKING ("pass" and nothing else): the engine answers it itself, but write the step so
+    it is not asked at all, and never announce a seat's answer when the seat was not asked (eliminated players).
+  * ASK ONLY WHAT IS NEEDED. Put a `when` on a question that applies only sometimes: a target is asked only for the actions that take one
+    (`"when": {"calc": "chosen_action in ['Steal', 'Assassinate', 'Coup']"}`), a block only when something can be blocked.
+  * A counter must not go below what the rules allow. Guard every payment and loss with an `if` (`"if": {"calc": "you.coins >= cost"}`,
+    or check it before the action is allowed), and treat an action the player cannot afford as the cheapest legal one, as the rules say.
+  * An answer to an `ask` or a `poll` exists ONLY if the step binds it with `verify: {"bind": "name"}`; a later `update`
+    stores it with `"value": "$name"` (see the `rps` example, `card1`). A step that asks and binds nothing throws the
+    answers away, and every score that depends on them stays at its starting value.
+  * An attribute declared `"mutable": false` is set once, by an `initialize` step, and any other step that sets it crashes the game
+    ("declared static and has already been dealt"). To set a hidden type or a starting value at setup, either use an `initialize`
+    step or leave the attribute mutable.
+  * Do not write steps that do nothing (for example an `if` of `{"calc": "False"}`), or two polls where one will do.
+  * Reply with one complete JSON object: double-quoted keys and strings, no comments, no trailing commas. WRITE IT INDENTED,
+    two spaces per level and one key per line, so you can see the nesting and count the brackets; do not put it on one line.
+- Keep a round to at most 20 steps. Put several operations in one `update`'s `do` list, and use one `tell` for the
+  reveal. A game with more steps than that is flagged as too large in the report, however well it plays, and `verify` tells you the count.
+
+## A pattern that works (this complete game is tested: it loads, ends, and every attribute it declares is updated)
+
+For "each player chooses in private, then the choices decide the score":
+1. One `ask` per seat, addressed with `{"where": "you.seat == N"}`, with `"verify": {"bind": "aN"}`. The answer exists only because it is bound.
+2. One `update` after both. It `set`s the bound answers into table attributes with `"$aN"`, and `adjust`s each player's score with a
+   `calc` that may use `$aN` and `if ... else`.
+3. A `check` with `when` and `against`, and ONE ending in `end` whose `rank_by` is `you.score`: the engine ranks the players by it.
+Every attribute is set by a step that runs. Adapt this; do not invent another way to store answers.
+
+```json
+{
+  "schema": 1,
+  "meta": {
+    "id": "match_or_miss",
+    "name": "Match or Miss",
+    "players": {
+      "min": 2,
+      "max": 2
+    },
+    "blurb": "Two players choose A or B in secret; seat 1 scores when they match, seat 2 when they differ."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "rounds_left",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "last_a1",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "last_a2",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      }
+    ]
+  },
+  "rules": "Three rounds. Each round both players secretly choose A or B. If the choices match, seat 1 scores a point; if they differ, seat 2 does. The higher score wins.",
+  "setup": [
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "ask",
+      "label": "seat 1 chooses",
+      "to": {
+        "where": "you.seat == 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "A",
+          "B"
+        ]
+      },
+      "verify": {
+        "bind": "a1"
+      },
+      "text": "Choose A or B. Your opponent will not see it."
+    },
+    {
+      "use": "ask",
+      "label": "seat 2 chooses",
+      "to": {
+        "where": "you.seat == 2"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "A",
+          "B"
+        ]
+      },
+      "verify": {
+        "bind": "a2"
+      },
+      "text": "Choose A or B. Your opponent will not see it."
+    },
+    {
+      "use": "update",
+      "label": "score the round",
+      "do": [
+        {
+          "set": {
+            "key": "last_a1",
+            "value": "$a1"
+          }
+        },
+        {
+          "set": {
+            "key": "last_a2",
+            "value": "$a2"
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "score",
+            "value": {
+              "calc": "1 if $a1 == $a2 else 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "score",
+            "value": {
+              "calc": "0 if $a1 == $a2 else 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "rounds_left",
+            "value": -1
+          }
+        }
+      ],
+      "text": "Seat 1 chose {last_a1}, seat 2 chose {last_a2}."
+    },
+    {
+      "use": "check",
+      "label": "is it over",
+      "when": {
+        "calc": "rounds_left <= 0"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "rounds_left <= 0"
+      },
+      "rank_by": "you.score",
+      "text": "{result} wins."
+    }
+  }
+}
+```
+
+Your file is checked by the platform's loader, a rule that the outcome is arithmetic, random play, a check that every
+attribute is actually updated, and tests written independently from the rules. If it is refused you will be told why and
+shown your file again; fix what is wrong and keep the rest.
+
+## Guidance from the last attempt
+
+The previous attempt had problems:
+
+After the active player picks an action and it is removed from unused_actions, add the card-selection steps.
+
+Card selection:
+- Offer the active seat the Geisha numbers it actually holds in hand, using a game-list or option-source of its own hand cards.
+- Ask once per card the action needs: Secret 1 (secret_cards), Trade-off 2 (tradeoff_cards), Gift 3 (gift_cards), Competition 4 (competition_cards).
+- After each pick, remove one matching card from hand.
+
+Resolution, gated with `when` on last_action:
+- Secret: append the card to that seat's secret.
+- Trade-off: append both cards to the table discard.
+- Gift: put the 3 cards in a shown list, poll the opponent to choose 1, append it to the opponent's kept and the other 2 to the active seat's kept.
+- Competition: have the active seat assign the 4 cards to Pair A and Pair B (competition_pair_size each), poll the opponent to choose A or B, append that pair to the opponent's kept and the other pair to the active seat's kept.
+
+Check that the `when` conditions on these steps actually match the stored action string; right now the resolution steps appear to be skipped entirely. Also verify that round_in_hand advances only once per turn, after resolution, so the round-8 forced action still runs and its cards are placed.
+
+
+YOUR PREVIOUS GAME FILE WAS REFUSED. Here it is:
+```json
+{
+  "schema": 1,
+  "meta": {
+    "id": "hanamikoji",
+    "name": "Hanamikoji: Five Geisha",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "Two players each take four one-shot actions per hand to win the favour of five Geisha: 11 Charm or 3 Geisha at the end of a pair of hands wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "secret",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pending",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "unused_actions",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          "Secret",
+          "Trade-off",
+          "Gift",
+          "Competition"
+        ]
+      },
+      {
+        "key": "kept",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "charm",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "geisha_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "standing",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "chosen",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "removed_card",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "discard",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "all_items",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "1",
+          "1",
+          "1",
+          "2",
+          "2",
+          "2",
+          "3",
+          "3",
+          "3",
+          "3",
+          "4",
+          "4",
+          "4",
+          "4",
+          "4",
+          "5",
+          "5",
+          "5",
+          "5",
+          "5",
+          "5"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "picked",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "needed",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "gift_options",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "opp_choice",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "k1",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "k2",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "revealed",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pair_a",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pair_b",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hand_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "round_in_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "starting_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "active_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "last_action",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "marker_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "game_over",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "geisha_count_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "charm_geisha_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "charm_geisha_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "charm_geisha_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "charm_geisha_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "charm_geisha_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "items_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 21
+      },
+      {
+        "key": "items_geisha_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "items_geisha_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "items_geisha_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "items_geisha_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "items_geisha_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "removed_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "deal_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "deck_after_deal",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "hands",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "rounds_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "rounds_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 32
+      },
+      {
+        "key": "turns_per_player_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "secret_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "tradeoff_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "gift_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "gift_cards_to_opponent",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "competition_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "competition_pair_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "win_charm",
+        "visible": "public",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "win_geisha",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting table",
+      "do": [
+        {
+          "set": {
+            "key": "marker_1",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_2",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_3",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_4",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_5",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "hand_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "round_in_hand",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "starting_seat",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "game_over",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "kept",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "charm",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "geisha_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "standing",
+            "value": 0
+          }
+        }
+      ],
+      "text": "Seat 1 is Player 1 and seat 2 is Player 2. All five Geisha markers start in the middle."
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "start of a hand",
+      "when": {
+        "calc": "round_in_hand == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "all_items"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "removed_card",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "discard",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "secret",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pending",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "unused_actions",
+            "value": [
+              "Secret",
+              "Trade-off",
+              "Gift",
+              "Competition"
+            ]
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "kept",
+            "value": [],
+            "if": {
+              "calc": "hand_number % 2 == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed_card",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ],
+      "text": "Hand {hand_number} of {hands} begins. One Item is set aside face-down, each player is dealt {deal_per_player} cards, and {deck_after_deal} remain in the deck. Seat {starting_seat} is the starting seat."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "the active player draws",
+      "do": [
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "starting_seat if round_in_hand % 2 == 1 else 3 - starting_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "chosen",
+            "value": {
+              "calc": "you.unused_actions[0] if len(you.unused_actions) == 1 else ''"
+            }
+          }
+        }
+      ],
+      "text": "Round {round_in_hand} of hand {hand_number}: seat {active_seat} draws a card."
+    },
+    {
+      "use": "sync",
+      "phase": "turn",
+      "label": "where you stand",
+      "mode": "self",
+      "to": "all",
+      "text": "Your state:"
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "choose an action",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "when": {
+        "calc": "sum([len(p.unused_actions) for p in players if p.seat == active_seat]) > 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "unused_actions"
+        }
+      },
+      "store": "chosen",
+      "text": "Your turn. Choose one of your unused actions. Secret: 1 card face-down, scored at the end of the hand. Trade-off: 2 cards face-down to the discard, out of play this hand. Gift: reveal 3 cards, your opponent takes 1, you keep 2. Competition: reveal Pair A and Pair B, your opponent takes one pair, you keep the other."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "the action is spent",
+      "do": [
+        {
+          "set": {
+            "key": "last_action",
+            "value": {
+              "calc": "[p.chosen for p in players if p.seat == active_seat][0]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "unused_actions",
+            "value": {
+              "calc": "last_action"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "needed",
+            "value": {
+              "calc": "secret_cards if last_action == 'Secret' else (tradeoff_cards if last_action == 'Trade-off' else (gift_cards if last_action == 'Gift' else competition_cards))"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "picked",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "revealed",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "pair_a",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "pair_b",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "gift_options",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "offer",
+            "value": {
+              "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in you.hand]"
+            }
+          }
+        }
+      ],
+      "text": "Seat {active_seat} takes the action {last_action}."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "pick card 1",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "player": "$seat",
+              "key": "pending",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "picked",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "players": {
+                "where": "you.seat == active_seat"
+              },
+              "key": "offer",
+              "value": {
+                "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in you.hand]"
+              }
+            }
+          }
+        ]
+      },
+      "text": "{last_action}: name card 1 by its Geisha number, from the cards in your hand. In Competition, cards 1 and 2 form Pair A and cards 3 and 4 form Pair B."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "pick card 2",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "when": {
+        "calc": "needed >= 2"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          }
+... (cut)
+
+Why it was refused: the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state shown to players has empty fields (chosen, last_action) in `where_you_stand`; hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed
+Correct it: change what the problem requires and keep the rest. Reply in the same format as before, complete, and nothing else.
+````
+
+## Reply
+
+````
+```json
+{
+  "schema": 1,
+  "meta": {
+    "id": "hanamikoji",
+    "name": "Hanamikoji: Five Geisha",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "Two players each take four one-shot actions per hand to win the favour of five Geisha: 11 Charm or 3 Geisha at the end of a pair of hands wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "secret",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pending",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "unused_actions",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          "Secret",
+          "Trade-off",
+          "Gift",
+          "Competition"
+        ]
+      },
+      {
+        "key": "kept",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "charm",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "geisha_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "standing",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "chosen",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "removed_card",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "discard",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "all_items",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "1",
+          "1",
+          "1",
+          "2",
+          "2",
+          "2",
+          "3",
+          "3",
+          "3",
+          "3",
+          "4",
+          "4",
+          "4",
+          "4",
+          "4",
+          "5",
+          "5",
+          "5",
+          "5",
+          "5",
+          "5"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "needed",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "gift_options",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "opp_choice",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "revealed",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pair_a",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pair_b",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hand_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "round_in_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "starting_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "active_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "last_action",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "marker_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "marker_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "game_over",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "geisha_count_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "charm_geisha_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "charm_geisha_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "charm_geisha_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "charm_geisha_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "charm_geisha_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "items_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 21
+      },
+      {
+        "key": "items_geisha_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "items_geisha_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "items_geisha_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "items_geisha_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "items_geisha_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "removed_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "deal_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "deck_after_deal",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "hands",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "rounds_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "rounds_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 32
+      },
+      {
+        "key": "turns_per_player_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "secret_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "tradeoff_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "gift_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "gift_cards_to_opponent",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "competition_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "competition_pair_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "win_charm",
+        "visible": "public",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "win_geisha",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting table",
+      "do": [
+        {
+          "set": {
+            "key": "marker_1",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_2",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_3",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_4",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "marker_5",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "hand_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "round_in_hand",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "starting_seat",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "game_over",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "kept",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "charm",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "geisha_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "standing",
+            "value": 0
+          }
+        }
+      ],
+      "text": "Seat 1 is Player 1 and seat 2 is Player 2. All five Geisha markers start in the middle."
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "unused_actions",
+        "charm",
+        "geisha_count",
+        "standing"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "start of a hand",
+      "when": {
+        "calc": "round_in_hand == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "all_items"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "removed_card",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "discard",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "secret",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pending",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "unused_actions",
+            "value": [
+              "Secret",
+              "Trade-off",
+              "Gift",
+              "Competition"
+            ]
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "kept",
+            "value": [],
+            "if": {
+              "calc": "hand_number % 2 == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed_card",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ],
+      "text": "Hand {hand_number} of {hands} begins. One Item is set aside face-down, each player is dealt {deal_per_player} cards, and {deck_after_deal} remain in the deck. Seat {starting_seat} is the starting seat."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "the active player draws",
+      "do": [
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "starting_seat if round_in_hand % 2 == 1 else 3 - starting_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(deck) > 0"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(deck) > 0"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(deck) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "chosen",
+            "value": {
+              "calc": "you.unused_actions[0] if len(you.unused_actions) == 1 else ''"
+            }
+          }
+        }
+      ],
+      "text": "Round {round_in_hand} of hand {hand_number}: seat {active_seat} draws a card."
+    },
+    {
+      "use": "sync",
+      "phase": "turn",
+      "label": "where you stand",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand",
+        "secret",
+        "kept",
+        "unused_actions",
+        "charm",
+        "geisha_count",
+        "standing"
+      ],
+      "text": "Your state:"
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "choose an action",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "when": {
+        "calc": "sum([len(p.unused_actions) for p in players if p.seat == active_seat]) > 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "unused_actions"
+        }
+      },
+      "store": "chosen",
+      "text": "Your turn. Choose one of your unused actions. Secret: 1 card face-down, added to your kept at the end of the hand. Trade-off: 2 cards face-down to the discard, out of play this hand. Gift: reveal 3 cards, your opponent takes 1, you keep 2. Competition: reveal Pair A (cards 1-2) and Pair B (cards 3-4), your opponent takes one pair, you keep the other."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "the action is spent",
+      "do": [
+        {
+          "set": {
+            "key": "last_action",
+            "value": {
+              "calc": "[p.chosen for p in players if p.seat == active_seat][0]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "unused_actions",
+            "value": {
+              "calc": "last_action"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "needed",
+            "value": {
+              "calc": "secret_cards if last_action == 'Secret' else (tradeoff_cards if last_action == 'Trade-off' else (gift_cards if last_action == 'Gift' else competition_cards))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "pending",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "revealed",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "pair_a",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "pair_b",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "gift_options",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "opp_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "offer",
+            "value": {
+              "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in you.hand]"
+            }
+          }
+        }
+      ],
+      "text": "Seat {active_seat} takes the action {last_action}."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "pick card 1",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "player": "$seat",
+              "key": "pending",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "players": {
+                "where": "you.seat == active_seat"
+              },
+              "key": "offer",
+              "value": {
+                "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in you.hand]"
+              }
+            }
+          }
+        ]
+      },
+      "text": "{last_action}: name card 1 by its Geisha number, from the cards in your hand. In Competition, cards 1 and 2 form Pair A and cards 3 and 4 form Pair B."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "pick card 2",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "when": {
+        "calc": "needed >= 2"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "player": "$seat",
+              "key": "pending",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "players": {
+                "where": "you.seat == active_seat"
+              },
+              "key": "offer",
+              "value": {
+                "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in you.hand]"
+              }
+            }
+          }
+        ]
+      },
+      "text": "{last_action}: name card 2 by its Geisha number, from the cards still in your hand."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "pick card 3",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "when": {
+        "calc": "needed >= 3"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "player": "$seat",
+              "key": "pending",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "players": {
+                "where": "you.seat == active_seat"
+              },
+              "key": "offer",
+              "value": {
+                "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in you.hand]"
+              }
+            }
+          }
+        ]
+      },
+      "text": "{last_action}: name card 3 by its Geisha number, from the cards still in your hand. In Competition this card starts Pair B."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "pick card 4",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "when": {
+        "calc": "needed >= 4"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "player": "$seat",
+              "key": "pending",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "players": {
+                "where": "you.seat == active_seat"
+              },
+              "key": "offer",
+              "value": {
+                "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in you.hand]"
+              }
+            }
+          }
+        ]
+      },
+      "text": "{last_action}: name card 4 by its Geisha number, from the cards still in your hand. Cards 3 and 4 form Pair B."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "the cards are placed",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "secret",
+            "value": {
+              "calc": "you.secret + you.pending"
+            },
+            "if": {
+              "calc": "last_action == 'Secret'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "discard",
+            "value": {
+              "calc": "discard + [p.pending for p in players if p.seat == active_seat][0]"
+            },
+            "if": {
+              "calc": "last_action == 'Trade-off'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "revealed",
+            "value": {
+              "calc": "[p.pending for p in players if p.seat == active_seat][0]"
+            },
+            "if": {
+              "calc": "last_action in ['Gift', 'Competition']"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "gift_options",
+            "value": {
+              "calc": "[g for g in ['1', '2', '3', '4', '5'] if g in revealed]"
+            },
+            "if": {
+              "calc": "last_action == 'Gift'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "opp_choice",
+            "value": {
+              "calc": "gift_options[0]"
+            },
+            "if": {
+              "calc": "last_action == 'Gift' and len(gift_options) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pair_a",
+            "value": {
+              "calc": "[revealed[0], revealed[1]]"
+            },
+            "if": {
+              "calc": "last_action == 'Competition' and len(revealed) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pair_b",
+            "value": {
+              "calc": "[revealed[2], revealed[3]]"
+            },
+            "if": {
+              "calc": "last_action == 'Competition' and len(revealed) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "pending",
+            "value": [],
+            "if": {
+              "calc": "last_action in ['Secret', 'Trade-off']"
+            }
+          }
+        }
+      ],
+      "text": "Seat {active_seat} resolves {last_action}."
+    },
+    {
+      "use": "tell",
+      "phase": "turn",
+      "label": "the gift is revealed",
+      "when": {
+        "calc": "last_action == 'Gift'"
+      },
+      "to": "all",
+      "text": "Seat {active_seat} offers a Gift of {revealed}. The opponent takes 1 card; the other 2 go to seat {active_seat}'s kept."
+    },
+    {
+      "use": "tell",
+      "phase": "turn",
+      "label": "the competition is revealed",
+      "when": {
+        "calc": "last_action == 'Competition'"
+      },
+      "to": "all",
+      "text": "Seat {active_seat} opens a Competition: Pair A {pair_a}, Pair B {pair_b}. The opponent takes one pair; the other goes to seat {active_seat}'s kept."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "choose a gift card",
+      "to": {
+        "where": "you.seat != active_seat"
+      },
+      "when": {
+        "calc": "last_action == 'Gift' and len(gift_options) > 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "game": "gift_options"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "opp_choice",
+              "value": "$answer"
+            }
+          }
+        ]
+      },
+      "text": "Your opponent offers a Gift of {revealed}. Choose one card by its Geisha number: it goes to your kept, and the other two go to your opponent's kept."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "choose a competition pair",
+      "to": {
+        "where": "you.seat != active_seat"
+      },
+      "when": {
+        "calc": "last_action == 'Competition'"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Pair A",
+          "Pair B"
+        ]
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "opp_choice",
+              "value": "$answer"
+            }
+          }
+        ]
+      },
+      "text": "Your opponent opens a Competition: Pair A {pair_a}, Pair B {pair_b}. Choose Pair A or Pair B: it goes to your kept, and the other pair goes to your opponent's kept."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "the revealed cards are kept",
+      "when": {
+        "calc": "last_action in ['Gift', 'Competition']"
+      },
+      "do": [
+        {
+          "append": {
+            "players": {
+              "where": "you.seat != active_seat"
+            },
+            "key": "kept",
+            "value": {
+              "calc": "opp_choice"
+            },
+            "if": {
+              "calc": "last_action == 'Gift'"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "pending",
+            "value": {
+              "calc": "opp_choice"
+            },
+            "if": {
+              "calc": "last_action == 'Gift'"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "kept",
+            "value": {
+              "calc": "you.kept + you.pending"
+            },
+            "if": {
+              "calc": "last_action == 'Gift'"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat != active_seat"
+            },
+            "key": "kept",
+            "value": {
+              "calc": "you.kept + (pair_a if opp_choice == 'Pair A' else pair_b)"
+            },
+            "if": {
+              "calc": "last_action == 'Competition'"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "kept",
+            "value": {
+              "calc": "you.kept + (pair_b if opp_choice == 'Pair A' else pair_a)"
+            },
+            "if": {
+              "calc": "last_action == 'Competition'"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "pending",
+            "value": []
+          }
+        }
+      ],
+      "text": "The opponent of seat {active_seat} takes {opp_choice}. Kept: seat 1 {players[0].kept}, seat 2 {players[1].kept}."
+    },
+    {
+      "use": "update",
+      "phase": "hand end",
+      "label": "secrets are revealed",
+      "when": {
+        "calc": "round_in_hand == rounds_per_hand"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "kept",
+            "value": {
+              "calc": "you.kept + you.secret"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "secret",
+            "value": []
+          }
+        }
+      ],
+      "text": "Hand {hand_number} is over. Each secret card is revealed and added to its owner's kept. Kept: seat 1 {players[0].kept}, seat 2 {players[1].kept}."
+    },
+    {
+      "use": "update",
+      "phase": "pair end",
+      "label": "the markers move",
+      "when": {
+        "calc": "round_in_hand == rounds_per_hand and hand_number % 2 == 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "marker_1",
+            "value": {
+              "calc": "1 if count(c == '1' for c in players[0].kept) > count(c == '1' for c in players[1].kept) else (2 if count(c == '1' for c in players[1].kept) > count(c == '1' for c in players[0].kept) else marker_1)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "marker_2",
+            "value": {
+              "calc": "1 if count(c == '2' for c in players[0].kept) > count(c == '2' for c in players[1].kept) else (2 if count(c == '2' for c in players[1].kept) > count(c == '2' for c in players[0].kept) else marker_2)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "marker_3",
+            "value": {
+              "calc": "1 if count(c == '3' for c in players[0].kept) > count(c == '3' for c in players[1].kept) else (2 if count(c == '3' for c in players[1].kept) > count(c == '3' for c in players[0].kept) else marker_3)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "marker_4",
+            "value": {
+              "calc": "1 if count(c == '4' for c in players[0].kept) > count(c == '4' for c in players[1].kept) else (2 if count(c == '4' for c in players[1].kept) > count(c == '4' for c in players[0].kept) else marker_4)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "marker_5",
+            "value": {
+              "calc": "1 if count(c == '5' for c in players[0].kept) > count(c == '5' for c in players[1].kept) else (2 if count(c == '5' for c in players[1].kept) > count(c == '5' for c in players[0].kept) else marker_5)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "charm",
+            "value": {
+              "calc": "(charm_geisha_1 if marker_1 == you.seat else 0) + (charm_geisha_2 if marker_2 == you.seat else 0) + (charm_geisha_3 if marker_3 == you.seat else 0) + (charm_geisha_4 if marker_4 == you.seat else 0) + (charm_geisha_5 if marker_5 == you.seat else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "geisha_count",
+            "value": {
+              "calc": "count(m == you.seat for m in [marker_1, marker_2, marker_3, marker_4, marker_5])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "standing",
+            "value": {
+              "calc": "(charm_geisha_1 if marker_1 == you.seat else 0) + (charm_geisha_2 if marker_2 == you.seat else 0) + (charm_geisha_3 if marker_3 == you.seat else 0) + (charm_geisha_4 if marker_4 == you.seat else 0) + (charm_geisha_5 if marker_5 == you.seat else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "game_over",
+            "value": {
+              "calc": "1 if (any([p.charm >= win_charm or p.geisha_count >= win_geisha for p in players]) or hand_number >= hands) else 0"
+            }
+          }
+        }
+      ],
+      "text": "End of a pair. Markers (0 middle, 1 seat 1, 2 seat 2): Geisha 1 {marker_1}, Geisha 2 {marker_2}, Geisha 3 {marker_3}, Geisha 4 {marker_4}, Geisha 5 {marker_5}. Seat 1: charm {players[0].charm}, Geisha {players[0].geisha_count}. Seat 2: charm {players[1].charm}, Geisha {players[1].geisha_count}."
+    },
+    {
+      "use": "check",
+      "phase": "pair end",
+      "label": "is the game over",
+      "when": {
+        "calc": "game_over == 1"
+      },
+      "against": [
+        "over"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "advance",
+      "label": "next round",
+      "do": [
+        {
+          "adjust": {
+            "key": "hand_number",
+            "value": 1,
+            "if": {
+              "calc": "round_in_hand >= rounds_per_hand"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "starting_seat",
+            "value": {
+              "calc": "3 - starting_seat"
+            },
+            "if": {
+              "calc": "round_in_hand >= rounds_per_hand"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round_in_hand",
+            "value": {
+              "calc": "round_in_hand + 1 if round_in_hand < rounds_per_hand else 1"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "game_over == 1"
+      },
+      "rank_by": "(you.charm >= 11) * 10000 + (you.geisha_count >= 3) * 1000 + you.charm * 10 + you.geisha_count",
+      "text": "Winner: {result}. Seat 1: charm {players[0].charm}, Geisha {players[0].geisha_count}. Seat 2: charm {players[1].charm}, Geisha {players[1].geisha_count}."
+    }
+  },
+  "limits": {
+    "rounds": 32,
+    "rounds_max": 40,
+    "actions_max": 2000,
+    "deadline_s": 120
+  },
+  "rules": "There are {geisha_count_total} Geisha, numbered 1 to 5, with Charm {charm_geisha_1}, {charm_geisha_2}, {charm_geisha_3}, {charm_geisha_4} and {charm_geisha_5}. There are {items_total} Item cards, each showing a Geisha number: {items_geisha_1} 1s, {items_geisha_2} 2s, {items_geisha_3} 3s, {items_geisha_4} 4s and {items_geisha_5} 5s. Each Geisha has a marker that is on Player 1's side (seat 1), Player 2's side (seat 2), or in the middle (0). All markers start in the middle.\n\nThe game is {hands} hands of {rounds_per_hand} rounds, {rounds_total} rounds in total. Hands 1 and 2 form Pair 1; hands 3 and 4 form Pair 2. Player 1 is the starting seat in hands 1 and 3; Player 2 in hands 2 and 4.\n\nStart of a hand: all {items_total} Items are shuffled and {removed_per_hand} is set aside face-down; nobody sees it. Each player is dealt {deal_per_player} cards privately; the remaining {deck_after_deal} form the deck. Both secrets and the discard are emptied, and both players get back all four actions: Secret, Trade-off, Gift, Competition. In hands 1 and 3 both kept lists are emptied; in hands 2 and 4 kept lists carry over. Markers always carry over.\n\nEach round is one turn. The starting seat is active in rounds 1, 3, 5 and 7; the other player in rounds 2, 4, 6 and 8, so each player takes {turns_per_player_per_hand} turns per hand. The active player draws the top card of the deck, then chooses one action from their unused actions; that action is used up for this hand. In your last turn of a hand only one action remains and you must take it. You then name the cards the action uses, one at a time by Geisha number, from cards you actually hold.\n- Secret: {secret_cards} card goes face-down to your secret. It is added to your kept at the end of the hand.\n- Trade-off: {tradeoff_cards} cards go face-down to the discard. They are out of play and do not score this hand.\n- Gift: {gift_cards} cards are revealed. Your opponent chooses {gift_cards_to_opponent} of them for their kept; the other 2 go to your kept.\n- Competition: {competition_cards} cards are revealed as Pair A (your first 2 picks) and Pair B (your last 2 picks), {competition_pair_size} cards each. Your opponent chooses Pair A or Pair B for their kept; the other pair goes to your kept.\nYou hold 6 cards and draw 4 per hand; the actions use exactly 10, so every action is always affordable.\n\nEnd of a hand (after round 8): each player's secret card is revealed and added to their kept.\n\nEnd of a pair (after hands 2 and 4 only): (a) for each Geisha, the player with strictly more cards of that number in their kept takes its marker to their side; on a tie the marker stays where it is. (b) Your charm is the total Charm of the Geisha whose markers are on your side, your Geisha count is the number of markers on your side, and your standing equals your charm. (c) A player with {win_charm} or more charm wins. Otherwise, a player with {win_geisha} or more Geisha wins. If one player has {win_charm} charm and the other has {win_geisha} Geisha, the {win_charm}-charm player wins. If someone wins, the game ends; if no one has won after hand 2, play continues to hand 3.\n\nAfter hand 4, if no one has won, the higher charm wins; if charm is tied, the higher Geisha count wins; otherwise the game is a draw and both players share the result."
+}
+```
+````

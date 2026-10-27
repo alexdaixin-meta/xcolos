@@ -1,0 +1,35 @@
+# Reasoning and planning: Hidden-Pot Ultimatum (Three Players)
+
+**Verdict: adequate.** Winning plainly takes reasoning: players must reconstruct hidden totals, infer pots from the alternation and time their vetoes, and the endgames were decided by exact calculation. Planning stays mostly at the level of keeping one veto in hand; revealing more information, such as rounding hints, or adding more rounds would reward longer reputation plans and reduce how much the pot order decides.
+
+From 3 play(s): 126 choices, 94 with a reason given (about 53.6 words each); results {'seat 3': 1, 'seat 2': 1, 'seat 1': 1}.
+
+## Reasoning: 3 of 3
+
+Most votes and offers rest on specific reconstructions of hidden totals from public offers and votes, inference of the current pot from the 12/24 alternation, and case-by-case comparison of margins, which is the pot-calibration the designer asked for. A few slips occur, such as a misremembered rival total and offers that contradict the player's own stated plan, but the endgame calculations are mostly exact and correct.
+
+- match 1, turn 35, seat 3: "If this pot is 24, seat 2 keeps 12 and loses 4, falling to -7." (Works out a rival's total under each hidden pot and finds a veto line that wins whichever pot is true.)
+- match 2, turn 41, seat 2: "If this pot is 24, seat 1 keeps 19 and reaches 21. I lose." (Doubts the Proposer's 'confession' and weighs the unverifiable pot claim against a reject that guarantees the win.)
+- match 1, turn 6, seat 2: "Their claim of 12 is unverifiable and convenient. Only the strictly highest total wins, so what matters is my margin over the others." (Judges whether 4/4 is a fair 12-pot split or a 24-pot grab, and reasons on relative margin rather than own points.)
+- match 3, turn 41, seat 2: "Accepting loses in both cases. Rejecting wins in the first case, and seat 1 said its round 1 pot was 12." (Tests both possible pot histories and picks the only vote that has a winning branch.)
+
+## Planning: 2 of 3
+
+Players often keep a later veto in hand ('In round 6 I can veto') and manage their reputation for a later 24-pot turn, and some multi-round plans are made and carried out, such as seat 3's two-round reject plan in match 1. Most plans are simple holds of a veto for later rather than longer schemes that rely on what others will do.
+
+- match 1, turn 35, seat 3: "Rejecting now and again in round 6 guarantees me a strict win." (A two-round plan that was carried out and won the match.)
+- match 2, turn 32, seat 2: "In round 6 I can veto any deal from seat 1 and still lead after losing the 1 point for rejecting." (Keeps a later veto as a resource when sizing current offers.)
+- match 3, turn 17, seat 3: "Saying the pot is 12 is true, and it signals honesty for round 4." (Reputation management across the Proposer's two turns, as the designer intended.)
+
+## Luck: 2 of 3
+
+The coin flips decided who held a 24 pot at which point, and that shaped results: seat 1's early 24 keep in match 3 was decisive, and seat 2's late 12 pot left it unable to pass seat 1. Within that, veto choices still decided matches 1 and 2.
+
+- match 3, turn 41, seat 2: "it kept 13 and has about 17. Its pot now is 12, so its keep is 5. ... If I reject: seat 1 ends with 16 and I end with 15, so seat 1 still wins." (The pot order decided the race. Once seat 1 had banked its early 24 keep, no vote by seat 2 could stop seat 1.)
+
+## Weak spots
+
+- match 1, turn 12, seat 2: At turn 11 seat 2 said 'I'll give seat 3 the 5 they asked for', then at turn 12 offered seat 3 only 4 on the guess that the demand was a bluff. A 5 to the swing Responder cost almost nothing and was the better-reasoned option.
+- match 1, turn 36, seat 1: Claimed 'I'm well ahead after seat 2's 6-6 passed' when the table had seen that deal fail. A lie that public information refutes cannot persuade. An honest appeal to seat 3's own points was the better option.
+- match 2, turn 42, seat 3: Put seat 2's total at '-2 or 14' when seat 2 was at 8. The vote came out the same, but the case analysis behind it was wrong.
+- match 2, turn 25, seat 3: Announced 6 each, then offered 2 to seat 1, a player who had already rejected a 6. A rejection was near certain. Offering 6 to both from the 12 pot, or an honest smaller split, would have avoided losing credibility for nothing.

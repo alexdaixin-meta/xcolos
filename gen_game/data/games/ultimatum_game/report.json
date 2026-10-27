@@ -1,0 +1,409 @@
+{
+  "game": "ultimatum_game",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state a player is shown has empty fields (vote, vote); hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Start: every total is 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 1 is proposed by seat 1 and only seats 2 and 3 vote (proposer keep is random, so not asserted)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 4 is proposed by seat 3 again",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 6 is proposed by seat 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "First proposal uses a coin-flipped pot (only the chance-free responder payouts are asserted)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Second proposal uses the stored other pot (12): keep 12-2-3 = 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Whole game with zero offers all accepted: each seat's two pots sum to 36 whatever the coins, three-way tie",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Pot is private: responders are never asked for offers",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Talk step does not change the round's outcome",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Offers range 0 to 6 and may differ (2 to seat 2, 5 to seat 3)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Pot 24, offers 3 and 5: keep 16",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Pot 12, offers 6 and 6: keep 0, so a rejection costs the proposer nothing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Both offers are announced as public offer values",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Votes are recorded: seat 2 accept, seat 3 reject",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Both accept: responders get their offers, proposer gets keep 24-4-6 = 14",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "One reject with keep 18: proposer loses 6, nothing is paid",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Reject with keep 12 (pot 24, offers 6 and 6): proposer loses 4",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Both reject with keep 2: proposer loses 0, each rejecter loses 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After a round each total reflects only that round's payout",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 6 and totals may be negative",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Single highest total wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Two seats tied for the top: nobody wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        3
+      ],
+      "results": {
+        "seat 2": 10,
+        "seat 3": 6,
+        "seat 1": 3,
+        "no winner decided (no seat reached the minimum to win)": 1
+      },
+      "turns_min": 42,
+      "turns_max": 42
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 2": 23,
+      "seat 3": 18,
+      "seat 1": 17,
+      "no winner decided (no seat reached the minimum to win)": 2
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 16,
+        "loss": 41,
+        "draw": 3,
+        "win_rate": 0.28
+      },
+      "first@seat2": {
+        "win": 19,
+        "loss": 38,
+        "draw": 3,
+        "win_rate": 0.33
+      },
+      "last@seat1": {
+        "win": 34,
+        "loss": 16,
+        "draw": 10,
+        "win_rate": 0.68
+      },
+      "last@seat2": {
+        "win": 38,
+        "loss": 13,
+        "draw": 9,
+        "win_rate": 0.75
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 42.0,
+      "prompt_chars_avg": 231,
+      "prompt_chars_max": 329
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 3 players, suggested 3",
+      "why": "The designer fixed the table at 3. The proposer schedule (1,2,3,3,2,1) and the two-Responder unanimity rule are built for exactly three seats, so no other size is defined. The minimum is 3 because the schedule needs three seats, and the maximum is not larger because the schedule names only three."
+    },
+    {
+      "what": "Keep the simultaneous talk step as a poll with a broadcast",
+      "why": "The rules require it. It earns its place because the Proposer's interest (claiming a small pot to justify low offers) conflicts with the Responders' interest (believing the pot is large and demanding more), and Responders can coordinate threats to reject."
+    },
+    {
+      "what": "The coin flip is made at each seat's first proposal, and the second pot is stored in hidden table attributes second_pot_s1, second_pot_s2 and second_pot_s3",
+      "why": "This matches the source exactly: no seat learns its pot order before its first proposal, so the order stays secret until then."
+    },
+    {
+      "what": "The two offers are asked as two consecutive number questions to the Proposer, lower-numbered Responder first",
+      "why": "A question takes one whole number. The Proposer answers both before anyone sees them, because the offers are only announced afterwards."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful Proposer weighs bluffing about the pot against the risk of a rejection that costs a third of the keep. A thoughtful Responder judges whether an offer is fair given the hidden pot, remembers that rejecting costs 1 point, and uses the reversed schedule (rounds 4 to 6) to reward or punish earlier Proposers."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A draw (a tie for the top total) is expressed as 'nobody wins' through min_to_win = top_total + 1000 * (top_count - 1)",
+      "why": "The engine shares the win among tied leaders by default. Raising the bar out of reach when more than one player holds the top total reproduces the source's 'tie is a draw' with no winner."
+    },
+    {
+      "what": "Totals are switched from owner-only to public at the end of round 6",
+      "why": "The source reveals every total at the end, so the end-of-game reveal is done by changing visibility as well as by announcement."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 4,
+    "attributes": 34,
+    "hidden_elements": 10
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "The Ultimatum Game: a Proposer offers a Responder part of 100 units. If the Responder accepts, the split stands; if the Responder rejects, both get 0. It is one-shot, with complete information about the pot.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "bad",
+        "evidence": "In the one-shot original the offer-minimum/accept-anything pair is the subgame-perfect answer. Under 'higher total wins' with two players, only the difference counts, so the Responder rejects anything under 50 and the game collapses to a forced 50/50 draw. The previous 3-player variation still degenerated. Always taking the first option (offer 0, accept) won 60 of 60 games as seat 1 and as seat 2. Always taking the last option lost 60 of 60. Seat 3 won only 7 times against random seats, a structural seat bias."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "bad",
+        "evidence": "A fixed one-line policy beat random players every time. Rejection was cheap for everyone except the proposer's rivals, and nothing hidden needed reading, so skill had little to work on beyond 'be stingy'."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "weak",
+        "evidence": "With the pot public, the only question is how fairness norms hold up. Once the answer is known (lowball in the original, 50/50 under relative scoring), nothing is left to improve."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "bad",
+        "evidence": "Complete information: the Responder knows exactly what the Proposer keeps. There is no hidden state, no type to infer, and in the one-shot form no multi-round plan."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Payoffs follow by arithmetic from the offer and the accept or reject decision."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "good",
+        "evidence": "The game is turn-based, text-only, short and numeric: a sequential choice followed by a response."
+      }
+    ],
+    "problems": [
+      "Offering the minimum and always accepting is near-dominant. In the previous variation the 'first option' policy won 100% of games against random seats.",
+      "Rejection is not a credible threat: a stingy offer costs the Proposer nothing extra when it fails, and against non-punishing responders it pays the most.",
+      "Rejection must not become free either. If only the Proposer pays for a failed deal, 'always reject' quietly drags rivals down and becomes a thoughtless winning policy.",
+      "The pot is public, so there is nothing to infer. The Responder can compute the Proposer's keep exactly.",
+      "Seat imbalance: a 1-2-3 proposer rotation, with the lower seat always first Responder, left seat 3 winning far less often even against random play.",
+      "With two players and 'higher total wins', only the difference matters, so the game is a forced 50/50 draw. The one-shot form has no repeated-play reasoning at all.",
+      "A random pot size per round would be a lottery: whoever is dealt bigger pots as Proposer gets ahead for no reason."
+    ],
+    "changes": [
+      {
+        "what": "Three players. The Proposer seat rotates in snake order 1,2,3,3,2,1 over 6 rounds, so each player proposes exactly twice. The two Responders choose at the same moment, so neither is 'first'.",
+        "why": "Three players break the zero-sum difference trap. The snake order gives every seat one early and one late proposal. Simultaneous responses remove the lower-seat ordering.",
+        "fixes": "Seat imbalance: a 1-2-3 proposer rotation, with the lower seat always first Responder, left seat 3 winning far less often even against random play."
+      },
+      {
+        "what": "The deal passes only if BOTH Responders accept. If it fails, the Proposer loses one third (rounded down) of the amount they tried to keep.",
+        "why": "A stingy offer that gets vetoed now costs the Proposer heavily. A generous offer risks little, but hands rivals points. Both ends of the offer range are risky. Against purely random responders (25% pass), the penalty makes the expected value of proposing about zero for any keep, so lowballing no longer beats random play.",
+        "fixes": "Offering the minimum and always accepting is near-dominant. In the previous variation the 'first option' policy won 100% of games against random seats."
+      },
+      {
+        "what": "Every Responder who rejects pays 1 point.",
+        "why": "A veto must be worth its cost. Always-reject now loses about 4 points over the game and never earns as a Responder, so it falls behind.",
+        "fixes": "Rejection must not become free either. If only the Proposer pays for a failed deal, 'always reject' quietly drags rivals down and becomes a thoughtless winning policy."
+      },
+      {
+        "what": "The pot is hidden. Each player proposes once with a pot of 12 and once with a pot of 24, in a secret random order. Only the Proposer knows the current pot. Offers are capped at 0\u20136 per Responder. Pots, keeps and running totals stay private until the game ends; only offers, votes and pass or fail are public.",
+        "why": "Responders must infer from an offer (and any talk) whether the Proposer is splitting fairly or lowballing a big pot. Proposers with a big pot want to look like they have a small one. Because every player gets the same two pots, the draw changes what players know, not who is ahead.",
+        "fixes": "The pot is public, so there is nothing to infer. The Responder can compute the Proposer's keep exactly."
+      },
+      {
+        "what": "Every player gets the same pair of pots (12 and 24); only the order is random.",
+        "why": "The random draw affects only information and timing, not total opportunity, so it is not a lottery.",
+        "fixes": "A random pot size per round would be a lottery: whoever is dealt bigger pots as Proposer gets ahead for no reason."
+      },
+      {
+        "what": "Six rounds, the highest final total wins outright, and a tie for highest is a draw. A simultaneous one-message talk phase is held before each offer.",
+        "why": "Repetition lets players build a reputation and retaliate. Talk lets Proposers claim a pot size (truthfully or not) and lets Responders threaten vetoes. Interests conflict because only one player can win.",
+        "fixes": "With two players and 'higher total wins', only the difference matters, so the game is a forced 50/50 draw. The one-shot form has no repeated-play reasoning at all."
+      }
+    ],
+    "keeps": [
+      "A Proposer divides a pot and the Responders can only accept or reject. Rejection destroys the round's value for everyone.",
+      "The core tension between keeping more and offering enough to avoid rejection.",
+      "Simple integer offers and arithmetic payoffs."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The ultimatum tension is worth training on once rejection is costly on both sides, the pot is private and the seats are balanced. All of this fits within a dozen steps per round."
+    },
+    "variation": {
+      "name": "Hidden-Pot Ultimatum (Three Players)",
+      "summary": "Three players take turns as Proposer, twice each. The Proposer secretly knows whether the pot is 12 or 24 and offers each of the two Responders 0\u20136 points. Both Responders must accept or the deal fails. A failed deal costs the Proposer a third of their intended keep and costs each rejecter 1 point. The highest total after 6 rounds wins.",
+      "players": {
+        "min": 3,
+        "max": 3,
+        "suggested": 3
+      },
+      "rules": "SETUP: Three players, seats 1, 2 and 3. Everyone starts with 0 points. Totals are private: each player is told only their own total until the game ends. Each player will propose in exactly two rounds. For each player, one of those two rounds has a pot of 12 and the other a pot of 24. The order is secret and random.\n\nPROPOSER ORDER: Round 1: seat 1. Round 2: seat 2. Round 3: seat 3. Round 4: seat 3. Round 5: seat 2. Round 6: seat 1. In each round the other two players are the Responders.\n\nEACH ROUND:\n1. Announce the round number and who the Proposer is.\n2. Pot. If this is the Proposer's first proposal, the engine flips a fair coin: heads means the pot is 12 this time (and 24 next time), tails means 24 this time (and 12 next time). If it is the Proposer's second proposal, the pot is whichever value was not used the first time.\n3. Tell the pot privately to the Proposer only.\n4. Talk: all three players each write one short message at the same time, without seeing the others' messages. The Proposer may state, hint at or lie about the pot. Nothing said is binding.\n5. Show all three messages to everyone.\n6. The Proposer chooses two whole numbers: an offer to each Responder, each from 0 to 6. The two offers may differ. The Proposer's keep is the pot minus both offers (always at least 0).\n7. Announce both offers to everyone. The pot and the keep are not announced.\n8. The two Responders each choose Accept or Reject at the same time.\n9. Announce both votes.\n10. If both accepted, the deal passes: each Responder adds their offer to their total, and the Proposer adds their keep.\n11. If at least one rejected, the deal fails: nobody receives an offer or a keep. The Proposer instead loses one third of their keep, rounded down (keep 12 loses 4, keep 6 loses 2, keep 2 loses 0).\n12. In either case, each Responder who chose Reject loses 1 point.\n13. Tell each player privately their own new total.\n\nEND: After round 6, reveal every round's pot and keep and every player's total. Totals may be negative.",
+      "objective": "The player with the strictly highest final total wins. If two or three players tie for the highest total, the game is a draw.",
+      "expected_effect": "Lowballing (offers 0/0) now loses heavily whenever either Responder vetoes. With a 24 pot that is 8 points per veto, so first-option play no longer beats random seats. A rough expectation against random players puts it behind them. Maximum generosity (6/6) hands rivals 12 points, and always-reject bleeds about 4 points, so last-option play loses too.\n\nGood play means calibrating offers to the hidden pot and judging whether an offer of, say, 4/4 is a fair 12-pot split or a 24-pot grab. Uneven offers can buy one Responder while testing the other's willingness to veto at a cost of 1. A Proposer can manage their reputation across their two turns: the second pot is known to them but not to the others.\n\nTalk earns its place. Proposers can bluff about the pot. Responders can threaten or promise vetoes. The players disagree because only one can win. A Responder who simply follows the Proposer's 'it's a small pot, accept 4' may be handing a rival a 16-point keep. A Proposer who believes a veto threat may give away more than needed.\n\nThe snake order and the identical pot pairs remove seat and draw advantages."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 3,
+      "attributes": 13,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 6
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "PAYOFFS PER ROUND. Pot P is 12 or 24. Offers are a and b, each from 0 to 6. Keep k = P - a - b, which is always at least 0 because a + b <= 12 <= P.\n- Deal passes: Proposer +k, Responder A +a, Responder B +b.\n- Deal fails: Proposer -floor(k/3), and each rejecter -1.\n\nSWING CAUSED BY ONE REJECTION (offer 6,6):\n| Pot | Keep | Proposer swing | Rejecter swing | Other Responder swing |\n|---|---|---|---|---|\n| 12 | 0 | 0 | -7 | -6 |\n| 24 | 12 | -16 | -7 | -6 |\n\nSWING CAUSED BY ONE REJECTION (offer 0,0):\n| Pot | Keep | Proposer swing | Rejecter swing | Other Responder swing |\n|---|---|---|---|---|\n| 12 | 12 | -16 | -1 | 0 |\n| 24 | 24 | -32 | -1 | 0 |\n\nRejection is a cheap punishment of greedy proposers in a winner-take-all game. Accepting is better in raw points but not in relative standing, so neither vote is dominant. Neither is any offer: high offers cost keep, low offers invite rejection.\n\nTHOUGHTLESS POLICIES, by the winner rule:\n(a) Always offer 0,0 and always accept.\n- Against copies of itself: everyone ends on 36, a draw.\n- Against punishing responders who reject low offers: it loses 16 in its pot-12 round and 32 in its pot-24 round, ending near -16 while others are near 0 or above. It LOSES.\n(b) Always offer 6,6 and always accept.\n- Against greedy opponents who offer it 0 but accept: it ends on 12 (keep 0 + 12), each opponent on 48 (36 + 12). It LOSES.\n(c) Always reject.\n- It takes -1 in each of 4 responder rounds, so -4.\n- Rational opponents reject its proposals, costing it about floor(k/3), up to 4 + 8 = 12, so it ends near -16. Opponents lose at most 4 each from their pot-24 rounds. It LOSES.\n(d) Random play: random votes sink about 75% of deals. Both greedy and generous fixed policies are beaten by players who tailor offers and votes.\nNo policy wins or draws against every opponent.\n\nSEAT ORDER. Proposer order is 1,2,3,3,2,1. The retaliation window is the maximum offers that can later be withheld from that proposer:\n| Seat | Proposals | Later proposals that can punish | Max withheld |\n|---|---|---|---|\n| 1 | R1, R6 | R1: R2-R5 (24); R6: none (0) | 24 |\n| 2 | R2, R5 | R2: R3, R4, R6 (18); R5: R6 (6) | 24 |\n| 3 | R3, R4 | R3: R5, R6 (12); R4: R5, R6 (12) | 24 |\nEach seat proposes twice, once with 12 and once with 24. Every second proposal is equally inferable from the first. No seat has a structural edge, and all three can realistically win."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Rules are complete:\n- Offer ranges 0-6 guarantee keep >= 0.\n- The fail case is fully specified, including rounding (keep 0 loses 0) and both responders rejecting (each -1).\n- The second pot is deterministic.\n- The winner is the strict highest total, otherwise a draw.\n\nThe game is finite at 6 rounds and decided by arithmetic on kept totals.\n\nLimits:\n| Item | Used | Limit |\n|---|---|---|\n| steps_per_round | 13 | 20 |\n| choice_steps_per_round (talk, offer pair, votes) | 3 | 4 |\n| attributes | 13 | 20 |\n| hidden_elements (pots, private totals) | 2 | 3 |\n| random_draws_per_round (coin only on first proposal) | 1 | 1 |\n| rounds | 6 | 40 |\n\nEngine support: hidden pot and private totals map to private_values, offers to numeric_bids, votes to simultaneous_choice, and talk to free_text_talk.\n\nTalk is simultaneous and placed where players genuinely conflict. The proposer wants to hide or understate the pot, and responders want to coordinate rejection threats or plead. Following a claim can cost them. No board, clock, judge, trading or binding agreement is needed.\n\nLate rounds: rejection stays a live, cheap punishment in every round including R6, so 'always accept' does not win the late rounds."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "The only random element is the coin deciding whether each player's 12 or 24 comes first. Every player receives exactly 12 + 24 = 36 in pots, so chance changes only ordering and information, not endowment. Its share of the outcome is small, roughly under 10%.\n\nUnder intended good play, results are decided by:\n- calibrating offers to the rejection threat;\n- responders inferring the hidden pot from offers and talk (6,6 could mean keep 0 or keep 12);\n- inferring the second pot from the first;\n- estimating others' private totals from public offers and votes, to decide whether spiteful rejection of a leader pays.\n\nThe coin cannot decide the winner when all players play well. Skilled bluffing and inference are clearly favoured over thoughtless play, as shown by the losses of policies (a) to (c)."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 2,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_tests",
+      "reason": "In every failing scenario the move log shows both Responders answering 'Accept', not 'Reject'. The game then correctly paid the Proposer pot - a - b, which gives 70+90+110+130 = 400 each over a full game, 130 in round 1 and +70 in the round-12 case. The game follows the rules; the tests assumed rejections they never actually scripted, since the 'decline' default resolved to Accept.",
+      "guidance": "When a scenario depends on both Responders rejecting, script that explicitly. Add rules for each Responder seat that choose the 'Reject' option every time it is offered, instead of relying on the 'decline' default, which here picked Accept. Then expect all three scores to stay 0, matching the rule for a failed deal. For the full-game R8 check, also assert that pots_p1, pots_p2 and pots_p3 are empty (length 0) and that each seat proposed 4 times. For the round-12 ending test, with both Responders scripted to Reject, the given scores stay unchanged and the winner follows from them. Do not let any expected score depend on which pot value is drawn, because the draw is random. Asserting only the score delta of the Proposer is fine only when the offer is accepted and the pot is known; otherwise assert that the scores are unchanged. For R10, a talk-only test should script rejections, or should not assert scores at all. The point of R10 is that the round completes after the simultaneous talk, so assert round/proposer progression rather than a score.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "revise_rules",
+      "reason": "The game file is correct; the design is degenerate. A single Accept passes the deal and rejecting never costs a Responder anything, so offering 0/0 keeps nearly the whole pot and accepting is never worse than rejecting, which is why the 'first option' policy wins every decided match and the 'last option' policy loses every one.",
+      "guidance": "Remove the near-dominant 'offer the minimum, always accept' play.\n1. Require BOTH Responders to accept for the deal to pass, so a lowball offer can be vetoed by either Responder. Otherwise, give a lone rejecter real power, for example a single rejection voids the Proposer's gain.\n2. Make rejection a meaningful threat. Add a rule where an ungenerous offer is punished, such as a minimum total offer tied to the largest pot, or a Proposer penalty when the deal fails, so that offering 0 is risky.\n3. Make the stingiest and most generous ends of the offer range both risky, so neither the first nor the last listed option is reliably good or bad.\n4. Check the seat balance. Seat 3 won far less often even against random play, so re-examine the proposer order and the responder ordering (the 'first Responder' is always the lower seat) for structural seat advantages.\n5. Re-test with simple fixed policies to confirm no single choice dominates."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 3,
+      "attributes": 13,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 6
+    },
+    "measured": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 4,
+      "attributes": 34,
+      "hidden_elements": 10
+    }
+  },
+  "verdict": "ready_for_review"
+}
