@@ -1,0 +1,937 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "coloretto",
+    "name": "Coloretto: Secret Favourites",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "blurb": "Place face-up cards into three rows or take a row; over three cycles collect colours scored against your own secret Favourite."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "red",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "blue",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "green",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "yellow",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "purple",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "plus2",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "taken",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "favourite",
+        "visible": "ally",
+        "type": "text",
+        "initial": "",
+        "values": [
+          "",
+          "Red",
+          "Blue",
+          "Green",
+          "Yellow",
+          "Purple"
+        ]
+      },
+      {
+        "key": "favourite_shown",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "tri",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "row_1",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "row_2",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "row_3",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "closed_rows",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "top_card",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Green",
+          "Green",
+          "Green",
+          "Green",
+          "Green",
+          "Green",
+          "Green",
+          "Yellow",
+          "Yellow",
+          "Yellow",
+          "Yellow",
+          "Yellow",
+          "Yellow",
+          "Yellow",
+          "Purple",
+          "Purple",
+          "Purple",
+          "Purple",
+          "Purple",
+          "Purple",
+          "Purple",
+          "+2",
+          "+2",
+          "+2"
+        ]
+      },
+      {
+        "key": "favourite_pool",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Red",
+          "Blue",
+          "Green",
+          "Yellow",
+          "Purple"
+        ]
+      },
+      {
+        "key": "cycle",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "active_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "taken_cards",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "cycle_over",
+        "visible": "none",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 38
+      },
+      {
+        "key": "cards_per_colour",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "colour_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "plus2_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "row_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "row_capacity",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "cycles",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "end_cycle",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "plus2_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "max_turns_per_cycle",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "max_turns",
+        "visible": "public",
+        "type": "number",
+        "initial": 36
+      },
+      {
+        "key": "max_cards_used",
+        "visible": "public",
+        "type": "number",
+        "initial": 28
+      },
+      {
+        "key": "undealt_favourites",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "turn up the first card",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_card",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ],
+      "text": "The deck is shuffled and the first card is turned face up: {top_card}."
+    },
+    {
+      "use": "update",
+      "label": "empty the rows",
+      "do": [
+        {
+          "set": {
+            "key": "row_1",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "row_2",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "row_3",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "closed_rows",
+            "value": []
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "clear the tableaux",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "red",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "blue",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "green",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "yellow",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "purple",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "plus2",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "taken",
+            "value": false
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "first cycle, seat 1 starts",
+      "do": [
+        {
+          "set": {
+            "key": "cycle",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal the Favourites",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "favourite_pool[min(int(uniform(0, len(favourite_pool))), len(favourite_pool) - 1)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "favourite",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "favourite_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "favourite_pool[min(int(uniform(0, len(favourite_pool))), len(favourite_pool) - 1)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "favourite",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "favourite_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "favourite_pool[min(int(uniform(0, len(favourite_pool))), len(favourite_pool) - 1)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "favourite",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "favourite_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "red",
+        "blue",
+        "green",
+        "yellow",
+        "purple",
+        "plus2",
+        "taken",
+        "favourite"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "tell",
+      "phase": "turn",
+      "label": "the table",
+      "to": "all",
+      "text": "Cycle {cycle}, seat {active_seat} to act. Row 1: {row_1}. Row 2: {row_2}. Row 3: {row_3}. Closed rows: {closed_rows}. Top card: {top_card}. Seat 1: Red {players[0].red}, Blue {players[0].blue}, Green {players[0].green}, Yellow {players[0].yellow}, Purple {players[0].purple}, +2 {players[0].plus2}, taken {players[0].taken}. Seat 2: Red {players[1].red}, Blue {players[1].blue}, Green {players[1].green}, Yellow {players[1].yellow}, Purple {players[1].purple}, +2 {players[1].plus2}, taken {players[1].taken}. Seat 3: Red {players[2].red}, Blue {players[2].blue}, Green {players[2].green}, Yellow {players[2].yellow}, Purple {players[2].purple}, +2 {players[2].plus2}, taken {players[2].taken}."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "legal options",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "((['place_1'] if 1 not in closed_rows and len(row_1) < row_capacity else []) + (['place_2'] if 2 not in closed_rows and len(row_2) < row_capacity else []) + (['place_3'] if 3 not in closed_rows and len(row_3) < row_capacity else []) + (['take_1'] if 1 not in closed_rows and len(row_1) >= 1 else []) + (['take_2'] if 2 not in closed_rows and len(row_2) >= 1 else []) + (['take_3'] if 3 not in closed_rows and len(row_3) >= 1 else [])) if you.seat == active_seat else []"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "the action",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "act"
+      },
+      "text": "Your turn. The top card is {top_card}. place_k puts it at the end of row k (open, fewer than {row_capacity} cards). take_k takes every card in row k (open, at least 1 card) into your tableau and you sit out the rest of the cycle. Choose one of the options offered."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "place the card",
+      "when": {
+        "calc": "$act in ['place_1', 'place_2', 'place_3']"
+      },
+      "do": [
+        {
+          "append": {
+            "key": "row_1",
+            "value": {
+              "calc": "top_card"
+            },
+            "if": {
+              "calc": "$act == 'place_1'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "row_2",
+            "value": {
+              "calc": "top_card"
+            },
+            "if": {
+              "calc": "$act == 'place_2'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "row_3",
+            "value": {
+              "calc": "top_card"
+            },
+            "if": {
+              "calc": "$act == 'place_3'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_card",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ],
+      "text": "Seat {active_seat} chose {act}. Rows: 1 {row_1}, 2 {row_2}, 3 {row_3}. New top card: {top_card}."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "take the row",
+      "when": {
+        "calc": "$act in ['take_1', 'take_2', 'take_3']"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "taken_cards",
+            "value": {
+              "calc": "row_1 if $act == 'take_1' else (row_2 if $act == 'take_2' else row_3)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "red",
+            "value": {
+              "calc": "count(c == 'Red' for c in taken_cards)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "blue",
+            "value": {
+              "calc": "count(c == 'Blue' for c in taken_cards)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "green",
+            "value": {
+              "calc": "count(c == 'Green' for c in taken_cards)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "yellow",
+            "value": {
+              "calc": "count(c == 'Yellow' for c in taken_cards)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "purple",
+            "value": {
+              "calc": "count(c == 'Purple' for c in taken_cards)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "plus2",
+            "value": {
+              "calc": "count(c == '+2' for c in taken_cards)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "row_1",
+            "value": [],
+            "if": {
+              "calc": "$act == 'take_1'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "row_2",
+            "value": [],
+            "if": {
+              "calc": "$act == 'take_2'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "row_3",
+            "value": [],
+            "if": {
+              "calc": "$act == 'take_3'"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "closed_rows",
+            "value": {
+              "calc": "1 if $act == 'take_1' else (2 if $act == 'take_2' else 3)"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "taken",
+            "value": true
+          }
+        }
+      ],
+      "text": "Seat {active_seat} chose {act} and takes {taken_cards}. Closed rows: {closed_rows}."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "next player or next cycle",
+      "do": [
+        {
+          "set": {
+            "key": "cycle_over",
+            "value": {
+              "calc": "all(p.taken for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "[k for k in [active_seat % len(players) + 1, (active_seat + 1) % len(players) + 1, active_seat] if not players[k - 1].taken][0]"
+            },
+            "if": {
+              "calc": "not cycle_over"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "taken",
+            "value": false,
+            "if": {
+              "calc": "cycle_over"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "row_1",
+            "value": [],
+            "if": {
+              "calc": "cycle_over"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "row_2",
+            "value": [],
+            "if": {
+              "calc": "cycle_over"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "row_3",
+            "value": [],
+            "if": {
+              "calc": "cycle_over"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "closed_rows",
+            "value": [],
+            "if": {
+              "calc": "cycle_over"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "cycle",
+            "value": 1,
+            "if": {
+              "calc": "cycle_over"
+            },
+            "text": "Every player has taken a row: the cycle ends. Seat {active_seat}, the last to take, starts the next cycle."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "scoring",
+      "label": "final scoring",
+      "when": {
+        "calc": "cycle >= end_cycle"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "favourite_shown",
+            "value": {
+              "calc": "you.favourite"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "tri",
+            "value": {
+              "calc": "[int(you.red * (you.red + 1) / 2), int(you.blue * (you.blue + 1) / 2), int(you.green * (you.green + 1) / 2), int(you.yellow * (you.yellow + 1) / 2), int(you.purple * (you.purple + 1) / 2)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "sum([you.tri[i] for i in [0, 1, 2, 3, 4] if ['Red', 'Blue', 'Green', 'Yellow', 'Purple'][i] == you.favourite]) + 2 * max([you.tri[i] for i in [0, 1, 2, 3, 4] if ['Red', 'Blue', 'Green', 'Yellow', 'Purple'][i] != you.favourite]) - sum([you.tri[i] for i in [0, 1, 2, 3, 4] if ['Red', 'Blue', 'Green', 'Yellow', 'Purple'][i] != you.favourite]) + plus2_value * you.plus2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "scoring",
+      "label": "favourites revealed",
+      "when": {
+        "calc": "cycle >= end_cycle"
+      },
+      "to": "all",
+      "text": "The game is over. Favourites: seat 1 {players[0].favourite_shown}, seat 2 {players[1].favourite_shown}, seat 3 {players[2].favourite_shown}. Scores: seat 1 {players[0].score}, seat 2 {players[1].score}, seat 3 {players[2].score}."
+    },
+    {
+      "use": "check",
+      "phase": "scoring",
+      "label": "after the third cycle",
+      "when": {
+        "calc": "cycle >= end_cycle"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "cycle >= end_cycle"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score} (Favourite {players[0].favourite_shown}), Seat 2 {players[1].score} (Favourite {players[1].favourite_shown}), Seat 3 {players[2].score} (Favourite {players[2].favourite_shown})."
+    }
+  },
+  "limits": {
+    "rounds": 36,
+    "rounds_max": 40,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "Three players. The deck has {deck_size} cards: {cards_per_colour} each of Red, Blue, Green, Yellow and Purple ({colour_count} colours), plus {plus2_cards} '+2' cards. It is shuffled and the top card is turned face up. There are {row_count} rows, each holding at most {row_capacity} cards; all start empty.\n\nAt the start each player is dealt a different secret Favourite colour at random from the {colour_count} colours. You see only your own; the {undealt_favourites} undealt colours are never shown. Every player's tableau (colour counts and +2 cards) is public throughout.\n\nOn a turn only the active player acts, choosing one legal option:\n- place_k: allowed only if row k is not closed this cycle and holds fewer than {row_capacity} cards. The face-up card is added to row k and the next deck card is turned face up.\n- take_k: allowed only if row k is not closed this cycle and holds at least 1 card. You add every card in row k to your tableau (each colour to its count, each '+2' to your +2 count), row k is emptied and closed for the rest of the cycle, and you have taken: you do not act again this cycle.\nIf every open row is full you can only take. The number of open rows always equals the number of players who have not taken, so you always have a legal option.\n\nIf all three players have now taken, the cycle ends: everyone's taken resets, all rows are emptied and reopened, the cycle number goes up by 1, and the player who just took starts the next cycle. Otherwise the turn passes to the next seat in order (s+1, then s+2, then s itself, wrapping 3 to 1) that has not taken; this can be the same player, so a lone remaining player keeps placing while their open row has room and must take once it is full. A cycle lasts at most {max_turns_per_cycle} turns.\n\nThe game ends when cycle {end_cycle} would begin, after {cycles} cycles (at most {max_turns} turns). Every Favourite is then announced. With T(c) = c(c+1)/2 (0, 1, 3, 6, 10, 15, 21, 28 for 0 to 7 cards), F the count of your Favourite colour and o1..o4 the counts of the other four colours: score = T(F) + 2 x max(T(o1..o4)) - (T(o1)+T(o2)+T(o3)+T(o4)) + {plus2_value} x your +2 cards. So your Favourite and your single largest other colour score positive and the other three colours score negative; if other colours tie for largest, only one of them counts positive. The highest score wins; players tied for the highest score share the top (a draw). There is no table talk."
+}

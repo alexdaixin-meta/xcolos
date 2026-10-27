@@ -1,0 +1,681 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "english_auction",
+    "name": "Budget English Auctions",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Eight rounds of short ascending auctions with fixed budgets and private values; the highest total of value minus price wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deck",
+        "visible": "ally",
+        "type": "list",
+        "initial": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16
+        ]
+      },
+      {
+        "key": "value",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "active",
+        "visible": "public",
+        "type": "bool",
+        "initial": true
+      },
+      {
+        "key": "raise_amt",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "priority",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_said",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "start_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "standing_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leader",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "step",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bidding_open",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "revealed_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "dropped_seats",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "top_priority",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "starting_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "starting_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card_min_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "card_value_step",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "card_max_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "bidding_steps_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "min_raise_increment",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "initial_standing_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "no_leader_code",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "priority_raise_weight",
+        "visible": "none",
+        "type": "number",
+        "initial": 10000
+      },
+      {
+        "key": "priority_score_offset",
+        "visible": "none",
+        "type": "number",
+        "initial": 500
+      },
+      {
+        "key": "priority_score_weight",
+        "visible": "none",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "rank_score_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 1000
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting purses and decks",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "starting_coins"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "starting_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "deck",
+            "value": {
+              "calc": "[card_min_value + i * card_value_step for i in [0, 1, 2, 3, 4, 5, 6, 7] if card_min_value + i * card_value_step <= card_max_value]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": {
+              "calc": "initial_standing_bid"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "no_leader_code"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "a new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "start_seat",
+            "value": {
+              "calc": "((round - 1) % len(players)) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "standing_bid",
+            "value": {
+              "calc": "initial_standing_bid"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "no_leader_code"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "step",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "bidding_open",
+            "value": true
+          }
+        },
+        {
+          "set": {
+            "key": "revealed_value",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dropped_seats",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "active",
+            "value": true
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "raise_amt",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "priority",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "value",
+            "value": {
+              "calc": "you.deck[int(uniform(0, len(you.deck)))]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "deck",
+            "value": {
+              "calc": "you.value"
+            }
+          }
+        }
+      ],
+      "text": "Round {round} of {rounds} begins. Each player has drawn a private value card for this round's item."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your value",
+      "mode": "self",
+      "to": "all",
+      "text": "Your state this round:"
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Round {round}: write one short message to the table. Everyone writes at the same time; all messages are shown afterwards. Messages are not binding."
+    },
+    {
+      "use": "repeat",
+      "phase": "bidding",
+      "label": "the bidding",
+      "until": {
+        "calc": "not bidding_open"
+      },
+      "max": 4,
+      "steps": [
+        {
+          "use": "update",
+          "phase": "bidding",
+          "label": "bidding step start",
+          "do": [
+            {
+              "adjust": {
+                "key": "step",
+                "value": 1
+              }
+            },
+            {
+              "set": {
+                "key": "dropped_seats",
+                "value": {
+                  "calc": "[p.seat for p in players if p.active and p.seat != leader and p.coins < standing_bid + min_raise_increment]"
+                }
+              }
+            },
+            {
+              "set": {
+                "players": {
+                  "where": "you.active and you.seat != leader and you.coins < standing_bid + min_raise_increment"
+                },
+                "key": "active",
+                "value": false,
+                "text": "Seat {player} cannot afford the next raise and must drop."
+              }
+            },
+            {
+              "set": {
+                "players": "all",
+                "key": "raise_amt",
+                "value": 0
+              }
+            },
+            {
+              "set": {
+                "players": "all",
+                "key": "priority",
+                "value": 0
+              }
+            },
+            {
+              "set": {
+                "players": "all",
+                "key": "bid_said",
+                "value": ""
+              }
+            }
+          ]
+        },
+        {
+          "use": "poll",
+          "phase": "bidding",
+          "label": "raise or drop",
+          "to": {
+            "where": "you.active and you.seat != leader"
+          },
+          "answer": {
+            "type": "number",
+            "min": {
+              "calc": "standing_bid + min_raise_increment"
+            },
+            "max": {
+              "calc": "you.coins"
+            },
+            "or": [
+              "DROP"
+            ]
+          },
+          "store": "bid_said",
+          "text": "Round {round}, bidding step {step}: the standing bid is {standing_bid} (leader seat {leader}; 0 means no leader). RAISE by answering a whole number from the standing bid + {min_raise_increment} up to your coins, or answer DROP to leave this round's auction. Everyone answers at the same time."
+        },
+        {
+          "use": "update",
+          "phase": "bidding",
+          "label": "resolve the step",
+          "do": [
+            {
+              "set": {
+                "key": "dropped_seats",
+                "value": {
+                  "calc": "dropped_seats + [p.seat for p in players if p.bid_said == 'DROP']"
+                }
+              }
+            },
+            {
+              "set": {
+                "players": {
+                  "where": "you.bid_said == 'DROP'"
+                },
+                "key": "active",
+                "value": false
+              }
+            },
+            {
+              "set": {
+                "players": "all",
+                "key": "raise_amt",
+                "value": {
+                  "calc": "int(you.bid_said) if you.bid_said not in ['', 'DROP'] else 0"
+                }
+              }
+            },
+            {
+              "set": {
+                "players": {
+                  "where": "you.raise_amt > 0"
+                },
+                "key": "priority",
+                "value": {
+                  "calc": "you.raise_amt * priority_raise_weight + (priority_score_offset - you.score) * priority_score_weight - ((you.seat - start_seat + len(players)) % len(players))"
+                }
+              }
+            },
+            {
+              "set": {
+                "key": "top_priority",
+                "value": {
+                  "calc": "max([p.priority for p in players])"
+                }
+              }
+            },
+            {
+              "set": {
+                "key": "leader",
+                "value": {
+                  "calc": "min([p.seat for p in players if p.raise_amt > 0 and p.priority == top_priority])"
+                },
+                "if": {
+                  "calc": "count(p.raise_amt > 0 for p in players) > 0"
+                }
+              }
+            },
+            {
+              "set": {
+                "key": "standing_bid",
+                "value": {
+                  "calc": "max([p.raise_amt for p in players])"
+                },
+                "if": {
+                  "calc": "count(p.raise_amt > 0 for p in players) > 0"
+                }
+              }
+            },
+            {
+              "set": {
+                "key": "bidding_open",
+                "value": {
+                  "calc": "count(p.raise_amt > 0 for p in players) > 0 and step < bidding_steps_max"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "use": "tell",
+          "phase": "bidding",
+          "label": "step result",
+          "to": "all",
+          "text": "Bidding step {step} resolved: standing bid {standing_bid}, leader seat {leader} (0 means no leader). Seats that dropped this step: {dropped_seats}."
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "settle",
+      "label": "settle",
+      "when": {
+        "calc": "leader != no_leader_code"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "revealed_value",
+            "value": {
+              "calc": "sum([p.value for p in players if p.seat == leader])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "leader"
+            },
+            "key": "score",
+            "value": {
+              "calc": "revealed_value - standing_bid"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "leader"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-standing_bid"
+            },
+            "if": {
+              "calc": "sum([p.coins for p in players if p.seat == leader]) >= standing_bid"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "settle",
+      "label": "sold",
+      "when": {
+        "calc": "leader != no_leader_code"
+      },
+      "to": "all",
+      "text": "Seat {leader} buys for {standing_bid}; their value was {revealed_value}."
+    },
+    {
+      "use": "tell",
+      "phase": "settle",
+      "label": "unsold",
+      "when": {
+        "calc": "leader == no_leader_code"
+      },
+      "to": "all",
+      "text": "The item goes unsold. Nothing changes."
+    },
+    {
+      "use": "check",
+      "phase": "settle",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score * 1000 + you.coins",
+      "text": "Winner: {result}. Final [seat, score, coins]: {[[p.seat, p.score, p.coins] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 8,
+    "rounds_max": 10,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Each player starts with {starting_coins} coins and a score of {starting_score}. Coins and scores are public. Each player has a private deck of {deck_size} value cards: 2, 4, 6, 8, 10, 12, 14, 16, drawn in a secret random order. Seats are numbered 1 to n.\n\nThe game lasts {rounds} rounds. Each round:\n1. Deal: every player privately sees the next card of their own deck. That is their value for this round's item. Every card is used exactly once over the game.\n2. Talk: every player writes one short message at the same time without seeing the others. All messages are then shown to everyone. Messages are not binding and change nothing.\n3. Bidding: the standing bid is {initial_standing_bid} and there is no leader. Every player starts active. There are up to {bidding_steps_max} bidding steps. In each step, every active player who is not the current leader chooses at the same time either to RAISE or to DROP. A RAISE names a whole number at least the standing bid + {min_raise_increment}, and no more than that player's current coins. A player who DROPs is out of this round's auction and is not asked again this round. A player with fewer coins than the standing bid + {min_raise_increment} must drop and is not asked. The leader is not asked and stays in.\n4. Resolve each step: if at least one player raised, the highest raise becomes the standing bid and its bidder becomes the leader. Ties for the highest raise go to the tied player with the lowest score; if still tied, to the tied player whose seat comes first counting from seat ((r-1) mod n)+1 upward and wrapping around. Players who raised but were outbid remain active. The standing bid, the leader and who dropped are announced. If nobody raised in a step, bidding ends immediately. Bidding also ends after step {bidding_steps_max}.\n5. Settle: if there is a leader, the leader pays the standing bid from their coins and their score changes by (their value - standing bid), which may be negative. The leader's value is announced; nobody else's value is revealed. If nobody ever raised, the item goes unsold and nothing changes.\n6. Unspent coins carry over to the next round.\n\nAfter round {rounds} the game ends. The highest score wins. If scores are tied for the top, the tied player with more coins remaining wins. If still tied, the game is a draw shared among them."
+}

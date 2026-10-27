@@ -1,0 +1,679 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "psychological_jujitsu",
+    "name": "Psychological Jujitsu: Hidden Favourites",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 3
+    },
+    "blurb": "Bid cards from identical 1-13 hands for 13 prizes: matched bids cancel, the highest unique bid wins, and each player secretly favours one prize worth +5."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ]
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bonus",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "message",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_unique",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "won_round",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "bonus_scored",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      }
+    ],
+    "game": [
+      {
+        "key": "prize_pile",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ]
+      },
+      {
+        "key": "bonus_pool",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "prize",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "round_no",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winning_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winner_seat",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "card_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "card_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "prize_pile_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "bonus_value_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "bonus_value_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "bonus_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "message_max_words",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "starting_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "hands and scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ]
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "starting_score"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the prize pile",
+      "do": [
+        {
+          "set": {
+            "key": "prize_pile",
+            "value": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal the bonus values",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 1"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 2"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 3"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 4"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "your bonus value",
+      "to": "all",
+      "text": "Your secret bonus value is {bonus}. Only you know it. If you win the prize of exactly this value, you score {bonus_points} extra points."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "prize",
+      "label": "draw the prize",
+      "do": [
+        {
+          "adjust": {
+            "key": "round_no",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "prize",
+            "value": {
+              "calc": "prize_pile[int(uniform(0, len(prize_pile)))]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "prize_pile",
+            "value": {
+              "calc": "prize"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_unique",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "won_round",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bonus_scored",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "winning_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "winner_seat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "message",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "prize",
+      "label": "the prize is revealed",
+      "to": "all",
+      "text": "Round {round_no}: the prize is {prize}. Hands [seat, cards left]: {[[p.seat, p.hand] for p in players]}. Scores [seat, score]: {[[p.seat, p.score] for p in players]}. Prize values still in the pile: {prize_pile}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 40
+      },
+      "store": "message",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Round {round_no}, prize {prize}. Write one short message (at most {message_max_words} words) to the table. Everyone writes at the same time; messages are not binding and may be false."
+    },
+    {
+      "use": "poll",
+      "phase": "bid",
+      "label": "bid",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "bid",
+      "text": "Round {round_no}, prize {prize}. Secretly bid one card from your hand. Any value bid by two or more players is cancelled; the highest bid that is not cancelled wins the prize. Your bid card is gone for good."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "reveal and resolve the bids",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "bid",
+            "value": {
+              "calc": "int(you.bid) if int(you.bid) in you.hand else min(you.hand)"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.bid"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_unique",
+            "value": {
+              "calc": "count(p.bid == you.bid and p.seat != you.seat for p in players) == 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "winning_bid",
+            "value": {
+              "calc": "max([p.bid for p in players if p.bid_unique] + [0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "won_round",
+            "value": {
+              "calc": "you.bid_unique and you.bid == winning_bid"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "winner_seat",
+            "value": {
+              "calc": "max([p.seat for p in players if p.won_round] + [0])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "score the prize",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.won_round and prize == you.bonus"
+            },
+            "key": "bonus_scored",
+            "value": true
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.won_round"
+            },
+            "key": "score",
+            "value": {
+              "calc": "prize + (bonus_points if you.bonus_scored else 0)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "the prize is won",
+      "when": {
+        "calc": "winning_bid > 0"
+      },
+      "to": "all",
+      "text": "Bids [seat, bid]: {[[p.seat, p.bid] for p in players]}. Seat {winner_seat} wins the prize of {prize} with the highest uncancelled bid, {winning_bid}. Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "every bid cancelled",
+      "when": {
+        "calc": "winning_bid == 0"
+      },
+      "to": "all",
+      "text": "Bids [seat, bid]: {[[p.seat, p.bid] for p in players]}. Every bid was matched: cancelled: nobody scores. The prize of {prize} is discarded. Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "bonus scored",
+      "when": {
+        "calc": "count(p.bonus_scored for p in players) > 0"
+      },
+      "to": "all",
+      "text": "+5 bonus: seat {winner_seat} now has {max([p.score for p in players if p.bonus_scored] + [0])}."
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "after the last round",
+      "when": {
+        "calc": "round_no >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round_no >= rounds"
+      },
+      "rank_by": "you.score",
+      "reveal": [
+        "bonus"
+      ],
+      "text": "Winner: {result}. Final scores [seat, score]: {[[p.seat, p.score] for p in players]}. Bonus values [seat, bonus]: {[[p.seat, p.bonus] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 13,
+    "rounds_max": 14,
+    "actions_max": 500,
+    "deadline_s": 120
+  },
+  "rules": "SETUP: Each player receives a hand of {hand_size} cards valued {card_min} to {card_max} (Ace=1 up to King=13). The prize pile holds {prize_pile_size} cards valued {card_min} to {card_max} and is shuffled face-down. Each player is then privately told one bonus value, drawn at random without replacement from {bonus_value_min} to {bonus_value_max}, so no two players share a bonus value. Only that player knows their bonus value. All scores start at {starting_score}.\n\nEACH ROUND ({rounds} rounds):\n1. The top card of the prize pile is revealed as this round's prize. Every player's remaining hand, every current score and the prize values still in the pile are announced.\n2. Talk: everyone writes one short message (at most {message_max_words} words) at the same time without seeing the others. All messages are then shown to everyone. Messages are not binding and may be false.\n3. Bid: everyone secretly chooses one card from their remaining hand at the same time. If a player names a card they do not hold, or gives no valid bid, their lowest remaining card is used.\n4. All bids are revealed, and each bid card is removed from its owner's hand permanently.\n5. Resolution: any bid value chosen by two or more players is cancelled. The highest bid that is not cancelled wins the prize. If every bid is cancelled, the prize is discarded and nobody scores. Example: bids 10, 10 and 4 give the prize to the player who bid 4.\n6. The winner adds the prize's value to their score. If the prize's value equals the winner's secret bonus value, they add {bonus_points} more points; if it does not, they add only the prize's value.\n7. The result is announced: all bids, who won the prize (if anyone), and the new scores. When a bonus is scored, the announcement says only '+5 bonus' with the winner's new total, so the bonus value becomes known only through that event.\n\nEND: After {rounds} rounds, all hands and the prize pile are empty. Bonus values are revealed. The player with the highest final score wins. If two or more players tie for the highest score, the game is a draw among them and they share the win."
+}
