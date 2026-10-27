@@ -1834,10 +1834,15 @@ class FlowOrchestrator:
                 for seat in flow.players:
                     game.seats[seat].attributes[key] = flow.attribute(seat, key)
             result = rule.result
-            if rule.winner:
+            standings: dict[int, float] | None = None
+            if rule.rank_by:
+                result, standings = self._rank(rule)
+            elif rule.winner:
                 result, reason = self._winner(game, rule, step)
             extra = {"winner": result, "result": result,
                      "ending": rule.name, "reason": reason}
+            if standings is not None:
+                extra["standings"] = {str(s): v for s, v in standings.items()}
             if rule.llm:
                 # A model asked how the game went has to be shown how it went.
                 extra["history"] = self._public_history(game)
@@ -1850,7 +1855,7 @@ class FlowOrchestrator:
             )
             # The console shows the ending's own announcement (final scores
             # and all) under the winner, not just a bare name.
-            game.end_game(result, reason, summary=announced)
+            game.end_game(result, reason, summary=announced, standings=standings)
             return True
         return False
 
@@ -1931,6 +1936,29 @@ class FlowOrchestrator:
             result = ("seats " + ", ".join(str(w) for w in winners[:-1])
                       + f" and {winners[-1]}")
         return result, reply.reason or rule.reason
+
+    def _rank(self, rule: Any) -> tuple[str, dict[int, float]]:
+        """Work `rank_by` out for every seat. (result, standings).
+
+        The highest value wins and equal values share it; the result is worded
+        like `_winner`'s ("seat 2", "seats 1, 3 and 4"). No model is involved.
+        """
+        flow = self._state()
+        expr = Expr(rule.rank_by)
+        standings: dict[int, float] = {}
+        for seat in flow.players:
+            value = flow.calc(expr, you=seat)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise FlowError(
+                    f"end.{rule.name}.rank_by: {rule.rank_by!r} gave {value!r} "
+                    f"for seat {seat}, not a number")
+            standings[seat] = value
+        top = max(standings.values())
+        winners = [s for s, v in standings.items() if v == top]
+        if len(winners) == 1:
+            return f"seat {winners[0]}", standings
+        return ("seats " + ", ".join(str(w) for w in winners[:-1])
+                + f" and {winners[-1]}"), standings
 
     # ------------------------------------------------------------------
     # Helpers

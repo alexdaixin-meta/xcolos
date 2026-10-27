@@ -1026,15 +1026,28 @@ class EndRule:
     #: names the winning seats; players it names together share the win. Any
     #: rule a game can state, it can rank by, without the engine knowing how.
     winner: str = ""
+    #: Or an expression worked out for every seat (`you` is that seat), the
+    #: highest value winning and ties sharing. The engine decides, with no
+    #: model, and the per-seat values are logged as the standings.
+    rank_by: str = ""
 
     @staticmethod
     def parse(name: str, raw: Any, where: str) -> "EndRule":
         _require(isinstance(raw, dict), where, f"expected an ending, got {raw!r}")
-        _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "winner"),
-              where)
+        _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "winner",
+                     "rank_by"), where)
         _require("when" in raw, where, "needs a `when`")
-        _require(("result" in raw) != ("winner" in raw), where,
-                 "needs a `result`, or a `winner` saying who wins; not both")
+        _require(sum(k in raw for k in ("result", "winner", "rank_by")) == 1, where,
+                 "needs exactly one of `result`, `winner` (a sentence saying who "
+                 "wins) or `rank_by` (an expression per seat)")
+        rank_by = raw.get("rank_by")
+        if rank_by is not None:
+            _require(isinstance(rank_by, str) and rank_by.strip(),
+                     where + ".rank_by", "is an expression worked out per seat")
+            try:
+                Expr(rank_by)
+            except Exception as exc:
+                raise DefinitionError(f"{where}.rank_by: {exc}") from None
         winner = raw.get("winner")
         if winner is not None:
             _require(isinstance(winner, str) and winner.strip(), where + ".winner",
@@ -1044,6 +1057,7 @@ class EndRule:
             when=Condition.parse(raw["when"], where + ".when"),
             result=str(raw.get("result", "")),
             winner=str(winner or "").strip(),
+            rank_by=str(rank_by or "").strip(),
             reason=str(raw.get("reason", "")),
             reveal=tuple(raw.get("reveal", ())),
             text=str(raw.get("text", "")),
@@ -1624,6 +1638,9 @@ def _check_references(d: GameDefinition) -> None:
 
     for i, rule in enumerate(d.end):
         _check_condition(rule.when, player_keys, game_keys, f"end[{i}].when")
+        if rule.rank_by:
+            _check_expr(Expr(rule.rank_by), player_keys, game_keys, None,
+                        f"end[{i}].rank_by")
     for key in d.reveal:
         _require(key in player_keys, "reveal", f"{key!r} is not a declared attribute")
 
