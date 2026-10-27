@@ -112,3 +112,50 @@ def test_table_tools_ask_carries_game_notes():
             assert list(state["ask"]["reply_with"]) == ["response", "plan", "reason", "adjust"]
             return
     raise AssertionError("never asked to act")
+
+
+def test_evaluation_carried():
+    ev = {"scores": {"P": {"weight": 1}}}
+    assert parse(rps_raw(evaluation=ev)).evaluation == ev
+    assert parse(rps_raw()).evaluation is None
+
+
+def test_evaluation_must_be_object():
+    with pytest.raises(DefinitionError):
+        parse(rps_raw(evaluation=[]))
+
+
+def test_evaluation_not_shown_to_seats():
+    sentinel = "EVAL_SENTINEL_91"
+    definition = parse(rps_raw(evaluation={sentinel: {"weight": 1}}))
+    assert sentinel in json.dumps(definition.evaluation)
+    log = MatchLog("m_eval")
+    game = Game("m_eval", definition.id, 1, log)
+    registry = Registry(game.match_id)
+    bots = LocalAgentHost([ScriptedAgent(name="Bot")], player=Player.new("operator"))
+    conn = ConnectorHost(Player.new("table"), ["Open0"])
+    b = next(iter(bots.register()))
+    registry.attach(game.register_seat(b.name, bots.host_id, b.profile), bots, b)
+    c = next(iter(conn.register()))
+    index = game.register_seat(c.name, conn.host_id, c.profile)
+    registry.attach(index, conn, c)
+    runner = Runner(game, FlowOrchestrator(definition), registry, deadline_ms=60_000)
+    tools = TableTools(game, runner, registry, poll_seconds=5)
+    tools.offer(index, c.name)
+    runner.start()
+    summary = tools.summary()
+    pid = summary["open_seats"][0]["player_id"]
+    payloads = [summary, definition.rules, definition.text, game.seat_view(index)]
+    ack = None
+    saw_briefing = False
+    for _ in range(60):
+        state = tools.read_state(pid, ack)
+        payloads.append(state)
+        saw_briefing = saw_briefing or "briefing" in state
+        ack = state.get("ack_through", ack)
+        if state.get("your_turn"):
+            break
+    assert saw_briefing
+    payloads.extend(runner.briefings.values())
+    for p in payloads:
+        assert sentinel not in json.dumps(p, default=str)

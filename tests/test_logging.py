@@ -266,3 +266,22 @@ def test_every_move_carries_its_own_turn_number():
         f"two moves share a turn number: {sorted(numbers)}"
     )
     assert numbers == sorted(numbers), "turn numbers should only go up"
+
+
+def test_log_record_thread_safe():
+    import threading
+
+    log = MatchLog("m_threads")
+    base = len(log.records)
+
+    def work():
+        for _ in range(200):
+            log.record("setup", "tick")
+
+    threads = [threading.Thread(target=work) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    seqs = [r["log_seq"] for r in log.records]
+    assert seqs == list(range(base + 1600))

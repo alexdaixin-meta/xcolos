@@ -14,6 +14,7 @@ once the dependency exists, and nothing below it changes.
 
 from __future__ import annotations
 
+import copy
 import re
 
 from dataclasses import dataclass, field
@@ -194,6 +195,11 @@ def _parse_notes(raw: Any) -> tuple[NoteDef, ...]:
                  "must be a non-empty string")
         notes.append(NoteDef(name, describe))
     return tuple(notes)
+
+
+def _parse_evaluation(raw: Any) -> dict[str, Any]:
+    _require(isinstance(raw, dict), "evaluation", "an object")
+    return copy.deepcopy(raw)
 
 
 class DefinitionError(Exception):
@@ -1149,6 +1155,9 @@ class GameDefinition:
     notes: tuple[NoteDef, ...] = DEFAULT_NOTES
     #: The file said `notes`, as against getting the default three.
     declares_notes: bool = False
+    #: How a later reader scores the agent. Kept as the file wrote it and never
+    #: sent to a seat.
+    evaluation: dict[str, Any] | None = None
 
     # -- lookups -------------------------------------------------------
 
@@ -1298,6 +1307,7 @@ def parse(raw: dict[str, Any]) -> GameDefinition:
         rules=str(raw.get("rules", "")),
         notes=_parse_notes(raw["notes"]) if "notes" in raw else DEFAULT_NOTES,
         declares_notes="notes" in raw,
+        evaluation=_parse_evaluation(raw["evaluation"]) if "evaluation" in raw else None,
     )
     _check_references(definition)
     _check_text(definition)
