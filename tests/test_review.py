@@ -36,9 +36,9 @@ class Thinker(Lowest):
 
     def decide(self, env):
         return replace(super().decide(env),
-                       reason=f"{self.name} REASON pot is low",
-                       predict=f"{self.name} PREDICT others go low too",
-                       adjust=f"{self.name} ADJUST stay low")
+                       notes={"reason": f"{self.name} REASON pot is low",
+                              "predict": f"{self.name} PREDICT others go low too",
+                              "adjust": f"{self.name} ADJUST stay low"})
 
 
 def play(seats: int = 3):

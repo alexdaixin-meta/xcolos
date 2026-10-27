@@ -15,6 +15,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
+# Test files import helpers (matches, oracle_game) that sit beside them; a single
+# file run on its own would not otherwise find them.
+sys.path.insert(0, str(ROOT / "tests"))
 
 
 def _install_shim() -> bool:
@@ -49,7 +52,12 @@ def main() -> int:
     failures: list[tuple[str, str]] = []
     skip_exc = getattr(sys.modules["pytest"], "Skipped", None)
 
+    # `python3 run_tests.py test_kernel test_web` runs only the test files
+    # whose names contain one of the words given; no words runs them all.
+    wanted = sys.argv[1:]
     for path in sorted((ROOT / "tests").glob("test_*.py")):
+        if wanted and not any(w in path.stem for w in wanted):
+            continue
         spec = importlib.util.spec_from_file_location(path.stem, path)
         assert spec and spec.loader
         module = importlib.util.module_from_spec(spec)

@@ -822,7 +822,8 @@ class MatchManager:
             "player_id": slot.key,
             "url": f"{base_url.rstrip('/')}{PLAY_PATH}",
             "text": invite_text(
-                base_url, handle.match_id, slot.seat, slot.key, tools.poll_seconds
+                base_url, handle.match_id, slot.seat, slot.key, tools.poll_seconds,
+                tools.notes,
             ),
         }
 

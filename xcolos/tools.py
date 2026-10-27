@@ -18,14 +18,16 @@ and a suggested interval, or the turn.
 
 from __future__ import annotations
 
+import json
 import secrets
 import threading
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 from xcolos.game import Game, RunStatus
 from xcolos.host import Registry
 from xcolos import messages
+from xcolos.games.definition import DEFAULT_NOTES, NoteDef
 from xcolos.identity import AccessDenied, Player
 from xcolos.protocol import Action
 from xcolos.render import render_facts
@@ -103,6 +105,12 @@ class TableTools:
         #: keyed by (match, seat, message kind), so the log records a hand-over once rather
         #: than on every poll that repeats it.
         self._handed: set[tuple[str, int, str]] = set()
+
+    @property
+    def notes(self) -> tuple[NoteDef, ...]:
+        """The private notes this table's game asks for with every move."""
+        definition = getattr(getattr(self.runner, "orchestrator", None), "definition", None)
+        return getattr(definition, "notes", DEFAULT_NOTES)
 
     # ------------------------------------------------------------------
     # Linking
@@ -371,6 +379,7 @@ class TableTools:
                 seconds_left=round(parked.seconds_left, 1),
                 max_words=parked.request.schema.max_words,
                 refused=parked.refused,
+                notes=self.notes,
             )
             # The request sits at the end of the queue, because that is where
             # it belongs in time, and is repeated at the top level because it
@@ -455,7 +464,8 @@ class TableTools:
             }
 
         action = messages.parse_action(
-            answer, parked.request.schema, parked.request.legal_targets
+            answer, parked.request.schema, parked.request.legal_targets,
+            self.notes,
         )
         if action is None:
             return {
@@ -583,7 +593,7 @@ answer.
 An answer has two halves:
 
 ```bash
-curl -sS {url} -H 'Content-Type: application/json' -d '{{"id":"{pid}","ack":17,"reply":{{"kind":"action","action":"vote","response":3,"reason":"Seat 3 answered a question nobody asked.","predict":"Seat 3 will steer the next vote onto seat 1.","adjust":"I vote first so seat 3 cannot set the agenda."}}}}'
+curl -sS {url} -H 'Content-Type: application/json' -d '{{"id":"{pid}","ack":17,"reply":{{"kind":"action","action":"vote","response":3{example}}}}}}}'
 ```
 
 **`response`** is the move itself: a seat number when `ask.answer_with` is
@@ -594,14 +604,10 @@ When the ask carries `max_words`, keep inside it. Everyone at the table reads
 every word you say, so length is paid for once per listener. Say the thing, not
 the working out.
 
-**`reason`**, **`predict`** and **`adjust`** are your own thinking. Fill in
-all three on every action:
+{notes_names} are your own thinking. Fill in
+{notes_count} on every action; `ask.reply_with` lists them with this turn's wording:
 
-- `reason`: why you made this move, in concrete details. Name the seats,
-  numbers and facts it rests on, not a summary.
-- `predict`: your opponents' strategy. What you expect each of them to do
-  next, and what in their play tells you so.
-- `adjust`: how you adjusted your own strategy in response to that prediction.
+{notes_help}
 
 They have no length limit because nobody else pays to read them. They are
 recorded so whoever is watching the match can see how you think, and they are
@@ -638,6 +644,14 @@ Begin by making that call.
 """
 
 
+#: Sample note text for the curl example in the invite, by standard name.
+NOTE_EXAMPLES = {
+    "plan": "Get seat 1 to trust me, then swing the final vote.",
+    "reason": "Seat 3 answered a question nobody asked.",
+    "predict": "Seat 3 will steer the next vote onto seat 1.",
+    "adjust": "I vote first so seat 3 cannot set the agenda.",
+}
+
 #: The one endpoint every player uses.
 PLAY_PATH = "/api/play"
 
@@ -648,9 +662,26 @@ def invite_text(
     seat: int,
     player_id: str,
     poll_seconds: int = DEFAULT_POLL_SECONDS,
+    notes: Sequence[NoteDef] = DEFAULT_NOTES,
 ) -> str:
     """The block a player pastes into their own assistant session."""
+    quoted = [f"**`{n.name}`**" for n in notes]
+    if not notes:
+        names, count = "No notes are asked for here, and none", "nothing"
+    elif len(notes) == 1:
+        names, count = quoted[0], "it"
+    else:
+        names = ", ".join(quoted[:-1]) + f" and {quoted[-1]}"
+        count = "all of them" if len(notes) == 2 else f"all {len(notes)}"
+    example = "".join(
+        f',"{n.name}":{json.dumps(NOTE_EXAMPLES.get(n.name, "Your own words, concretely."))}'
+        for n in notes
+    )
     return INVITE.format(
+        example=example,
+        notes_names=names,
+        notes_count=count,
+        notes_help="\n".join(f"- `{n.name}`: {n.describe}" for n in notes),
         url=f"{base_url.rstrip('/')}{PLAY_PATH}",
         pid=player_id,
         match_id=match_id,

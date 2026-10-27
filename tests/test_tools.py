@@ -429,6 +429,17 @@ def test_the_invite_says_how_many_refusals_the_game_takes():
     assert "`refused`" in text and f"After {MAX_REFUSED} refused answers" in text
 
 
+def test_the_invite_lists_the_tables_notes():
+    from xcolos.games.definition import NoteDef, STANDARD_NOTES
+    from xcolos.tools import invite_text
+
+    text = invite_text("http://x", "w1", 1, "pl_1",
+                       notes=(NoteDef("plan", STANDARD_NOTES["plan"]),))
+    assert '"plan":' in text and "- `plan`:" in text
+    assert '"predict":' not in text and "- `adjust`:" not in text
+    assert '"predict":' in invite_text("http://x", "w1", 1, "pl_1")
+
+
 def test_a_turn_that_runs_out_is_defaulted():
     game, runner, tools = build(12, deadline_ms=250)
     runner.start()

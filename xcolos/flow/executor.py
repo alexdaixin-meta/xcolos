@@ -1330,7 +1330,7 @@ class FlowOrchestrator:
                 # The record notes who was told, which is now the broadcast's
                 # audience rather than a separate visibility field.
                 visible=step.broadcast.to if step.broadcast else "none",
-                reason=action.reason,
+                reason=action.notes.get("reason", ""),
             )
         )
         if step.store:

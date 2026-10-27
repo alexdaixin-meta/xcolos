@@ -2,7 +2,7 @@
 
 Written once the game has ended, so nothing in it can change the result or
 reach a player mid-game. It is the one place every player's private thinking —
-`reason`, `predict`, `adjust` — is read side by side, which is the point: a
+the notes each move carries (`reason`, `predict`, `adjust` by default) — is read side by side, which is the point: a
 prediction can only be judged against what the opponent was actually thinking
 and actually did.
 
@@ -37,8 +37,11 @@ from xcolos.game import Game
 INSTRUCTIONS = """\
 You are reviewing a game that has finished. You were not a player. You are \
 shown everything: the messages the table was told, every move, and each \
-player's private thinking at every move, which no other player ever saw:
+player's private thinking at every move, which no other player ever saw. \
+Each move carries the notes its game asked for, under their own names. The \
+usual ones are:
 
+  plan     what they meant to do over the coming turns
   reason   why they made that move
   predict  what they expected their opponents to do
   adjust   how they changed their own strategy because of that
@@ -123,9 +126,10 @@ def record(game: Game, final: dict[str, Any] | None = None) -> dict[str, Any]:
             "seat": r.get("seat"),
             "answer": action.get("text") or action.get("target"),
         }
-        for key in ("reason", "predict", "adjust"):
-            if action.get(key):
-                move[key] = action[key]
+        # Whatever notes the game asked for: every key but the move itself.
+        for key, value in action.items():
+            if key not in ("type", "target", "text") and value:
+                move[key] = value
         if r.get("degraded"):
             move["note"] = "no usable answer; the default was taken"
         moves.append(move)

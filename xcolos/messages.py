@@ -33,6 +33,9 @@ arrives. It carries no `seq`, because acknowledging receipt is not answering.
      "predict": "Seat 3 will push the vote onto seat 1 next round.",
      "adjust": "I vote early so seat 3 cannot set the agenda."}
 
+(`reason`, `predict` and `adjust` are the default notes. A game may declare
+others under `notes`, and `reply_with` on every ask lists the ones it wants.)
+
     {"kind": "action", "action": "speak",
      "response": "Seat 1 has not accounted for their last move.",
      "reason": "Pointing at seat 1 keeps attention away from me."}
@@ -42,12 +45,13 @@ An action reply has two halves and the split is the point.
 `response` is the move itself: a seat number, or the words you want the table
 to hear. The game may make it public.
 
-`reason`, `predict` and `adjust` are your own thinking. `reason` is why you
-made this move, in concrete details: the seats, numbers and facts it rests on.
-`predict` is what you expect your opponents to do and why. `adjust` is how you
-changed your own strategy in response. All three are recorded so whoever is
-watching the match can see your thinking, and none is ever turned into a fact,
-so no other player is ever told them. Say what you actually think there.
+The notes (`reason`, `predict` and `adjust` unless the game names others) are
+your own thinking. `reason` is why you made this move, in concrete details: the
+seats, numbers and facts it rests on. `predict` is what you expect your
+opponents to do and why. `adjust` is how you changed your own strategy in
+response. They are recorded so whoever is watching the match can see your
+thinking, and none is ever turned into a fact, so no other player is ever told
+them. Say what you actually think there.
 
 The shorthand `{"ack": 14, "answer": 3}` means the same thing and is accepted
 everywhere, because it is easier to type into a command line.
@@ -55,8 +59,9 @@ everywhere, because it is easier to type into a command line.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Sequence
 
+from xcolos.games.definition import DEFAULT_NOTES, NoteDef
 from xcolos.protocol import Action, ActionSchema
 
 #: Game to agent.
@@ -87,12 +92,15 @@ def information(
 
 #: The shape of an answer, repeated on every turn so the private fields are
 #: asked for each time rather than only in the briefing read once.
-REPLY_WITH = {
-    "response": "your move: one of legal_answers, or your words if answer_with is text",
-    "reason": "why you made this move, in concrete details: the seats, numbers and facts it rests on",
-    "predict": "predict your opponents' strategy: what each will do next, and why",
-    "adjust": "how you adjusted your strategy in response to that prediction",
-}
+def reply_with(notes: Sequence[NoteDef]) -> dict[str, str]:
+    """The shape of an answer: the move, then each note the game asks for."""
+    return {
+        "response": "your move: one of legal_answers, or your words if answer_with is text",
+        **{n.name: n.describe for n in notes},
+    }
+
+
+REPLY_WITH = reply_with(DEFAULT_NOTES)
 
 
 def action_required(
@@ -103,6 +111,7 @@ def action_required(
     seconds_left: float,
     max_words: int = 0,
     refused: dict[str, Any] | None = None,
+    notes: Sequence[NoteDef] = DEFAULT_NOTES,
 ) -> dict[str, Any]:
     """The game is waiting on this seat.
 
@@ -123,7 +132,7 @@ def action_required(
         # Your last answer to this question, why it was refused, and how many
         # more the game will take before it answers for you.
         **({"refused": refused} if refused else {}),
-        "reply_with": REPLY_WITH,
+        "reply_with": reply_with(notes),
     }
 
 
@@ -159,7 +168,10 @@ def read_answer(body: dict[str, Any]) -> Any:
 
 
 def parse_action(
-    answer: Any, schema: ActionSchema, legal: tuple[Any, ...]
+    answer: Any,
+    schema: ActionSchema,
+    legal: tuple[Any, ...],
+    notes: Sequence[NoteDef] = DEFAULT_NOTES,
 ) -> Action | None:
     """Turn whatever the agent sent into one action.
 
@@ -172,11 +184,11 @@ def parse_action(
 
     if isinstance(answer, dict):
         # The private half. Kept whatever the move turns out to be.
-        private = {k: str(answer.get(k) or "") for k in ("reason", "predict", "adjust")}
+        private = {n.name: str(answer.get(n.name) or "") for n in notes}
         named = answer.get("action")
         if named and named != schema.id:
             # Answering a different question than the one asked.
-            return Action(type=str(named), **private)
+            return Action(type=str(named), notes=private)
 
         # `response` is the documented field. The others are older spellings
         # and what a model tends to reach for, so they are accepted too.
@@ -193,12 +205,13 @@ def parse_action(
             return None
 
         if schema.target == "text":
-            return Action(type=schema.id, text=str(given), **private)
-        return Action(type=schema.id, target=_coerce(given, legal), **private)
+            return Action(type=schema.id, text=str(given), notes=private)
+        return Action(type=schema.id, target=_coerce(given, legal), notes=private)
 
+    blank = {n.name: "" for n in notes}
     if schema.target == "text":
-        return Action(type=schema.id, text=str(answer))
-    return Action(type=schema.id, target=_coerce(answer, legal))
+        return Action(type=schema.id, text=str(answer), notes=blank)
+    return Action(type=schema.id, target=_coerce(answer, legal), notes=blank)
 
 
 def _coerce(value: Any, legal: tuple[Any, ...]) -> Any:

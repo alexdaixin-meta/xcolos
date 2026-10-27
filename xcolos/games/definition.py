@@ -137,6 +137,64 @@ RERUN = "rerun"
 
 ON_TIE = (NOBODY, "random", RERUN)
 
+#: The private notes a game may ask its players for, each with the words that
+#: ask for it. A game names the ones it wants under `notes`, and takes the
+#: words from here unless it gives its own.
+STANDARD_NOTES: dict[str, str] = {
+    "plan": ("your plan for the coming turns and what this move does for it, "
+             "concretely enough to check later"),
+    "reason": "why you made this move, in concrete details: the seats, numbers and facts it rests on",
+    "predict": "predict your opponents' strategy: what each will do next, and why",
+    "adjust": ("what happened since your last move against what you expected, "
+               "and whether you keep or change your plan"),
+}
+
+#: Names an answer already uses, so a note called one of them would be
+#: indistinguishable from the move itself.
+RESERVED_NOTE_NAMES = ("kind", "action", "response", "type", "target", "text", "seat",
+                       "choice", "answer", "reply", "ack", "id", "full", "wait", "name")
+
+
+@dataclass(frozen=True)
+class NoteDef:
+    """One private note an agent is asked to write with its move."""
+
+    name: str
+    describe: str
+
+
+#: What a game that declares no `notes` asks for: the three the engine always
+#: asked for, in the words it always used.
+DEFAULT_NOTES: tuple[NoteDef, ...] = (
+    NoteDef("reason", STANDARD_NOTES["reason"]),
+    NoteDef("predict", STANDARD_NOTES["predict"]),
+    NoteDef("adjust", "how you adjusted your strategy in response to that prediction"),
+)
+
+
+def _parse_notes(raw: Any) -> tuple[NoteDef, ...]:
+    _require(isinstance(raw, list), "notes", "a list of {name, describe} objects")
+    notes: list[NoteDef] = []
+    for i, item in enumerate(raw):
+        where = f"notes[{i}]"
+        _require(isinstance(item, dict), where, f"expected an object, got {item!r}")
+        _only(item, ("name", "describe"), where)
+        name = item.get("name")
+        _require(isinstance(name, str) and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) is not None,
+                 where + ".name", f"{name!r} is not a plain word (letters, digits, underscore)")
+        _require(name not in RESERVED_NOTE_NAMES, where + ".name",
+                 f"{name!r} is already a field of an answer; reserved: {list(RESERVED_NOTE_NAMES)}")
+        _require(all(n.name != name for n in notes), where + ".name", f"{name!r} is declared twice")
+        describe = item.get("describe")
+        if describe is None:
+            _require(name in STANDARD_NOTES, where + ".describe",
+                     f"{name!r} is not a standard note ({list(STANDARD_NOTES)}), so it needs a `describe`")
+            describe = STANDARD_NOTES[name]
+        _require(isinstance(describe, str) and bool(describe.strip()), where + ".describe",
+                 "must be a non-empty string")
+        notes.append(NoteDef(name, describe))
+    return tuple(notes)
+
 
 class DefinitionError(Exception):
     """The definition is not loadable. Always names the path that is wrong."""
@@ -1073,6 +1131,10 @@ class GameDefinition:
     #: off the rules put a game's words in the server's code, which is the
     #: thing this milestone exists to stop.
     blurb: str = ""
+    #: The private notes each answer is asked to carry, in order.
+    notes: tuple[NoteDef, ...] = DEFAULT_NOTES
+    #: The file said `notes`, as against getting the default three.
+    declares_notes: bool = False
 
     # -- lookups -------------------------------------------------------
 
@@ -1220,6 +1282,8 @@ def parse(raw: dict[str, Any]) -> GameDefinition:
         ),
         text=dict(raw.get("text") or {}),
         rules=str(raw.get("rules", "")),
+        notes=_parse_notes(raw["notes"]) if "notes" in raw else DEFAULT_NOTES,
+        declares_notes="notes" in raw,
     )
     _check_references(definition)
     _check_text(definition)
