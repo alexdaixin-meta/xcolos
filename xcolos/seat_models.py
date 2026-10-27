@@ -16,6 +16,7 @@ only what its own session holds.
 
 from __future__ import annotations
 
+import re
 import time
 from typing import Callable
 
@@ -32,6 +33,12 @@ SEAT_SYSTEM = (
     "When you are asked to act, reply with exactly one legal answer in the form the question asks for, "
     "and keep any reasoning short and before the answer. Do not ask questions back."
 )
+
+
+#: A provider shedding load (rate limit, overload): waited out, at length, so a burst of traffic does not end a match.
+THROTTLED = re.compile(r"\b(429|529|503)\b|rate.?limit|overloaded", re.I)
+THROTTLE_RETRIES = 6
+REFUSED = re.compile(r"\brefused\b", re.I)
 
 
 def _seat_model(spec: str, timeout_s: int):
@@ -58,13 +65,21 @@ def seat_completion(spec: str, timeout_s: int = 300, retries: int = 2, pause: Ca
     def complete(messages: list[dict[str, str]], env) -> str:
         system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
         talk = "\n\n".join(f"[{m['role']}]\n{m['content']}" for m in messages if m["role"] != "system")
-        for attempt in range(retries + 1):
+        failed = 0
+        while True:
             try:
                 return inner.complete(talk, system=system)
-            except CompletionError:
-                if attempt == retries:
+            except CompletionError as exc:
+                failed += 1
+                if REFUSED.search(str(exc)):
+                    raise  # a refusal will not change on a retry
+                if THROTTLED.search(str(exc)):
+                    if failed > THROTTLE_RETRIES:
+                        raise
+                    pause(min(120, 10 * 2 ** (failed - 1)))  # 10, 20, 40, 80, 120, 120 s: long enough for a rate limit to clear
+                    continue
+                if failed > retries:
                     raise
-                pause(5 * 2 ** attempt)
-        raise AssertionError("unreachable")
+                pause(5 * 2 ** (failed - 1))
 
     return complete

@@ -859,3 +859,46 @@ def test_a_model_seat_is_invited_to_give_reasons_before_its_answer_but_never_tol
     assert SEAT_SYSTEM.startswith("You are one player in a game")
     assert "keep any reasoning short and before the answer" in SEAT_SYSTEM  # Claude gave reasons on all 103 Hanabi decisions with this
     assert "first give your reasons" not in SEAT_SYSTEM  # told to, Claude refused bids as reasoning_extraction and the plays stopped
+
+
+class Flaky:
+    """Fails with the given errors in turn, then answers."""
+
+    def __init__(self, *errors: str) -> None:
+        self.errors, self.calls = list(errors), 0
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        self.calls += 1
+        if self.errors:
+            raise CompletionError(self.errors.pop(0))
+        return "Pass"
+
+
+def _seat_over(inner, waits):
+    import xcolos.seat_models as sm
+
+    original = sm.from_spec
+    sm.from_spec = lambda spec: inner
+    try:
+        return sm.seat_completion("command:stand-in", pause=waits.append)
+    finally:
+        sm.from_spec = original
+
+
+def test_a_seat_waits_out_rate_limits_long_enough_for_them_to_clear():
+    waits: list[float] = []
+    inner = Flaky(*["the model call failed: Error code: 429 - rate_limit_error"] * 5)
+    assert _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None) == "Pass"
+    assert inner.calls == 6 and sum(waits) >= 120  # five throttled calls, then the answer; a match is not lost to a burst
+
+
+def test_a_seat_does_not_retry_a_refusal():
+    waits: list[float] = []
+    inner = Flaky("the model refused the request (category: reasoning_extraction)", "x")
+    try:
+        _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None)
+    except CompletionError:
+        pass
+    else:
+        raise AssertionError("a refusal must reach the caller")
+    assert inner.calls == 1 and waits == []
