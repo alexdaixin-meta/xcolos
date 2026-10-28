@@ -1,6 +1,6 @@
 # Batch 2026-10-27-fifty
 
-50 of 50 games done: ready_for_review 32, dropped 14, weak_reasoning 1, needs_review 1, play_failed 1, crashed 1
+50 of 50 games done: ready_for_review 33, dropped 14, weak_reasoning 1, needs_review 1, crashed 1
 
 | game | outcome | detail | plays | reasoning | minutes |
 |---|---|---|---|---|---|
@@ -52,5 +52,5 @@
 | cash_and_guns | ready_for_review | 21/21 scenarios, tier 0 passed, 0 design flag(s) left after 1 variation(s) | 3/3: {'seat 1': 1, 'seat 3': 1, 'seat 4': 1} | strong (reasoning 2, planning 2, luck 1) | 50.0 |
 | yaniv | ready_for_review | 24/24 scenarios, tier 0 passed, 0 design flag(s) left after 3 variation(s) | 3/3: {'seat 2': 1, 'seat 1': 2} | adequate (reasoning 2, planning 2, luck 2) | 199.7 |
 | put | ready_for_review | 18/18 scenarios, tier 0 passed, 0 design flag(s) left after 3 variation(s) | 3/3: {'seat 1': 2, 'seat 2': 1} | adequate (reasoning 3, planning 2, luck 2) | 73.6 |
-| turn_the_tide | play_failed | 2 of 3 plays ended; reasoning check: strong (reasoning 3, planning 3, luck 1); /Users/alexdaixin/AAI_LAB/xcolos/.pins/11c5b831f9/gen_game/data/games/turn_the_ti | 2/3: {'seat 1': 2} | strong (reasoning 3, planning 3, luck 1) | 133.2 |
 | scopa | crashed | step C: building the game file |  |  | 132.1 |
+| turn_the_tide | ready_for_review | 18/18 scenarios, tier 0 passed, 0 design flag(s) left after 1 variation(s) | 3/3: {'seat 4': 1, 'seat 3': 1, 'seat 2': 1} | strong (reasoning 3, planning 2, luck 1) | 126.6 |

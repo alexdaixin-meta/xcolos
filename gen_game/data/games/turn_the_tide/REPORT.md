@@ -90,9 +90,3 @@ Objective: After the last deal, the player with the highest game score wins. If 
 
 - The source's draw becomes a shared win: The engine has no separate draw: players level at the top share the win.
 - Start-of-deal and end-of-deal work is done by steps conditioned on hand_no: The step list is flat, so these steps run every round but act only on hand 1 or hand 10.
-
-## Encoding attempts
-
-- 1: players are sent text with a `{name}` that was never filled in: placeholder: players are shown the literal {hand} (in `prompt`: 'Deal 1, hand 1: Low Tide 5, High Tide 6. Choose one Weather card from your hand {hand} to '); use only names the step can fill in (see the broadcast rule: {value} and {seat}) | placeholder: players are shown the literal {hand} (in `prompt`: 'Deal 1, hand 1: Low Tide 5, High Tide 6. Choose one Weather card from your hand {hand} to '); use only names the step can fill in (see the broadcast rule: {value} and {seat}) | placeholder: players are shown the literal {hand} (in `prompt`: 'Deal 1, hand 1: Low Tide 5, High Tide 6. Choose one Weather card from your hand {hand} to '); use only names the step can fill in (see the broadcast rule: {value} and {seat})
-- 2: it plays, but part of it does nothing: game attribute `card_numbers` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.
-- 3: passed
