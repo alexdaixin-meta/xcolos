@@ -175,3 +175,20 @@ def test_plays_with_no_choices_are_unmeasured_and_no_model_is_asked():
     model = Scripted(good_check())
     result, _ = reasoning.check(model, [empty], DESIGN)
     assert result["verdict"] == "unmeasured" and model.prompts == []
+
+
+def test_a_message_gives_its_own_reasons_so_table_talk_never_leaves_plays_unmeasured():
+    talk = "Seat 2, the big monsters seem scarce, so the Spear is the cheapest thing to give up."
+    records = []
+    for n in range(1, 4):  # three messages that are only the message, as table talk is
+        records += [{"category": "model", "type": "model_call", "turn_seq": n, "for": "seat 1", "raw": talk},
+                    {"category": "turn", "type": "move", "turn_seq": n, "seat": 1, "legal_targets": [], "action": {"target": None, "text": talk}}]
+    records += [{"category": "model", "type": "model_call", "turn_seq": 4, "for": "seat 2", "raw": "PASS"},
+                {"category": "turn", "type": "move", "turn_seq": 4, "seat": 2, "legal_targets": ["ADD", "PASS"], "action": {"target": "PASS"}}]
+    sim = {"players": ["gateway"] * 2, "snapshot": {"status": "ended", "winner": "seat 1"}, "events": {"records": records}}
+    assert reasoning.stats([sim])["with_reasons"] == 3
+    cites = good_check()
+    for aspect in ("reasoning", "planning"):  # quotes from the message itself are found in what the seat said
+        cites[aspect]["evidence"] = [{"match": 1, "turn": 1, "seat": 1, "quote": "the big monsters seem scarce", "shows": "reads the deck"}]
+    result, error = reasoning.check(Scripted(cites), [sim], DESIGN)
+    assert error == "" and result["verdict"] != "unmeasured"

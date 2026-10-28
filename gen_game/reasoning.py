@@ -105,8 +105,11 @@ def decisions(sim: dict) -> list[dict]:
             forced = not chose or (len(options) == 1 and options[0] == chose)  # one option on offer, taken: not a choice
             if not forced:
                 raw = said.get((str(r.get("turn_seq")), _seat(r.get("seat"))), "")
+                spoken = _answer_removed(raw, chose)
+                if text and not spoken:
+                    spoken = text  # a message with no reason before it says its own reasons, to the whole table
                 out.append({"turn": int(r.get("turn_seq") or 0), "round": r.get("round"), "seat": _seat(r.get("seat")), "options": options,
-                            "chose": chose, "said": _answer_removed(raw, chose), "before": news})
+                            "chose": chose, "said": spoken, "before": news})
             news = []
     return out
 
