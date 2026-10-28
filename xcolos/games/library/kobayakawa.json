@@ -1,0 +1,992 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "kobayakawa",
+    "name": "Kobayakawa Duel Rounds with Table Talk",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Ten rounds of one secret card, a blind swap, table talk and a fight for the pot, where the lowest fighter adds the face-up Kobayakawa card."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "kamons",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "draw_choice",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "discarded",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "message",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "fight_choice",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "fought",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "revealed_card",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "total",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "reserve_cards",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "kobayakawa",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "centre",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "pot",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "fighter_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "lowest_card",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winner_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "starting_kamons",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "centre_starting_kamons",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "card_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "card_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "fight_stake",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "centre_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "hand_cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "reserve_cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "minimum_fighters_for_showdown",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting kamons",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "kamons",
+            "value": {
+              "calc": "starting_kamons"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "centre",
+            "value": {
+              "calc": "centre_starting_kamons"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "kamons"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "a new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "deck",
+            "value": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          }
+        },
+        {
+          "set": {
+            "key": "reserve_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "pot",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "fighter_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "lowest_card",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "winner_seat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "draw_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "discarded",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "message",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "fight_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.kamons < fight_stake"
+            },
+            "key": "fight_choice",
+            "value": "PASS"
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "fought",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_card",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "total",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "the deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 2"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 3"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 4"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 5"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "reserve_cards",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "reserve_cards",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "reserve_cards",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "reserve_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "reserve_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "kobayakawa",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ],
+      "text": "Round {round}: the Kobayakawa card K is {kobayakawa}."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your card",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand",
+        "kamons"
+      ],
+      "text": "Your hand card and kamons:"
+    },
+    {
+      "use": "poll",
+      "phase": "draw",
+      "label": "draw choice",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "KEEP",
+          "SWAP"
+        ]
+      },
+      "store": "draw_choice",
+      "text": "Round {round}, K is {kobayakawa}. Choose KEEP to keep your hand card, or SWAP to discard it face up and take your unseen reserve card instead. Everyone chooses at the same moment."
+    },
+    {
+      "use": "update",
+      "phase": "draw",
+      "label": "the swaps",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.draw_choice == 'SWAP'"
+            },
+            "key": "discarded",
+            "value": {
+              "calc": "you.hand"
+            },
+            "announce_to": "all",
+            "text": "Seat {player} swapped and discarded {value}."
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.draw_choice == 'SWAP'"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "reserve_cards[you.seat - 1]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "draw",
+      "label": "your new card",
+      "mode": "self",
+      "to": {
+        "where": "you.draw_choice == 'SWAP'"
+      },
+      "fields": [
+        "hand"
+      ],
+      "text": "Your new hand card:"
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "table talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "store": "message",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Say one short thing to the table. You may claim anything about your card or intentions, true or false; nothing said is binding."
+    },
+    {
+      "use": "poll",
+      "phase": "fight",
+      "label": "fight choice",
+      "to": {
+        "where": "you.kamons >= fight_stake"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "FIGHT",
+          "PASS"
+        ]
+      },
+      "store": "fight_choice",
+      "text": "Choose FIGHT (stake {fight_stake} kamon into the pot) or PASS. Everyone chooses at the same moment. K is {kobayakawa}; the centre holds {centre}."
+    },
+    {
+      "use": "update",
+      "phase": "fight",
+      "label": "the stakes",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "fought",
+            "value": {
+              "calc": "you.fight_choice == 'FIGHT' and you.kamons >= fight_stake"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.fought"
+            },
+            "key": "kamons",
+            "value": {
+              "calc": "-fight_stake"
+            },
+            "announce_to": "all",
+            "text": "Seat {player} fights."
+          }
+        },
+        {
+          "set": {
+            "key": "fighter_count",
+            "value": {
+              "calc": "count(p.fought for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pot",
+            "value": {
+              "calc": "fighter_count * fight_stake"
+            }
+          }
+        }
+      ],
+      "text": "Fighters this round: {fighter_count}. Pot: {pot}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "a lone fighter",
+      "when": {
+        "calc": "fighter_count == 1"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.fought"
+            },
+            "key": "kamons",
+            "value": {
+              "calc": "pot"
+            },
+            "announce_to": "all",
+            "text": "Seat {player} was the only fighter and takes their stake back. Their card stays hidden."
+          }
+        },
+        {
+          "set": {
+            "key": "pot",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the showdown",
+      "when": {
+        "calc": "fighter_count >= minimum_fighters_for_showdown"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "lowest_card",
+            "value": {
+              "calc": "min([p.hand for p in players if p.fought])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.fought"
+            },
+            "key": "revealed_card",
+            "value": {
+              "calc": "you.hand"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.fought"
+            },
+            "key": "total",
+            "value": {
+              "calc": "you.hand + (kobayakawa if you.hand == lowest_card else 0)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the showdown winner",
+      "when": {
+        "calc": "fighter_count >= minimum_fighters_for_showdown"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "winner_seat",
+            "value": {
+              "calc": "[p.seat for p in players if p.fought and p.total * 100 - p.hand == max([q.total * 100 - q.hand for q in players if q.fought])][0]"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "winner_seat"
+            },
+            "key": "kamons",
+            "value": {
+              "calc": "pot + min(centre_bonus, centre)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "centre",
+            "value": {
+              "calc": "-min(centre_bonus, centre)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pot",
+            "value": 0
+          }
+        }
+      ],
+      "text": "Showdown: seat {winner_seat} wins the pot. Lowest card {lowest_card} added K = {kobayakawa}. Centre now holds {centre}."
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "round report",
+      "to": "all",
+      "text": "Round {round} result. Fighters: {fighter_count}. Showdown cards [seat, card, total]: {[[p.seat, p.revealed_card, p.total] for p in players if p.revealed_card > 0]}. Showdown winner: seat {winner_seat} (0 means no showdown). Kamons [seat, kamons]: {[[p.seat, p.kamons] for p in players]}. Centre: {centre}."
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.kamons",
+      "text": "Winner: {result}. Final kamons [seat, kamons]: {[[p.seat, p.kamons] for p in players]}; centre {centre}."
+    }
+  },
+  "limits": {
+    "rounds": 10,
+    "rounds_max": 12,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Each player starts with {starting_kamons} kamons. The centre starts with {centre_starting_kamons} kamons. The game lasts exactly {rounds} rounds.\n\nEach round:\n1. Deal. A fresh deck of {deck_size} cards numbered {card_min} to {card_max} is shuffled. Each player is dealt {hand_cards_per_player} face-down hand card, which only that player sees, and {reserve_cards_per_player} face-down reserve card, which nobody sees. One more card is turned face up: this is the Kobayakawa card, value K, and it is announced.\n2. Draw choice. All players choose KEEP or SWAP at the same moment. A SWAP player discards their hand card face up, takes their reserve card as their new hand card, and looks at it. If you KEEP, your hand card is unchanged and your reserve card is not used. Every discarded card and who discarded it is announced.\n3. Talk. Every player writes one short public message at the same moment, without seeing the others' messages. Then all messages are shown to everyone. Messages may say anything, including false claims about your card or intentions. Nothing said is binding.\n4. Fight choice. All players choose FIGHT or PASS at the same moment. A player with 0 kamons must PASS (they are not asked). Each FIGHT player puts {fight_stake} kamon into the pot; a PASS player stakes nothing.\n5. Resolve.\n - No fighters: nothing happens.\n - Exactly one fighter: that player takes their own kamon back. Their card is not revealed, and the centre pays nothing.\n - Two or more fighters: all fighters reveal their cards. Each fighter's total equals their card, except that the fighter with the lowest card adds K to it. The fighter with the highest total wins. If totals tie, the tied fighter with the lower card wins. The winner takes the whole pot. If the centre has at least 1 kamon, the winner also takes {centre_bonus} kamon from the centre; if the centre is empty, the winner takes only the pot. Losing fighters lose their stakes.\n6. All fighters, revealed cards, totals, the winner and every player's kamon count are announced.\n\nAfter round {rounds} the game ends. The player with the most kamons wins; players tied for most share the result."
+}
