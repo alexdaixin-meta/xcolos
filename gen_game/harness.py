@@ -277,7 +277,9 @@ class Played:
         """
         r = self.result
         if r.status != "ended":
-            return [f"the match did not end ({r.status}: {r.reason})"]
+            slow = ("; a match by scripted seats takes well under a second, so a step does more work every turn: an option list "
+                    "or a calc built from every combination of cards grows as the game goes on") if "time cap" in (r.reason or "") else ""
+            return [f"the match did not end ({r.status}: {r.reason}){slow}"]
         if not r.winner:
             return ["the match ended with no result"]
         if self.standings is None:
@@ -368,6 +370,11 @@ def offline_judge(answers: dict[str, bool] | None = None, default: bool = False)
     return ScriptedJudge(answer)
 
 
+#: How long one check match may run. Every library game plays a random match in under 0.1 s, so a match past this is a
+#: build whose steps do more work every turn (an option list or a calc over every combination of the table's cards).
+CHECK_SECONDS = 30
+
+
 def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: dict | None = None, rounds: int | None = None, judge=None) -> Played:
     """One match to the end. Seat `i + 1` is `agents[i]`.
 
@@ -390,7 +397,7 @@ def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: 
         if isinstance(agent, RuleAgent):
             agent.watch(game.log, seat)
     orchestrator = _GivenOrchestrator(definition, given, judge) if given else FlowOrchestrator(definition, judge)
-    result = Runner(game, orchestrator, registry).run()
+    result = Runner(game, orchestrator, registry, max_seconds=CHECK_SECONDS).run()
     return Played(result, game, orchestrator, agents)
 
 

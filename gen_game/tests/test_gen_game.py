@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -880,7 +881,10 @@ def test_the_generated_games_in_the_library_are_the_generated_files_and_each_end
         assert defn.end and all(rule.rank_by for rule in defn.end), game_id
         assert enc.model_use(defn) == [], (game_id, enc.model_use(defn))
         spec = json.loads((data / game_id / "spec.json").read_text())
-        assert spec["ending"]["rank_by"] == defn.end[0].rank_by, game_id
+        constants = {a["key"]: a["initial"] for a in json.loads((data / game_id / "game.json").read_text())["attributes"].get("game", [])
+                     if isinstance(a.get("initial"), (int, float)) and not isinstance(a.get("initial"), bool)}
+        as_numbers = re.sub(r"\b[a-z_][a-z0-9_]*\b", lambda m: str(constants.get(m.group(0), m.group(0))), defn.end[0].rank_by)
+        assert spec["ending"]["rank_by"] in (defn.end[0].rank_by, as_numbers), game_id  # a named constant is the number it names
         assert str(spec["ending"].get("min_to_win", "")) == defn.end[0].min_to_win, game_id
         assert not [p for p in specmod.problems(spec) if "ending" in p or "rank_by" in p], game_id
 
@@ -904,3 +908,17 @@ def test_a_muse_request_that_hangs_is_cut_after_three_minutes_not_ten():
     except Exception:
         return
     assert built.inner.timeout_s == 180 and hasattr(built, "converse")
+
+
+def test_a_check_match_that_runs_past_its_time_cap_is_abandoned_with_the_reason():
+    from xcolos.agents import RandomAgent
+
+    saved = harness.CHECK_SECONDS
+    harness.CHECK_SECONDS = 0  # every match is over its cap at once
+    try:
+        played = harness.play(load((LIBRARY / "rps.json").read_text()), [RandomAgent("a", seed=1), RandomAgent("b", seed=2)], seed=1)
+    finally:
+        harness.CHECK_SECONDS = saved
+    assert played.result.status == "abandoned" and "time cap" in (played.result.reason or "")
+    assert "every combination" in played.end_problems()[0]  # the coder is told what makes a match this slow
+    assert harness.CHECK_SECONDS == 30  # every library game plays a random match in under 0.1 s; scopa's runaway build took minutes
