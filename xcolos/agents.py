@@ -305,6 +305,11 @@ def _coerce(value: Any, legal_targets: tuple[Any, ...]) -> Any:
             return int(value)
         except (ValueError, TypeError):
             return value
+    # A number for an answer the game lists as text ("10" among a hand of cards): that text,
+    # so it matches. Only an answer that would otherwise be refused changes.
+    if (isinstance(value, int) and not isinstance(value, bool)
+            and value not in legal_targets and str(value) in legal_targets):
+        return str(value)
     return value
 
 

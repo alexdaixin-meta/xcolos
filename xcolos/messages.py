@@ -222,6 +222,10 @@ def _coerce(value: Any, legal: tuple[Any, ...]) -> Any:
         found = re.findall(r"-?\d+", str(value))
         if found:
             return int(found[-1])
+    # A number for an answer the game lists as text ("10" among a hand of cards): that text,
+    # so it matches. Only an answer that would otherwise be refused changes.
+    if isinstance(value, int) and not isinstance(value, bool) and value not in legal and str(value) in legal:
+        return str(value)
     return value
 
 

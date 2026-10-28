@@ -241,6 +241,13 @@ def test_enum_targets_are_matched_by_name():
     assert parse_action("maybe", JA_NEIN, ()) is None
 
 
+def test_a_model_number_for_an_answer_listed_as_text_is_that_text():
+    # A model seat that answers {"target": 10} for the card "10" plays the card, not a refused number.
+    cards = ActionSchema(id="first_trick", target="enum")
+    assert parse_action('{"target": 10}', cards, ("10", "8", "7")).target == "10"
+    assert parse_action('{"target": 9}', cards, ("10", "8", "7")).target == 9
+
+
 def test_text_actions_take_the_whole_reply():
     action = parse_action("  Seat 3 is lying.  ", SPEAK, ())
     assert action.text == "Seat 3 is lying."
