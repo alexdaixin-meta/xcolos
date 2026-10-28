@@ -36,7 +36,7 @@ from gen_game import marks
 #: Kept in this checkout and linked into every pinned copy: the games, the inventory, the platform's library.
 SHARED = ("gen_game/data", "gen_inventory/data", "xcolos/games/library")
 #: Outcomes the pipeline means. They never stop the line, and a game that has one is not run again on resume.
-FINISHED = ("ready_for_review", "dropped", "platform_limit", "needs_engine")
+FINISHED = ("ready_for_review", "dropped", "platform_limit", "needs_engine", "weak_reasoning")
 #: The play-test's players: Claude for every game, so plays compare across games and the reasoning check has the players' reasons
 #: to read. (`muse|gateway` would make the players depend on whether Muse can be reached that hour.)
 PLAYERS = "gateway"
@@ -155,7 +155,18 @@ def play_game(row: dict, code: Path, python: str, plays: int, log: Path, runner:
     if check and "verdict" in check:
         row["reasoning"] = {"verdict": check["verdict"], "scores": ", ".join(
             f"{a} {'-' if (check.get(a) or {}).get('score') is None else check[a]['score']}" for a in ("reasoning", "planning", "luck"))}
+        if row["outcome"] == "ready_for_review" and check["verdict"] == "weak":
+            fail_weak(row, check, code, python, log, runner)
     return _mark(row, code)
+
+
+def fail_weak(row: dict, check: dict, code: Path, python: str, log: Path, runner: Runner = run_logged) -> dict:
+    """Plays that ended but show weak reasoning or planning: the game did not pass, and leaves the library until its design is revised."""
+    row["outcome"] = "weak_reasoning"
+    row["detail"] = f"reasoning check weak ({row['reasoning']['scores']}): {check.get('summary', '')}"[:300]
+    with _library_lock(code):
+        runner([python, "-m", "gen_game", "uninstall", row["id"]], code, log)
+    return row
 
 
 def _mark(row: dict, code: Path) -> dict:

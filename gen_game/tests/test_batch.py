@@ -16,8 +16,8 @@ from gen_game import batch  # noqa: E402
 class FakeWorld:
     """Stands in for the processes: convert writes the verdict a game is scripted to get; simulate writes finished plays and a reasoning check."""
 
-    def __init__(self, root: Path, verdicts: dict[str, tuple[str, str]]):
-        self.root, self.verdicts, self.commands, self.full = root, verdicts, [], []
+    def __init__(self, root: Path, verdicts: dict[str, tuple[str, str]], reasoning: str = "strong"):
+        self.root, self.verdicts, self.commands, self.full, self.reasoning = root, verdicts, [], [], reasoning
 
     def __call__(self, cmd: list[str], cwd: Path, log: Path) -> int:
         self.commands.append((cmd[3], cmd[4], cwd))
@@ -36,7 +36,9 @@ class FakeWorld:
             (folder / "sim").mkdir(exist_ok=True)
             for n in (1, 2):
                 (folder / "sim" / f"w000{n}-seed{n}.json").write_text(json.dumps({"snapshot": {"status": "ended", "winner": "seat 1"}}))
-            (folder / "reasoning.json").write_text(json.dumps({"verdict": "strong", **{a: {"score": 3} for a in ("reasoning", "planning")}, "luck": {"score": 1}}))
+            scores = {"reasoning": 3, "planning": 3, "luck": 1} if self.reasoning == "strong" else {"reasoning": 2, "planning": 1, "luck": 1}
+            (folder / "reasoning.json").write_text(json.dumps({"verdict": self.reasoning, "summary": "most bids are made for the current round only",
+                                                               **{a: {"score": s} for a, s in scores.items()}}))
         return 0
 
 
@@ -75,7 +77,7 @@ def test_the_same_failure_in_three_games_stops_the_line_but_expected_outcomes_ne
     spec = [row(g, "spec_failed", f"{g}: the model call failed after 4 tries") for g in ("a", "b")]
     assert batch.should_stop(spec, 3) is None
     assert batch.should_stop(spec + [row("c", "spec_failed", "c: the model call failed after 5 tries")], 3)  # same failure, other numbers and names
-    expected = [row(g, o, "x") for g in "abcdef" for o in ("dropped", "platform_limit", "ready_for_review")]
+    expected = [row(g, o, "x") for g in "abcdef" for o in ("dropped", "platform_limit", "ready_for_review", "weak_reasoning")]
     assert batch.should_stop(expected, 3) is None
 
 
@@ -220,3 +222,14 @@ def test_a_mark_that_cannot_be_written_never_hides_how_the_game_came_out():
         (inv.root / "broken.json").write_text("{")  # another game's record, half written
         row = batch.run_game("rps", code, "python", 0, Path(d) / "rps.log", FakeWorld(code, {"rps": ("needs_review", "24/28 scenarios")}))
         assert row["outcome"] == "needs_review" and "24/28 scenarios" in row["detail"] and "not marked" in row["detail"]
+
+
+def test_a_game_whose_plays_show_weak_reasoning_does_not_pass_and_leaves_the_library():
+    with tempfile.TemporaryDirectory() as d:
+        code = code_dir(d)
+        world = FakeWorld(code, {"bidder": ("ready_for_review", "17/17 scenarios")}, reasoning="weak")
+        row = batch.run_game("bidder", code, "python", plays=2, log=Path(d) / "bidder.log", runner=world)
+        assert row["outcome"] == "weak_reasoning" and "planning 1" in row["detail"] and "current round only" in row["detail"]
+        assert [c[0] for c in world.commands] == ["convert", "uninstall", "install", "simulate", "uninstall"]  # out of the library
+        assert "REASONING.md" in (code / "gen_game" / "data" / "games" / "bidder" / "NOT_PASSED.md").read_text()
+        assert "weak_reasoning" in batch.FINISHED  # a verdict on the design: a resume does not play it again

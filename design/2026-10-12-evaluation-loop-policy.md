@@ -70,3 +70,7 @@ worked out from the scores: strong (reasoning and planning at least 2, luck at m
 How it is used: a weak verdict is a major `design` finding that needs no verifier, since its quotes were checked against the players' own replies, so it
 sends the design back to the designer; if it comes back after the redesign, the loop stops and escalates, as any finding that comes back. An adequate
 verdict is a minor finding: carried, and never starts a pass alone. A strong verdict adds nothing. A check that cannot be made is logged and changes nothing.
+
+In a batch (`gen_game batch`) a weak verdict fails the game even though its plays ended: the outcome is `weak_reasoning`, the game is taken out of
+the library and marked as not passed (record and folder), and a resume does not play it again (added 2026-10-27 after Bidder's Choice played 3/3
+with planning 1: most bids were made for the current round only).

@@ -21,6 +21,8 @@ NEXT = {
     "play_failed": "The game converted; its play-test did not finish. Play it again: `gen_game batch --name <batch> --replay`, "
                    "or `gen_game simulate <id> --players gateway`.",
     "install_failed": "The game converted but could not be installed into the library; see the batch log.",
+    "weak_reasoning": "Its plays ended, but winning did not take enough reasoning or planning: see REASONING.md. It was taken out "
+                      "of the library. Revise the design (`gen_game loop <id>`), or a person accepts it and installs it again.",
 }
 AGAIN = "Convert it again (`gen_game convert <id> --judge`, or run its batch again with the same name); see logs/ for what failed."
 

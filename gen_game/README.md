@@ -62,7 +62,9 @@ Every game that does not pass is marked in both places. The inventory record's `
 and `gen_inventory`'s index lists it as `not passed` unless it is dropped or blocked. The game folder has
 `DROPPED.md`, `PLATFORM_LIMIT.md`, or, for everything else, `NOT_PASSED.md` with the reason and what to do next.
 The status is left alone, so a game that needs review or failed a step is converted again. Passing clears
-`not_passed` and moves an earlier run's file into `history/`. `convert` marks a game when it ends; `batch` also marks crashes and failed installs or play-tests.
+`not_passed` and moves an earlier run's file into `history/`. `convert` marks a game when it ends; `batch` also marks crashes and failed installs or play-tests. In a batch, a game
+whose plays end but whose reasoning check is weak does not pass either (`weak_reasoning`): it is marked and taken out
+of the library.
 
 ## Models
 
