@@ -22,3 +22,7 @@ it could not be built to behave as designed: scenario `R1: after setup each seat
 - round 3: behavior problem; triage said fix_game: Rules S3 and S4 say three simultaneous face-up picks happen during setup, before round 1, leaving 7 in hand and 3 in up_pile. The game finished setup with every
 
 To bring the game back, clear `dropped` in its inventory record.
+
+## Reviewed 2026-10-28
+
+The reason above is a test fault, not a build fault: 13 of 15 rule scenarios pass on the last build, and the 2 that fail (R1, R2) check the face-up picks at 0 rounds, before any player is asked to pick. After round 1 every seat holds 3 face-up cards, and full matches end with a winner. The game stays dropped by a person's decision.
