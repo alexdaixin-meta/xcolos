@@ -1,0 +1,1370 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "cockroach_poker",
+    "name": "Cockroach Poker: Straight Calls",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "blurb": "Pass a card face-down with a creature claim; the receiver calls it TRUE or FALSE, and whoever is wrong takes it face-up."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "out",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "face_cockroach",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "face_rat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "face_stinkbug",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "face_toad",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "face_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "max_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "lost",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Cockroach",
+          "Cockroach",
+          "Cockroach",
+          "Cockroach",
+          "Cockroach",
+          "Cockroach",
+          "Rat",
+          "Rat",
+          "Rat",
+          "Rat",
+          "Rat",
+          "Rat",
+          "Stinkbug",
+          "Stinkbug",
+          "Stinkbug",
+          "Stinkbug",
+          "Stinkbug",
+          "Stinkbug",
+          "Toad",
+          "Toad",
+          "Toad",
+          "Toad",
+          "Toad",
+          "Toad"
+        ]
+      },
+      {
+        "key": "aside",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "sender",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "receiver",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card_in_play",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "revealed_card",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "claim",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "call",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "taker",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "game_over",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 24
+      },
+      {
+        "key": "creature_kinds",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "copies_per_creature",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "hand_size_start",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "aside_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "max_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 24
+      },
+      {
+        "key": "loss_same_creature",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "receiver_options",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "deal the hands",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand_size",
+            "value": {
+              "calc": "len(you.hand)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "set cards aside",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "aside",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "aside",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "aside",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "clear the face-up cards",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "face_cockroach",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "face_rat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "face_stinkbug",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "face_toad",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "face_total",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "max_face",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "lost",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "choose the first sender",
+      "do": [
+        {
+          "set": {
+            "key": "sender",
+            "value": {
+              "calc": "min(len(players), 1 + int(uniform(0, len(players))))"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ],
+      "text": "Seat {sender} is the first sender."
+    },
+    {
+      "use": "tell",
+      "label": "the deal",
+      "to": "all",
+      "text": "You are dealt {hand_size} cards. Your hand: {hand}."
+    }
+  ],
+  "steps": [
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "the round begins",
+      "to": "all",
+      "text": "Round {round} of at most {max_rounds}. Sender: seat {sender}. Seat 1 face-up: Cockroach {players[0].face_cockroach}, Rat {players[0].face_rat}, Stinkbug {players[0].face_stinkbug}, Toad {players[0].face_toad}; hand {players[0].hand_size}. Seat 2 face-up: Cockroach {players[1].face_cockroach}, Rat {players[1].face_rat}, Stinkbug {players[1].face_stinkbug}, Toad {players[1].face_toad}; hand {players[1].hand_size}. Seat 3 face-up: Cockroach {players[2].face_cockroach}, Rat {players[2].face_rat}, Stinkbug {players[2].face_stinkbug}, Toad {players[2].face_toad}; hand {players[2].hand_size}. Your hand: {hand}."
+    },
+    {
+      "use": "update",
+      "phase": "send",
+      "label": "the cards on offer",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "[c for c in ['Cockroach', 'Rat', 'Stinkbug', 'Toad'] if c in you.hand]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "send",
+      "label": "choose the card",
+      "to": {
+        "where": "you.seat == sender"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "card"
+      },
+      "text": "You are the sender. Choose one card from your hand to pass face-down."
+    },
+    {
+      "use": "update",
+      "phase": "send",
+      "label": "the card leaves the hand",
+      "do": [
+        {
+          "set": {
+            "key": "card_in_play",
+            "value": "$card"
+          }
+        },
+        {
+          "remove": {
+            "player": {
+              "calc": "sender"
+            },
+            "key": "hand",
+            "value": "$card"
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "sender"
+            },
+            "key": "hand_size",
+            "value": -1
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "send",
+      "label": "make the claim",
+      "to": {
+        "where": "you.seat == sender"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Cockroach",
+          "Rat",
+          "Stinkbug",
+          "Toad"
+        ]
+      },
+      "verify": {
+        "bind": "said_claim"
+      },
+      "text": "Claim which creature the card is. Your claim may be true or false."
+    },
+    {
+      "use": "update",
+      "phase": "send",
+      "label": "the claim is public",
+      "do": [
+        {
+          "set": {
+            "key": "claim",
+            "value": "$said_claim"
+          }
+        }
+      ],
+      "text": "Seat {sender} claims the card is a {claim}."
+    },
+    {
+      "use": "ask",
+      "phase": "send",
+      "label": "choose the receiver",
+      "to": {
+        "where": "you.seat == sender"
+      },
+      "answer": {
+        "type": "player",
+        "exclude_self": true
+      },
+      "verify": {
+        "bind": "recv"
+      },
+      "text": "Choose which of the other two players receives the card."
+    },
+    {
+      "use": "update",
+      "phase": "send",
+      "label": "the receiver is named",
+      "do": [
+        {
+          "set": {
+            "key": "receiver",
+            "value": "$recv"
+          }
+        }
+      ],
+      "text": "Seat {sender} passes the card to seat {receiver}, claiming it is a {claim}."
+    },
+    {
+      "use": "ask",
+      "phase": "call",
+      "label": "call the claim",
+      "to": {
+        "where": "you.seat == receiver"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "TRUE",
+          "FALSE"
+        ]
+      },
+      "verify": {
+        "bind": "said_call"
+      },
+      "text": "Seat {sender} passes you a card and claims it is a {claim}. Call TRUE if you think it is a {claim}, or FALSE if you think it is not. If you are right, the sender takes it face-up; if you are wrong, you take it face-up."
+    },
+    {
+      "use": "update",
+      "phase": "call",
+      "label": "the call is made",
+      "do": [
+        {
+          "set": {
+            "key": "call",
+            "value": "$said_call"
+          }
+        }
+      ],
+      "text": "Seat {receiver} calls {call}."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "the reveal",
+      "do": [
+        {
+          "set": {
+            "key": "revealed_card",
+            "value": {
+              "calc": "card_in_play"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "taker",
+            "value": {
+              "calc": "sender if ((call == 'TRUE' and card_in_play == claim) or (call == 'FALSE' and card_in_play != claim)) else receiver"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "taker"
+            },
+            "key": "face_cockroach",
+            "value": 1,
+            "if": {
+              "calc": "revealed_card == 'Cockroach'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "taker"
+            },
+            "key": "face_rat",
+            "value": 1,
+            "if": {
+              "calc": "revealed_card == 'Rat'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "taker"
+            },
+            "key": "face_stinkbug",
+            "value": 1,
+            "if": {
+              "calc": "revealed_card == 'Stinkbug'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "taker"
+            },
+            "key": "face_toad",
+            "value": 1,
+            "if": {
+              "calc": "revealed_card == 'Toad'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "taker"
+            },
+            "key": "face_total",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "max_face",
+            "value": {
+              "calc": "max([you.face_cockroach, you.face_rat, you.face_stinkbug, you.face_toad])"
+            }
+          }
+        }
+      ],
+      "text": "The card is revealed: it is a {revealed_card}. The claim was {claim} and the call was {call}. Seat {taker} takes the {revealed_card} face-up."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "the next sender",
+      "do": [
+        {
+          "set": {
+            "key": "sender",
+            "value": {
+              "calc": "taker"
+            }
+          }
+        }
+      ],
+      "text": "Seat {sender} will send next."
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "three of a creature",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == taker and ((revealed_card == 'Cockroach' and you.face_cockroach >= loss_same_creature) or (revealed_card == 'Rat' and you.face_rat >= loss_same_creature) or (revealed_card == 'Stinkbug' and you.face_stinkbug >= loss_same_creature) or (revealed_card == 'Toad' and you.face_toad >= loss_same_creature))"
+            },
+            "key": "lost",
+            "value": 1,
+            "text": "Seat {player} has 3 face-up cards of one creature and loses."
+          }
+        },
+        {
+          "set": {
+            "key": "game_over",
+            "value": 1,
+            "if": {
+              "calc": "any(p.lost == 1 for p in players)"
+            }
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "you.lost == 1"
+            },
+            "to": "out"
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "after the loss check",
+      "when": {
+        "calc": "game_over == 1"
+      },
+      "against": [
+        "over"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "empty hand",
+      "when": {
+        "calc": "game_over == 0"
+      },
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == sender and you.hand_size == 0"
+            },
+            "key": "lost",
+            "value": 1,
+            "text": "Seat {player} must send with an empty hand and loses."
+          }
+        },
+        {
+          "set": {
+            "key": "game_over",
+            "value": 1,
+            "if": {
+              "calc": "any(p.lost == 1 for p in players)"
+            }
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "you.lost == 1"
+            },
+            "to": "out"
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "after the empty-hand check",
+      "when": {
+        "calc": "game_over == 1"
+      },
+      "against": [
+        "over"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "the round ends",
+      "when": {
+        "calc": "game_over == 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "game_over",
+            "value": 1,
+            "if": {
+              "calc": "round >= max_rounds"
+            },
+            "text": "Round {max_rounds} has finished with no loser."
+          }
+        },
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1,
+            "if": {
+              "calc": "game_over == 0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "after the round",
+      "when": {
+        "calc": "game_over == 1"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "game_over == 1"
+      },
+      "rank_by": "(1 - you.lost) * 1000000 - you.face_total * 10000 - you.max_face * 100 + you.hand_size",
+      "text": "Winner: {result}. Seat 1: lost {players[0].lost}, face-up {players[0].face_total}, most of one creature {players[0].max_face}, hand {players[0].hand_size}. Seat 2: lost {players[1].lost}, face-up {players[1].face_total}, most of one creature {players[1].max_face}, hand {players[1].hand_size}. Seat 3: lost {players[2].lost}, face-up {players[2].face_total}, most of one creature {players[2].max_face}, hand {players[2].hand_size}."
+    }
+  },
+  "limits": {
+    "rounds": 24,
+    "rounds_max": 25,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "The deck has {deck_size} cards: {creature_kinds} creatures (Cockroach, Rat, Stinkbug, Toad), {copies_per_creature} copies of each. It is shuffled and each of the 3 players is dealt {hand_size_start} cards face-down as a private hand. The remaining {aside_cards} cards are set aside face-down, unseen by anyone, for the whole game. Each player starts with no face-up cards. The first sender is chosen at random.\n\nEach round (at most {max_rounds} rounds):\n1. The round number, the sender, and every player's face-up cards (counts per creature) and hand size are announced.\n2. The sender privately chooses one card from their own hand.\n3. The sender chooses a claim: one of the 4 creatures. It may be true or false.\n4. The sender chooses a receiver: either of the other two players.\n5. The receiver, who sees the claim but not the card, calls TRUE (the card is the claimed creature) or FALSE (it is not).\n6. The card is revealed to everyone. The receiver is correct if they called TRUE and the card matches the claim, or called FALSE and it does not. If the receiver is correct, the sender takes the card face-up. If the receiver is wrong (called TRUE and it does not match, or called FALSE and it matches), the receiver takes it face-up. Either way, the card has left the sender's hand.\n7. The player who took the card face-up becomes the sender for the next round.\n8. Loss check: if the player who took the card now has {loss_same_creature} face-up cards of the same creature, that player LOSES and the game ends.\n9. Empty-hand check: if the next sender has no cards in hand, that player LOSES and the game ends.\n10. If round {max_rounds} has finished without a loser, the game ends with no loser.\n\nThere is no separate talk phase. The claim is the only message.\n\nEnding: the losing player (if any) cannot win. The players who did not lose are ranked by these tests in order: (a) fewest total face-up cards; (b) if tied, the smaller count of their single most common face-up creature; (c) if still tied, the most cards remaining in hand. The player ranked first wins. If the top players are tied on all three tests, the game is a draw between them."
+}

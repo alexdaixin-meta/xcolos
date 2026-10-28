@@ -1,0 +1,423 @@
+{
+  "game": "dudo",
+  "attempts": [],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Two players start with 4 dice each (kept after an opening bid)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Three players start with 3 dice each (kept after an opening bid)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Four players start with 2 dice each (kept after an opening bid)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Each player rolls as many faces as dice (values are chance, only counts asserted)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Seat 1 opens and acts in round 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Opening bid quantity ranges from max(1, floor(9/4)) = 2 to T = 9",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Opener calling Dudo with no bid loses one die",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "With a bid of 7 and T = 9 the raise ranges from 8 to 9",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Bid equal to T forces Dudo; count 9 of 9 so the caller loses",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After seat 1 bids, seat 2 acts next and may raise or call",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Ones are wild in the count: 4 fives bid, 2 fives + 2 ones, caller loses",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Count below the bid makes the bidder lose a die",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A player losing their last die is eliminated",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The losing bidder opens the next hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "An eliminated loser passes the opening to the next surviving seat",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After a hand the bid is cleared, dice reroll and T drops to 8",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Last player with dice wins at once",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 40 ends the game; most dice wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 40 ends with a tie for most dice; tied seats share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Each turn keeps public dice counts and advances the round number",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        2,
+        4
+      ],
+      "results": {
+        "seat 1": 18,
+        "seat 2": 12,
+        "seat 4": 6,
+        "seat 3": 4
+      },
+      "turns_min": 6,
+      "turns_max": 31
+    }
+  },
+  "tier1": {
+    "flags": [
+      "always taking the first option as seat 1 wins 90% of decided matches against random seats",
+      "always taking the first option as seat 2 wins 88% of decided matches against random seats"
+    ],
+    "notes": [],
+    "random_results": {
+      "seat 1": 22,
+      "seat 2": 38
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 54,
+        "loss": 6,
+        "draw": 0,
+        "win_rate": 0.9
+      },
+      "first@seat2": {
+        "win": 53,
+        "loss": 7,
+        "draw": 0,
+        "win_rate": 0.88
+      },
+      "last@seat1": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "last@seat2": {
+        "win": 26,
+        "loss": 34,
+        "draw": 0,
+        "win_rate": 0.43
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 13.7,
+      "prompt_chars_avg": 133,
+      "prompt_chars_max": 142
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "2 to 4 players, suggested 3",
+      "why": "The designer suggests 3. The minimum is 2 because one rival is enough to bluff against. The maximum is 4 because the source scales starting dice only that far (2 each at 4 players), and more seats would leave too few dice per player."
+    },
+    {
+      "what": "Starting dice written as 6 minus the player count",
+      "why": "This matches 4, 3 and 2 for 2, 3 and 4 players, so it holds at every table size."
+    },
+    {
+      "what": "No separate talk step",
+      "why": "The bids themselves are the communication and bluff. Free talk would add words without a decision the rules contain."
+    },
+    {
+      "what": "The opener is offered 'dudo' at an empty table",
+      "why": "The source explicitly gives this option and its penalty (the opener loses 1 die)."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player estimates expected matches from their own faces plus about a third of unseen dice (ones are wild), raises to a bid they can defend, bluffs when the next player is likely to over-call, and calls Dudo when a bid exceeds a plausible count."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "Invalid bids cannot be entered",
+      "why": "The engine restricts answers to the allowed choices and number ranges, so the source rules 'an invalid bid or raise counts as Dudo / a failed opening' never trigger."
+    },
+    {
+      "what": "A bid is asked as three questions: action, quantity, face",
+      "why": "Each answer must be a single choice or a single number."
+    },
+    {
+      "what": "'Next surviving seat clockwise' is computed arithmetically over seat numbers and eliminated flags",
+      "why": "The engine has no seating operand; this uses the player-attribute comparison workaround."
+    },
+    {
+      "what": "Rolling dice is modeled as setting the faces list to random integers from 1 to 6",
+      "why": "The engine's seeded randomness stands in for physical dice."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 3,
+    "attributes": 30,
+    "hidden_elements": 2
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Dudo (Liar's Dice) is a bluffing game for 2 to 10 players. Each player hides their own dice, and players in turn raise a public claim about how many dice on the table show a face, with ones wild. Anyone may challenge with 'Dudo' instead of raising, the wrong side loses a die, and the last player with dice wins. The previous adaptation, Four-Call Dudo, capped each hand at four bidding turns and auto-challenged a raise made on turn 4.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "bad",
+        "evidence": "This verdict is for the reviewed Four-Call variation. The fixed four-turn horizon creates a hot seat. The opener can always bid their own count and is never wrong. Turn 2 can creep by changing only the face, for example two 4s to two 5s, which is true about 98% of the time with 15 dice. Turn 3 is then squeezed, and turn 4 wins with probability at least max(p, 1-p). The thoughtless policy 'on turn 4 always raise by the smallest step' wins about 90% against naive play and never drops below about 50%. Turn 3 loses at least about 50% whatever it does. I also checked the suggested patch, in which turn 4 must call and raises need +1 quantity. By backward induction, turn 2 then has a nearly risk-free bid near the expected count minus one, and the loss lands on turns 3 and 4 (about 42% and 58%). Any fixed horizon puts the risk on fixed positions. The original Dudo, with unlimited wrap-around bidding, has no such seat."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "In Four-Call, about half of each result came from seat position, which is fixed by who lost the previous hand. A strong player sitting at turn 3 still loses at least half the time. The original Dudo is strongly skill-sensitive: reading bids, using your own dice and timing a challenge all matter, and research on Liar's Dice shows large gaps between good and naive strategies."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Estimating the count from your own dice plus what other players' bids reveal about their dice, choosing which face to bid, bluffing a face to mislead, and judging when a rival is stretching are all open-ended skills. A weak player who bids around the expected count still wins hands, so weak play is not hopeless."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Every player's dice are hidden. Each bid is a noisy and possibly deceptive signal about the bidder's dice. The decision to call or raise is a probabilistic inference that combines your own dice with what you can read into the bid history."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "A challenge is settled by counting the dice showing the bid face plus ones and comparing with the bid quantity. Losing dice, elimination and the last survivor are all arithmetic."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "Dudo is text-only and turn-based. The four-turn cap was introduced only to fit at most 4 choice steps into a round, and that cap is what broke balance. The original's unlimited bidding fits if one round is one turn instead of one hand. That keeps one choice step per round, but the game must then finish within 40 turns, so starting dice must be fewer."
+      }
+    ],
+    "problems": [
+      "P1: The fixed four-turn horizon makes the turn-3 or turn-4 position a structural hot seat. By backward induction, any fixed cap concentrates the loss on fixed positions, so seat order, not judgement, decides most hands.",
+      "P2: Same-quantity, higher-face raises let early bidders creep with almost certainly true bids, so they carry no risk and make no real decision.",
+      "P3: The auto-challenge after a turn-4 raise gives turn 4 the better of two options (at least max(p, 1-p)). This yields a thoughtless policy that wins about 90%: always raise minimally on turn 4.",
+      "P4: Because the previous loser opens and positions are fixed relative to the opener, losses rotate nearly cyclically by seat. The winner is then largely set by the initial seating and the dice (the lottery trap).",
+      "P5: If bidding is uncapped and starting dice are not reduced, a full game cannot reliably fit within 40 rounds."
+    ],
+    "changes": [
+      {
+        "what": "Make one round equal one bidding turn, not one hand. A hand continues around the table, wrapping as often as needed, until someone calls Dudo. There is no turn cap and no auto-challenge. New dice are rolled only in a round where a hand ends, using a step with a 'when' condition, so there is at most one random draw per round.",
+        "why": "This restores the original's open horizon. Nobody knows in advance who will face the decisive bid, so risk falls on whoever misjudges the dice, not on a fixed position. Each round has a single choice step, well inside the limits.",
+        "fixes": "P1"
+      },
+      {
+        "what": "Remove the auto-challenge entirely. A raise is only ever settled if the next player calls it.",
+        "why": "No position gets the 'best of call or raise' privilege, so the 'always raise minimally on the last turn' policy no longer exists.",
+        "fixes": "P3"
+      },
+      {
+        "what": "Every raise must increase the quantity by at least 1, with any face 2 to 6. A same-quantity raise with a higher face is not allowed. The opening bid must have quantity at least max(1, floor(total dice / 4)).",
+        "why": "Bids reach contested territory within two or three turns, so creeping is impossible and every bidder after the opener carries real risk. It also bounds a hand at most total-dice + 1 turns, which keeps the game within the round limit.",
+        "fixes": "P2"
+      },
+      {
+        "what": "Keep 'the loser opens the next hand' from the original. Because there is no fixed horizon, opening no longer maps to a fixed hot seat.",
+        "why": "Under an open horizon, the opener's safe first bid is only a mild catch-up help for the player who just lost. It does not decide who loses next, so losses stop rotating mechanically by seat.",
+        "fixes": "P4"
+      },
+      {
+        "what": "Scale starting dice to the player count: 2 players get 4 dice each, 3 players get 3 each, 4 players get 2 each. Cap players at 4. If 40 rounds pass, the player with the most dice wins and a tie for most dice is a draw.",
+        "why": "A full game needs at most 7 or 8 die losses. At about 3 to 4 turns per hand, that is about 20 to 30 rounds, so the 40-round cap rarely binds.",
+        "fixes": "P5"
+      }
+    ],
+    "keeps": [
+      "Hidden dice that only their owner sees, rolled fresh every hand",
+      "Bids of 'at least N dice show face F' across the whole table, with ones wild",
+      "Each turn is a choice between raising the bid and calling Dudo",
+      "The wrong side of a challenge loses one die, and the loser opens the next hand",
+      "Elimination at zero dice, and the last player with dice wins",
+      "Bidding continues around the table until someone challenges, as in the original"
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The imbalance came entirely from the artificial turn cap. Making each round a single turn restores Dudo's open-ended bidding inside the engine limits."
+    },
+    "variation": {
+      "name": "Open-Table Dudo",
+      "summary": "This is Liar's Dice played one turn per round. Players raise a shared claim about the hidden dice, with ones wild, until someone calls Dudo. The wrong side loses a die, and the last player with dice wins. There is no turn cap, so no seat is a built-in hot seat.",
+      "players": {
+        "min": 2,
+        "max": 4,
+        "suggested": 3
+      },
+      "rules": "SETUP: Seat the players in a random order, numbered seat 1 upward, with clockwise meaning increasing seat number and wrapping from the last seat to seat 1. Starting dice depend on the number of players: 2 players start with 4 dice each, 3 players with 3 each, 4 players with 2 each. Every player rolls their dice (six-sided, faces 1 to 6). Each player is privately shown their own faces and no one else's. Seat 1 is the opener of the first hand.\n\nPUBLIC INFORMATION: At every turn all players are told how many dice each player holds, the total number of dice in play (T), the current bid and who made it (if any), and the list of bids made so far in this hand.\n\nBIDS: A bid is a quantity and a face from 2 to 6, for example 'three 5s'. It claims that at least that many dice on the whole table show that face. Ones are wild and count toward every face. Ones cannot be named as a bid face.\n\nEACH ROUND IS ONE TURN by the player to act.\n(a) If there is no current bid, the player to act is the opener and must make an opening bid. The quantity must be at least max(1, floor(T / 4)) and at most T. If the opener calls Dudo instead, or makes an invalid bid, the opener loses one die and the hand ends with no count.\n(b) If there is a current bid, the player to act either raises or calls 'Dudo'. A raise is a new bid whose quantity is at least the current quantity plus 1 and at most T, with any face from 2 to 6. An invalid raise counts as a Dudo call. If the current quantity already equals T, the player must call Dudo.\n(c) After a valid bid or raise, it becomes the current bid, and the next surviving player clockwise is the player to act in the next round. Bidding wraps around the table as many times as needed.\n(d) DUDO: When a player calls Dudo on the current bid, all dice are revealed to everyone. Count the dice showing the bid face plus all ones. If the count is at least the bid quantity, the bid was true and the caller loses one die. Otherwise the bid was false and the bidder loses one die. The hand ends.\n\nAFTER A HAND ENDS (this happens in the same round as the Dudo call or failed opening): A player with 0 dice is eliminated, and this is announced. The player who lost the die becomes the opener of the next hand. If that player was eliminated, the next surviving player clockwise from them is the opener. The current bid is cleared. Every surviving player rolls all their remaining dice and is privately shown their own faces. T is recomputed. The opener acts in the next round.\n\nEND: The game ends immediately when only one player has dice left. The game also ends after round 40. In that case any hand still in progress is not resolved and its bids are ignored.",
+      "objective": "The last player with at least one die wins, and every other player loses. If the game ends after round 40 with more than one player holding dice, the player holding the most dice wins. If several players are tied for the most dice, it is a draw among those tied and every other player loses.",
+      "expected_effect": "Without a fixed horizon there is no backward-induction squeeze. With +1-quantity raises and an opening floor, bids reach the expected count (about T/3 plus the bidder's own excess) within two or three turns. Whoever faces a bid that exceeds their own estimate must decide, and who that is depends on the dice and on earlier bids, not on seat. The simple policies all lose. 'Always call Dudo' loses to openers who bid their own count. 'Always raise minimally' is called once its bid passes the true count. 'Always bid your own count' is impossible after the opening because raises must go up. The open horizon prevents the hot seat, and the loser opening (now only a small catch-up advantage) no longer makes losses rotate by seat.\n\nWorked example with 3 players and 9 dice. A holds 5,5,1. B holds 3,3,6. C holds 1,4,4. C opens 'two 4s', which is true from C's own dice. A raises to 'three 5s', also true from A's own dice. B holds no 5 and no 1, and reasons that A's switch to 5s signals at least two. If B calls, B loses for certain. B instead raises to 'four 3s', a stretch needing two more 3s or ones among the 6 unknown dice, about 65% true from B's view. C holds one wild and reads B as strong in 3s, so C raises to 'five 4s'. C's own 1,4,4 plus a likely 1 elsewhere gives about 4, so this is a bluff. A holds no 4s and one wild, counts at most 4, and calls Dudo. The true count of 4s is 4 (C's 1, 4 and 4, plus A's 1), so C loses a die. Under a fixed cap B, at turn 3, would have been the forced loser. Here the loser was the player who misjudged the dice.\n\nTalk is left out. The bids are the communication channel and carry the bluffing. A free message phase each turn would cost extra steps, and since only one player can win there is little to bargain over. Unenforceable claims would mostly repeat what the bids already signal."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 1,
+      "attributes": 13,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 40
+    },
+    "critic": {
+      "rounds": 2,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "fail",
+            "evidence": "The four-turn cap, together with the automatic challenge after a turn-4 raise, turns the turn-3 seat into a structural hot seat. Raises can creep by tiny steps (same quantity, next face), so early bids stay almost certainly true. Take a 3-player hand with 15 dice, so each unknown die matches a named face with p = 1/3.\n\n(1) The opener can always make a guaranteed-true bid: the count of their own dice showing some face, plus their ones. A turn-2 call on that bid loses 100% of the time.\n\n(2) Turn 2 makes a minimal raise, e.g. two 4s to two 5s. P(at least 2 of 15) = 1 - (2/3)^15 - 15(1/3)(2/3)^14 = 1 - 0.0023 - 0.0171 = about 0.98 true. A turn-3 call loses about 98% of the time.\n\n(3) Turn 3 must therefore raise. Its bid can be minimal (two 6s or three 2s, about 0.92 to 0.98 true) or stretched. Say turn 3's bid is true with probability p.\n\n(4) Turn 4 picks the better of two options: call, winning with probability 1-p, or raise one face higher, winning with roughly p because the step is tiny. Turn 4 also knows its own dice. So it wins with probability at least max(p, 1-p), which is 0.5 or more.\n\nWin/lose table for turn 3 against turn 4:\n- Turn 3 bids minimal (p about 0.95): turn 4 raises minimally (P true for three-of-15 = 1 - 0.0023 - 0.0171 - 0.0599 = about 0.92). Turn 3 loses about 92%.\n- Turn 3 bids medium (p about 0.5): turn 4 calls or raises using its own dice. Turn 3 loses about 60%.\n- Turn 3 bids high (p about 0.2): turn 4 calls. Turn 3 loses about 80%.\nTurn 3 cannot get below roughly a 50% loss rate in any line.\n\nThoughtless policy test: 'on turn 4 always raise by the smallest step' wins about 90% against naive or minimal bidding, and never does worse than about 50%. 'Always open with your own count' essentially never loses the hand for the opener.\n\nSeat structure:\n- 3 players: the opener holds turns 1 and 4, both protected; the seat before the opener holds turn 3.\n- 4 players: turn 4 goes to the seat just counter-clockwise of the opener.\nRoles are fixed by the previous loser, so with good play die losses rotate almost mechanically. The 3-player sketch runs: hand 1, seat 3 loses; then seat 2; then seat 1; repeat. Move order, not judgement, carries most of the edge in each hand. No single option is strictly dominant, but a position that loses at least about 50% whatever it does is a large move-order imbalance."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Rules are complete:\n- Opener selection covers the case where the previous loser was eliminated.\n- Turn order is listed for 4, 3 and 2 survivors.\n- An invalid open costs a die; an invalid raise counts as Dudo.\n- The turn-4 auto-challenge names who challenges (the turn-3 bidder, who must have raised for bidding to reach turn 4).\n- Resolution is arithmetic: count the bid face plus ones and compare with the quantity.\n\nTermination: with 20 dice and one die lost per hand, the game lasts at most 19 hands, well under the 40-round safeguard. The safeguard has a calculated tiebreak.\n\nLimits: 18 steps (at most 20), 4 choice steps (at most 4), 14 attributes, 1 hidden element (each player's dice) and 1 random draw (the roll) are all within limits. No board, clock or judge is needed. The bidding uses supported hidden_hands, sequential_choice and per-step 'when' conditions, with no conditional block.\n\nTalk: leaving out a talk phase is sensible here. The bids themselves are the costly, information-bearing claims. Free talk would mostly be cheap bluff that adds words without changing the reasoning. Players are not left purely guessing, because each bid signals a hand."
+          },
+          "reasoning_over_luck": {
+            "verdict": "fail",
+            "evidence": "Assume everyone plays the intended good line:\n- the opener bids their own count (safe);\n- turn 2 raises by a small step (about 98% safe);\n- turn 3 is squeezed (loses about 50 to 92%);\n- turn 4 takes whichever of call or raise is better.\n\nUnder that line the loser of each hand is mostly the turn-3 seat, and that seat is fixed by who lost the previous hand. Losses then rotate nearly cyclically: in 3 players, seats 3, 2, 1, 3, 2, 1 down to one die each. The final eliminations depend on where that cycle sits plus dice noise. The winner is therefore largely set by the random initial seating and the rolls, not by better inference.\n\nEstimate of what decides the result:\n- seat-driven position: about 50% of the result;\n- dice variance at the decisive one-die end-game: about 25%;\n- skill (reading bids, using one's own dice, bluffing on turn 4): about 25%.\n\nThere is genuine inference available on turn 4 and in calling stretched bids. But a strong player in the turn-3 seat still loses at least half the time, so good reasoning is not clearly favoured."
+          },
+          "required_changes": [
+            "Remove the squeeze from the four-turn cap by forcing bids into contested territory quickly:\n- Make every raise increase the quantity by at least 1; drop the same-quantity, higher-face raise.\n- Set the minimum opening quantity to floor(total dice / 4).\nWith 15 dice that means an open of 3 or more and a turn-3 bid of 5 or more. With p = 1/3 the turn-3 bid is then near or above the expected count of 5, so it is genuinely uncertain (P about 0.4 to 0.6), and a turn-3 call on turn 2's bid is a real option.",
+            "Replace the turn-4 auto-challenge with: 'Turn 4 must call Dudo on the current bid; it cannot raise.' Turn 4 then gets one option, not the better of two, and turn 3 can choose a bid that balances its risk.",
+            "Show a simulated or computed per-position loss-rate table (turn 1, 2, 3, 4) under sensible play after the change. Each position should lose between about 15% and 40% of hands, with no position at 50% or more.",
+            "Demonstrate that the per-hand loser no longer rotates deterministically by seat. Give a short worked example of a 3-player game in which bid-reading changes the elimination order."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Chance that a given die counts for a named face (the face itself or a wild one) is p = 1/3. Two players, T = 8, minimum opening = floor(8/4) = 2. Binomial(8, 1/3) tail probabilities with no private information: P(>=1) = 0.961, P(>=2) = 0.805, P(>=3) = 0.532, P(>=4) = 0.259, P(>=5) = 0.088, P(>=6) = 0.020, P(>=8) = 0.0002.\n\nThoughtless policies under the winner rule:\n- ALWAYS DUDO: as opener it loses a die every time by rule (a). As responder, against a minimum opening that matches the bidder's own dice, the bid is true more than 80% of the time, so the caller loses the die. This policy loses almost every hand against sensible play. Against a random bidder who bids uniformly from 2 to 8, Dudo is correct only for quantities of 4 or more, roughly half the time. It does not avoid losing.\n- ALWAYS MINIMUM RAISE: the quantity climbs by exactly 1 each turn. A sensible opponent calls Dudo once q >= 4, where the bid is true only about 26% of the time. Against a random caller it loses whenever it is called at q >= 4, so it loses many hands.\n- ALWAYS BID T: 'eight Xs' is true with probability 0.0002. A sensible player calls Dudo and wins the hand almost surely, so this policy loses nearly always.\n- ALWAYS FIRST FACE (2s): rival bidders can infer that this player's bids say nothing about its hand, and they call Dudo when the count is unlikely. It has no immunity.\n\nNo option is strictly better whatever the opponent does. Raising carries risk because the quantity must rise by at least 1 and is capped at T. Calling Dudo carries risk because opening bids built on the bidder's own dice are usually true.\n\nSeat and order: seat 1 is drawn at random, so the first opener is not a fixed seat. Afterwards the loser of a hand opens, which acts as a catch-up mechanism.\n\nEndgame of 1 die against 1 die (T = 2, minimum opening 1): the opener can bid its own face and be certain the bid is true. The responder must then call Dudo and lose, or bid 'two Xs', which is true only with probability 1/3, after which the opener is forced to call Dudo. The opener therefore wins this endgame with probability of at least about 2/3. That edge goes to the player who just lost a die, so it narrows the gap rather than widening it.\n\nIn bigger positions the forced escalation alternates between players, and each player can switch face to make use of private dice. Every player can realistically win. The payoff structure is not labelled as any named game, so there is no mismatch to check."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules are complete:\n- valid opening range [max(1, floor(T/4)), T];\n- raise range [q+1, T] with any face from 2 to 6;\n- a forced Dudo when q = T;\n- invalid actions mapped to defined outcomes;\n- the counting rule (bid face plus ones);\n- who loses the die;\n- elimination and the next opener, including the case where the loser was eliminated;\n- the re-roll and the recomputing of T.\n\nThe game is finite, with a hard cap of 40 rounds. The cap rule is fully arithmetic: most dice wins, ties draw, and an unresolved hand is ignored.\n\nEach normal hand needs at least 2 rounds. Removing 7 of 8 dice (2 players at 4 dice each, or 4 players at 2 dice each) needs 7 hands. At about 3 or 4 rounds per hand that is roughly 21 to 28 rounds, so most games end naturally and the cap is a fallback.\n\nThe stated complexity is within limits:\n- 16 of 20 steps;\n- 1 of 4 choice steps;\n- 13 of 20 attributes;\n- 1 of 3 hidden elements;\n- 1 random draw per round. The re-roll at the end of a hand happens in the same round as the Dudo call, and that round has no other draw.\n\nThere is 1 choice step per round, made by the single player to act. This sequential turn is intended and correct for Dudo, so no simultaneous poll is needed.\n\nNo board, judge, clock, trading or binding agreements are required. Hidden hands and numeric bids are both supported.\n\nTalk: no separate talk phase is provided, and that is a sensible choice. The bids are themselves the public signalling channel, and every player wants a different outcome, so free text would only duplicate the bluffing the bids already carry.\n\nThe repeated-cooperation question does not apply, since the game has no cooperation dilemma.\n\nMinor note: near round 40 a leader can try to keep a hand alive by raising, so that it is never resolved. This is limited by the +1 rule and the cap at T, and it is a legitimate planning consideration, not a gap in the rules."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "There is real hidden information: each player sees only their own dice. A player can infer opponents' holdings from the face and quantity of their bids, and can update the binomial estimate (own matching dice plus Binomial(T - own, 1/3)). A player also decides when to switch faces, when to bluff, and when an opponent is being forced to escalate.\n\nWorked example, T = 8, facing the bid 'three 5s':\n- Holding two 5s: the bid needs only 1 of the other 6 dice, so P = 1 - (2/3)^6 = 0.912 and Dudo is a clear mistake.\n- Holding no 5s: the bid needs 3 of the other 4 dice, so P(>=3 of 4) = 0.111 and Dudo is correct.\nReasoning sharply changes the right action.\n\nLuck: a single hand can be decided by the deal. However, a game spans about 7 or more hands with fresh rolls each time, and the loser-opens rule gives a player a chance to recover from bad hands. Good play therefore dominates over the series. My estimate is that chance decides about 30 to 40% of individual hands and much less of the overall result.\n\nWhen both players play well, the outcome is not fixed by one random draw. Repeated independent rolls add variety, and a better-calibrated caller or bluffer still comes out ahead in expectation. A reasoner beats always-Dudo, always-T and random bidding by a wide margin."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [
+    "always taking the first option as seat 1 wins 90% of decided matches against random seats",
+    "always taking the first option as seat 2 wins 88% of decided matches against random seats"
+  ],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_tests",
+      "reason": "With T = 9 the opening quantity may be anything from 2 to 9, so offering 7 on the quantity prompt is correct. The test treats 7 as forbidden, apparently meaning 'face 7 is out of range', but its exclusion is not tied to a particular prompt, and the legal quantity 7 trips it.",
+      "guidance": "Do not assert that a value is never offered to a seat when that value is legal on another prompt that seat sees. For the opening bid with T = 9, assert that quantities 1 and 10 are not offered and 2 through 9 are. For the face, check only face-range exclusions that cannot clash with legal quantities: face 1 is already covered by the quantity check, and 7 is a legal quantity. Better still, check the face by its effect: play a face move of 2 or 6 and assert the resulting current bid, rather than asserting that 7 is absent from all of seat 1's options. Keep asserting the resulting current bid and the scores, not internal bookkeeping."
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "revise_rules",
+      "reason": "The game file works as specified, but one fixed choice dominates. Always taking the first option wins about 90% of decided matches from either seat. Always taking the last option (bidding the maximum T) almost always loses. Because raises may jump straight to any quantity up to T, most bids are wildly false, so calling Dudo or making the smallest bid wins without any thought.",
+      "guidance": "Rework bidding so that neither a fixed 'call Dudo or bid the minimum' choice nor an extreme bid is automatically right or wrong. Suggested changes:\n- Narrow the raise range so bids climb gradually, not in jumps to absurd quantities. For example, a raise is either the same quantity with a higher face, or the quantity plus 1 or 2 with any face. Give the step limits as parameters.\n- Cap the opening bid near the expected count, for example at most about T/2, so openings stay plausible. Keep the opening floor so the opener cannot always bid trivially low.\n- Consider an exact-count call ('calza') that rewards a precise call. Alternatively, make a failed Dudo cost the caller more, for example 2 dice. Either way, calling Dudo every time stops being a free win.\n- Re-check balance against thoughtless policies (first, last, random) at every player count until none of them wins far above its fair share."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 1,
+      "attributes": 13,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 40
+    },
+    "measured": {
+      "steps_per_round": 14,
+      "choice_steps_per_round": 3,
+      "attributes": 30,
+      "hidden_elements": 2
+    }
+  },
+  "verdict": "needs_review"
+}

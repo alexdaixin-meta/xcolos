@@ -1,0 +1,1596 @@
+[
+  {
+    "name": "Each player starts with dice of sizes 4, 6, 8 and 12 in play",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 0
+        },
+        "2": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 0
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "in_play": 4
+          },
+          "2": {
+            "in_play": 4
+          }
+        }
+      }
+    },
+    "rule_text": "Each player owns four dice of sizes 4, 6, 8 and 12; the sizes in each player's in_play are public."
+  },
+  {
+    "name": "Scores carry over from leg 1 into leg 2",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "score": 10
+        },
+        "2": {
+          "is_first": false,
+          "score": 6
+        }
+      },
+      "game": {
+        "turn": 20,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 6
+        }
+      },
+      "game": {
+        "turn": 21,
+        "leg": 2,
+        "match_over": false
+      }
+    },
+    "rule_text": "Each player's score starts at 0 and carries over from leg 1 to leg 2."
+  },
+  {
+    "name": "Chance picks First; only chance-independent facts after turn 1 are checked",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        }
+      },
+      "game": {
+        "turn": 1,
+        "leg": 1
+      }
+    },
+    "rule_text": "Before turn 1, exactly one of the two seats is chosen at random as First (is_first = true)."
+  },
+  {
+    "name": "Leg 1 odd turn: First acts, Second is not asked",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "turn": 3,
+        "leg": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "In leg 1 (turns 1-20), First acts on odd turns and Second acts on even turns."
+  },
+  {
+    "name": "Leg 1 even turn: Second acts, First is not asked",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "turn": 3,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "turn": 4,
+        "leg": 1
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "pass"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "In leg 1 (turns 1-20), First acts on odd turns and Second acts on even turns."
+  },
+  {
+    "name": "Leg 2 even turn: First acts",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "turn": 21,
+        "leg": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "turn": 22,
+        "leg": 2
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "In leg 2 (turns 21-40), Second acts on odd turns and First acts on even turns."
+  },
+  {
+    "name": "Leg 2 odd turn: Second acts",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "turn": 22,
+        "leg": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "turn": 23,
+        "leg": 2
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "pass"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "In leg 2 (turns 21-40), Second acts on odd turns and First acts on even turns."
+  },
+  {
+    "name": "On turn 1 both seats load all four dice",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "game": {
+        "turn": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 4
+        },
+        {
+          "seat": 1,
+          "option": 12
+        },
+        {
+          "seat": 2,
+          "option": 4
+        },
+        {
+          "seat": 2,
+          "option": 12
+        }
+      ]
+    },
+    "rule_text": "On turns 1 and 21, both players secretly and simultaneously choose values d4 in 1-4, d6 in 1-6, d8 in 1-8 and d12 in 1-12."
+  },
+  {
+    "name": "No loading on a turn other than 1 or 21",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "turn": 1,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "turn": 2
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 12
+        },
+        {
+          "seat": 2,
+          "option": 12
+        }
+      ]
+    },
+    "rule_text": "On turns 1 and 21, both players secretly and simultaneously choose values d4 in 1-4, d6 in 1-6, d8 in 1-8 and d12 in 1-12."
+  },
+  {
+    "name": "Loads totalling 16 become the values: loaded d4=4 beats loaded d8=2",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 12
+      },
+      {
+        "seat": 1,
+        "options_include": "power: my d4 -> your d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 8,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            12
+          ]
+        }
+      },
+      "game": {
+        "turn": 1
+      }
+    },
+    "rule_text": "When a player's four loaded values total exactly 16, those values become the dice values."
+  },
+  {
+    "name": "Loads not totalling 16 fall back to defaults: loaded d8=1 fails against default d4=2",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 4
+      },
+      {
+        "seat": 1,
+        "options_include": "power: my d8 -> your d4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            12
+          ]
+        },
+        "2": {
+          "score": 8,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        }
+      }
+    },
+    "rule_text": "When a player's four loaded values do not total 16, the values become d4=2, d6=3, d8=4, d12=7."
+  },
+  {
+    "name": "At the start of leg 2 both in_play lists reset and scores stay",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "in_play": [
+            4
+          ],
+          "score": 20
+        },
+        "2": {
+          "is_first": false,
+          "in_play": [
+            6,
+            12
+          ],
+          "score": 4
+        }
+      },
+      "game": {
+        "turn": 20,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 20
+        },
+        "2": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 4
+        }
+      },
+      "game": {
+        "turn": 21,
+        "leg": 2
+      }
+    },
+    "rule_text": "At the start of each leg, both players' in_play is reset to [4, 6, 8, 12]; captures from leg 1 do not carry over, but scores do."
+  },
+  {
+    "name": "Each turn advances the public turn counter within leg 1",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "score": 3
+        },
+        "2": {
+          "is_first": false,
+          "score": 5
+        }
+      },
+      "game": {
+        "turn": 4,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 3
+        },
+        "2": {
+          "score": 5
+        }
+      },
+      "game": {
+        "turn": 5,
+        "leg": 1
+      }
+    },
+    "rule_text": "Each turn, the public status announces the turn, the leg, the active seat, each player's in_play, both scores, and whether the previous turn in this leg was a pass."
+  },
+  {
+    "name": "A pass turn leaves the public state unchanged",
+    "rule": "R11",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "in_play": [
+            4,
+            8
+          ]
+        },
+        "2": {
+          "is_first": false,
+          "in_play": [
+            6,
+            12
+          ]
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "in_play": [
+            4,
+            8
+          ],
+          "score": 0
+        },
+        "2": {
+          "in_play": [
+            6,
+            12
+          ],
+          "score": 0
+        }
+      },
+      "game": {
+        "turn": 3
+      }
+    },
+    "rule_text": "Each turn, each player is privately told only the values of their own remaining dice and never the opponent's values, except values announced on capture."
+  },
+  {
+    "name": "Active seat is offered pass, power and skill only with remaining dice",
+    "rule": "R12",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "in_play": [
+            4,
+            8
+          ]
+        },
+        "2": {
+          "is_first": false,
+          "in_play": [
+            4,
+            12
+          ]
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        },
+        {
+          "seat": 1,
+          "option": "power: my d8 -> your d12"
+        },
+        {
+          "seat": 1,
+          "option": "power: my d4 -> your d4"
+        },
+        {
+          "seat": 1,
+          "option": "skill: my d4 + my d8 -> your d12"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "power: my d6 -> your d4"
+        },
+        {
+          "seat": 1,
+          "option": "power: my d8 -> your d6"
+        },
+        {
+          "seat": 1,
+          "option": "power: my d12 -> your d12"
+        },
+        {
+          "seat": 2,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "The active player may pass, declare a power attack (one own remaining die against one opponent remaining die), or declare a skill attack (two different own remaining dice against one opponent remaining die)."
+  },
+  {
+    "name": "Power attack 5 vs 5 succeeds",
+    "rule": "R13",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d12_value": 5
+        },
+        "2": {
+          "is_first": false,
+          "d8_value": 5
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "power: my d12 -> your d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 8,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            12
+          ]
+        }
+      }
+    },
+    "rule_text": "When a power attack has attacker value >= target value (for example 5 vs 5), it succeeds; when the attacker value is lower (4 vs 5), it fails."
+  },
+  {
+    "name": "Power attack 4 vs 5 fails",
+    "rule": "R13",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d12_value": 4
+        },
+        "2": {
+          "is_first": false,
+          "d8_value": 5
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "power: my d12 -> your d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            8
+          ]
+        },
+        "2": {
+          "score": 12,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        }
+      }
+    },
+    "rule_text": "When a power attack has attacker value >= target value (for example 5 vs 5), it succeeds; when the attacker value is lower (4 vs 5), it fails."
+  },
+  {
+    "name": "Skill attack 3 + 4 vs 7 succeeds",
+    "rule": "R14",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d6_value": 3,
+          "d8_value": 4
+        },
+        "2": {
+          "is_first": false,
+          "d12_value": 7
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "skill: my d6 + my d8 -> your d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 12,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            8
+          ]
+        }
+      }
+    },
+    "rule_text": "When a skill attack's two values sum exactly to the target value (3 + 4 vs 7), it succeeds; any other sum (3 + 4 vs 6 or vs 8) fails."
+  },
+  {
+    "name": "Skill attack 3 + 4 vs 6 fails",
+    "rule": "R14",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d6_value": 3,
+          "d8_value": 4
+        },
+        "2": {
+          "is_first": false,
+          "d12_value": 6
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "skill: my d6 + my d8 -> your d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            12
+          ]
+        },
+        "2": {
+          "score": 8,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        }
+      }
+    },
+    "rule_text": "When a skill attack's two values sum exactly to the target value (3 + 4 vs 7), it succeeds; any other sum (3 + 4 vs 6 or vs 8) fails."
+  },
+  {
+    "name": "Capturing a d12 adds 12 to the attacker's score",
+    "rule": "R15",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d12_value": 12,
+          "score": 5
+        },
+        "2": {
+          "is_first": false,
+          "d12_value": 7
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "power: my d12 -> your d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 17,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 0,
+          "in_play": [
+            4,
+            6,
+            8
+          ]
+        }
+      }
+    },
+    "rule_text": "When an attack succeeds, the target is removed from the defender's in_play, its value is announced publicly, and the attacker's score rises by the target's size (for example +12 for a d12)."
+  },
+  {
+    "name": "After a successful skill attack the smaller die keeps its value (d6=3 later captures a d6 showing 3)",
+    "rule": "R16",
+    "players": 2,
+    "seed": 1,
+    "rounds": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d6_value": 3,
+          "d8_value": 4
+        },
+        "2": {
+          "is_first": false,
+          "d12_value": 7,
+          "d6_value": 3
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "skill: my d6 + my d8 -> your d12"
+      },
+      {
+        "seat": 1,
+        "options_include": "power: my d6 -> your d6"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 18,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 0,
+          "in_play": [
+            4,
+            8
+          ]
+        }
+      },
+      "game": {
+        "turn": 5
+      }
+    },
+    "rule_text": "When an attack succeeds, the attacking die (in a skill attack, only the larger-size one) is rerolled to a uniform value from 1 to its size, told only to its owner; the smaller skill attacker keeps its value."
+  },
+  {
+    "name": "Failed skill attack: only the larger attacker is lost and the defender gains its size",
+    "rule": "R17",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d4_value": 1,
+          "d6_value": 2,
+          "score": 2
+        },
+        "2": {
+          "is_first": false,
+          "d12_value": 7,
+          "score": 1
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "skill: my d4 + my d6 -> your d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 2,
+          "in_play": [
+            4,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 7,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        }
+      }
+    },
+    "rule_text": "When an attack fails, the attacking die (in a skill attack, only the larger-size one) is removed from the attacker's in_play, its value is announced publicly, and the defender's score rises by its size."
+  },
+  {
+    "name": "After a failed skill attack the smaller die keeps its value (d4=1 later captures a d4 showing 1)",
+    "rule": "R18",
+    "players": 2,
+    "seed": 1,
+    "rounds": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d4_value": 1,
+          "d6_value": 2
+        },
+        "2": {
+          "is_first": false,
+          "d12_value": 7,
+          "d4_value": 1
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "skill: my d4 + my d6 -> your d12"
+      },
+      {
+        "seat": 1,
+        "options_include": "power: my d4 -> your d4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "in_play": [
+            4,
+            8,
+            12
+          ]
+        },
+        "2": {
+          "score": 6,
+          "in_play": [
+            6,
+            8,
+            12
+          ]
+        }
+      },
+      "game": {
+        "turn": 5
+      }
+    },
+    "rule_text": "When an attack fails, nothing is rerolled, the smaller skill attacker keeps its value, and the target's value is not revealed."
+  },
+  {
+    "name": "Capturing the opponent's last die ends leg 1 at once (turn jumps to 20)",
+    "rule": "R19",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d12_value": 7
+        },
+        "2": {
+          "is_first": false,
+          "in_play": [
+            4
+          ],
+          "d4_value": 2
+        }
+      },
+      "game": {
+        "turn": 4,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "power: my d12 -> your d4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 0,
+          "in_play": []
+        }
+      },
+      "game": {
+        "turn": 20,
+        "leg": 1,
+        "match_over": false
+      }
+    },
+    "rule_text": "When either player's in_play becomes empty, the current leg ends immediately."
+  },
+  {
+    "name": "Two passes in a row end leg 1 (turn jumps to 20)",
+    "rule": "R20",
+    "players": 2,
+    "seed": 1,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "turn": 4,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "turn": 20,
+        "leg": 1,
+        "match_over": false
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        },
+        {
+          "seat": 2,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "When this turn and the previous turn in the same leg are both passes, the current leg ends immediately."
+  },
+  {
+    "name": "Completing turn 20 ends leg 1 and the next turn starts leg 2",
+    "rule": "R21",
+    "players": 2,
+    "seed": 1,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "in_play": [
+            4
+          ],
+          "score": 9
+        },
+        "2": {
+          "is_first": false,
+          "in_play": [
+            8,
+            12
+          ],
+          "score": 3
+        }
+      },
+      "game": {
+        "turn": 19,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 9
+        },
+        "2": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 3
+        }
+      },
+      "game": {
+        "turn": 21,
+        "leg": 2,
+        "match_over": false
+      }
+    },
+    "rule_text": "When turn 20 is completed, leg 1 ends."
+  },
+  {
+    "name": "Early end of leg 1 skips to turn 21 with leg 2 loading",
+    "rule": "R22",
+    "players": 2,
+    "seed": 1,
+    "rounds": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "in_play": [
+            4,
+            8
+          ],
+          "score": 3
+        },
+        "2": {
+          "is_first": false,
+          "in_play": [
+            6
+          ],
+          "score": 5
+        }
+      },
+      "game": {
+        "turn": 4,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 3
+        },
+        "2": {
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ],
+          "score": 5
+        }
+      },
+      "game": {
+        "turn": 21,
+        "leg": 2,
+        "match_over": false
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 12
+        },
+        {
+          "seat": 2,
+          "option": 12
+        }
+      ]
+    },
+    "rule_text": "When leg 1 ends before turn 20, the remaining turns up to 20 are skipped with no actions, and play resumes at turn 21 with leg 2 loading."
+  },
+  {
+    "name": "Completing turn 40 ends the match and the higher score wins",
+    "rule": "R23",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "score": 20
+        },
+        "2": {
+          "is_first": false,
+          "score": 14
+        }
+      },
+      "game": {
+        "turn": 39,
+        "leg": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 20,
+        "2": 14
+      },
+      "game": {
+        "match_over": true,
+        "turn": 40
+      }
+    },
+    "rule_text": "When turn 40 is completed or leg 2 ends early, the match ends."
+  },
+  {
+    "name": "Leg 2 ending early (last die captured) ends the match",
+    "rule": "R23",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": false,
+          "score": 10,
+          "d12_value": 7
+        },
+        "2": {
+          "is_first": true,
+          "score": 12,
+          "in_play": [
+            4
+          ],
+          "d4_value": 2
+        }
+      },
+      "game": {
+        "turn": 30,
+        "leg": 2,
+        "first_seat": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "power: my d12 -> your d4"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 14,
+        "2": 12
+      },
+      "game": {
+        "match_over": true
+      }
+    },
+    "rule_text": "When turn 40 is completed or leg 2 ends early, the match ends."
+  },
+  {
+    "name": "Equal scores at the end share the win",
+    "rule": "R24",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "score": 10
+        },
+        "2": {
+          "is_first": false,
+          "score": 10
+        }
+      },
+      "game": {
+        "turn": 39,
+        "leg": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 10,
+        "2": 10
+      },
+      "game": {
+        "match_over": true
+      }
+    },
+    "rule_text": "When the match ends, the player with the higher score wins; equal scores are a draw."
+  },
+  {
+    "name": "A failed attack rerolls nothing: defender's d12=8 then captures a d8 showing 8",
+    "rule": "R25",
+    "players": 2,
+    "seed": 1,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "d12_value": 1,
+          "d8_value": 8
+        },
+        "2": {
+          "is_first": false,
+          "d12_value": 8
+        }
+      },
+      "game": {
+        "turn": 2,
+        "first_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "power: my d12 -> your d12"
+      },
+      {
+        "seat": 2,
+        "options_include": "power: my d12 -> your d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "in_play": [
+            4,
+            6
+          ]
+        },
+        "2": {
+          "score": 20,
+          "in_play": [
+            4,
+            6,
+            8,
+            12
+          ]
+        }
+      },
+      "game": {
+        "turn": 4
+      }
+    },
+    "rule_text": "Values change only by loading on turns 1 and 21 or by the reroll after a successful attack."
+  }
+]

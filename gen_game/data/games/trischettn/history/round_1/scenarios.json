@@ -1,0 +1,1687 @@
+[
+  {
+    "name": "Deal start: 6 cards each, talon of 12 with one face up (after first trick: hands back to 6, 9 hidden talon cards left)",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          }
+        },
+        "game": {
+          "talon": 9,
+          "played_this_deal": 2
+        }
+      },
+      "players": {
+        "1": {
+          "match_total": 0
+        },
+        "2": {
+          "match_total": 0
+        }
+      }
+    },
+    "rule_text": "When a deal starts, then the 24 cards are shuffled, each player receives 6 cards in hand, the other 12 form the talon, and one talon card is turned face up as talon_up."
+  },
+  {
+    "name": "New deal resets declarations shown and played cards, match totals kept",
+    "rule": "R2",
+    "players": 2,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "match_total": 30,
+          "deal_points": 30,
+          "declared_this_deal": true
+        },
+        "2": {
+          "match_total": 40,
+          "deal_points": 40,
+          "declared_this_deal": true
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 0,
+        "tricks_played": 12,
+        "played_this_deal": [
+          "Ten of Hearts",
+          "Nine of Hearts",
+          "Ace of Hearts",
+          "King of Hearts"
+        ],
+        "declared_cards_shown": [
+          "Ten of Hearts",
+          "Ten of Bells",
+          "Ten of Leaves"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "played_this_deal": 2,
+          "declared_cards_shown": 0
+        },
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "match_total": 30
+        },
+        "2": {
+          "match_total": 40
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "declare"
+        },
+        {
+          "seat": 2,
+          "option": "declare"
+        }
+      ]
+    },
+    "rule_text": "When a deal starts, then each player's deal_points is 0, declared_this_deal is false, and played_this_deal is empty."
+  },
+  {
+    "name": "Deal 1 opens with a lead and a follow (random deal, only counts asserted)",
+    "rule": "R3",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "played_this_deal": 2
+        }
+      },
+      "players": {
+        "1": {
+          "match_total": 0
+        },
+        "2": {
+          "match_total": 0
+        }
+      }
+    },
+    "rule_text": "When deal 1 starts, then seat 1 leads; when deal 2 starts, then seat 2 leads."
+  },
+  {
+    "name": "Deal 3 starts with lower total leading (random deal, only counts and totals asserted)",
+    "rule": "R4",
+    "players": 2,
+    "seed": 4,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "match_total": 30,
+          "deal_points": 10
+        },
+        "2": {
+          "match_total": 40,
+          "deal_points": 20
+        }
+      },
+      "game": {
+        "deal_no": 2,
+        "trick_in_deal": 0,
+        "tricks_played": 24
+      }
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "played_this_deal": 2
+        },
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "match_total": 30
+        },
+        "2": {
+          "match_total": 40
+        }
+      }
+    },
+    "rule_text": "When deal 3 starts, then the seat with the lower match_total leads, and if the totals are equal, seat 2 leads."
+  },
+  {
+    "name": "No declaration offered on the first trick of a deal",
+    "rule": "R5",
+    "players": 2,
+    "seed": 5,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "declare"
+        },
+        {
+          "seat": 2,
+          "option": "declare"
+        }
+      ],
+      "lens": {
+        "game": {
+          "declared_cards_shown": 0
+        }
+      }
+    },
+    "rule_text": "When it is the first trick of a deal, then the leader is not offered a declaration."
+  },
+  {
+    "name": "Eligible leader with three Tens is offered declare and may pass",
+    "rule": "R6",
+    "players": 2,
+    "seed": 6,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Ten of Bells",
+            "Ten of Leaves",
+            "Unter of Acorns",
+            "King of Hearts",
+            "Ober of Hearts"
+          ],
+          "deal_points": 0,
+          "declared_this_deal": false
+        },
+        "2": {
+          "hand": [
+            "King of Acorns",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ober of Leaves",
+            "Unter of Leaves",
+            "Nine of Hearts"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "pass"
+      },
+      {
+        "seat": 1,
+        "options_include": "Unter of Acorns"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "declare"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_points": 0
+        },
+        "2": {
+          "deal_points": 2
+        }
+      },
+      "lens": {
+        "game": {
+          "declared_cards_shown": 0
+        }
+      }
+    },
+    "rule_text": "When the leader won the previous trick of this deal, has not declared this deal, and holds a qualifying set, then the leader is offered declare or pass; otherwise the leader is not offered a declaration."
+  },
+  {
+    "name": "Leader who already declared this deal is not offered a declaration",
+    "rule": "R6",
+    "players": 2,
+    "seed": 7,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Ten of Bells",
+            "Ten of Leaves",
+            "Unter of Acorns",
+            "King of Hearts",
+            "Ober of Hearts"
+          ],
+          "deal_points": 9,
+          "declared_this_deal": true
+        },
+        "2": {
+          "hand": [
+            "King of Acorns",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ober of Leaves",
+            "Unter of Leaves",
+            "Nine of Hearts"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Unter of Acorns"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "declare"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_points": 9
+        },
+        "2": {
+          "deal_points": 2
+        }
+      }
+    },
+    "rule_text": "When the leader won the previous trick of this deal, has not declared this deal, and holds a qualifying set, then the leader is offered declare or pass; otherwise the leader is not offered a declaration."
+  },
+  {
+    "name": "Leader without a qualifying set is not offered a declaration",
+    "rule": "R6",
+    "players": 2,
+    "seed": 8,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ober of Hearts",
+            "Ten of Bells",
+            "King of Bells",
+            "Unter of Leaves",
+            "King of Acorns",
+            "Unter of Acorns"
+          ],
+          "deal_points": 0,
+          "declared_this_deal": false
+        },
+        "2": {
+          "hand": [
+            "Nine of Bells",
+            "Ober of Bells",
+            "Ten of Leaves",
+            "Nine of Leaves",
+            "Ace of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ober of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ober of Bells"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "declare"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_points": 2
+        },
+        "2": {
+          "deal_points": 0
+        }
+      }
+    },
+    "rule_text": "When the leader won the previous trick of this deal, has not declared this deal, and holds a qualifying set, then the leader is offered declare or pass; otherwise the leader is not offered a declaration."
+  },
+  {
+    "name": "Declaring three Tens scores 9 thirds",
+    "rule": "R7",
+    "players": 2,
+    "seed": 9,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Ten of Bells",
+            "Ten of Leaves",
+            "Unter of Acorns",
+            "King of Hearts",
+            "Ober of Hearts"
+          ],
+          "deal_points": 0,
+          "declared_this_deal": false
+        },
+        "2": {
+          "hand": [
+            "King of Acorns",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ober of Leaves",
+            "Unter of Leaves",
+            "Nine of Hearts"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "declare"
+      },
+      {
+        "seat": 1,
+        "options_include": "Unter of Acorns"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 9
+        },
+        "2": {
+          "deal_points": 2
+        }
+      },
+      "lens": {
+        "game": {
+          "declared_cards_shown": 3
+        }
+      }
+    },
+    "rule_text": "When a leader declares holding exactly three Tens, three Nines or three Aces, then 9 thirds per such rank are added to the leader's deal_points."
+  },
+  {
+    "name": "Declaring all four Aces scores 12 thirds",
+    "rule": "R8",
+    "players": 2,
+    "seed": 10,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Hearts",
+            "Ace of Bells",
+            "Ace of Leaves",
+            "Ace of Acorns",
+            "Unter of Hearts",
+            "Ober of Hearts"
+          ],
+          "deal_points": 0,
+          "declared_this_deal": false
+        },
+        "2": {
+          "hand": [
+            "King of Hearts",
+            "Ten of Bells",
+            "Nine of Bells",
+            "King of Bells",
+            "Ten of Leaves",
+            "Nine of Leaves"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "declare"
+      },
+      {
+        "seat": 1,
+        "options_include": "Unter of Hearts"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 12
+        },
+        "2": {
+          "deal_points": 2
+        }
+      },
+      "lens": {
+        "game": {
+          "declared_cards_shown": 4
+        }
+      }
+    },
+    "rule_text": "When a leader declares holding all four Tens, Nines or Aces, then 12 thirds per such rank are added instead of 9."
+  },
+  {
+    "name": "Napoli plus three Tens sharing the Ten of Hearts scores 18 thirds",
+    "rule": "R9",
+    "players": 2,
+    "seed": 11,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Nine of Hearts",
+            "Ace of Hearts",
+            "Ten of Bells",
+            "Ten of Leaves",
+            "Unter of Acorns"
+          ],
+          "deal_points": 0,
+          "declared_this_deal": false
+        },
+        "2": {
+          "hand": [
+            "King of Acorns",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ober of Leaves",
+            "Unter of Leaves",
+            "King of Leaves"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "declare"
+      },
+      {
+        "seat": 1,
+        "options_include": "Unter of Acorns"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 18
+        },
+        "2": {
+          "deal_points": 2
+        }
+      }
+    },
+    "rule_text": "When a leader declares holding the Ten, Nine and Ace of one suit (a Napoli), then 9 thirds per such suit are added, and a card may count in several sets."
+  },
+  {
+    "name": "After declaring, no second declaration is offered that deal",
+    "rule": "R10",
+    "players": 2,
+    "seed": 12,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Ten of Bells",
+            "Ten of Leaves",
+            "Nine of Acorns",
+            "King of Hearts",
+            "Ober of Hearts"
+          ],
+          "deal_points": 0,
+          "declared_this_deal": false
+        },
+        "2": {
+          "hand": [
+            "Unter of Acorns",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ober of Leaves",
+            "Unter of Leaves",
+            "King of Leaves"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "declare",
+        "times": "all"
+      },
+      {
+        "seat": 1,
+        "options_include": "Nine of Acorns"
+      },
+      {
+        "seat": 1,
+        "options_include": "King of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ober of Bells"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 13
+        },
+        "2": {
+          "deal_points": 0
+        }
+      },
+      "lens": {
+        "game": {
+          "declared_cards_shown": 3
+        }
+      }
+    },
+    "rule_text": "When a leader declares, then every qualifying set in hand is scored at once, its cards are added to declared_cards_shown, declared_this_deal becomes true, and no further declaration is offered that deal."
+  },
+  {
+    "name": "Leader may lead any card and it is added to played cards",
+    "rule": "R11",
+    "players": 2,
+    "seed": 13,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ober of Hearts",
+            "Ten of Bells",
+            "King of Bells",
+            "Unter of Leaves",
+            "King of Acorns",
+            "Unter of Acorns"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Nine of Bells",
+            "Ober of Bells",
+            "Ten of Leaves",
+            "Nine of Leaves",
+            "Ace of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ober of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ober of Bells"
+      }
+    ],
+    "expect": {
+      "game": {
+        "played_this_deal": [
+          "Ober of Hearts",
+          "Ober of Bells"
+        ]
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Unter of Leaves"
+        },
+        {
+          "seat": 1,
+          "option": "King of Acorns"
+        },
+        {
+          "seat": 1,
+          "option": "Ten of Bells"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_points": 2
+        },
+        "2": {
+          "deal_points": 0
+        }
+      }
+    },
+    "rule_text": "When the leader plays, then any card in hand may be played and it is added to played_this_deal."
+  },
+  {
+    "name": "Follower holding the led suit is offered only that suit",
+    "rule": "R12",
+    "players": 2,
+    "seed": 14,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Nine of Bells",
+            "King of Bells",
+            "Ober of Leaves",
+            "King of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts",
+            "King of Hearts",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ten of Leaves",
+            "Unter of Leaves"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ten of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "King of Hearts"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Unter of Hearts"
+        },
+        {
+          "seat": 2,
+          "option": "King of Hearts"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Ober of Bells"
+        },
+        {
+          "seat": 2,
+          "option": "Ten of Leaves"
+        },
+        {
+          "seat": 2,
+          "option": "Unter of Leaves"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_points": 2
+        },
+        "2": {
+          "deal_points": 0
+        }
+      }
+    },
+    "rule_text": "When the follower holds a card of the led suit, then only cards of the led suit are offered; otherwise every card in hand is offered."
+  },
+  {
+    "name": "Follower void in the led suit is offered every card",
+    "rule": "R12",
+    "players": 2,
+    "seed": 15,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Nine of Bells",
+            "King of Bells",
+            "Ober of Leaves",
+            "King of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Ace of Bells",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ten of Leaves",
+            "Unter of Leaves",
+            "Nine of Acorns"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ten of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ace of Bells"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Ober of Bells"
+        },
+        {
+          "seat": 2,
+          "option": "Ten of Leaves"
+        },
+        {
+          "seat": 2,
+          "option": "Nine of Acorns"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_points": 4
+        },
+        "2": {
+          "deal_points": 0
+        }
+      }
+    },
+    "rule_text": "When the follower holds a card of the led suit, then only cards of the led suit are offered; otherwise every card in hand is offered."
+  },
+  {
+    "name": "Higher card of the led suit wins for the follower",
+    "rule": "R13",
+    "players": 2,
+    "seed": 16,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "King of Bells",
+            "Ten of Hearts",
+            "Ober of Hearts",
+            "Unter of Leaves",
+            "King of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Ten of Bells",
+            "Nine of Leaves",
+            "Ace of Leaves",
+            "Unter of Acorns",
+            "Nine of Acorns",
+            "Ace of Hearts"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "King of Bells"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 0
+        },
+        "2": {
+          "deal_points": 2
+        }
+      }
+    },
+    "rule_text": "When the follower plays a higher card of the led suit (Ten > Nine > Ace > King > Ober > Unter), then the follower wins the trick; otherwise the leader wins, as there are no trumps."
+  },
+  {
+    "name": "Off-suit Ace does not win: no trumps, leader takes the trick",
+    "rule": "R13",
+    "players": 2,
+    "seed": 17,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Unter of Leaves",
+            "Ten of Hearts",
+            "Ober of Hearts",
+            "King of Bells",
+            "King of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Ace of Acorns",
+            "Ten of Bells",
+            "Nine of Bells",
+            "King of Hearts",
+            "Unter of Hearts",
+            "Nine of Acorns"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Unter of Leaves"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ace of Acorns"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 4
+        },
+        "2": {
+          "deal_points": 0
+        }
+      }
+    },
+    "rule_text": "When the follower plays a higher card of the led suit (Ten > Nine > Ace > King > Ober > Unter), then the follower wins the trick; otherwise the leader wins, as there are no trumps."
+  },
+  {
+    "name": "Lower card of the led suit loses to the leader (Ace below Nine)",
+    "rule": "R13",
+    "players": 2,
+    "seed": 18,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Nine of Bells",
+            "Ten of Hearts",
+            "Ober of Hearts",
+            "Unter of Leaves",
+            "King of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Ace of Bells",
+            "King of Hearts",
+            "Unter of Hearts",
+            "Ten of Leaves",
+            "Nine of Leaves",
+            "Unter of Acorns"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Nine of Bells"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 4
+        },
+        "2": {
+          "deal_points": 0
+        }
+      }
+    },
+    "rule_text": "When the follower plays a higher card of the led suit (Ten > Nine > Ace > King > Ober > Unter), then the follower wins the trick; otherwise the leader wins, as there are no trumps."
+  },
+  {
+    "name": "Trick winner adds card values: Ace 3 plus Ten 1",
+    "rule": "R14",
+    "players": 2,
+    "seed": 19,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Hearts",
+            "Nine of Bells",
+            "King of Bells",
+            "Ober of Leaves",
+            "King of Acorns",
+            "Ober of Acorns"
+          ],
+          "deal_points": 3
+        },
+        "2": {
+          "hand": [
+            "Ten of Hearts",
+            "Ober of Bells",
+            "Unter of Bells",
+            "Ten of Leaves",
+            "Unter of Leaves",
+            "Nine of Acorns"
+          ],
+          "deal_points": 5
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Hearts"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 3
+        },
+        "2": {
+          "deal_points": 9
+        }
+      }
+    },
+    "rule_text": "When a trick is won, then the winner adds the values of both cards to deal_points, with Ace = 3 thirds and Ten, Nine, King, Ober, Unter = 1 third each."
+  },
+  {
+    "name": "Winner of the 12th trick gets 3 extra thirds",
+    "rule": "R15",
+    "players": 2,
+    "seed": 20,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Hearts"
+          ],
+          "deal_points": 20,
+          "match_total": 0
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts"
+          ],
+          "deal_points": 15,
+          "match_total": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 11,
+        "tricks_played": 11,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": []
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_points": 27
+        },
+        "2": {
+          "deal_points": 15
+        }
+      }
+    },
+    "rule_text": "When the 12th trick of a deal is won, then the winner adds a further 3 thirds."
+  },
+  {
+    "name": "Trick winner takes the face-up talon card, loser draws a hidden one",
+    "rule": "R16",
+    "players": 2,
+    "seed": 21,
+    "rounds": 2,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "Nine of Hearts",
+            "King of Bells",
+            "Ober of Bells",
+            "Unter of Bells",
+            "King of Leaves"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts",
+            "Ten of Bells",
+            "Nine of Bells",
+            "Ace of Bells",
+            "Ober of Leaves",
+            "Unter of Leaves"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 3,
+        "tricks_played": 3,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon_up": "Ace of Acorns",
+        "talon": [
+          "Ten of Acorns",
+          "Nine of Acorns",
+          "King of Acorns",
+          "Ober of Acorns",
+          "Unter of Acorns"
+        ],
+        "talon_count": 6,
+        "played_this_deal": [
+          "Ace of Hearts",
+          "King of Hearts",
+          "Ober of Hearts",
+          "Ten of Leaves",
+          "Nine of Leaves",
+          "Ace of Leaves"
+        ],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ten of Hearts"
+      },
+      {
+        "seat": 1,
+        "options_include": "Ace of Acorns"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          }
+        },
+        "game": {
+          "talon": 1,
+          "played_this_deal": 10
+        }
+      }
+    },
+    "rule_text": "When a trick ends and the talon is not empty, then the winner takes talon_up into hand, the loser takes a hidden talon card that only the loser sees, and a new card is turned face up if any remain."
+  },
+  {
+    "name": "After the 6th trick the talon is empty and no more draws happen",
+    "rule": "R17",
+    "players": 2,
+    "seed": 22,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ten of Hearts",
+            "King of Hearts",
+            "Nine of Bells",
+            "King of Bells",
+            "Ace of Leaves",
+            "King of Leaves"
+          ],
+          "deal_points": 10
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts",
+            "Ober of Hearts",
+            "Unter of Bells",
+            "Ober of Bells",
+            "Unter of Leaves",
+            "Ober of Leaves"
+          ],
+          "deal_points": 4
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 5,
+        "tricks_played": 5,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon_up": "Ober of Acorns",
+        "talon": [
+          "Unter of Acorns"
+        ],
+        "talon_count": 2,
+        "played_this_deal": [
+          "Nine of Hearts",
+          "Ace of Hearts",
+          "Ten of Bells",
+          "Ace of Bells",
+          "Ten of Leaves",
+          "Nine of Leaves",
+          "Ten of Acorns",
+          "Nine of Acorns",
+          "Ace of Acorns",
+          "King of Acorns"
+        ],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ten of Hearts"
+      },
+      {
+        "seat": 1,
+        "options_include": "King of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Unter of Hearts"
+      }
+    ],
+    "expect": {
+      "game": {
+        "talon_up": ""
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 5
+          }
+        },
+        "game": {
+          "talon": 0,
+          "played_this_deal": 14
+        }
+      },
+      "players": {
+        "1": {
+          "deal_points": 14
+        },
+        "2": {
+          "deal_points": 4
+        }
+      }
+    },
+    "rule_text": "When 6 tricks of a deal are done, then the talon is empty and no more draws happen that deal."
+  },
+  {
+    "name": "The trick winner leads the next trick",
+    "rule": "R18",
+    "players": 2,
+    "seed": 23,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "King of Hearts",
+            "Unter of Bells",
+            "Ober of Leaves",
+            "Unter of Leaves",
+            "Ober of Acorns",
+            "Unter of Acorns"
+          ],
+          "deal_points": 0
+        },
+        "2": {
+          "hand": [
+            "Ten of Hearts",
+            "Nine of Bells",
+            "King of Acorns",
+            "Ace of Bells",
+            "King of Leaves",
+            "Ace of Leaves"
+          ],
+          "deal_points": 0
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 6,
+        "tricks_played": 6,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": [],
+        "declared_cards_shown": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "King of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Nine of Bells"
+      }
+    ],
+    "expect": {
+      "game": {
+        "played_this_deal": [
+          "King of Hearts",
+          "Ten of Hearts",
+          "Nine of Bells",
+          "Unter of Bells"
+        ]
+      },
+      "players": {
+        "1": {
+          "deal_points": 0
+        },
+        "2": {
+          "deal_points": 4
+        }
+      }
+    },
+    "rule_text": "When a trick ends, then its winner leads the next trick."
+  },
+  {
+    "name": "End of deal adds deal points to match totals",
+    "rule": "R19",
+    "players": 2,
+    "seed": 24,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Hearts"
+          ],
+          "deal_points": 20,
+          "match_total": 40
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts"
+          ],
+          "deal_points": 15,
+          "match_total": 30
+        }
+      },
+      "game": {
+        "deal_no": 1,
+        "trick_in_deal": 11,
+        "tricks_played": 11,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": []
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_total": 67
+        },
+        "2": {
+          "match_total": 45
+        }
+      }
+    },
+    "rule_text": "When the 12th trick of a deal ends, then each player's deal_points is added to match_total and both totals are announced."
+  },
+  {
+    "name": "After 36 tricks the higher match total wins",
+    "rule": "R20",
+    "players": 2,
+    "seed": 25,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Unter of Hearts"
+          ],
+          "deal_points": 10,
+          "match_total": 60
+        },
+        "2": {
+          "hand": [
+            "Ace of Hearts"
+          ],
+          "deal_points": 20,
+          "match_total": 50
+        }
+      },
+      "game": {
+        "deal_no": 3,
+        "trick_in_deal": 11,
+        "tricks_played": 35,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": []
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 70,
+        "2": 77
+      },
+      "players": {
+        "1": {
+          "match_total": 70
+        },
+        "2": {
+          "match_total": 77
+        }
+      }
+    },
+    "rule_text": "When 36 tricks (3 deals) have been played, then the game ends and the higher match_total wins; equal totals are a draw."
+  },
+  {
+    "name": "After 36 tricks equal match totals share the win",
+    "rule": "R20",
+    "players": 2,
+    "seed": 26,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Unter of Hearts"
+          ],
+          "deal_points": 10,
+          "match_total": 60
+        },
+        "2": {
+          "hand": [
+            "Ace of Hearts"
+          ],
+          "deal_points": 0,
+          "match_total": 63
+        }
+      },
+      "game": {
+        "deal_no": 3,
+        "trick_in_deal": 11,
+        "tricks_played": 35,
+        "leader": 1,
+        "last_trick_winner": 1,
+        "talon": [],
+        "talon_count": 0,
+        "talon_up": "",
+        "played_this_deal": []
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 70,
+        "2": 70
+      }
+    },
+    "rule_text": "When 36 tricks (3 deals) have been played, then the game ends and the higher match_total wins; equal totals are a draw."
+  }
+]

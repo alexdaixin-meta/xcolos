@@ -1,0 +1,153 @@
+{
+  "original_summary": "Masterpiece is an art-auction game for 2 to 6 players. Each painting is public but has a private value card. Players move around a track whose spaces trigger bank auctions, private auctions of their own paintings, buys, sales and inheritances, and the winner has the most cash plus painting value at the end. The reviewed variation cut this to a rotating sealed-bid private sale: the left neighbour picks the lot, the seller sets a secret reserve, and a kept painting costs the seller the high bid, paid to the bank.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "bad",
+      "evidence": "Every player valued a painting at the same v, so there were no gains from trade. Keeping a painting cost the seller B, which made the seller's best reserve v/2. A bid B then wins only lots with v < 2B, and the buyer's expected gain is negative at every B (-50, -50, -50, -125, -475). 'Always bid 0' therefore never loses money. Rational play gives no trades and an all-way draw at 3600."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "bad",
+      "evidence": "The best play is never to bid, which ties. Against imperfect players, the result depends on who errs and on the random value of a lot chosen blind. Superior reasoning has no profitable action to exploit."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "bad",
+      "evidence": "The game is solved by the passive equilibrium (bid 0, reserve about v/2), and no deviation improves on it. Nothing remains to learn beyond 'do not trade'."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Values are hidden, but the published reserve (about v/2) revealed each auctioned value. There was no opponent type to model, and a correct inference never led to a profitable action."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "The score is cash plus painting values, all tracked by the engine, and the highest score wins. The previous version lacked a tie-break, so ties were common draws."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "The original's board was already removed. Play is turn-based with sealed bids, simultaneous talk and 9 to 15 rounds. Painting storage was underspecified but buildable as hidden-hand items."
+    }
+  ],
+  "problems": [
+    "P1: There are no gains from trade. Every player values a painting at the same v, so any trade is zero-sum between two players and the passive 'bid 0' policy cannot lose.",
+    "P2: The keep penalty (the seller pays the full high bid to the bank) pushes the seller's reserve to v/2. That makes every bid unprofitable in expectation, creating a pure lemons market.",
+    "P3: Publishing the reserve reveals each auctioned painting's value to everyone, destroying the hidden information.",
+    "P4: There is no hidden type, so there is nothing about opponents to infer or model.",
+    "P5: There is no tie-break, so the rational outcome is an all-way draw.",
+    "P6: Random value deals could hand some players better positions if any value advantage were reintroduced, so a fix must not create a lottery.",
+    "P7: The storage of paintings, owners and values was underspecified for the 20-attribute limit."
+  ],
+  "changes": [
+    {
+      "what": "There are 4 public styles. Each player gets a secret collector theme, one distinct style per player. Every painting of your theme style is worth +400 extra to you at scoring.",
+      "why": "A matching collector values a lot at v+400 while a non-matching seller values it at v. Mutually profitable trades now exist, and buyers who are not the matching collector still face a lemons market and should stay out. Inferring who collects what becomes the core skill.",
+      "fixes": "P1, P4"
+    },
+    {
+      "what": "A seller who keeps the painting pays only a flat fee of 50 to the bank, and only if the highest bid was at least 50.",
+      "why": "The seller's honest reservation price becomes about v-50 instead of v/2. A matching buyer then has positive expected bids: against an unknown value, bidding 50 gives +87.5 in expectation and bidding 350 gives +100. Sellers in turn shade reserves upward to capture the collector's surplus. The small fee keeps stonewalling from being free.",
+      "fixes": "P2"
+    },
+    {
+      "what": "The reserve is never published. Only the bids, sold-or-kept, the money moved and cash totals are announced.",
+      "why": "Values stay private to past owners. A 'kept despite a high bid' outcome is only a hint, open to interpretation.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Each player holds one painting of each style. Values are dealt by a Latin square: each player holds one each of 0, 300, 600 and 1200, and each style has exactly one painting of each value.",
+      "why": "Every player starts at exactly 1500 + 2100 + 400 = 4000, with one theme painting each, so the deal is no lottery. Owning your own painting of a style tells you which values the other three paintings of that style have, which gives a deduction to plan with.",
+      "fixes": "P6, P4"
+    },
+    {
+      "what": "The tie-break is most cash, then a draw. The game is fixed at 4 players.",
+      "why": "This removes most draws. Four players also means a trade benefits both parties relative to the two bystanders, so trading beats passivity.",
+      "fixes": "P5, P1"
+    },
+    {
+      "what": "Paintings are stored as hidden-hand items with three fields: style, value and owner. Seats 1 to 4 are defined at setup.",
+      "why": "This states exactly how the 16 paintings fit within the attribute limits.",
+      "fixes": "P7"
+    }
+  ],
+  "keeps": [
+    "Paintings are public objects with private values, and a forgery is worth 0.",
+    "Private auctions are rotated around the table, and the player to the seller's left chooses which painting goes up.",
+    "The seller sets a secret reserve against sealed bids, and the buyer learns the value privately.",
+    "Paintings can be resold, and the score is cash plus collection value.",
+    "Starting cash of 1500 and the value set 0, 300, 600, 1200 are carried over."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Secret collector themes create real gains from trade and a hidden type to infer. With them, the lemons collapse becomes a bargaining-and-inference game within the limits."
+  },
+  "variation": {
+    "name": "Masterpiece: Secret Collectors",
+    "summary": "Four collectors each secretly prize one of four styles. They take turns selling paintings in sealed-bid private sales, and must infer who collects what, whether a lot is a forgery, and how much surplus to demand or concede.",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "MONEY: All amounts are in thousands of dollars. Bids and reserves are whole multiples of 50.\n\nSETUP:\n1. Seat the players 1 to 4 in a fixed circle. The player 'to the left' of player p is player p+1, and player 4's left is player 1.\n2. Each player starts with 1500 cash. Cash is always public.\n3. There are 4 public styles: Red, Blue, Gold and Green.\n4. Each player receives 4 paintings, one of each style, with public names (for example 'P2-Gold'). Who owns which painting, and each painting's style, are always public.\n5. Secret themes: the engine randomly gives each player a different style as their collector theme. Each player is told only their own theme. Everyone knows that the four themes are all different.\n6. Painting values are dealt as follows.\n   - Start from the pattern value(player p, style s) = [0, 300, 600, 1200][(p + s) mod 4], with players and styles indexed 0 to 3.\n   - Then randomly shuffle which player is which row, which style is which column, and which value is which number.\n   - The result: every player holds exactly one painting each worth 0, 300, 600 and 1200, and every style has exactly one painting of each of those values.\n7. Each player is told privately the values of their own four paintings. A painting's value is known only to players who have owned it.\n\nROUNDS: The game has 12 rounds. The seller in round r is player ((r-1) mod 4) + 1, so each player sells 3 times. Each round:\n1. ANNOUNCE: The engine names the seller. If the seller owns no paintings, skip to step 9.\n2. LOT CHOICE: The player to the seller's left chooses one painting from the seller's current collection. The engine announces it, with its style, as the lot.\n3. TALK: Every player, seller included, writes one short message at the same moment without seeing the others. All messages are then shown to everyone. Talk is not binding and may be false.\n4. SEALED BIDS AND RESERVE: At the same moment, each non-seller submits a bid from 0 up to their current cash, and the seller submits a secret reserve from 0 to 2000.\n5. HIGH BID: Let B be the highest bid. A tie goes to the tied bidder nearest the seller going clockwise (seller's left first).\n6. RESOLVE:\n   - If B > reserve, the high bidder pays B to the seller, takes the painting, and is told its value privately.\n   - Otherwise the seller keeps the painting. If B is at least 50, the seller pays a fee of 50 to the bank, or all their cash if they have less than 50. Fee money leaves the game.\n7. ANNOUNCE: The engine publishes all bids, whether the lot was sold or kept, the money moved and the new cash totals. The reserve and the painting's value are NOT published.\n8. A painting that was bought can be chosen as a lot again later, when its new owner is the seller.\n9. END CHECK: After round 12, go to scoring.\n\nSCORING:\n1. All values and themes are revealed.\n2. Each player's score = cash + the total value of the paintings they own + 400 for each painting they own whose style is their own theme.",
+    "objective": "The highest score wins. If several players tie for the highest score, the one among them with the most cash wins. If they are still tied, the game is a draw.",
+    "expected_effect": "Every player starts at exactly 4000. Each lot has at most one collector who gains 400 from it, so for a non-matching buyer bidding is still a losing lemons bet. The matching collector can profit, but bidding reveals their theme. Sellers must guess who the collector is and set a hidden reserve above their honest floor (about v-50) to capture part of the 400. The left neighbour's lot choice is itself strategic: picking a lot of their own style hints at their theme, and picking a lot of the seller's own theme is effectively a block, since nobody else gains from it and it will likely be kept. Owning your own painting of a style tells you which values the other three paintings of that style can have, which sharpens bids. Simple policies lose. 'Always bid 0' never gains the bonus and falls behind players who trade profitably. 'Always bid all cash' pays up to 1500 for lots worth on average 525 plus 400 at most. 'Always reserve the maximum' forgoes surplus and pays fees. 'Always reserve 0' sells 1200-value paintings for 50. Talk passes both tests. Players disagree about prices and about who wins, since only one can. A buyer who believes a seller's claim that the lot is no forgery may overpay, and a seller who believes a bluffed 'I am not your collector' may undercharge."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 4,
+    "attributes": 14,
+    "hidden_elements": 2,
+    "random_draws_per_round": 0,
+    "rounds": 12
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "Seller's decision. A seller holding a painting of value v who faces a high bid B gets B - v by selling and -B by keeping, because a kept painting costs B paid to the bank. The seller should sell when B > v/2, so the best reserve is v/2: 0, 150, 300 and 600 for v = 0, 300, 600 and 1200. Buyer's decision against that seller, with no information (each v equally likely). A bid B wins only when v < 2B. Table, B : lots won : buyer's average gain when winning. 50 : {0} : -50. 200 : {0, 300} : 150 - 200 = -50. 350 : {0, 300, 600} : 300 - 350 = -50. 650 : all four : 525 - 650 = -125. 1000 : all four : 525 - 1000 = -475. No bid has positive expected value. A profitable bid B needs E[v | v < 2B] > B, and the reserve thresholds rule out every such set. This is a pure lemons market, and bidding 0 is the rational buyer action. Once a value is known, for example after a published reserve, buyers compete the price up to about v, so the trade gains about 0. Equilibrium: everyone bids 0, each seller sets a reserve of about v/2, nothing moves, and every player ends on 1500 + 2100 = 3600. Under the winner rule that is a draw, and no single bidder can profitably deviate. Thoughtless policies, under the winner rule: 'always bid 0' never loses money as a buyer and draws against all-zero opponents; it loses only when other players trade with each other at prices that differ from value, which rational play avoids. 'Always bid 0' is therefore effectively a policy that never loses. 'Always reserve max cash' loses, because others bid their full cash and the seller pays it to the bank. 'Always bid max' loses, because it pays up to 1500 for at most 1200. Sensible play collapses into a universal draw. When trades do happen they are zero-sum between two players, with money burned to the bank, so players cannot realistically win through skill. Seats: each player sells 3 times, which is symmetric; player N sells last and cannot be retaliated against, a small edge. Every player values a painting at the same v, so there are no gains from trade and no reason to transact."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules cover every case: a seller with no paintings is skipped; the tie-break is clockwise nearest the seller; B <= reserve <= seller cash, so the seller can always pay the bank; B = 0 with reserve 0 means the painting is kept and nothing is paid. The game is finite at 3N rounds, at most 15. It is scored by arithmetic on cash and values the engine keeps. Steps 13 <= 20, choice steps 4 <= 4, hidden elements 1 <= 3, random draws 0 <= 1, rounds 15 <= 40. Private values and private notice to the buyer use hidden_hands, private_values and private_channel. Talk is simultaneous and sits where interests conflict: the seller wants high bids and buyers want the truth about the value. That placement is sensible. Concerns, none of them fatal: the stated 12 attributes looks low, because 5 players hold 20 paintings that each need an owner and a value, so this works only if paintings are modelled as hand items rather than attributes; 'player number' should be defined explicitly as seat order; step 7 is redundant."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Chance comes from the random value assignment and the left neighbour's lot choice. The neighbour picks blind at first, so the lot is effectively random. When everyone plays well, buyers bid 0 and nothing happens, giving a 3-, 4- or 5-way draw at 3600. Inference therefore has nothing to act on: bidding into the information gap always loses money, and a seller's private knowledge earns nothing because no rational buyer pays. The published reserve, at about v/2, reveals the lot's value to everyone, which destroys the remaining hidden information on any painting that has been auctioned. With imperfect players, the result depends mostly on who makes mistakes, plus which value the blind lot choice happened to hit; roughly half the variance from any trade comes from the random v of a lot bought under uncertainty. There is no opponent type to model and no profitable action that follows from a correct inference. A good reasoner's best play is simply never to bid, which ties."
+        },
+        "required_changes": [
+          "Create gains from trade so that rational trades exist. For example, give each player a secret collector theme: paintings of one of 3 public styles are worth +50% to that player at scoring. Buyers then value lots differently from sellers, and inferring rivals' themes from their bids becomes the core reasoning.",
+          "Remove or soften the rule that a kept painting pays B to the bank, for example by having the seller pay only a fixed fee of 50 when keeping. The seller's reservation price then no longer sits at v/2, which currently makes every buyer bid unprofitable.",
+          "Do not publish the reserve. Publish only the bids and whether the lot sold or was kept, so a reserve of v/2 cannot reveal the value to everyone.",
+          "Add an arithmetic tie-break, for example most cash and then most paintings, so that the passive equilibrium does not end every game as a draw.",
+          "State explicitly how up to 20 paintings, each with an owner and a value, fit within 20 attributes, for example as hidden-hand items. Define seat numbers 1 to N in the setup."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "STARTING POSITION. Every player holds one painting each worth 0, 300, 600 and 1200, which is 2100 in painting value. Every player holds one painting of each style, so exactly one painting matches their own theme and earns +400. Every player therefore starts at 1500 + 2100 + 400 = 4000. The deal shuffles which painting is worth what, but not what each player starts with.\n\nWHERE TRADES CREATE GAIN. A sale only moves cash, except for the 400 theme bonus. For a painting of value v:\n- Buyer's worth = v + 400 if its style is the buyer's theme, else v.\n- Seller's worth = v + 400 if its style is the seller's theme, else v.\nThe only gain from trade is moving a non-theme painting to the player whose theme it matches. That surplus is 400, split by the price, which can fall anywhere between v and v + 400. The total bonus can rise from 1600 up to 6400, so trading clearly pays. Fees of 50 leave the game and punish failed auctions.\n\nTHOUGHTLESS POLICIES, by the winner rule.\n(a) Always bid 0 and set reserve 2000 (pure pass). This scores 4000 minus fees. Opponents can bid 50 on each of its 3 lots and cost it up to 150 at almost no risk, since a reserve of 2000 is never beaten by a bid of 50. Meanwhile the three traders share theme surplus of up to 400 per painting moved to its collector. Against sensible traders, at least one usually ends above 4000 and the passer loses. Against random bidders, random overbids give the passer nothing, because it never sells, while it still pays fees. If all four pass, each scores 4000 with equal cash and the game is a draw, but that does not make passing a policy that never loses.\n(b) Always bid all cash. The buyer pays about 1500 for a painting worth at most 1600. Its expected value is about 525, plus 400 only 1/3 of the time for a non-own lot. It loses about 600 or more per purchase and loses against sensible play.\n(c) Always reserve 0. Opponents buy at 50. The seller gives away value up to 1200 (+400) and loses.\n(d) Always bid the minimum 50 with a high reserve. It almost never wins a lot, never sells, pays fees, and drifts below 4000.\nNo option is strictly dominant. The bid must weigh the expected v (which can be inferred) plus a possible 400 against the price. The reserve must weigh the price against the seller's known v plus a possible 400.\n\nSEATS. Selling rotates, so each player sells 3 times. The tie-break favours the seller's left and rotates with the seller. Lot choice also rotates. Player 1 sells first, when buyers know least. Player 4 sells last, when the most has been revealed. These are small timing effects pointing in opposite directions, and no seat holds structurally more information. All four players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES COMPLETE. The rules specify all of the following:\n- seller order;\n- the lot chooser, who is always a non-seller;\n- talk;\n- the sealed bid range and the reserve range;\n- the tie rule and resolution;\n- the fee, including the case where the seller has less than 50 cash;\n- the case where all bids are 0 (B = 0 is not greater than the reserve, so the seller keeps the painting and pays no fee);\n- the case where the seller owns nothing;\n- what is published and what is not;\n- scoring.\nThe winner rule uses cash as a tiebreak, then a draw.\n\nFINITE AND ARITHMETIC. The game has 12 fixed rounds and is decided purely by arithmetic.\n\nENGINE FEATURES. Simultaneous sealed bids and reserve, hidden private values, private notification of value to a buyer, and free-text talk are all supported. No board, clock, binding deal or conditional block is needed. Painting ownership needs a table or a list per player (16 paintings).\n\nLIMITS.\n- Steps: 13 of 20.\n- Choice steps: 4 of 4 (lot choice, talk, bids, reserve).\n- Attributes: 14 claimed. This is plausible if paintings are kept as per-player lists or a table, and it must stay at or under 20.\n- Hidden elements: 2 of 3 (themes, values).\n- Random draws: 0 per round, with dealing at setup only.\n- Rounds: 12 of 40.\n\nTALK. Talk is simultaneous and correctly placed. Players have opposed interests: the seller wants a high price, rival collectors of the lot's style compete, and others may bluff a theme to steer prices. Following someone's message can cost a player, so talk has real content (theme bluffing).\n\nENDGAME. This is a finite auction game, not repeated cooperation. Late rounds still offer real trades with surplus, so no safe option wins every late round."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE IS LOW. Starting scores are identical (4000). Randomness only sets which painting holds which value and which style is whose theme.\n\nWHAT CAN BE INFERRED.\n- Values follow a Latin-square structure: each style has exactly one painting of each value. Knowing your own four values rules out values for every opponent painting of the same style. Seeing which lots are bought, and at what price, narrows it further.\n- Themes are all different. Opponents' bids reveal or bluff their themes: someone who repeatedly bids above the plausible value for one style is likely its collector.\n- The lot chooser, who is the seller's left neighbour, can pick lots they value, or keep a lot away from a rival collector.\n- Setting a reserve requires modelling the highest rival bid. Bidding requires estimating v by Latin-square deduction and shading against rivals' likely themes.\n\nWHEN EVERYONE PLAYS WELL. All players start equal. The winner is decided by who captures more of the 400 surpluses and who avoids overpaying when the seller knows more than the buyer. That depends on inference and bid shading, not on the deal. Chance, mainly the values of the paintings in your theme style, is perhaps 15 to 25% of the outcome variance and can be overcome by good play."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

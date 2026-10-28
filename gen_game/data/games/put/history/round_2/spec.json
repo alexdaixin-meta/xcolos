@@ -1,0 +1,336 @@
+{
+  "name": "Put: Twelve Hands",
+  "summary": "Two players play 12 hands of three-card Put. Each hand they may check or Put, then see or fold, then secretly order their cards for three tricks. The higher total score wins.",
+  "players": {
+    "min": 2,
+    "max": 2,
+    "suggested": 2
+  },
+  "parameters": {
+    "hands": 12,
+    "deck_size": 52,
+    "copies_per_rank": 4,
+    "ranks": 13,
+    "cards_per_player": 3,
+    "face_up_cards_per_player": 1,
+    "tricks_per_hand": 3,
+    "fold_points": 1,
+    "check_win_points": 1,
+    "put_seen_points": 3,
+    "start_score": 0,
+    "max_puts_per_hand": 1
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Total points so far in the match",
+        "observable": true
+      },
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "This hand's 3 cards in the order dealt, as rank values (4=1, 5=2, 6=3, 7=4, 8=5, 9=6, 10=7, J=8, Q=9, K=10, A=11, 2=12, 3=13)",
+        "observable": false
+      },
+      {
+        "key": "up_card",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Rank value of the first dealt card, which is face up",
+        "observable": true
+      },
+      {
+        "key": "order",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "The player's 3 cards in the chosen play order. It is revealed at Results.",
+        "observable": false
+      },
+      {
+        "key": "tricks",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Tricks won this hand",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "type": "list",
+        "visible": "none",
+        "initial": "52 cards: rank values 1 to 13, four of each",
+        "meaning": "The shuffled deck that cards are dealt from",
+        "observable": false
+      },
+      {
+        "key": "hand_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "The current hand, from 1 to 12",
+        "observable": true
+      },
+      {
+        "key": "leader",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Seat of the leader: 1 in odd hands, 2 in even hands",
+        "observable": true
+      },
+      {
+        "key": "leader_call",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "The leader's call: Check or Put",
+        "observable": true
+      },
+      {
+        "key": "responder_action",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "The responder's action: See, Fold, Check or Put",
+        "observable": true
+      },
+      {
+        "key": "leader_reply",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "The leader's reply to a responder Put: See or Fold. Empty if there was none.",
+        "observable": true
+      },
+      {
+        "key": "putter",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Seat that made the Put this hand, or 0 if nobody put",
+        "observable": true
+      },
+      {
+        "key": "folded",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "Whether someone folded this hand",
+        "observable": true
+      }
+    ]
+  },
+  "setup": [
+    "Both players' scores are set to 0.",
+    "hand_number is set to 0."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "hand_number += 1; leader = 1 if hand_number is odd, else 2; deck is rebuilt as the full 52 cards (rank values 1 to 13, four each); each player's hand, order, tricks and up_card are reset; leader_call, responder_action and leader_reply are set to empty; putter = 0; folded = false"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Deal: 3 times for each player, a random card is removed from deck and appended to that player's hand. Each player's up_card = the first card of their hand."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "Each player sees their own hand and both up_cards."
+    },
+    {
+      "action": "ask",
+      "who": "the leader (seat 1 in odd hands, seat 2 in even hands)",
+      "answer": "one of: Check, Put",
+      "effect": "leader_call = answer; if Put, putter = leader"
+    },
+    {
+      "action": "ask",
+      "who": "the responder (the seat that is not the leader)",
+      "answer": "if leader_call = Put: one of See, Fold; if leader_call = Check: one of Check, Put",
+      "effect": "responder_action = answer; if answer = Put, putter = responder; if answer = Fold, folded = true"
+    },
+    {
+      "action": "ask",
+      "who": "the leader, only when leader_call = Check and responder_action = Put",
+      "answer": "one of: See, Fold",
+      "effect": "leader_reply = answer; if Fold, folded = true"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when folded = true: the putter's score += 1; the folder scores 0; no cards are played"
+    },
+    {
+      "action": "poll",
+      "who": "all players, only when folded = false",
+      "answer": "one of the 6 orders of the player's own three cards, by dealt position: 1-2-3, 1-3-2, 2-1-3, 2-3-1, 3-1-2, 3-2-1",
+      "effect": "Each player's order = their hand rearranged by the chosen permutation. Nobody sees the other's order until both are in."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when folded = false: for each trick i from 1 to 3, the player whose order[i] is higher gets tricks += 1; equal values give no one a trick"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "when folded = false and putter = 0: the player with more tricks scores += 1, and nobody scores if tricks are equal. When folded = false and putter > 0: if the putter's tricks > the opponent's tricks, the putter's score += 3; otherwise the opponent's score += 3."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Reveal both hands, both orders, each trick's result, tricks, points scored this hand and the total scores."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "End the game if hand_number = 12; otherwise continue to the next hand."
+    }
+  ],
+  "ending": {
+    "condition": "hand_number = 12",
+    "rank_by": "you.score",
+    "decided_by": "After hand 12 the player with the higher total score wins; equal totals share the win, which is a draw."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "Card ranks from highest to lowest are 3, 2, A, K, Q, J, 10, 9, 8, 7, 6, 5, 4, and suits do not matter."
+    },
+    {
+      "id": "R2",
+      "text": "The match is exactly 12 hands, and both players start at 0 points."
+    },
+    {
+      "id": "R3",
+      "text": "When hand_number is odd, seat 1 leads; when it is even, seat 2 leads."
+    },
+    {
+      "id": "R4",
+      "text": "Each hand, a full 52-card deck is shuffled and each player is dealt 3 cards, so the deck holds 46 after the deal."
+    },
+    {
+      "id": "R5",
+      "text": "Each player's first dealt card is visible to both players, and their other two cards are visible only to that player."
+    },
+    {
+      "id": "R6",
+      "text": "The leader chooses Check or Put."
+    },
+    {
+      "id": "R7",
+      "text": "When the leader puts, the responder chooses See or Fold."
+    },
+    {
+      "id": "R8",
+      "text": "When the leader checks, the responder chooses Check or Put."
+    },
+    {
+      "id": "R9",
+      "text": "When the leader checked and the responder put, the leader chooses See or Fold."
+    },
+    {
+      "id": "R10",
+      "text": "Only one Put is made per hand: a player facing a Put is never offered Put."
+    },
+    {
+      "id": "R11",
+      "text": "When a player folds, the putter scores 1 point, the folder scores 0, and no cards are played."
+    },
+    {
+      "id": "R12",
+      "text": "When nobody folded, both players secretly and at the same moment choose an order of their 3 cards."
+    },
+    {
+      "id": "R13",
+      "text": "Trick i compares the two players' i-th played cards: the higher rank wins the trick, and equal ranks give the trick to no one."
+    },
+    {
+      "id": "R14",
+      "text": "When both players checked, the player with more tricks scores 1 point, and equal tricks score nothing."
+    },
+    {
+      "id": "R15",
+      "text": "When a Put was seen and the putter won strictly more tricks, the putter scores 3 points."
+    },
+    {
+      "id": "R16",
+      "text": "When a Put was seen and the putter won equal or fewer tricks, the opponent scores 3 points."
+    },
+    {
+      "id": "R17",
+      "text": "At the end of each hand, all cards, both orders, the trick results and the scores are revealed."
+    },
+    {
+      "id": "R18",
+      "text": "After hand 12 the higher total score wins, and equal totals are a draw."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Leader's call",
+      "who": "the leader",
+      "options": "Check, Put"
+    },
+    {
+      "question": "Responder's action",
+      "who": "the responder",
+      "options": "if the leader put: See, Fold; if the leader checked: Check, Put"
+    },
+    {
+      "question": "Leader's reply",
+      "who": "the leader, only after leader Check and responder Put",
+      "options": "See, Fold"
+    },
+    {
+      "question": "Card order",
+      "who": "both seats, only when nobody folded",
+      "options": "1-2-3, 1-3-2, 2-1-3, 2-3-1, 3-1-2, 3-2-1 (positions in the dealt order)"
+    }
+  ],
+  "choices": [
+    {
+      "what": "Exactly 2 players",
+      "why": "The designer fixed the game at 2. It is a heads-up bluffing duel, and the leader/responder structure is built for two seats."
+    },
+    {
+      "what": "Ranks stored as numbers 1 (for 4) to 13 (for 3)",
+      "why": "Tricks are then decided by a plain numeric comparison."
+    },
+    {
+      "what": "Card order answered as a permutation of dealt positions",
+      "why": "This gives a fixed choice list that names the player's own cards unambiguously."
+    },
+    {
+      "what": "No talk step",
+      "why": "The rules say talk is not part of the game."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A good player reads the opponent's face-up card, bluffs or value-puts with their hidden cards, and chooses a card order that anticipates the opponent's ordering."
+    }
+  ],
+  "simplifications": [],
+  "unsupported": []
+}

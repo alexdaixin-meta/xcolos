@@ -1,0 +1,745 @@
+[
+  {
+    "name": "Before any deal the deck holds all 16 cards",
+    "rule": "R1",
+    "players": 2,
+    "rounds": 0,
+    "seed": 1,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 16
+        }
+      },
+      "players": {
+        "1": {
+          "match_points": 0,
+          "card_total": 0
+        },
+        "2": {
+          "match_points": 0,
+          "card_total": 0
+        }
+      },
+      "game": {
+        "hand_number": 1
+      }
+    },
+    "rule_text": "The deck has 16 cards: Ace, Ten, Ober and Unter of Acorns, Leaves, Hearts and Bells. Card points are Ace 11, Ten 10, Ober 3, Unter 2, totalling 104."
+  },
+  {
+    "name": "After 18 rounds (two hands of 9 rounds) the match is in hand 3",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 18,
+    "seed": 2,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "hand_number": 3
+      }
+    },
+    "rule_text": "The match is 4 hands of 9 rounds each (1 bidding round, then 8 trick rounds), 36 rounds in all."
+  },
+  {
+    "name": "Seat 1 is forehand in hand 2, so it declares when both pass",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 10,
+    "seed": 3,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Pass",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Pass",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2,
+        "declarer": 1,
+        "contract_bid": 53
+      }
+    },
+    "rule_text": "Seat 1 deals hands 1 and 3 and seat 2 deals hands 2 and 4. The non-dealer is forehand."
+  },
+  {
+    "name": "After the deal each seat holds 4 hand cards and the deck is empty",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "seed": 4,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 4
+          },
+          "2": {
+            "hand": 4
+          }
+        }
+      }
+    },
+    "rule_text": "At the start of each hand all 16 cards are shuffled. Each player gets 4 private hand cards plus 2 stacks of one face-down card under one face-up card."
+  },
+  {
+    "name": "Each seat's private hand holds exactly 4 cards after the deal",
+    "rule": "R5",
+    "players": 2,
+    "rounds": 1,
+    "seed": 5,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 4
+          },
+          "2": {
+            "hand": 4
+          }
+        }
+      }
+    },
+    "rule_text": "Hand cards are visible only to their owner, face-up stack cards to both players, and face-down cards to neither player."
+  },
+  {
+    "name": "Both seats are offered every bid and the bids are recorded",
+    "rule": "R6",
+    "players": 2,
+    "rounds": 1,
+    "seed": 6,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "66"
+      },
+      {
+        "seat": 2,
+        "options_include": "Pass"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 66
+        },
+        "2": {
+          "bid": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "79"
+        },
+        {
+          "seat": 1,
+          "option": "53"
+        },
+        {
+          "seat": 2,
+          "option": "79"
+        },
+        {
+          "seat": 2,
+          "option": "66"
+        }
+      ]
+    },
+    "rule_text": "Both players bid secretly and simultaneously: Pass, 53, 66 or 79."
+  },
+  {
+    "name": "Higher bidder (seat 1, 79 over 53) is declarer at 79",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "seed": 7,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "79"
+      },
+      {
+        "seat": 2,
+        "options_include": "53"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 79
+        },
+        "2": {
+          "bid": 53
+        }
+      },
+      "game": {
+        "declarer": 1,
+        "contract_bid": 79
+      }
+    },
+    "rule_text": "When the bids differ, the higher bidder is declarer at their bid."
+  },
+  {
+    "name": "Equal bids of 66: forehand seat 2 declares at 66",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "seed": 8,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "66"
+      },
+      {
+        "seat": 2,
+        "options_include": "66"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 66
+        },
+        "2": {
+          "bid": 66
+        }
+      },
+      "game": {
+        "declarer": 2,
+        "contract_bid": 66
+      }
+    },
+    "rule_text": "When both bid the same number (not Pass), forehand is declarer at that bid."
+  },
+  {
+    "name": "Both pass: forehand seat 2 declares at 53",
+    "rule": "R9",
+    "players": 2,
+    "rounds": 1,
+    "seed": 9,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Pass"
+      },
+      {
+        "seat": 2,
+        "options_include": "Pass"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 0
+        },
+        "2": {
+          "bid": 0
+        }
+      },
+      "game": {
+        "declarer": 2,
+        "contract_bid": 53
+      }
+    },
+    "rule_text": "When both pass, forehand is declarer at 53."
+  },
+  {
+    "name": "Both bids are announced along with the declarer",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "seed": 10,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "53"
+      },
+      {
+        "seat": 2,
+        "options_include": "79"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 53
+        },
+        "2": {
+          "bid": 79
+        }
+      },
+      "game": {
+        "declarer": 2,
+        "contract_bid": 79
+      }
+    },
+    "rule_text": "Both bids are announced after the declarer is determined."
+  },
+  {
+    "name": "Declarer seat 2 picks Wenz; the defender is not asked for a contract",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "seed": 11,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Wenz"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 2,
+        "contract": "Wenz"
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Hearts Solo"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Wenz"
+        },
+        {
+          "seat": 1,
+          "option": "Acorns Solo"
+        }
+      ]
+    },
+    "rule_text": "The declarer chooses Acorns Solo, Leaves Solo, Hearts Solo, Bells Solo or Wenz, and the choice is announced."
+  },
+  {
+    "name": "A Hearts Solo hand plays all 8 tricks for any deal: every hand card is used and hand 2 begins",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 9,
+    "seed": 12,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Hearts Solo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2,
+        "contract": "Hearts Solo"
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "In a Solo the trumps, from highest to lowest, are: Ober of Acorns, Leaves, Hearts, Bells; then Unter of Acorns, Leaves, Hearts, Bells; then the Ace and Ten of the chosen suit. Each other suit holds only Ace above Ten."
+  },
+  {
+    "name": "A Wenz hand plays all 8 tricks for any deal",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 9,
+    "seed": 13,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Wenz"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2,
+        "contract": "Wenz"
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "In Wenz the trumps, from highest to lowest, are Unter of Acorns, Leaves, Hearts, Bells. Each suit holds Ace above Ten above Ober."
+  },
+  {
+    "name": "Defender seat 1 gives Stoss: multiplier 2; the declarer is not asked",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "seed": 14,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Sto\u00df"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 2,
+        "multiplier": 2
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "No Sto\u00df"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Sto\u00df"
+        },
+        {
+          "seat": 2,
+          "option": "No Sto\u00df"
+        }
+      ]
+    },
+    "rule_text": "The defender chooses Sto\u00df (multiplier 2) or No Sto\u00df (multiplier 1), and the choice is announced."
+  },
+  {
+    "name": "Defender seat 1 gives No Stoss: multiplier 1",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "seed": 15,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "No Sto\u00df"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 2,
+        "multiplier": 1
+      }
+    },
+    "rule_text": "The defender chooses Sto\u00df (multiplier 2) or No Sto\u00df (multiplier 1), and the choice is announced."
+  },
+  {
+    "name": "Hand cards and stack cards together supply all 8 tricks: no hand card is left after the hand",
+    "rule": "R15",
+    "players": 2,
+    "rounds": 9,
+    "seed": 16,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "A player's available cards are their private hand cards plus the face-up card on top of each of their stacks."
+  },
+  {
+    "name": "Lead passes correctly through the 8 tricks for any deal, and the hand completes",
+    "rule": "R16",
+    "players": 2,
+    "rounds": 9,
+    "seed": 17,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Acorns Solo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2,
+        "contract": "Acorns Solo"
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "In trick 1 forehand leads. In each later trick the previous trick's winner leads."
+  },
+  {
+    "name": "A Bells Solo hand with trumps as one suit completes all tricks for any deal",
+    "rule": "R17",
+    "players": 2,
+    "rounds": 9,
+    "seed": 18,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Bells Solo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2,
+        "contract": "Bells Solo"
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "All trumps form one suit, so in a Solo an Ober or Unter never counts as its printed suit, and in Wenz an Unter never counts as its printed suit."
+  },
+  {
+    "name": "Following under the follow-suit rule always leaves a legal card: the hand completes",
+    "rule": "R18",
+    "players": 2,
+    "rounds": 9,
+    "seed": 19,
+    "default": "last",
+    "rules": [],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When the follower has an available card of the led suit, they must play one. Otherwise they may play any available card."
+  },
+  {
+    "name": "Trick winners are decided in a Leaves Solo for any deal and the hand completes",
+    "rule": "R19",
+    "players": 2,
+    "rounds": 9,
+    "seed": 20,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Leaves Solo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2,
+        "contract": "Leaves Solo"
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When any trump is played, the higher trump wins the trick. Otherwise the higher card of the led suit wins."
+  },
+  {
+    "name": "Trick points accrue over a full hand for any deal (hand completes)",
+    "rule": "R20",
+    "players": 2,
+    "rounds": 9,
+    "seed": 21,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "The trick winner adds the card points of both cards to their hand_points and 1 to tricks_won."
+  },
+  {
+    "name": "Face-down cards turn up so all 8 tricks can be played",
+    "rule": "R21",
+    "players": 2,
+    "rounds": 9,
+    "seed": 22,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "After a trick, the face-down card under any face-up card played in that trick turns face up and is available from the next trick on."
+  },
+  {
+    "name": "Without Stoss at bid 53 a seat gains at most 3 per hand, so a 13-point lead holds for any deal",
+    "rule": "R22",
+    "players": 2,
+    "seed": 23,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "match_points": 13
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "No Sto\u00df",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "No Sto\u00df",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2
+    },
+    "rule_text": "After trick 8, if the declarer's hand_points are at least contract_bid, the declarer scores the contract value in match points. Otherwise the defender scores it."
+  },
+  {
+    "name": "With Stoss at bid 53 a seat gains at most 6 per hand, so a 25-point lead holds for any deal",
+    "rule": "R23",
+    "players": 2,
+    "seed": 24,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "match_points": 25
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Sto\u00df",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Sto\u00df",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1
+    },
+    "rule_text": "The contract value is (base + 1 if the scorer took all 8 tricks) times the multiplier, where the base is 2 for 53, 3 for 66 and 4 for 79. For example, a 66 bid made with Sto\u00df and not every trick scores 6."
+  },
+  {
+    "name": "Hand scoring runs after trick 8 and the next hand begins",
+    "rule": "R24",
+    "players": 2,
+    "rounds": 9,
+    "seed": 25,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "After each hand, each player's hand_points are added to their card_total."
+  },
+  {
+    "name": "After 36 rounds more match points wins: a 100-point head start cannot be caught",
+    "rule": "R25",
+    "players": 2,
+    "seed": 26,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "match_points": 100
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1
+    },
+    "rule_text": "After 36 rounds the game ends. More match points wins, card_total breaks ties, and if both are equal the match is a draw."
+  }
+]

@@ -1,0 +1,131 @@
+{
+  "original_summary": "Democracy is a 2-6 player trick-taking card game with simultaneous play. Each trick, a face-down 'voting pool' card is flipped to name the trump suit and goes to the trick winner as a prize. Players capture point cards, and whoever holds a majority (13 of 25 points) in a suit wins that suit's 'tribe'. The first player to an agreed number of tribes wins the match.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Play is simultaneous, so no seat leads and no seat has an edge. 'Always play your highest card' loses to any trump and to the 6-of-trump upset. 'Always play lowest' wins almost nothing. Majority scoring means points spread across suits are worth nothing, so choices clearly change who gets tribes."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Card counting, timing of trumps and deciding which suit to fight for all reward skill. But one deal of large hands and random trump flips means hand quality swings individual deals. With the flexible 'agreed total tribes' and variable player counts, luck versus skill is not controlled."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Beginners can win tricks with high cards. Strong players track which cards remain, read which suits opponents chase, hold their 6 of trump against a 5, deny majorities, and stop investing in suits already decided."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands and the voting pool are hidden, and future trumps are unknown. Players must infer opponents' holdings from cards already played and guess what each opponent will commit to the current trick. This is inference plus opponent modelling under simultaneous moves."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Trick resolution, captured points per suit, the 13+ majority and tribe counts are all arithmetic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "It is text-only and has no board. But it needs player-count-dependent decks with jokers, special joker rules, two 'days' of dealing, an open-ended 'agreed total' match length, and 4 suits times up to 6 players of per-suit tallies (24+ attributes). That breaks the attribute limit and is long."
+    }
+  ],
+  "problems": [
+    "Too many tracked numbers: per-suit point tallies for 4 suits across up to 6 players exceed the 20-attribute limit.",
+    "Variable deck construction (jokers depending on player count) and joker special rules add rule branches with little strategic value.",
+    "Two 'days' of dealing per hand plus an open-ended 'first to an agreed total of tribes' match make length undefined and possibly long.",
+    "A single deal's hand quality and the random trump order can decide a match, so luck is not damped.",
+    "With 2 players, majorities become a zero-sum race in which the higher capture total almost always also takes the majorities, which reduces the reasoning.",
+    "The winner rule has no tie-break, so tied tribe counts are unresolved."
+  ],
+  "changes": [
+    {
+      "what": "Fix the game at 3 players with a 24-card deck: 3 suits of 8 cards (5,4,3,A,K,Q,J,6), each suit worth 20 points, with a tribe at 11+ points.",
+      "why": "Per-suit tallies become 3 players \u00d7 3 suits = 9 attributes. The deck divides evenly into 6-card hands plus a 6-card voting pool. With three players, one rival's gain is not another's loss, so blocking and spoiling matter.",
+      "fixes": "Too many tracked numbers: per-suit point tallies for 4 suits across up to 6 players exceed the 20-attribute limit."
+    },
+    {
+      "what": "Remove jokers and the player-count deck variants.",
+      "why": "Fewer rule branches; the core trump/majority tension is untouched.",
+      "fixes": "Variable deck construction (jokers depending on player count) and joker special rules add rule branches with little strategic value."
+    },
+    {
+      "what": "Play exactly 4 deals of 6 tricks each (24 rounds), one deal per 'day', and end the match after the 4th deal.",
+      "why": "Gives a fixed, buildable length.",
+      "fixes": "Two 'days' of dealing per hand plus an open-ended 'first to an agreed total of tribes' match make length undefined and possibly long."
+    },
+    {
+      "what": "Score tribes across 4 separate deals and add them up.",
+      "why": "Over four deals, a bad hand in one deal can be outweighed by better reasoning in the others, which damps hand luck.",
+      "fixes": "A single deal's hand quality and the random trump order can decide a match, so luck is not damped."
+    },
+    {
+      "what": "Add one simultaneous message per trick before cards are chosen.",
+      "why": "With three players and only one winner, players can propose 'you take Hearts, I take Spades' deals to stop the leader. They can bluff about their holdings or betray a pact. Promises do not bind, so trust must be read.",
+      "fixes": "With 2 players, majorities become a zero-sum race in which the higher capture total almost always also takes the majorities, which reduces the reasoning."
+    },
+    {
+      "what": "Most tribes wins. Tie-break: the highest total captured points in the final deal. If still tied, the tied players draw.",
+      "why": "Resolves ties by arithmetic on numbers the engine already tracks. Tallies are reset at the start of each deal, so final-deal tallies remain available at the end.",
+      "fixes": "The winner rule has no tie-break, so tied tribe counts are unresolved."
+    }
+  ],
+  "keeps": [
+    "The distinctive rank order 5-4-3-A-K-Q-J-6, with point values 5/4/3/3/2/2/1/0.",
+    "The face-down voting pool: each trick, its card names the trump suit and is captured by the trick winner.",
+    "Simultaneous card play with no leader.",
+    "The 'revolution' rule: the 6 of trump beats the 5 of trump when both are played.",
+    "The tied-high, no-trump rule: each player keeps their own card and the voting card is discarded.",
+    "Majority-per-suit 'tribe' scoring as the match currency."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core (hidden hands, simultaneous tricks, random trump from a hidden pool, majority scoring) already demands inference and opponent modelling. It only needs to be shrunk to fit the attribute and length limits and made fixed-length with a clear winner."
+  },
+  "variation": {
+    "name": "Democracy: Three Tribes",
+    "summary": "Three players play 4 deals of simultaneous tricks with a 24-card, 3-suit deck. Each trick's trump is flipped from a hidden voting pool, and the winner captures it. Holding 11+ of a suit's 20 points in a deal wins that suit's tribe; most tribes over 4 deals wins.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "DECK: 24 cards in 3 suits (Hearts, Spades, Diamonds). Each suit has 8 cards. From highest rank to lowest they are: Five (5 points), Four (4), Three (3), Ace (3), King (2), Queen (2), Jack (1), Six (0). Each suit totals 20 points.\n\nMATCH: 4 deals of 6 tricks each, 24 tricks in total.\n\nSTART OF EACH DEAL (tricks 1, 7, 13, 19):\n- Shuffle all 24 cards.\n- Deal 6 cards face down to each player as their private hand.\n- Deal 6 cards face down as the voting pool, in order. Nobody sees the pool.\n- Reset every player's suit tallies to 0.\n\nEACH TRICK:\n1. Flip the next voting-pool card face up. Its suit is the trump suit for this trick, and the card itself is the prize.\n2. Talk: every player writes one short message at the same time, without seeing the others. All three messages are then shown to everyone. Nothing said is binding.\n3. Play: every player secretly chooses one card from their hand, at the same moment. All three cards are revealed together and removed from the hands.\n4. Resolve the trick:\n   (a) If one or more trump-suit cards were played, the highest-ranked trump wins. Exception: if both the Six and the Five of trump were played, the Six wins.\n   (b) If no trump was played, the highest-ranked card wins regardless of suit.\n   (c) If no trump was played and two or more cards tie for highest rank (same rank, different suits), nobody wins the trick. Each player captures their own played card, and the voting card is discarded with no one scoring it.\n5. Score the capture: for each captured card, add its points to the capturing player's tally for that card's suit. Normally the winner captures all 3 played cards plus the voting card.\n6. All played cards and every voting card ever flipped stay visible to everyone for the rest of the deal, along with all suit tallies.\n\nEND OF EACH DEAL (after tricks 6, 12, 18, 24):\n- For each suit, the player whose tally in that suit is 11 or more wins that suit's tribe and adds 1 to their tribe count.\n- A suit with no player at 11+ awards no tribe.\n- Announce everyone's tribe counts.\n\nEND OF MATCH: after trick 24 and its tribe scoring, apply the objective.",
+    "objective": "The player with the most tribes after 4 deals wins. If two or more players tie for most tribes, the tied player with the highest sum of their three suit tallies in the 4th deal wins. If they are still tied, the game is a draw among the tied players.",
+    "expected_effect": "Players must decide each deal which suit to concentrate on, since points beyond a decided majority, or spread thin, are wasted. They track which cards remain and save trumps for valuable voting cards. They hold a Six of trump to topple a Five, and dump low cards into tricks they expect to lose.\n\nSimple policies lose. Always-highest walks into trumps and Six upsets. Always-lowest captures almost nothing. Random play wastes points across suits.\n\nTalk passes both tests. The players disagree about who gets which suit, because only one player can win the match. A typical proposal is 'you take Hearts, I'll take Spades, we both starve the leader.' A player who simply follows can be betrayed: the proposer may secretly play for the same suit, or let the follower spend high cards so the proposer wins later tricks. Messages can also bluff about which trumps a player holds.\n\nFour deals and the shared, visible information mean a bad hand in one deal can be offset by better counting and better reading of the other two players. Deliberately denying a leader their 11th point is often worth more than taking points yourself."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 2,
+    "attributes": 18,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 24
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Arithmetic check. Suit points are 5+4+3+3+2+2+1+0 = 20, as labelled. The tribe threshold of 11 is more than half of 20, so at most one player can win each suit. All 24 cards are used every deal (18 in hands + 6 in the pool). Each trick consumes 3 hand cards + 1 pool card, so 6 tricks empty the deal exactly. Points of a suit leave play only when a tied trick discards its voting card.\n\nThe trick decision, by what you play against what the others play:\n| Your card | Opponents play trump | Opponents play no trump |\n|---|---|---|\n| High trump | win, unless they hold a higher trump or the Six against your Five | win |\n| Low trump | usually lose | win |\n| High off-suit card | lose | win, or tie on rank |\n| Low off-suit card (dump) | lose | lose |\nNo option is best whatever the opponents do.\n\nThoughtless policies under the winner rule:\n- 'Always play my highest-ranked card': it throws off-suit Fives and Fours into tricks the opponents win with any trump. It also gives up tricks where a cheap trump would have won, and it walks into the trump Six whenever its Five is trump. Against sensible play (dump when beaten, win cheaply with trump) it loses tricks and suit majorities. Against random play it wins only when it was dealt more top cards.\n- 'Always play my lowest card': it wins tricks only when everyone else also plays low. It loses to both sensible and random play.\n- 'Always play trump if able, highest first': it wastes high trumps on tricks that a low trump would win. It has nothing to play in the many tricks where it holds no trump. A sensible player who saves the trump Six for the trump Five beats it.\nNone of these policies never loses.\n\nSeats. Play is simultaneous, there is no lead or dealer seat, and everyone sees the same information. No seat has an edge from move order.\n\nCan everyone win? Three tribes are available per deal and 12 per match. Any player can take suits through good card management, and an opponent pulling ahead can be blocked by the other two denying them 11 in a suit."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete.\n- Ranking: 5 > 4 > 3 > A > K > Q > J > 6.\n- Trump: the trump suit beats all other suits. The Six of trump beats the Five of trump only when both appear, and there is only one trump suit per trick, so the exception is unambiguous.\n- Ties: a tie is possible only when no trump is played. The rule is specified: each player captures their own card and the voting card is discarded.\n- Scoring: per suit, the threshold is 11 or more, at most one winner per suit, and an unawarded suit is allowed.\n- Tie-break: 4th-deal tally sum, then a draw.\n- The last trick of each deal is forced (one card left). That is legitimate, not a gap.\n\nThe game is finite: 24 rounds, the limit is 40. It is decided by arithmetic. Trick resolution can be calculated as strength = rank value + 10 if trump, with the Six-over-Five override, then a max and a tie check. That is calc on numbers the game keeps; no judge is needed.\n\nPlatform limits:\n| Limit | Designer's figure | Maximum |\n|---|---|---|\n| steps_per_round | 13 | 20 |\n| choice_steps_per_round (talk and play) | 2 | 4 |\n| attributes (9 suit tallies, 3 tribe counts, hands, pool, trump/prize, etc.) | 18 | 20 |\n| hidden_elements (hands, pool order) | 2 | 3 |\n| random_draws_per_round (one shuffle-and-deal, only on rounds 1, 7, 13, 19, through `when`-gated steps; flipping the pool is a reveal, not a draw) | 1 | 1 |\nThe per-deal setup and reset need no conditional block: single steps with `when` conditions are enough.\n\nTalk: three players compete for the same suits, so they genuinely disagree. Talk lets the two trailing players coordinate denial ('I'll dump, you take this Heart trick'). Because talk is non-binding, following a proposal can cost you. Talk is simultaneous, as it should be. Unsupported features used: none; there is no board, clock, trading or binding agreement.\n\nThe late-round betrayal test is not applicable. This is not a fixed-length cooperation game in which a safe option dominates late rounds. Each trick is a competitive allocation with no default safe move."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Sources of chance:\n- The 6-card deal (the share of Fives, Fours and trump-Sixes).\n- The hidden pool order, which sets the trump sequence.\n\nRough estimate: hand strength explains perhaps 40\u201350% of a single deal's result. Aggregating four independent deals lowers that to about 25\u201335% of the match result. The tie-break on 4th-deal tallies puts some weight back on the last deal's luck.\n\nWhat good play decides:\n- Card counting is fully possible. The 24-card deck is known and all played and flipped cards stay visible. A player can therefore narrow the unseen cards to the others' hands plus the remaining pool, and estimate which trumps can still appear.\n- Timing: when to spend a Five against when to hold the trump Six for the trump Five, and when to dump zero-point Sixes.\n- Suit targeting: concentrating captures to reach 11 in one suit rather than spreading points that win nothing.\n- Talk-based coalition play against the leader.\n\nWhen all three play well, the outcome is not decided by the deal alone. A weak hand can still win a tribe by focusing on one suit, and the other two can deny a strong hand. Something real is inferred (opponents' remaining cards, the likely trump to come) and acted on (choosing which card to commit). A reasoning player is clearly favoured over a random or thoughtless one."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

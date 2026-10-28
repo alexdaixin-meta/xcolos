@@ -1,0 +1,444 @@
+{
+  "name": "Duplicate Open-Face Pairs",
+  "summary": "Two players build 1-2-2 card rows from mirrored deals over 4 hands. Rows must not foul. Players score row wins, scoops and royalties, and both players face the same cards in each pair of hands.",
+  "players": {
+    "min": 2,
+    "max": 2,
+    "suggested": 2
+  },
+  "parameters": {
+    "deck_size": 32,
+    "card_value_min": 1,
+    "card_value_max": 8,
+    "copies_per_value": 4,
+    "hands": 4,
+    "rounds_per_hand": 5,
+    "total_rounds": 20,
+    "cards_per_seat_per_round": 3,
+    "cards_kept_per_round": 1,
+    "cards_discarded_per_round": 2,
+    "cards_used_per_hand": 30,
+    "unused_positions": 2,
+    "front_slots": 1,
+    "middle_slots": 2,
+    "back_slots": 2,
+    "front_multiplier": 2,
+    "pair_bonus": 100,
+    "row_win_points": 1,
+    "scoop_bonus": 3,
+    "foul_win_points": 6,
+    "front_royalty_min_value": 7,
+    "front_royalty": 1,
+    "middle_pair_royalty": 2,
+    "back_pair_royalty": 1
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "front",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Card in the Front slot (0 = empty). At scoring it becomes the Front strength, 2 x value.",
+        "observable": true
+      },
+      {
+        "key": "mid1",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "First Middle card (0 = empty). At scoring it becomes the Middle strength.",
+        "observable": true
+      },
+      {
+        "key": "mid2",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Second Middle card (0 = empty).",
+        "observable": true
+      },
+      {
+        "key": "back1",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "First Back card (0 = empty). At scoring it becomes the Back strength.",
+        "observable": true
+      },
+      {
+        "key": "back2",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Second Back card (0 = empty).",
+        "observable": true
+      },
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "The 3 cards dealt to this player this round. The unkept cards are discarded from here unseen.",
+        "observable": false
+      },
+      {
+        "key": "chosen_card",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "The card kept this round.",
+        "observable": false
+      },
+      {
+        "key": "chosen_row",
+        "type": "text",
+        "visible": "ally",
+        "initial": "",
+        "meaning": "The row named this round: Front, Middle or Back.",
+        "observable": false
+      },
+      {
+        "key": "fouled",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "Whether this player's rows fouled in the hand just scored.",
+        "observable": true
+      },
+      {
+        "key": "royalty",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Royalties earned in the hand just scored (0 if fouled).",
+        "observable": false
+      },
+      {
+        "key": "hand_score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Points scored in the hand just scored.",
+        "observable": true
+      },
+      {
+        "key": "total",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Match total: the sum of hand scores.",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "type": "list",
+        "visible": "none",
+        "initial": [
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          6,
+          6,
+          6,
+          6,
+          7,
+          7,
+          7,
+          7,
+          8,
+          8,
+          8,
+          8
+        ],
+        "meaning": "The 32-card deck in its fixed shuffled order. Dealing rotates cards from the front to the back, so the order survives for the mirrored hand.",
+        "observable": false
+      },
+      {
+        "key": "hand_number",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Current hand, 1 to 4. Above 4 means the match is over.",
+        "observable": true
+      },
+      {
+        "key": "round_in_hand",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Current round within the hand, 1 to 5.",
+        "observable": true
+      },
+      {
+        "key": "seat_strengths",
+        "type": "list",
+        "visible": "public",
+        "initial": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "meaning": "Table copy of each player's strengths for comparison: [A front, A middle, A back, A fouled, B front, B middle, B back, B fouled].",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Player A sits in seat 1 and Player B in seat 2.",
+    "Each player's front, mid1, mid2, back1 and back2 are set to 0, and total is set to 0.",
+    "The deck list holds 32 cards: values 1 to 8, four of each.",
+    "hand_number is set to 1 and round_in_hand to 1."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "table",
+      "answer": null,
+      "effect": "When round_in_hand == 1 and hand_number is 1 or 3: shuffle deck into a new random fixed order.",
+      "when": "round_in_hand == 1 and (hand_number == 1 or hand_number == 3)"
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Deal by position. Take the first 3 cards of deck, append them to the back of deck, and copy them into the Seat X player's hand. Then take the next 3 cards the same way into the Seat Y player's hand. Seat X is Player A when hand_number is odd and Player B when it is even; Seat Y is the other player."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "Each player privately sees their own hand, all placed rows, hand_number and round_in_hand."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "one of the 3 card values in your hand",
+      "effect": "chosen_card = the chosen value. Nobody sees the other's answer."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "Front, Middle or Back",
+      "effect": "chosen_row = the named row. Nobody sees the other's answer."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Place chosen_card in the first empty slot of chosen_row: front, else mid1 then mid2, else back1 then back2. If that row is full, place it in the first non-full row in the order Back, Middle, Front. Then empty hand: the 2 unkept cards are discarded unseen."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce both kept cards face up and the row each went to."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "when": "round_in_hand == 5",
+      "effect": "Score the hand. front = 2*front. mid1 = mid1+mid2+100*(mid1==mid2), using the old values. back1 = back1+back2+100*(back1==back2), using the old values. fouled = (front > mid1) or (mid1 > back1). Copy front, mid1, back1 and fouled into seat_strengths. royalty = 0 if fouled, else (old front >= 7)*1 + (old mid1 == old mid2)*2 + (old back1 == old back2)*1. hand_score: if neither player fouled = rows won (1 per row with strictly higher strength than the opponent's) + 3 if all 3 rows won + royalty; if only the opponent fouled = 6 + royalty; if this player fouled = 0. total += hand_score."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "when": "round_in_hand == 5",
+      "effect": "Announce all six row strengths, both foul results and both hand scores."
+    },
+    {
+      "action": "update",
+      "who": "table",
+      "answer": null,
+      "effect": "If round_in_hand == 5: set every player's front, mid1, mid2, back1 and back2 to 0. If hand_number is odd, rotate 2 more cards from the front of deck to the back, so deck returns to its starting order. Then hand_number += 1 and round_in_hand = 1. Otherwise round_in_hand += 1."
+    },
+    {
+      "action": "check",
+      "who": "table",
+      "answer": null,
+      "effect": "End the game if hand_number > 4; otherwise continue."
+    }
+  ],
+  "ending": {
+    "condition": "hand_number > 4",
+    "rank_by": "you.total",
+    "decided_by": "Each player's standing is their match total, the sum of their four hand scores. The higher total wins, and equal totals share the win (a draw)."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "The deck has 32 cards, values 1 to 8 with four copies each, and no suits."
+    },
+    {
+      "id": "R2",
+      "text": "The match is 4 hands of 5 rounds, 20 rounds in total, and ends when hand_number exceeds 4."
+    },
+    {
+      "id": "R3",
+      "text": "When hand 1 or hand 3 begins, the deck is shuffled once. Hand 2 uses the same order as hand 1, and hand 4 the same order as hand 3."
+    },
+    {
+      "id": "R4",
+      "text": "In round r of a hand, Seat X receives deck positions 6r-5 to 6r-3 and Seat Y receives positions 6r-2 to 6r. Positions 31 and 32 are never dealt."
+    },
+    {
+      "id": "R5",
+      "text": "In hands 1 and 3 Player A is Seat X and Player B is Seat Y; in hands 2 and 4 B is Seat X and A is Seat Y."
+    },
+    {
+      "id": "R6",
+      "text": "When hand 2 or 4 is dealt, each player receives in each round exactly the 3 cards the other player received in that round of the previous hand."
+    },
+    {
+      "id": "R7",
+      "text": "Each round, both players simultaneously keep exactly 1 of their 3 dealt cards."
+    },
+    {
+      "id": "R8",
+      "text": "Each round, both players simultaneously name a row (Front, Middle or Back) for the kept card."
+    },
+    {
+      "id": "R9",
+      "text": "Front holds 1 card, Middle holds 2 and Back holds 2."
+    },
+    {
+      "id": "R10",
+      "text": "When the named row is full, the card goes to the first non-full row in the order Back, Middle, Front."
+    },
+    {
+      "id": "R11",
+      "text": "The 2 unkept cards are discarded and never shown to the opponent."
+    },
+    {
+      "id": "R12",
+      "text": "After the choices, both kept cards and the rows they went to are announced face up."
+    },
+    {
+      "id": "R13",
+      "text": "Front strength = 2 x the Front card value (for example, a Front 5 has strength 10)."
+    },
+    {
+      "id": "R14",
+      "text": "Middle or Back strength = the sum of its two values, plus 100 if they are equal (for example, 4 and 4 = 108; 3 and 6 = 9)."
+    },
+    {
+      "id": "R15",
+      "text": "A hand fouls when Front strength > Middle strength or Middle strength > Back strength; equal strengths do not foul."
+    },
+    {
+      "id": "R16",
+      "text": "A non-fouling player with a Front card of 7 or 8 earns a royalty of +1."
+    },
+    {
+      "id": "R17",
+      "text": "A non-fouling player with a Middle pair earns a royalty of +2."
+    },
+    {
+      "id": "R18",
+      "text": "A non-fouling player with a Back pair earns a royalty of +1."
+    },
+    {
+      "id": "R19",
+      "text": "When neither player fouls, each row with strictly higher strength scores 1 point for its owner, and equal rows score nothing."
+    },
+    {
+      "id": "R20",
+      "text": "When neither player fouls and a player wins all 3 rows, that player scores 3 extra points (a scoop), for 6 points before royalties."
+    },
+    {
+      "id": "R21",
+      "text": "When neither player fouls, each player adds their own royalties to their hand score."
+    },
+    {
+      "id": "R22",
+      "text": "When exactly one player fouls, the other scores 6 plus their royalties and the fouler scores 0."
+    },
+    {
+      "id": "R23",
+      "text": "When both players foul, both score 0 for the hand."
+    },
+    {
+      "id": "R24",
+      "text": "After each hand, each player's hand score is added to their total; all row strengths, both foul results and both hand scores are announced; and the rows are cleared."
+    },
+    {
+      "id": "R25",
+      "text": "When the match ends, the player with the higher total wins, and equal totals are a draw."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Card choice: which card to keep",
+      "who": "both seats, simultaneously",
+      "options": "Exactly the 3 card values in that seat's hand this round."
+    },
+    {
+      "question": "Row choice: which row for the kept card",
+      "who": "both seats, simultaneously",
+      "options": "Front, Middle, Back. All three are always offered; a full row redirects by the Back, Middle, Front fallback."
+    }
+  ],
+  "choices": [
+    {
+      "what": "Exactly 2 players (min 2, max 2, suggested 2)",
+      "why": "The designer set 2, and the duplicate format mirrors one seat's deal onto the other, which only works with two seats. The strategy is to remember the cards seen in the odd hand and use them to predict the opponent's options in the even hand, and to balance foul risk against pairs."
+    },
+    {
+      "what": "Player A is seat 1 and Player B is seat 2",
+      "why": "The rules name players A and B but not their seats."
+    },
+    {
+      "what": "No talk step",
+      "why": "The rules have no communication, and in a two-player zero-sum game talk adds nothing to reason about."
+    },
+    {
+      "what": "Row choice offers all three rows even when one is full",
+      "why": "The rules let a player name a full row and apply a fallback, so the fallback is kept rather than hiding options."
+    },
+    {
+      "what": "Strengths are stored back into front, mid1 and back1 at scoring",
+      "why": "This follows the build note, so foul tests, comparisons and royalties are single expressions."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "Fixed deck order is encoded by rotating dealt cards from the front of the deck list to the back, plus 2 extra rotations after each odd hand",
+      "why": "The engine has no position lookup. Rotation keeps the order so the even hand repeats the odd hand's deal exactly."
+    },
+    {
+      "what": "Row comparison uses a table list, seat_strengths, holding both players' strengths and fouls",
+      "why": "The engine cannot compare one player's attribute directly to another's; a table copy is the documented workaround."
+    },
+    {
+      "what": "Discards are simply removed from the hand list rather than kept in a discard pile",
+      "why": "Discards are never shown or used again, so no pile is needed."
+    }
+  ],
+  "unsupported": []
+}

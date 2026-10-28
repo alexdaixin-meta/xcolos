@@ -1,0 +1,1112 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "welcome_back_to_the_dungeon",
+    "name": "Back to the Dungeon: Single Delve",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 3
+    },
+    "blurb": "Draw monsters, hide them in the dungeon or sacrifice gear; the last player who has not passed must run it. Two successes win, two failures eliminate."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "out",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "successes",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "failures",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "eliminated",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "passed",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "drawn_card",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "added_cards",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Goblin",
+          "Goblin",
+          "Skeleton",
+          "Skeleton",
+          "Orc",
+          "Orc",
+          "Vampire",
+          "Vampire",
+          "Golem",
+          "Golem",
+          "Lich",
+          "Demon",
+          "Dragon"
+        ]
+      },
+      {
+        "key": "all_monsters",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "dungeon",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "items",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          "Armor",
+          "Shield",
+          "Torch",
+          "Holy Water",
+          "Dragon Spear"
+        ]
+      },
+      {
+        "key": "all_items",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "active_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "deck_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "dungeon_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "drawn_strength",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "dungeon_total",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "dungeon_low",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "dungeon_undead",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "dungeon_dragon",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "next_seat",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "ran",
+        "visible": "none",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "runner_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_hp",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_damage",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_dungeon",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "base_hp",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "armor_hp",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "shield_hp",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "torch_max_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "goblin_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "goblin_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "skeleton_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "skeleton_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "orc_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "orc_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "vampire_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "vampire_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "golem_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "golem_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "lich_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "lich_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "demon_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "demon_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "dragon_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "dragon_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "item_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "successes_to_win",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "failures_to_eliminate",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "max_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "initial_successes",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "initial_failures",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "clear the table",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "eliminated",
+            "value": true
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_dragon",
+            "value": {
+              "calc": "dragon_strength * dragon_count"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "prepare the first dungeon",
+      "do": [
+        {
+          "set": {
+            "key": "all_monsters",
+            "value": {
+              "calc": "deck"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "all_items",
+            "value": {
+              "calc": "items"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "successes",
+            "value": {
+              "calc": "initial_successes"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "failures",
+            "value": {
+              "calc": "initial_failures"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "eliminated",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "passed",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "drawn_card",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "added_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_total",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_low",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_undead",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_dragon",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "deck_count",
+            "value": {
+              "calc": "deck_size"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "prepare the turn",
+      "do": [
+        {
+          "set": {
+            "key": "ran",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "['PASS'] + (['DRAW'] if deck_count > 0 else [])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "turn",
+      "label": "announcement",
+      "to": "all",
+      "text": "It is seat {active_seat}'s turn. Dungeon: {dungeon_count} cards. Items remaining: {items}. Deck: {deck_count} cards. Seats that have passed: {[p.seat for p in players if p.passed]}. Successes and failures [seat, successes, failures]: {[[p.seat, p.successes, p.failures] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": {
+        "where": "you.eliminated == False"
+      },
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Say one short thing to the table. Talk is not binding."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "pass or draw",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "choice1"
+      },
+      "text": "Your turn. PASS to sit out the rest of this dungeon, or DRAW the top monster card (only PASS is possible when the deck is empty)."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "pass or secret draw",
+      "do": [
+        {
+          "set": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "passed",
+            "value": true,
+            "if": {
+              "calc": "$choice1 == 'PASS'"
+            },
+            "text": "Seat {player} passes and sits out the rest of this dungeon."
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "$choice1 == 'DRAW'"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "drawn_card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "$choice1 == 'DRAW'"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "$choice1 == 'DRAW'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "deck_count",
+            "value": -1,
+            "if": {
+              "calc": "$choice1 == 'DRAW'"
+            },
+            "text": "Seat {active_seat} draws a card."
+          }
+        },
+        {
+          "set": {
+            "key": "drawn_strength",
+            "value": {
+              "calc": "goblin_strength if pick == 'Goblin' else skeleton_strength if pick == 'Skeleton' else orc_strength if pick == 'Orc' else vampire_strength if pick == 'Vampire' else golem_strength if pick == 'Golem' else lich_strength if pick == 'Lich' else demon_strength if pick == 'Demon' else dragon_strength"
+            },
+            "if": {
+              "calc": "$choice1 == 'DRAW'"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == active_seat"
+            },
+            "key": "offer",
+            "value": {
+              "calc": "['ADD'] + ['SACRIFICE ' + i for i in items]"
+            },
+            "if": {
+              "calc": "$choice1 == 'DRAW'"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "turn",
+      "label": "show the drawn card",
+      "when": {
+        "calc": "$choice1 == 'DRAW'"
+      },
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "mode": "self",
+      "fields": [
+        "drawn_card"
+      ],
+      "text": "The card you drew (only you see it):"
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "add or sacrifice",
+      "when": {
+        "calc": "$choice1 == 'DRAW'"
+      },
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "choice2"
+      },
+      "text": "You have just privately seen the card you drew (your drawn_card). ADD it face-down to the dungeon (only you will know it), or SACRIFICE one remaining item to discard the card unseen (the item is lost for this dungeon)."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "resolve the card",
+      "when": {
+        "calc": "$choice1 == 'DRAW'"
+      },
+      "do": [
+        {
+          "append": {
+            "key": "dungeon",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "$choice2 == 'ADD'"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "added_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "$choice2 == 'ADD'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "dungeon_count",
+            "value": 1,
+            "if": {
+              "calc": "$choice2 == 'ADD'"
+            },
+            "text": "Seat {active_seat} adds a card face-down to the dungeon."
+          }
+        },
+        {
+          "adjust": {
+            "key": "dungeon_total",
+            "value": {
+              "calc": "drawn_strength"
+            },
+            "if": {
+              "calc": "$choice2 == 'ADD'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "dungeon_low",
+            "value": {
+              "calc": "drawn_strength"
+            },
+            "if": {
+              "calc": "$choice2 == 'ADD' and drawn_strength <= torch_max_strength"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "dungeon_undead",
+            "value": {
+              "calc": "drawn_strength"
+            },
+            "if": {
+              "calc": "$choice2 == 'ADD' and pick in ['Vampire', 'Lich']"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "dungeon_dragon",
+            "value": {
+              "calc": "drawn_strength"
+            },
+            "if": {
+              "calc": "$choice2 == 'ADD' and pick == 'Dragon'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "items",
+            "value": {
+              "calc": "[i for i in items if 'SACRIFICE ' + i != $choice2]"
+            },
+            "if": {
+              "calc": "$choice2 != 'ADD'"
+            },
+            "text": "Seat {active_seat} sacrifices an item and discards the card unseen. Items remaining: {items}."
+          }
+        },
+        {
+          "set": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "drawn_card",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "advance the turn",
+      "do": [
+        {
+          "set": {
+            "key": "next_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if p.seat > active_seat and not p.eliminated and not p.passed] + [p.seat + len(players) for p in players if not p.eliminated and not p.passed] + [999])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "active_seat if next_seat == 999 else (next_seat - len(players) if next_seat > len(players) else next_seat)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "run",
+      "label": "the run is set",
+      "when": {
+        "calc": "count(not p.eliminated and not p.passed for p in players) == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "ran",
+            "value": true
+          }
+        },
+        {
+          "set": {
+            "key": "runner_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if not p.eliminated and not p.passed])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_hp",
+            "value": {
+              "calc": "base_hp + (armor_hp if 'Armor' in items else 0) + (shield_hp if 'Shield' in items else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_damage",
+            "value": {
+              "calc": "dungeon_total - (dungeon_low if 'Torch' in items else 0) - (dungeon_undead if 'Holy Water' in items else 0) - (dungeon_dragon if 'Dragon Spear' in items else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_dungeon",
+            "value": {
+              "calc": "dungeon"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "run",
+      "label": "the reveal",
+      "when": {
+        "calc": "ran"
+      },
+      "to": "all",
+      "text": "Seat {runner_seat} runs the dungeon with items {items}. Dungeon cards: {last_dungeon}. Damage {last_damage} against HP {last_hp}."
+    },
+    {
+      "use": "update",
+      "phase": "run",
+      "label": "the run's result",
+      "when": {
+        "calc": "ran"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == runner_seat"
+            },
+            "key": "successes",
+            "value": 1,
+            "if": {
+              "calc": "last_damage < last_hp"
+            },
+            "text": "Seat {player} survives the dungeon and gains a success."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == runner_seat"
+            },
+            "key": "failures",
+            "value": 1,
+            "if": {
+              "calc": "last_damage >= last_hp"
+            },
+            "text": "Seat {player} falls in the dungeon and gains a failure."
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == runner_seat and you.failures >= failures_to_eliminate"
+            },
+            "key": "eliminated",
+            "value": true
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "you.seat == runner_seat and you.failures >= failures_to_eliminate"
+            },
+            "to": "out",
+            "text": "Seat {player} has {failures_to_eliminate} failures and is eliminated."
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "run",
+      "label": "after the run",
+      "when": {
+        "calc": "any(p.successes >= successes_to_win for p in players) or count(not p.eliminated for p in players) == 1"
+      },
+      "against": [
+        "over"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "run",
+      "label": "new dungeon",
+      "when": {
+        "calc": "ran"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "all_monsters"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck_count",
+            "value": {
+              "calc": "deck_size"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_total",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_low",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_undead",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "dungeon_dragon",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "items",
+            "value": {
+              "calc": "all_items"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "passed",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "added_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "next_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if p.seat > runner_seat and not p.eliminated] + [p.seat + len(players) for p in players if not p.eliminated] + [999])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "active_seat if next_seat == 999 else (next_seat - len(players) if next_seat > len(players) else next_seat)"
+            }
+          }
+        }
+      ],
+      "text": "A new dungeon begins: the deck is reshuffled to {deck_count} cards, all five items are restored, all passes are cleared, and seat {active_seat} starts."
+    },
+    {
+      "use": "check",
+      "phase": "run",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= max_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "any(p.successes >= successes_to_win for p in players) or count(not p.eliminated for p in players) == 1 or round >= max_rounds"
+      },
+      "rank_by": "(1 - you.eliminated) * 1000 + you.successes * 10 + (2 - you.failures)",
+      "text": "Winner: {result}. Final [seat, successes, failures, eliminated]: {[[p.seat, p.successes, p.failures, p.eliminated] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 40,
+    "rounds_max": 40,
+    "actions_max": 2000,
+    "deadline_s": 120
+  },
+  "rules": "The adventurer has base HP {base_hp} and five equipment items: Armor (+{armor_hp} HP), Shield (+{shield_hp} HP), Torch (defeats every monster of strength {torch_max_strength} or less), Holy Water (defeats Vampires and the Lich) and Dragon Spear (defeats the Dragon). The monster deck has {deck_size} cards: Goblin {goblin_strength} x{goblin_count}, Skeleton {skeleton_strength} x{skeleton_count}, Orc {orc_strength} x{orc_count}, Vampire {vampire_strength} x{vampire_count}, Golem {golem_strength} x{golem_count}, Lich {lich_strength} x{lich_count}, Demon {demon_strength} x{demon_count}, Dragon {dragon_strength} x{dragon_count}. Each player tracks successes and failures, both starting at 0.\n\nSeat 1 begins the first dungeon. The deck is shuffled, the dungeon starts empty, all five items are present and no one has passed.\n\nEach round is one turn. First everyone is told whose turn it is, how many cards are in the dungeon, which items remain, how many cards are left in the deck, who has passed, and everyone's successes and failures. Then every surviving player writes one short message at the same time, without seeing the others; all messages are shown to everyone. Talk is not binding.\n\nThe active player then chooses PASS or DRAW. If the deck is empty, only PASS is offered. PASS: you sit out the rest of this dungeon. DRAW: you privately see the top card of the deck, which leaves the deck, and then choose ADD or SACRIFICE an item. ADD: the card goes face-down into the dungeon and only you know what it is. SACRIFICE <item>: that remaining item is removed for the rest of this dungeon and the card is discarded unseen by others; you are offered only items that still remain, and when none remain only ADD is offered. The turn then passes to the next player clockwise (increasing seat number, wrapping around) who is neither eliminated nor passed in this dungeon.\n\nThe run happens at the end of a round as soon as exactly one non-eliminated player has not passed; that player is the runner. HP = {base_hp}, plus {armor_hp} if Armor remains, plus {shield_hp} if Shield remains. Damage = the sum of the strengths of all dungeon cards, minus the strength of each card defeated by a remaining item: Torch defeats strength 1, 2 and 3; Holy Water defeats Vampires and the Lich; Dragon Spear defeats the Dragon. All dungeon cards are then revealed to everyone, with the damage and the HP. If damage < HP, the runner gains 1 success; otherwise (damage >= HP) the runner gains 1 failure. A player with {failures_to_eliminate} failures is eliminated and takes no further part.\n\nAfter a run, if the game has not ended, all {deck_size} monsters are reshuffled into a new deck, the dungeon is emptied, all five items are restored and all passes are cleared. The next active player is the first surviving player clockwise from the runner.\n\nThe game ends immediately when a player reaches {successes_to_win} successes (that player wins) or when only one player is not eliminated (that player wins). Otherwise it ends after round {max_rounds}: the surviving player with the most successes wins; if tied, the one among them with the fewest failures wins; if still tied, they share the win."
+}

@@ -1,0 +1,153 @@
+{
+  "original_summary": "Yaniv is a draw-and-discard card game for 2 to 8 players. Players shed cards to get a low hand total and may call 'Yaniv' when their hand is at or below a threshold. Calling when someone else is as low or lower (Asaf) costs a 30-point penalty, points accumulate across rounds, and players over 200 are eliminated.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy is safe. Always calling as soon as eligible loses to Asaf penalties against players who hold low hands. Never calling lets opponents end rounds while you hold high cards. Always discarding the highest card is reasonable but predictable, and opponents can exploit it by claiming or baiting. In the reviewed variation, seats are symmetric because choices are simultaneous."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Timing the call, reading opponents' hand sums from public discards and claims, and avoiding contested claims all accumulate over up to 30 rounds. Deals are random, but many showdowns average the luck out."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A weak player still scores by shedding high cards. A strong player keeps improving through card counting, bluffing in talk, baiting with low offers and calling just before others do."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden. Players must infer opponents' hand sums from public discard values, shed counts, claim results and blind draws, and must model who will call."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "All scoring is arithmetic on hand sums and totals."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The reviewed variation fit the counts but had defects. Its ending was undefined after a call in round 30, its fallback broke on an empty hand, its option order was unspecified, its random-draw accounting was vague, and it was implicit which hand sum gates CALL."
+    }
+  ],
+  "problems": [
+    "P1: The ending is undefined if a call happens in round 30 and no total reaches 100: new hands are dealt but there is no round 31.",
+    "P2: The fallback 'discard H, the highest value in hand' fails when the hand is empty.",
+    "P3: Option order is unspecified, so listings and 'first/last option' policies are not fixed.",
+    "P4: The random-draw accounting is vague: the redeal and setup deal are many cards, described loosely as 'the only random draw'.",
+    "P5: It is implicit, not stated, that next round's CALL eligibility uses the hand_sum recomputed at the end of this round.",
+    "P6 (minor): Hand sizes are not publicly trackable, which weakens inference about opponents' hand sums."
+  ],
+  "changes": [
+    {
+      "what": "Every showdown in round 30, and any showdown that leaves a total at 100 or more, ends the game immediately after scoring; no new hands are dealt.",
+      "why": "This gives the game a defined end in every case.",
+      "fixes": "P1"
+    },
+    {
+      "what": "An invalid first-choice answer counts as CALL if the hand is empty, otherwise as 'discard H' with H the highest value in hand.",
+      "why": "The fallback is now always defined.",
+      "fixes": "P2"
+    },
+    {
+      "what": "First-choice options are listed as CALL first (if available), then 'discard V' by V ascending. Claim options are BLIND first, then 'value V' by V ascending.",
+      "why": "Option order is deterministic.",
+      "fixes": "P3"
+    },
+    {
+      "what": "The redeal is defined as a single deal operation (5 cards to every player at once) and is the round's one random operation. It happens only in showdown rounds that do not end the game. The blind draw B happens only in rounds with no call, so no round has both. The setup deal is a single operation before round 1.",
+      "why": "This keeps the game at one random draw per round.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The rules explicitly state that the hand_sum recomputed in step 10 (or after a redeal) is what step 1 of the next round checks against call_limit.",
+      "why": "This removes the ambiguity about CALL eligibility.",
+      "fixes": "P5"
+    },
+    {
+      "what": "The number of cards each player shed and each player's hand size are announced publicly every round. Hand sizes are public from the start (5).",
+      "why": "This gives players more evidence for inferring opponents' hand sums.",
+      "fixes": "P6"
+    }
+  ],
+  "keeps": [
+    "Yaniv card values (Joker 0, Ace 1, faces 10) and hidden hands.",
+    "Shedding cards to get a low hand, with a call threshold of 7.",
+    "The Asaf rule: a caller who is not strictly lowest scores hand sum + 30.",
+    "Taking either a card from the discards or a blind draw, here as one offered card or the blind card.",
+    "Cumulative scoring with the lowest total winning, ended by a total threshold."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The previous variation worked strategically; only rule-completeness defects needed fixing, and all fixes fit within the limits."
+  },
+  "variation": {
+    "name": "Simultaneous Yaniv",
+    "summary": "Three to five players hold hidden hands and each round simultaneously either call or discard all cards of one value. They then claim a card another player discarded, or take a shared blind card. Calling when not strictly lowest costs +30. The lowest total wins when someone reaches 100 or after round 30.",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "rules": "CARDS\n- Card values: Joker = 0, Ace = 1, 2 to 10 = face value, J/Q/K = 10.\n- Every random card is drawn from a 54-card shoe: two 0s, four each of 1 to 9, and sixteen 10s.\n- The shoe is full for every draw, so it never runs out.\n- A hand is a list of values. hand_sum is the sum of the hand. hand_size is the number of cards in it.\n\nPARAMETERS\ncall_limit = 7; asaf_penalty = 30; end_total = 100; max_rounds = 30.\n\nSETUP\n- Every total is 0.\n- In one deal operation, each player is dealt 5 random cards, seen only by that player.\n- Each player's hand_sum is computed. Each hand_size (5) is public.\n\nEACH ROUND (rounds 1 to 30)\n1. Options. Each player's first-choice options are listed in this order:\n   - 'CALL', only if their current hand_sum is 7 or less;\n   - then 'discard V' for each distinct value V in their hand, V ascending.\n   The current hand_sum is the one computed at the end of the previous round (step 10, or after a redeal in step 4), or at setup in round 1.\n2. Talk. Everyone writes one short message at the same time without seeing the others; all messages are then shown to everyone.\n3. First choice. Everyone answers at the same time with one of their options. An invalid answer counts as follows:\n   - CALL if the player's hand is empty;\n   - otherwise 'discard H', where H is the highest value in their hand.\n4. Showdown, if at least one player chose CALL:\n   a. All hands are revealed. L = the lowest hand_sum among all players.\n   b. A caller scores 0 if every other player's hand_sum is strictly greater than theirs. Otherwise (Asaf) they score hand_sum + 30.\n   c. A non-caller scores 0 if their hand_sum equals L, otherwise their hand_sum.\n   d. Each score is added to that player's total. Discards chosen this round are ignored.\n   e. If any total is now 100 or more, or this is round 30, the game ends now.\n   f. Otherwise, in one deal operation (the round's only random draw), every player's hand is replaced by 5 new random cards, seen only by that player. hand_sums are recomputed, hand_sizes reset to 5 publicly, and the round ends (steps 5 to 11 are skipped).\n5. Discard, if no one called:\n   - Each player removes every card of their chosen value V from their hand; the hand may become empty. These cards leave play.\n   - Each player's V and the number of cards they shed are announced publicly. Each player's offer is one card of value V.\n6. Claim options. Each player's options are listed in this order:\n   - 'BLIND';\n   - then 'value V' for each distinct value offered this round by at least one OTHER player, V ascending.\n7. Claim choice. Everyone answers at the same time. An invalid answer counts as BLIND.\n8. Resolve claims.\n   - A claim on V succeeds if exactly one player claimed V; that player adds one card of value V to their hand.\n   - If two or more players claimed the same V, all of them fail.\n9. Blind draw. One random card value B is drawn (the round's only random draw).\n   - Every player who chose BLIND or whose claim failed adds one card of value B to their hand.\n   - Each such player is told B privately.\n10. Announce.\n   - Every hand_sum is recomputed; this is the value step 1 of the next round uses.\n   - Announced publicly for each player: discarded value, number shed, claimed value, success or failure, whether they took the blind card, and new hand_size.\n   - B and hand contents stay private.\n11. Final showdown, if this is round 30 and no one called this round:\n   - All hands are revealed.\n   - Each player scores 0 if their hand_sum equals the lowest hand_sum, otherwise their hand_sum. This is added to their total.\n   - The game ends.",
+    "objective": "The game ends either after a showdown that leaves any total at 100 or more, or after a showdown in round 30 (from a call or the final showdown). The player with the lowest total wins. If two or more players share the lowest total, the game is a draw among them.",
+    "expected_effect": "The game now always terminates cleanly and is fully deterministic apart from one random operation per round. Public shed counts and hand sizes sharpen inference about opponents' hand sums, so call timing and Asaf traps reward reading the table. Talk passes both tests. Players disagree about when the round should end: a player with a low hand wants a showdown, while others want time to shed. They also compete for offered low cards, since contested claims fail. So a player who follows 'I'm high, don't worry' and holds back can lose: the speaker may be baiting a call they will Asaf, or steering others away from a card they want. With one winner by lowest total and three or more players, no simple policy is safe. Always-call suffers Asaf penalties, never-call eats others' showdowns, and always-claim-the-lowest-offer collides with rivals."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 3,
+    "attributes": 19,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 30
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Shoe EV: (2*0 + 4*(1+...+9) + 16*10)/54 = 340/54 = 6.30 per blind card. The game is symmetric and choices are simultaneous, so no seat has an edge from move order or information.\n\nCLAIM decision. Payoff is the hand-sum change; lower is better. A failed claim gives B, the same as BLIND, so failure costs nothing.\n| choice | claim succeeds | claim fails |\n| BLIND | +B (EV 6.3) | +B |\n| claim V | +V | +B |\nClaiming V beats BLIND exactly when V < 6.3. It is not free in practice. If two players claim the same lowest offer, both fail. That makes choosing between the lowest and the second-lowest offer a small coordination and anticipation problem. No option dominates.\n\nCALL decision. Your sum is s <= 7.\n| | you are strictly lowest | another player has a sum <= s |\n| you CALL | 0 | s+30 (Asaf) |\n| you wait, another player calls | 0 if you tie L, else s | s |\n| nobody calls | continue | continue |\nWaiting while you are lowest still scores 0 if someone else calls, and that caller takes the +30. So calling is not dominant, and baiting a call is a real trap.\n\nThoughtless policies under the winner rule (lowest total):\n- Always CALL when eligible: loses whenever an opponent is also eligible and lower or tied, which costs s+30, about 35 points, against a 100 end. It does not 'never lose'.\n- Never CALL: never scores 0 unless tied at L. It concedes about 15-30 per showdown while callers score 0. It loses.\n- Always discard the highest value: myopic. Example hand [9,8,3,3,2], sum 25. Discarding 9 gives EV 25-9+6.3 = 22.3 with 5 cards. Discarding the 3s gives 25.3 with 4 cards. Five distinct values can never sum to 7 or less (minimum 0+1+2+3+4 = 10), so only shrinking the hand reaches CALL. This policy loses to players who plan by shedding pairs.\n- Always BLIND: gives up the edge when a low pair is offered, so it is weakly worse.\n- Random play: beaten by any of the above.\nNo policy wins or draws almost every time. All players can win."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Complexity as stated: 17 steps (limit 20), 3 choice steps (limit 4), 18 attributes (limit 20), 2 hidden elements (limit 3), 30 rounds (limit 40). Talk is simultaneous and sensible: players disagree, and bluffing 'I will call' or 'I'm high' is meaningful given the bait/Asaf trap. Defects:\n(1) Ending gap. If a CALL happens in round 30 and no total reaches 100, step 4 deals new hands and says 'the next round begins'. There is no round 31. Step 11 only covers round 30 without a call. The game ending is undefined.\n(2) Invalid answer with an empty hand. A hand can become empty (step 5). The fallback 'discard H, the highest value in their hand' then has no H.\n(3) Option order is unspecified ('one option for each distinct value'), so 'first option' or 'last option' fallbacks and listings are not fixed.\n(4) Random draws. The reshuffle deal of 5 cards to each of up to 5 players (25 draws), plus the setup deal, is called 'the round's only random draw'. That is a stretch of the limit of 1 random draw per round. It needs to be stated as one deal operation, or restructured.\n(5) It is unclear whether 'hand_sum is recomputed' in step 10 is also what gates CALL in the next round's step 1. This is implied but should be explicit.\nThe repeated-game betrayal test does not apply. There is no cooperation option, and late rounds are not dominated by a safe choice."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance: the deal of each hand matters a lot. A hand with low pairs reaches CALL several rounds sooner. But B is shared by every blind taker, which removes draw variance between them. Over about 4-8 showdowns in 30 rounds, deal luck partly averages out. Estimated chance share is about 40-50%.\n\nThings to infer:\n- A public discard of a low value signals a pair being shed, so that hand is shrinking.\n- Claim attempts and successes reveal what a player wants.\n- If you also took the blind card, you know the B an opponent received.\n- Talk can bluff.\n\nWays to act: timing the CALL, baiting another player into an Asaf, shedding pairs versus singles, and avoiding claim collisions.\n\nWhen everyone plays well, the decisive edge goes to the player who better reads opponents' likely sums before calling or waiting. That play is not settled by the deal alone. Caveat: hand sizes are hidden (the count shed is not announced), which thins inference. It remains adequate."
+        },
+        "required_changes": [
+          "Ending: state that if a showdown occurs in round 30 (or any showdown leaves a total >= 100), the game ends after scoring; no new hands are dealt after a round-30 call.",
+          "Fallback for invalid first-choice answers: if the hand is empty (only CALL available), an invalid answer counts as CALL; otherwise it counts as 'discard H'.",
+          "List first-choice options in a fixed order (e.g. CALL first if available, then discard values ascending) and claim options as BLIND then values ascending.",
+          "Specify the reshuffle deal (and setup deal) as a single deal operation that is the round's one random draw, and confirm the engine counts it as one draw; otherwise reduce to one draw per round.",
+          "State explicitly that the next round's CALL eligibility uses the hand_sum recomputed in step 10.",
+          "Optional, to strengthen inference: announce publicly how many cards each player shed in step 5, so hand sizes become trackable."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SEATS: every decision is a simultaneous poll and the rules are symmetric, so neither seat has an edge from move order or information. EXPECTED CARD: (2*0 + 4*(1+...+9) + 16*10)/54 = (180+160)/54 = 6.30. P(card <= 7) = 30/54 = 0.56. HAND SIZE: a turn removes every copy of V (k cards) and adds exactly one card, so size changes by 1-k. Size never grows and shrinks only when you discard a duplicate, so hands cannot become empty at step 1. CALL DECISION (caller sum c, lowest other sum m): c<m gives caller 0 and others their sums; c>=m gives caller c+30 and the lowest non-caller 0. Examples: c=3 vs m=5: caller 0, other 5. c=5 vs m=5: caller 35, other 0. c=7 vs m=2: caller 37, other 0. A non-caller at 4 facing a caller at 6 scores 0 and the caller takes 36. So holding a low hand without calling can beat calling. Calling at a legal sum is not dominant: it wins only when strictly lowest, and the opponents' sums are partly visible through public hand sizes, discards and claims. THOUGHTLESS POLICIES under the winner rule (lowest total wins): (1) Always first option: call whenever legal, otherwise discard the LOWEST value, always BLIND. This keeps 10s, so the hand sum stays near 25-35 and rarely reaches <=7. When it does call, it calls blindly into ties and lower hands. It scores roughly 20+ per hand against sensible play (discard highest, hold low cards and pairs), so it loses. Against random play it is roughly even or worse, so it does not win almost every time. (2) Always last option: discard the highest value, NEVER call (CALL is listed first), and claim the highest offered value, which is usually a 10. It never scores 0 unless exactly tied at L, and it actively takes 10s. It loses to sensible play. (3) Always BLIND: a reasonable default, not dominant. A successful claim on an offered 0-3 beats an expected blind card of 6.30, but claims collide when shared. (4) Call at the first legal moment with sensible discards: strong but exploitable. Against an opponent whose public record shows a 1-card hand built from a claimed 0 or 2, an immediate call at 6-7 costs 36-37. No policy avoids losing against every opponent action, and no option is strictly better regardless of others. All 3-5 players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS: Option lists are fully specified and ordered. Invalid answers have defaults: the 'CALL if empty' default can never trigger, because hands never empty at step 1, but it is harmless. Ties are defined: a caller must be strictly lowest; a non-caller tied at L scores 0. Claims succeed only if exactly one player claimed V; failed claimants take the blind card. B is drawn even if nobody takes it, which is harmless. End conditions are given: any total >= 100 after a showdown, or round 30 via a call or the final showdown. The winner is the lowest total, with a stated draw rule. FINITENESS AND ARITHMETIC: the game has at most 30 rounds, and every outcome is arithmetic on stored hands and totals. No judge, board or clock is needed. PLATFORM LIMITS: steps 18 <= 20; choice steps 3 <= 4 (talk, first choice, claim); attributes 19 <= 20 (tight but plausible); hidden elements 2 <= 3 (hands, B); rounds 30 <= 40. Random draws per round: there are two draw steps (4f redeal, 9 blind), but they are mutually exclusive through the call condition, so exactly one executes per round. ENGINE: 'Steps 5-11 skipped' needs no block branching; each step carries a `when no call` condition, which the engine supports per step. Hands are value lists handled by remove/append, which is the shared-deck workaround. The infinite shoe avoids any reshuffle logic. There is no trading or binding. TALK: 3-5 players, simultaneous, and justified. Players disagree about contested claims (a shed 0-3 is wanted by several, and colliding wastes it). They also have conflicting incentives to bluff or signal hand strength, which affects whether others risk a call or an Asaf. Following someone's proposal can cost you, so talk is not just copying. REPEATED-GAME CHECK: this is not a cooperation game. In round 30 the final showdown still rewards being lowest, so there is no degenerate safe late option."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "PACE: hands shrink only through duplicates. With about 4 distinct low cards, P(the blind card matches one) is about 4*4/54 = 0.30 per round, or 0.30 for a held 10. A hand therefore lasts roughly 6-12 rounds, giving about 3-4 hands per 30-round game. Losers score about 10-25 per hand plus 30 per Asaf, so most games run to round 30 with several scoring events, not one. CHANCE: the initial deal (how many pairs) and blind draws are random. However, B is a single value shared by every blind taker, so blind luck is common to all of them and cancels in relative terms. Rough chance share: 35-40%. SKILL AND INFERENCE: (a) Discard choice: shed high cards versus keep pair bait, for example holding a 10 because 16/54 of draws are 10s. (b) Claim choice: modelling which offered low value rivals will contest, using talk. (c) Call timing, the core decision: deduce opponents' sums from public hand sizes, shed values, successful claims of known values and blind-taking. A player who took the blind card also knows every other blind taker's B. Then weigh 0 against c+30, or wait as a low non-caller to punish a rival's Asaf. ALL PLAY WELL: winners are decided by call timing and Asaf avoidance across 3-4 hands, not by the deal alone. A bad deal can be overcome by pairing, claims and well-timed waiting. A careful reasoner is clearly favoured over a thoughtless one."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

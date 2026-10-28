@@ -1,0 +1,727 @@
+# 05 scenarios
+
+- time: 2026-10-28T04:32:36+00:00 (52.6s)  model: claude-opus-5-5
+- system prompt: [system/6dcf03e1-scenarios.md](system/6dcf03e1-scenarios.md) (sha256 6dcf03e15fe36c21)
+- sent sha256 705c7680eb1607e0, reply sha256 ac861e519131981f
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Ys: Brokers of the Blind Market",
+  "summary": "Three brokers secretly favor one gem color each. Over 6 rounds they split 6 influence across Red, Blue, Green and Commerce districts to win gems or points, then vote on prices, with favored gems scoring double at the end.",
+  "players": {
+    "min": 3,
+    "max": 3,
+    "suggested": 3
+  },
+  "parameters": {
+    "colors": 3,
+    "starting_price": 3,
+    "rounds": 6,
+    "influence_budget": 6,
+    "gem_first_award": 2,
+    "gem_second_award": 1,
+    "gem_tied_first_award": 1,
+    "commerce_first_award": 8,
+    "commerce_second_award": 3,
+    "commerce_tied_first_award": 3,
+    "price_rise_per_vote": 1,
+    "price_fall_no_votes": 1,
+    "price_floor": 1,
+    "favored_extra_multiplier": 1
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "favored_color",
+        "type": "text",
+        "visible": "ally",
+        "initial": "",
+        "meaning": "This player's secret favored color (Red, Blue or Green), dealt from color_deck. Revealed at the end.",
+        "observable": false
+      },
+      {
+        "key": "red_gems",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Red gems held.",
+        "observable": true
+      },
+      {
+        "key": "blue_gems",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Blue gems held.",
+        "observable": true
+      },
+      {
+        "key": "green_gems",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Green gems held.",
+        "observable": true
+      },
+      {
+        "key": "commerce_points",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Commerce points earned.",
+        "observable": true
+      },
+      {
+        "key": "pending_allocation",
+        "type": "text",
+        "visible": "ally",
+        "initial": "",
+        "meaning": "This round's secret allocation choice 'r/b/g/c', held until the reveal.",
+        "observable": false
+      },
+      {
+        "key": "alloc_red",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Revealed influence in the Red district this round.",
+        "observable": false
+      },
+      {
+        "key": "alloc_blue",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Revealed influence in the Blue district this round.",
+        "observable": false
+      },
+      {
+        "key": "alloc_green",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Revealed influence in the Green district this round.",
+        "observable": false
+      },
+      {
+        "key": "alloc_commerce",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Revealed influence in the Commerce district this round.",
+        "observable": false
+      },
+      {
+        "key": "vote",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "Color named in this round's market vote.",
+        "observable": false
+      },
+      {
+        "key": "revealed_color",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "favored_color copied here when secret colors are revealed at game end.",
+        "observable": true
+      },
+      {
+        "key": "score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Final score, computed after round 6.",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Current round number (1 to 6).",
+        "observable": true
+      },
+      {
+        "key": "price_red",
+        "type": "number",
+        "visible": "public",
+        "initial": 3,
+        "meaning": "Current Red price.",
+        "observable": true
+      },
+      {
+        "key": "price_blue",
+        "type": "number",
+        "visible": "public",
+        "initial": 3,
+        "meaning": "Current Blue price.",
+        "observable": true
+      },
+      {
+        "key": "price_green",
+        "type": "number",
+        "visible": "public",
+        "initial": 3,
+        "meaning": "Current Green price.",
+        "observable": true
+      },
+      {
+        "key": "color_deck",
+        "type": "list",
+        "visible": "none",
+        "initial": [
+          "Red",
+          "Blue",
+          "Green"
+        ],
+        "meaning": "Undealt favored colors, used once at setup.",
+        "observable": false
+      },
+      {
+        "key": "votes_red",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Votes Red received this round.",
+        "observable": false
+      },
+      {
+        "key": "votes_blue",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Votes Blue received this round.",
+        "observable": false
+      },
+      {
+        "key": "votes_green",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Votes Green received this round.",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Set price_red, price_blue and price_green to 3.",
+    "Set every player's red_gems, blue_gems, green_gems and commerce_points to 0.",
+    "For each player in seat order, draw one color at random from color_deck into that player's favored_color and remove it from color_deck, so every player holds a different color.",
+    "Sync: each player is told only their own favored_color."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "round += 1."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce: 'Round {round}. Prices: Red {price_red}, Blue {price_blue}, Green {price_green}.' Also show every player's public gems and commerce_points."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "short text message",
+      "effect": "Every message is broadcast to all once everyone has answered: {\"to\": \"all\", \"text\": \"Seat {seat} says: {value}\"}. Nothing is stored, and nothing is binding."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "one choice from the 84 strings 'r/b/g/c', where r, b, g and c are whole numbers of 0 or more that sum to exactly 6 (influence in Red, Blue, Green and Commerce)",
+      "effect": "pending_allocation := the choice. It stays hidden until every answer is in."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Parse pending_allocation into alloc_red, alloc_blue, alloc_green and alloc_commerce, then announce all four values for every seat."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Resolve each district D in {red, blue, green} with x = alloc_D. Let M = max of x over the players and N = the count of players with x == M. Let S = max of x over the players with x < M, and K = the count of players with x == S. For each player: if M > 0, x == M and N == 1, then D_gems += 2. If M > 0, x == M and N >= 2, then D_gems += 1. If N == 1, M > 0, S > 0, x == S and K == 1, then D_gems += 1. Otherwise nothing."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Resolve Commerce the same way with x = alloc_commerce: a single first gets commerce_points += 8, each tied-first gets commerce_points += 3, and a single untied second gets commerce_points += 3. A player with 0 influence gains nothing."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "one of: Red, Blue, Green",
+      "effect": "vote := the choice."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "votes_red := count of players with vote == 'Red'. votes_blue := count with vote == 'Blue'. votes_green := count with vote == 'Green'. For each color C: if votes_C > 0, then price_C += votes_C; else price_C := max(1, price_C - 1). Announce every seat's vote and the new prices."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When round == 6: revealed_color := favored_color. score := red_gems*price_red + blue_gems*price_blue + green_gems*price_green + (favored_color=='Red' ? red_gems*price_red : 0) + (favored_color=='Blue' ? blue_gems*price_blue : 0) + (favored_color=='Green' ? green_gems*price_green : 0) + commerce_points. Announce every seat's revealed_color and score."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "If round >= 6, end the game; otherwise run the round again."
+    }
+  ],
+  "ending": {
+    "condition": "round >= 6",
+    "rank_by": "you.score",
+    "decided_by": "Each player's standing is their final score: gem values at final prices, favored-color gems counted twice, plus commerce points. The highest score wins. If two or three players tie at the top, they share the result, which is the source's draw."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "At setup, each of the three players is dealt a different favored_color from Red, Blue and Green, and sees only their own."
+    },
+    {
+      "id": "R2",
+      "text": "At setup, price_red, price_blue and price_green are each 3, and every player has 0 gems of each color and 0 commerce_points."
+    },
+    {
+      "id": "R3",
+      "text": "The game lasts exactly 6 rounds and ends after round 6."
+    },
+    {
+      "id": "R4",
+      "text": "Each round, every player submits one talk message simultaneously, and all messages are shown only after all are in."
+    },
+    {
+      "id": "R5",
+      "text": "Each round, each player allocates whole-number influence of 0 or more to Red, Blue, Green and Commerce summing to exactly 6, and an allocation summing to anything else cannot be chosen."
+    },
+    {
+      "id": "R6",
+      "text": "Allocations are secret until all are submitted, then all four values of every player are revealed."
+    },
+    {
+      "id": "R7",
+      "text": "When one player has the strictly highest influence above 0 in a gem district, they gain 2 gems of that color (e.g. Red allocations 4,1,0 give the first player red_gems +2)."
+    },
+    {
+      "id": "R8",
+      "text": "When a gem district has a single first, the player with the strictly next-highest influence above 0, untied, gains 1 gem of that color (e.g. Red allocations 4,1,0 give the second player red_gems +1 and the third player nothing)."
+    },
+    {
+      "id": "R9",
+      "text": "When two or more players tie for highest influence above 0 in a gem district, each tied player gains 1 gem and no second is awarded (e.g. Blue allocations 3,3,1 give +1, +1 and 0)."
+    },
+    {
+      "id": "R10",
+      "text": "When there is a single first but two players tie for second, no second is awarded (e.g. Green allocations 4,1,1 give +2, 0 and 0)."
+    },
+    {
+      "id": "R11",
+      "text": "In Commerce, a single first gains 8 commerce_points, a single untied second gains 3, and each tied-first gains 3 (e.g. allocations 2,2,0 give 3, 3 and 0)."
+    },
+    {
+      "id": "R12",
+      "text": "A player with 0 influence in a district gains nothing there, and if every player has 0 in a district, nobody gains."
+    },
+    {
+      "id": "R13",
+      "text": "Each round, every player simultaneously votes for one color: Red, Blue or Green."
+    },
+    {
+      "id": "R14",
+      "text": "After the vote, each color's price rises by 1 per vote it received (e.g. 2 votes raise price 3 to 5)."
+    },
+    {
+      "id": "R15",
+      "text": "After the vote, each color with 0 votes falls by 1 but never below 1 (e.g. 3 becomes 2, and 1 stays 1)."
+    },
+    {
+      "id": "R16",
+      "text": "After the price update, every player's vote is shown to all."
+    },
+    {
+      "id": "R17",
+      "text": "At game end, score = red_gems*price_red + blue_gems*price_blue + green_gems*price_green + (favored gems \u00d7 that color's price) + commerce_points (e.g. favored Red, 2 red at price 5, 1 blue at price 2, 8 commerce gives 10+2+10+8 = 30)."
+    },
+    {
+      "id": "R18",
+      "text": "At game end, every player's favored color is revealed."
+    },
+    {
+      "id": "R19",
+      "text": "The player with the highest score wins, and when two or three players tie for highest, the game is a draw among them."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Talk message",
+      "who": "every seat, simultaneously",
+      "options": "any short free text"
+    },
+    {
+      "question": "Allocation",
+      "who": "every seat, simultaneously",
+      "options": "each of the 84 strings 'r/b/g/c' with whole numbers r, b, g, c >= 0 and r+b+g+c = 6, for example '6/0/0/0', '2/1/0/3', '0/0/0/6'"
+    },
+    {
+      "question": "Market vote",
+      "who": "every seat, simultaneously",
+      "options": "Red, Blue, Green"
+    }
+  ],
+  "choices": [
+    {
+      "what": "Exactly 3 players, suggested 3",
+      "why": "The designer chose 3, and the game has three colors dealt one per player, so it cannot run at any other size."
+    },
+    {
+      "what": "Strategy check",
+      "why": "A thoughtful player hides their favored color, reads rivals' colors from their allocations and votes, contests gem districts where rivals are thin, takes Commerce when gems are crowded, and steers votes toward their own color without revealing it."
+    },
+    {
+      "what": "Keep talk as a simultaneous poll broadcast to all",
+      "why": "The rules make talk simultaneous. Talk earns its place because each player wants a different color pumped and can bluff about it, so following a proposal can cost them."
+    },
+    {
+      "what": "Allocation as one choice from the 84 valid 'r/b/g/c' splits",
+      "why": "The engine takes one answer per question. A list of every valid split enforces the sum of 6 and keeps all four numbers in one simultaneous secret submission."
+    },
+    {
+      "what": "Votes stored in a public attribute and announced after the price update",
+      "why": "The poll keeps votes hidden until all are in, and the rules show the votes after prices change."
+    },
+    {
+      "what": "Score computed in the round-6 update",
+      "why": "The final score is needed only once the game ends, and computing it in that step keeps rank_by a single attribute."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for highest score is a shared win at the top rather than a separately labeled draw",
+      "why": "The engine has no separate draw: players level at the top share the win, which matches the source's draw outcome."
+    },
+    {
+      "what": "Allocations are held in pending_allocation and copied to public alloc_* attributes at the reveal",
+      "why": "This keeps the submission secret until all are in, then reveals it as the rules require."
+    }
+  ],
+  "unsupported": []
+}
+
+OBSERVABLE (the only attributes you may assert on): player: red_gems, blue_gems, green_gems, commerce_points, revealed_color, score; table: round, price_red, price_blue, price_green.
+
+YOUR PREVIOUS REPLY WAS REFUSED. Here it is:
+```json
+[
+  {"name": "Setup deals all three favored colors, leaving the color deck empty", "rule": "R1", "players": 3, "rounds": 0, "seed": 1,
+   "expect": {"lens": {"game": {"color_deck": 0}}}},
+
+  {"name": "Setup sets prices to 3 and every player to zero gems and zero commerce", "rule": "R2", "players": 3, "rounds": 0, "seed": 1,
+   "expect": {"game": {"price_red": 3, "price_blue": 3, "price_green": 3},
+              "players": {"1": {"red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "2": {"red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "3": {"red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}}},
+
+  {"name": "Game ends after round 6 and the top score wins", "rule": "R3", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5, "price_red": 3, "price_blue": 3, "price_green": 3},
+             "players": {"1": {"favored_color": "Green", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "2": {"favored_color": "Red", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "3": {"favored_color": "Blue", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "0/6/0/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"winner": 2, "standings": {"1": 8, "2": 24, "3": 8},
+              "game": {"round": 6, "price_red": 6, "price_blue": 2, "price_green": 2},
+              "players": {"1": {"score": 8, "commerce_points": 8}, "2": {"score": 24, "red_gems": 2}, "3": {"score": 8, "blue_gems": 2}}}},
+
+  {"name": "A round with talk proceeds; all-commerce three-way tie gives 3 each", "rule": "R4", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"game": {"round": 1, "price_red": 4, "price_blue": 4, "price_green": 4},
+              "players": {"1": {"commerce_points": 3}, "2": {"commerce_points": 3}, "3": {"commerce_points": 3}}}},
+
+  {"name": "Allocations summing to 6 are offered, others are not", "rule": "R5", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "2/1/0/3"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Blue"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Blue"}],
+   "expect": {"offered": [{"seat": 1, "option": "2/1/0/3"}, {"seat": 1, "option": "6/0/0/0"}, {"seat": 2, "option": "0/0/0/6"}],
+              "not_offered": [{"seat": 1, "option": "7/0/0/0"}, {"seat": 2, "option": "1/1/1/1"}, {"seat": 3, "option": "6/0/0/1"}],
+              "players": {"1": {"red_gems": 1, "blue_gems": 2, "commerce_points": 3},
+                          "2": {"red_gems": 2, "blue_gems": 0, "commerce_points": 0},
+                          "3": {"red_gems": 0, "commerce_points": 8}},
+              "game": {"price_red": 2, "price_blue": 6, "price_green": 2}}},
+
+  {"name": "Revealed allocations decide every district", "rule": "R6", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "4/2/0/0"}, {"seat": 2, "options_include": "1/5/0/0"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Green"}, {"seat": 2, "options_include": "Green"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"players": {"1": {"red_gems": 2, "blue_gems": 1, "green_gems": 0},
+                          "2": {"red_gems": 1, "blue_gems": 2, "green_gems": 0},
+                          "3": {"red_gems": 0, "blue_gems": 0, "green_gems": 2}}}},
+
+  {"name": "Single first in Red (4,1,0) gains 2 red gems", "rule": "R7", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "4/2/0/0"}, {"seat": 2, "options_include": "1/5/0/0"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"red_gems": 2}, "3": {"red_gems": 0}}}},
+
+  {"name": "Untied second in Red (4,1,0) gains 1, third gains nothing", "rule": "R8", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "4/2/0/0"}, {"seat": 2, "options_include": "1/5/0/0"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"2": {"red_gems": 1}, "3": {"red_gems": 0}}}},
+
+  {"name": "Tied first in Blue (3,3,1) gives 1, 1, 0", "rule": "R9", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/3/0/3"}, {"seat": 2, "options_include": "0/3/0/3"}, {"seat": 3, "options_include": "0/1/0/5"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"blue_gems": 1, "commerce_points": 0},
+                          "2": {"blue_gems": 1, "commerce_points": 0},
+                          "3": {"blue_gems": 0, "commerce_points": 8}}}},
+
+  {"name": "Tied second in Green (4,1,1) gets nothing", "rule": "R10", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/4/2"}, {"seat": 2, "options_include": "1/0/1/4"}, {"seat": 3, "options_include": "1/0/1/4"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"green_gems": 2, "red_gems": 0, "commerce_points": 0},
+                          "2": {"green_gems": 0, "red_gems": 1, "commerce_points": 3},
+                          "3": {"green_gems": 0, "red_gems": 1, "commerce_points": 3}}}},
+
+  {"name": "Commerce tied first (2,2,0) gives 3, 3, 0", "rule": "R11", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "2/2/0/2"}, {"seat": 2, "options_include": "2/2/0/2"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"commerce_points": 3, "red_gems": 1, "blue_gems": 1},
+                          "2": {"commerce_points": 3, "red_gems": 1, "blue_gems": 1},
+                          "3": {"commerce_points": 0, "green_gems": 2}}}},
+
+  {"name": "Commerce single first gets 8 and untied second gets 3", "rule": "R11", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/2/4"}, {"seat": 3, "options_include": "6/0/0/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"commerce_points": 8},
+                          "2": {"commerce_points": 3, "green_gems": 2},
+                          "3": {"commerce_points": 0, "red_gems": 2}}}},
+
+  {"name": "Districts where everyone has 0 influence award nothing", "rule": "R12", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "6/0/0/0"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "6/0/0/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "2": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "3": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}}},
+
+  {"name": "Every seat is offered a vote among Red, Blue and Green", "rule": "R13", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"offered": [{"seat": 1, "option": "Blue"}, {"seat": 2, "option": "Green"}, {"seat": 3, "option": "Red"}],
+              "game": {"price_red": 6, "price_blue": 2, "price_green": 2}}},
+
+  {"name": "Two votes raise a price from 3 to 5", "rule": "R14", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Blue"}],
+   "expect": {"game": {"price_red": 5, "price_blue": 4, "price_green": 2}}},
+
+  {"name": "Unvoted colors fall by 1 but not below 1", "rule": "R15", "players": 3, "rounds": 1, "seed": 1,
+   "given": {"game": {"price_red": 3, "price_blue": 3, "price_green": 1}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"game": {"price_red": 6, "price_blue": 2, "price_green": 1}}},
+
+  {"name": "Vote round updates prices from all votes", "rule": "R16", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Green"}, {"seat": 2, "options_include": "Green"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"game": {"price_red": 2, "price_blue": 2, "price_green": 6}}},
+
+  {"name": "Final score counts favored gems twice plus commerce", "rule": "R17", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5, "price_red": 3, "price_blue": 3, "price_green": 3},
+             "players": {"1": {"favored_color": "Red", "red_gems": 2, "blue_gems": 1, "green_gems": 0, "commerce_points": 8},
+                         "2": {"favored_color": "Blue", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "3": {"favored_color": "Green", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"winner": 1, "standings": {"1": 33, "2": 3, "3": 3},
+              "game": {"price_red": 5, "price_blue": 2, "price_green": 4},
+              "players": {"1": {"score": 33, "commerce_points": 11}, "2": {"score": 3}, "3": {"score": 3}}}},
+
+  {"name": "Favored colors are revealed at game end", "rule": "R18", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5},
+             "players": {"1": {"favored_color": "Blue"}, "2": {"favored_color": "Green"}, "3": {"favored_color": "Red"}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"winner": [1, 2, 3],
+              "players": {"1": {"revealed_color": "Blue"}, "2": {"revealed_color": "Green"}, "3": {"revealed_color": "Red"}}}},
+
+  {"name": "Three-way tie for top score is shared", "rule": "R19", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5, "price_red": 3, "price_blue": 3, "price_green": 3},
+             "players": {"1": {"favored_color": "Green", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "2": {"favored_color": "Red", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "3": {"favored_color": "Blue", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "0/6/0/0"},
+             {"seat": 1, "options_include": "Green"}, {"seat": 2, "options_include": "Green"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"winner": [1, 2, 3], "standings": {"1": 8, "2": 8, "3": 8},
+              "game": {"price_red": 2, "price_blue": 2, "price_green": 6},
+              "players": {"1": {"score": 8}, "2": {"score": 8}, "3": {"score": 8}}}}
+]
+```
+
+Why it was refused: scenario 1: needs `rules` (what each seat answers, by option name); scenario 2: needs `rules` (what each seat answers, by option name)
+Correct it: change what the problem requires and keep the rest. Reply in the same format as before, complete, and nothing else.
+````
+
+## Reply
+
+````
+```json
+[
+  {"name": "Setup deals all three favored colors, leaving the color deck empty after the first round", "rule": "R1", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"lens": {"game": {"color_deck": 0}}}},
+
+  {"name": "Setup sets prices to 3 and every player to zero gems and zero commerce (seen through one round)", "rule": "R2", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "6/0/0/0"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "6/0/0/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"game": {"round": 1, "price_red": 4, "price_blue": 4, "price_green": 4},
+              "players": {"1": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "2": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "3": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}}},
+
+  {"name": "Game ends after round 6 and the top score wins", "rule": "R3", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5, "price_red": 3, "price_blue": 3, "price_green": 3},
+             "players": {"1": {"favored_color": "Green", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "2": {"favored_color": "Red", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "3": {"favored_color": "Blue", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "0/6/0/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"winner": 2, "standings": {"1": 8, "2": 24, "3": 8},
+              "game": {"round": 6, "price_red": 6, "price_blue": 2, "price_green": 2},
+              "players": {"1": {"score": 8, "commerce_points": 8}, "2": {"score": 24, "red_gems": 2}, "3": {"score": 8, "blue_gems": 2}}}},
+
+  {"name": "A round with talk proceeds; all-commerce three-way tie gives 3 each", "rule": "R4", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"game": {"round": 1, "price_red": 4, "price_blue": 4, "price_green": 4},
+              "players": {"1": {"commerce_points": 3}, "2": {"commerce_points": 3}, "3": {"commerce_points": 3}}}},
+
+  {"name": "Allocations summing to 6 are offered, others are not", "rule": "R5", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "2/1/0/3"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Blue"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Blue"}],
+   "expect": {"offered": [{"seat": 1, "option": "2/1/0/3"}, {"seat": 1, "option": "6/0/0/0"}, {"seat": 2, "option": "0/0/0/6"}],
+              "not_offered": [{"seat": 1, "option": "7/0/0/0"}, {"seat": 2, "option": "1/1/1/1"}, {"seat": 3, "option": "6/0/0/1"}],
+              "players": {"1": {"red_gems": 1, "blue_gems": 2, "commerce_points": 3},
+                          "2": {"red_gems": 2, "blue_gems": 0, "commerce_points": 0},
+                          "3": {"red_gems": 0, "commerce_points": 8}},
+              "game": {"price_red": 2, "price_blue": 6, "price_green": 2}}},
+
+  {"name": "Revealed allocations decide every district", "rule": "R6", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "4/2/0/0"}, {"seat": 2, "options_include": "1/5/0/0"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Green"}, {"seat": 2, "options_include": "Green"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"players": {"1": {"red_gems": 2, "blue_gems": 1, "green_gems": 0},
+                          "2": {"red_gems": 1, "blue_gems": 2, "green_gems": 0},
+                          "3": {"red_gems": 0, "blue_gems": 0, "green_gems": 2}}}},
+
+  {"name": "Single first in Red (4,1,0) gains 2 red gems", "rule": "R7", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "4/2/0/0"}, {"seat": 2, "options_include": "1/5/0/0"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"red_gems": 2}, "3": {"red_gems": 0}}}},
+
+  {"name": "Untied second in Red (4,1,0) gains 1, third gains nothing", "rule": "R8", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "4/2/0/0"}, {"seat": 2, "options_include": "1/5/0/0"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"2": {"red_gems": 1}, "3": {"red_gems": 0}}}},
+
+  {"name": "Tied first in Blue (3,3,1) gives 1, 1, 0", "rule": "R9", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/3/0/3"}, {"seat": 2, "options_include": "0/3/0/3"}, {"seat": 3, "options_include": "0/1/0/5"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"blue_gems": 1, "commerce_points": 0},
+                          "2": {"blue_gems": 1, "commerce_points": 0},
+                          "3": {"blue_gems": 0, "commerce_points": 8}}}},
+
+  {"name": "Tied second in Green (4,1,1) gets nothing", "rule": "R10", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/4/2"}, {"seat": 2, "options_include": "1/0/1/4"}, {"seat": 3, "options_include": "1/0/1/4"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"green_gems": 2, "red_gems": 0, "commerce_points": 0},
+                          "2": {"green_gems": 0, "red_gems": 1, "commerce_points": 3},
+                          "3": {"green_gems": 0, "red_gems": 1, "commerce_points": 3}}}},
+
+  {"name": "Commerce tied first (2,2,0) gives 3, 3, 0", "rule": "R11", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "2/2/0/2"}, {"seat": 2, "options_include": "2/2/0/2"}, {"seat": 3, "options_include": "0/0/6/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"commerce_points": 3, "red_gems": 1, "blue_gems": 1},
+                          "2": {"commerce_points": 3, "red_gems": 1, "blue_gems": 1},
+                          "3": {"commerce_points": 0, "green_gems": 2}}}},
+
+  {"name": "Commerce single first gets 8 and untied second gets 3", "rule": "R11", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/2/4"}, {"seat": 3, "options_include": "6/0/0/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"commerce_points": 8},
+                          "2": {"commerce_points": 3, "green_gems": 2},
+                          "3": {"commerce_points": 0, "red_gems": 2}}}},
+
+  {"name": "Districts where everyone has 0 influence award nothing", "rule": "R12", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "6/0/0/0"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "6/0/0/0"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"players": {"1": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "2": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                          "3": {"red_gems": 1, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}}},
+
+  {"name": "Every seat is offered a vote among Red, Blue and Green", "rule": "R13", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"offered": [{"seat": 1, "option": "Blue"}, {"seat": 2, "option": "Green"}, {"seat": 3, "option": "Red"}],
+              "game": {"price_red": 6, "price_blue": 2, "price_green": 2}}},
+
+  {"name": "Two votes raise a price from 3 to 5", "rule": "R14", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Blue"}],
+   "expect": {"game": {"price_red": 5, "price_blue": 4, "price_green": 2}}},
+
+  {"name": "Unvoted colors fall by 1 but not below 1", "rule": "R15", "players": 3, "rounds": 1, "seed": 1,
+   "given": {"game": {"price_red": 3, "price_blue": 3, "price_green": 1}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Red"}],
+   "expect": {"game": {"price_red": 6, "price_blue": 2, "price_green": 1}}},
+
+  {"name": "Vote round updates prices from all votes", "rule": "R16", "players": 3, "rounds": 1, "seed": 1,
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Green"}, {"seat": 2, "options_include": "Green"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"game": {"price_red": 2, "price_blue": 2, "price_green": 6}}},
+
+  {"name": "Final score counts favored gems twice plus commerce", "rule": "R17", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5, "price_red": 3, "price_blue": 3, "price_green": 3},
+             "players": {"1": {"favored_color": "Red", "red_gems": 2, "blue_gems": 1, "green_gems": 0, "commerce_points": 8},
+                         "2": {"favored_color": "Blue", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "3": {"favored_color": "Green", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Red"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"winner": 1, "standings": {"1": 33, "2": 3, "3": 3},
+              "game": {"price_red": 5, "price_blue": 2, "price_green": 4},
+              "players": {"1": {"score": 33, "commerce_points": 11}, "2": {"score": 3}, "3": {"score": 3}}}},
+
+  {"name": "Favored colors are revealed at game end", "rule": "R18", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5},
+             "players": {"1": {"favored_color": "Blue"}, "2": {"favored_color": "Green"}, "3": {"favored_color": "Red"}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "0/0/0/6"}, {"seat": 3, "options_include": "0/0/0/6"},
+             {"seat": 1, "options_include": "Red"}, {"seat": 2, "options_include": "Blue"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"winner": [1, 2, 3],
+              "players": {"1": {"revealed_color": "Blue"}, "2": {"revealed_color": "Green"}, "3": {"revealed_color": "Red"}}}},
+
+  {"name": "Three-way tie for top score is shared", "rule": "R19", "players": 3, "seed": 1,
+   "given": {"game": {"round": 5, "price_red": 3, "price_blue": 3, "price_green": 3},
+             "players": {"1": {"favored_color": "Green", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "2": {"favored_color": "Red", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0},
+                         "3": {"favored_color": "Blue", "red_gems": 0, "blue_gems": 0, "green_gems": 0, "commerce_points": 0}}},
+   "rules": [{"seat": 1, "options_include": "0/0/0/6"}, {"seat": 2, "options_include": "6/0/0/0"}, {"seat": 3, "options_include": "0/6/0/0"},
+             {"seat": 1, "options_include": "Green"}, {"seat": 2, "options_include": "Green"}, {"seat": 3, "options_include": "Green"}],
+   "expect": {"winner": [1, 2, 3], "standings": {"1": 8, "2": 8, "3": 8},
+              "game": {"price_red": 2, "price_blue": 2, "price_green": 6},
+              "players": {"1": {"score": 8}, "2": {"score": 8}, "3": {"score": 8}}}}
+]
+```
+````

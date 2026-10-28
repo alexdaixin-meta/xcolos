@@ -1,0 +1,168 @@
+{
+  "original_summary": "Rutersju is a short Scandinavian trick-taking game for 3 to 12 players. Each player gets three cards, players bid how many of the three tricks they will take, and the highest bidder becomes declarer against the rest. \u26667 is the top trump. A declarer who makes the bid exactly scores it; a declarer who misses pays one point per trick of error to each opponent.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "bad",
+      "evidence": "In the reviewed variation a bid of 0 is never the declarer, so it never pays the miss penalty. It still scores the same +3 on a hit as a bid of 3, and it collects d from every declarer who misses. At 4\u20135 players 'always bid 0, dump high cards early' hits about 60\u201370% of the time and wins or draws most games against both random and sensible play. Any bid above 0 is a liability: +1 at best, and \u2212d against every rival at worst. The bidding decision collapses."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "With nearly everyone bidding 0, each deal is decided by who was dealt top cards that cannot be dumped (P = 1/N per deal). The only skill left is a simultaneous dumping guess. About 60\u201370% of the per-deal swing is the deal itself."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "A bot that bids 0 and dumps low is close to optimal at 4\u20135 players. A strong player has little to improve on, because good bidding is not rewarded."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Hands are hidden, and bids plus face-up discards could carry information. But when all bids are 0 the bids reveal nothing, and there is nothing to act on even if a player infers something."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Card strengths are fixed numbers. Trick winners, trick counts and scores all follow by arithmetic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "Play is text-only with no board. Trick play is simultaneous with numeric strengths, and the step count was within limits (about 14\u201316)."
+    }
+  ],
+  "problems": [
+    "P1: A bid of 0 pays the same as any other exact bid and is never the declarer, so it carries no risk. 'Always bid 0' dominates at 4\u20135 players.",
+    "P2: A declarer's miss is a gift to every other player, so taking on the declarer bid is pure liability and nobody wants it.",
+    "P3: Nothing stops everyone bidding 0 together, so the bids carry no information and no player is forced into a contested decision.",
+    "P4: Under good play the deal decides each hand, because the holder of the top card simply misses. The skill left is a coin-flip dumping guess, so luck dominates.",
+    "P5: Simultaneous blind bids mean no player reasons from others' bids when choosing their own, so there is little inference in the bidding."
+  ],
+  "changes": [
+    {
+      "what": "An exact hit now scores 3 + bid (0\u21923, 1\u21924, 2\u21925, 3\u21926), and EVERY player who misses loses 2 points per trick of error, not only the declarer. Missing no longer feeds the other players.",
+      "why": "Bidding 0 while holding a card that will win a trick now costs 2 instead of being free. Higher bids are worth a little more, so a player should bid what the hand will take rather than hiding at 0. The slope is kept mild (3 to 6) so that a weak hand bid correctly still scores most of what a strong hand scores.",
+      "fixes": "P1"
+    },
+    {
+      "what": "The declarer (highest bid) gains +1 extra on an exact hit and loses 1 extra on a miss. Nobody else gains from the declarer's miss.",
+      "why": "This keeps Rutersju's declarer as a real, two-sided risk instead of a gift to the table.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Bids are now made one at a time, each player hearing the earlier bids. Bidding starts with the player to the left of the priority seat and ends with the priority seat, which rotates every deal. The last bidder may not make the bids add up to exactly 3 (the 'hook').",
+      "why": "Since exactly 3 tricks are played and the bids cannot total 3, at least one player must miss every deal. This rules out a universal all-zero table. Each bidder must also infer hand strength from the earlier bids. Rotating the last seat spreads the hook's burden and its information advantage evenly across seats.",
+      "fixes": "P3, P5"
+    },
+    {
+      "what": "Bids are public before the tricks are played, and someone must miss. Trick play therefore becomes deliberate: you can play a high card to give a trick to a 0-bidder, or under-play to deny a bidder their count.",
+      "why": "This turns the luck of the deal into a contest of steering tricks. A weak hand can still score by hitting 0 and by breaking a rival's exact count. A strong hand can be broken by opponents who read its bid.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The player count is kept at 3\u20135, with 3 deals per player (9/12/15 deals), the rotating priority seat and the numeric card strengths resolved by highest strength.",
+      "why": "Repeated deals average out the luck of the deal. Rotation removes any seat edge. Simultaneous highest-strength tricks stay within the engine and within 20 steps.",
+      "fixes": "P4"
+    }
+  ],
+  "keeps": [
+    "The 36-card pack with \u26667 as the unbeatable top card and the other diamonds as trumps",
+    "Three cards each and three tricks per deal",
+    "Bidding the exact number of tricks, from 0 to 3",
+    "A declarer, the highest bidder with ties going to the last tied bidder, who carries extra risk and reward",
+    "Exactness as the core skill: too many tricks is as bad as too few"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The trick structure is sound; the scoring made bidding 0 riskless and dominant. The changes make misses cost, add a hook rule so someone must miss each deal, and switch to sequential bidding so bids carry information. Together these restore a real bidding decision and opponent-steering in play, within the limits."
+  },
+  "variation": {
+    "name": "Rutersju Hook",
+    "summary": "A three-card exact-bidding trick game. Players bid in turn, the last bidder may not make the bids total 3, so someone must miss every deal. Exact hits score 3 + bid, every miss loses 2 per trick of error, and the declarer carries an extra \u00b11.",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "rules": "SETUP. Use a 36-card French pack (6, 7, 8, 9, 10, J, Q, K, A in \u2663 \u2665 \u2660 \u2666). Seats are numbered 1 to N (N = 3, 4 or 5). Every player starts with 0 points. The game lasts 3 deals per player: 9 deals with 3 players, 12 with 4, 15 with 5. The priority seat is seat 1 in deal 1 and moves one seat to the left after each deal.\n\nCARD STRENGTH. Every card has a unique strength from 1 to 36. The higher strength always wins.\n- \u26667 = 36.\n- The other diamonds: \u2666A=35, \u2666K=34, \u2666Q=33, \u2666J=32, \u266610=31, \u26669=30, \u26668=29, \u26666=28.\n- The plain suits: \u2660A=27, \u2665A=26, \u2663A=25, \u2660K=24, \u2665K=23, \u2663K=22, \u2660Q=21, \u2665Q=20, \u2663Q=19, \u2660J=18, \u2665J=17, \u2663J=16, \u266010=15, \u266510=14, \u266310=13, \u26609=12, \u26659=11, \u26639=10, \u26608=9, \u26658=8, \u26638=7, \u26607=6, \u26657=5, \u26637=4, \u26606=3, \u26656=2, \u26636=1.\n\nEACH DEAL.\n1. Deal. Shuffle the full pack and deal 3 cards face down to each player. Each hand is seen only by its owner. Undealt cards stay hidden for the whole deal.\n2. Bid (in turn). Starting with the player to the LEFT of the priority seat and going left, each player in turn announces a bid of 0, 1, 2 or 3, hearing all earlier bids. The priority seat bids last.\n3. The hook. The last bidder (the priority seat) may not choose a bid that makes the sum of all bids exactly 3. The sum of the others' bids can only exceed 3 in this case if\u2026 it never matters: when the others' sum is already above 3, every bid is allowed.\n4. Declarer. The player with the highest bid is the declarer. If several players tie for the highest bid, the one among them who bid LAST is the declarer. If every bid is 0, there is no declarer (the hook allows this only when the bids can total 0, which is permitted because 0 \u2260 3). Announce all bids and the declarer.\n5. Tricks. Play 3 tricks. In each trick, every player secretly and simultaneously chooses one card from their hand. All chosen cards are revealed together. The card with the highest strength wins the trick, and its player adds 1 to their trick count. There is no need to follow suit. Played cards stay face up and public.\n6. Settlement, for each player separately, where d = |bid \u2212 tricks won|:\n   a. If d = 0, the player gains 3 + bid points (bid 0 \u2192 3, bid 1 \u2192 4, bid 2 \u2192 5, bid 3 \u2192 6).\n   b. If d > 0, the player loses 2 \u00d7 d points.\n   c. The declarer, if there is one, additionally gains 1 point if their d = 0, or loses 1 point if their d > 0.\n   Because exactly 3 tricks are won and the bids never total 3, at least one player misses every deal.\n7. Announce all bids, trick counts and point totals. Move the priority seat one place to the left.\n\nThere is no discussion phase. Players communicate only through their bids, which are public and made in turn, and through the cards they play. Scores may go negative.\n\nEND. After the last deal, the single player with the highest point total wins. If two or more players tie for the highest total, the game is a draw.",
+    "objective": "After 3N deals, the single player with the highest total points wins. A tie for the highest total is a draw.",
+    "expected_effect": "Bidding becomes a real reading problem. You estimate your sure tricks from your hand and from the bids before yours, and the last bidder must pick which way to break the total of 3 knowing someone will miss. 'Always bid 0' now loses 2 or more whenever it is forced to win a trick: a top card, or a high card no one else beats. It therefore loses to hand-reading players. 'Always bid 3' almost always loses 4\u20138 per deal. 'Always bid 1' scores roughly 0 on average. All three can lose. In play, the public bids let players hand unwanted tricks to 0-bidders or deny bidders their count, so a weak hand can still profit and a strong hand can be broken. The deal still matters, but a correct 0 earns 3 against 6 for a correct 3, and 9\u201315 deals plus deliberate spoiling let skill outweigh it. The rotating last-bidder seat gives no seat an edge over a full game. Talk is left out: the in-turn bids already carry the information that matters, and open talk would mainly let players gang up on whoever leads without adding any inference beyond what bids and play provide."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 10,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 15
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SCORING. Every player pays the same ante each deal, so the ante changes no one's relative score. It only feeds the pot. Relative scores move only through the declarer: a made contract gives +pot + 2\u00d7bid, and a failed one gives \u2212|bid \u2212 tricks|. Opponents never score.\n\nPAYOFF TABLE for the declarer in one deal, N=3, fresh pot of 3:\n| bid | made | missed by 1 | missed by 2 | missed by 3 |\n|---|---|---|---|---|\n| 1 | +5 | \u22121 | \u22122 | \u2013 |\n| 2 | +7 | \u22121 | \u22122 | \u2013 |\n| 3 | +9 | \u22121 | \u22122 | \u22123 |\n\nTHOUGHTLESS POLICIES under the winner rule:\n(a) Always bid 0. This draws only when every opponent also always bids 0. Against sensible play it loses whenever an opponent makes one contract. The \u26667 holder bids 1 and wins its trick for certain. That holder exists in 3N/36 of deals, which is 25% at N=3, about 2.25 times per game. A single success is worth at least N+2. So always-0 loses to sensible play in nearly every game. It is not a never-lose policy.\n(b) Always bid 3. By the tie rule this player declares almost every deal. Without \u26667, \u2666A and \u2666K together, the opponents can beat at least one of its cards with any higher card. Weak hands are common, so it loses 1 to 3 points per deal and feeds the pot to others. It loses to sensible play and usually to random play.\n(c) Always bid 1 or always bid 2. This fails whenever the hand has no sure winner, or has too many sure winners. It loses to sensible play.\n(d) Random bids. These lose to sensible bidding.\n\nDOMINANCE. No bid is best whatever the others do. Bid 0 gives up pots, and positive bids are hand-dependent.\n\nSEATS. The tie-break goes to the last tied player counted from the priority seat. The priority seat rotates, and each seat holds it 3 times, so there is no fixed seat edge. Bids and card plays are simultaneous, so no seat moves with more information.\n\nAll players can win. No payoff ordering is claimed that the numbers contradict."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES COMPLETENESS. Card strengths are a full order from 1 to 36, so a trick can never tie. The cases are all covered:\n- all bids 0: no declarer, and the pot carries over;\n- tied high bids: the tie-break is fully specified;\n- settlement: arithmetic on the score and pot attributes.\nThe game is finite at 3N deals, at most 15, which is within 40 rounds.\n\nPER-DEAL LOAD:\n- one shuffle, so 1 random draw;\n- choices are 1 bid plus 3 trick plays, so 4, at the limit;\n- 1 hidden element (hands);\n- the 13 stated steps are under 20.\n\nAttribute count:\n- per player: score, hand, trick count;\n- shared: pot, priority seat, declarer, contract, discards.\nThis plausibly stays near the limit of 20 at N=5 if hands are list attributes. The designer must confirm this. Note that the stated 'rounds: 9' only holds for N=3; it should be 3N.\n\nPLATFORM FIT. Shuffling and dealing use the deck workaround. There is no board, clock or judge. All moves are simultaneous polls.\n\nTALK. There is no talk, and that is defensible. During play, the opponents share one goal: defeat the declarer. Talk there would mean one proposal that everyone copies, and the declarer would hear it. During bidding, talk would only add bluff words before a secret bid.\n\nLATE ROUNDS. The pot is settled before the end, and a trailing player can still swing the result with a big pot. Late deals are live."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "WHAT DECIDES A DEAL. A deal is decided mainly by who is dealt the \u26667 and the top trumps.\n- The \u26667 holder can always make bid 1: they play \u26667 once and their lowest cards otherwise. The holder exists in 25% of deals at N=3, 33% at N=4 and 42% at N=5.\n- Without \u26667 or other top trumps, any positive bid is a gamble that the opponents can usually defeat, because any one of them can overtrump.\n\nWHERE SKILL APPEARS. Skill appears in two places, and both are small:\n- choosing the bid from your hand and from what the others' bids imply;\n- guessing when to spend a high card in simultaneous play.\n\nHOW THE POT AMPLIFIES THE DEAL. When no one holds a sure hand, every sensible player bids 0 and the pot carries over. The pot then accumulates N per idle deal. The next player dealt the \u26667 collects it all.\n\nOUTCOME WITH ALL PLAYERS PLAYING WELL. They bid only on sure hands. The game becomes: whoever is dealt \u26667 while the pot is large wins. That is about 2 to 4 sure hands per game, assigned by the shuffle.\n\nESTIMATE. About 70% or more of the result is decided by the deal. A careful reasoner is not clearly favoured over a lucky moderate player. With all players playing the intended good strategy, the deal alone decides the winner."
+        },
+        "required_changes": [
+          "Cancel card luck with a duplicate format. Store each shuffled deal and replay it N times, with the hands rotated so every seat plays every hand once (N\u00d7k deals, k\u22652, still \u226440 rounds). This uses the game-list workaround and does not need a second random draw. Winning then depends on bidding and play from the same cards.",
+          "Bound the pot swing. Pay the declarer a fixed 2\u00d7bid plus at most a capped pot share (e.g. min(pot, 2\u00d7bid)), or discard the pot each deal. The game should then stop rewarding whoever happens to hold \u26667 after idle deals.",
+          "Give opponents a stake and a reason for real decisions. For example, when a contract fails, each opponent who won a trick gains 1. Opponents then have to choose between spending trumps and conserving them, rather than all blocking the same way.",
+          "Set the stated rounds to 3N, not 9, and confirm the attribute count at N=5 stays at or below 20."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "SCORING TABLE for one deal, from settlement steps a-c. Exact hit at any bid: +3. Declarer who hits: +1 more, so +4 in total. Declarer who misses by d: 0 for the declarer, and +d to EVERY other player. A bid of 0 is never the declarer (if all bid 0 there is no declarer), so it never pays this penalty, and it collects d from every missed declarer. A bid of 3 pays 3, the same as a bid of 0. It is almost always the declarer bid, it needs the top three strengths in play, and a miss feeds the whole table. Bidding high is pure liability: +1 at best and -d against N-1 rivals at worst.\n\nHOW EASY ZERO IS. All 3N cards are played. A player's highest card wins a trick for sure only if it is the highest card dealt. P(holding the top dealt card) = 1/N: 33% at 3p, 25% at 4p, 20% at 5p. Otherwise a 0-bidder can usually dump its best card into a trick where a bidder fires high. At most 3 players can win tricks, so 2 or more players finish on 0 tricks at 5p, and 1 or more at 4p. Rough P(0 tricks | bid 0 with sensible dumping): about 45% at 3p, 60% at 4p, 65-70% at 5p. Bidding exactly 1 or 2 means hitting an exact count in simultaneous blind play. That is markedly harder (about 30-45%), and if it is the top bid it also carries the declarer penalty.\n\nTHOUGHTLESS POLICY 'always bid 0, play lowest card first' (4p):\n- Against random play (bids uniform 0-3): the top bid is usually 2 or 3, and declarers miss often (a bid of 3 rarely makes). The policy collects about 1.5 per deal in penalties plus about 0.6\u00d73 = 1.8 from hits, so about 3.3 per deal. A random bidder hits about 25% of the time, about 0.8 per deal plus some penalties. The policy wins almost every game.\n- Against sensible play: sensible players also converge to bid 0, because the table shows bids above 0 are only worth it with \u26667 plus \u2666A-class holdings. The policy therefore ties or edges sensible play deal after deal. Only at 3p, with its higher 1/3 'forced trick' rate, is it noticeably weaker.\n\nThe policy is not strictly dominant, since \u26667+\u2666A should bid 2. But it never pays the declarer penalty and is the near-best action at 4-5 players, so the bidding decision collapses.\n\nSEATS: the priority seat rotates evenly (each seat holds it 3 times), and the tie-break only matters for who carries the declarer liability. There is no seat edge.\n\nOVERALL: the game fails on degenerate bid-0 dominance at 4-5 players.",
+          "evidence_note": "Labels such as 'exact bidding' are contradicted by numbers that make 0 the safe exact bid."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES COVERAGE: the rules are complete and unambiguous:\n- Unique strengths 1-36 mean a trick can never tie.\n- An all-zero bid means no declarer.\n- A tie for the top bid is resolved by seat order from the priority seat.\n- Play is simultaneous with no follow-suit rule, and hands empty after exactly 3 tricks.\nThe game is finite: 3N deals, at most 15.\n\nLIMITS: the stated budget is 14 steps, 4 choice steps (1 bid + 3 trick plays), 18 attributes (score, bid and tricks for 5 players = 15, plus declarer, priority and deal counter), 1 hidden element and 1 draw. All are within limits, as are 15 rounds (\u226440).\n\nENGINE FIT:\n- Finding the highest strength among up to 5 played cards needs a strength lookup. There is no lookup operation, so strength should be stored as a numeric attribute on each card in the game list, with a calc for the max. This is a workaround, not a blocker.\n- My count is: deal, bid, declarer calc, 3\u00d7(play, resolve, discard), settlement a/b/c, priority move. That is about 16 steps, still \u226420.\n- No board, judge or clock is needed. Winner and ties are pure arithmetic.\n\nTALK: no talk with 3-5 players is acceptable. Bids are revealed publicly and discards are public, so players have concrete signals to reason from rather than pure guessing. Talk would be unenforceable chatter about who 'should' take tricks.\n\nREPEATED-GAME CONCERN: this is not a cooperation game, so the late-round betrayal concern does not apply."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "GOOD-PLAY OUTCOME: when all players follow the intended good strategy, most players bid 0 most deals, because the scoring makes bidding above 0 a liability. Each deal then turns on whether a player was dealt the top card(s), which cannot be dumped:\n- P(holding the top dealt card) = 1/N, and that holder always misses a 0 bid.\n- The 3 tricks fall on whoever holds the high cards, so who scores +3 is set mostly by the deal.\n\nWHAT SKILL REMAINS: deciding WHEN to dump your second-best card. That is a simultaneous guessing game, in effect a mixed-strategy coin flip against other dumpers.\n\nCHANCE ESTIMATE: I estimate 60-70% of the per-deal swing is the deal itself. Over 12-15 deals, the winner among competent players is decided largely by who drew fewer unavoidable top cards.\n\nINFERENCE: the information exists (bids reveal strength, discards are public), but with nearly everyone bidding 0 there is little to infer and little to act on. A reasoner is not clearly favoured over a 'bid 0, dump low' bot."
+        },
+        "required_changes": [
+          "Make the bid size matter: an exact hit should score 1 + 2\u00d7bid (0\u21921, 1\u21923, 2\u21925, 3\u21927) instead of a flat 3, so that 0 is the cheapest success, not an equal one.",
+          "Make the declarer's miss a loss for the declarer rather than a gift to every opponent: a declarer who misses by d loses 2\u00d7d points (the optional +1 bonus for a made bid can stay). Only if the miss must reward others, split d to the single player with the most tricks.",
+          "Add a penalty that stops universal zero bidding: if every bid is 0, every player who wins at least 1 trick loses 2 points per trick, and the players with 0 tricks gain only 1. Alternatively, require that the sum of revealed bids \u2260 3; if the sum equals 3, the player in the priority seat must raise or lower their bid by 1 (one sequential choice step).",
+          "Re-check with a numeric table that 'always bid 0' no longer wins or draws most games against random and sensible play at 3, 4 and 5 players.",
+          "Store each card's strength as a numeric attribute in the card list and resolve each trick with a calc for the max, rather than a lookup the engine lacks; recount the steps (expected about 16, \u226420)."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SETTLEMENT TABLE (d = |bid - tricks|): exact bid 0/1/2/3 scores +3/+4/+5/+6, plus 1 if declarer. A miss by d=1/2/3 scores -2/-4/-6, minus 1 more if declarer. Swing between hitting and missing by 1: bid0 5, bid1 6, bid2 7, bid3 8 points.\n\nLABEL CHECK: 'at least one player misses every deal' is true. Tricks always sum to 3 and bids never sum to 3, so not every player can be exact. 'All-0 is allowed' is true because 0 is not 3. The hook never leaves the priority seat without a legal bid: if the others' sum s is at most 3, only 3-s is forbidden and 3 bids remain; if s is above 3, all 4 are legal.\n\nTHOUGHTLESS POLICIES (N=3, about 1 trick per player on average):\n(a) Always bid 3, play highest first. Hits only with near-top hands such as \u26667\u2666A\u2666K, well under 5% of deals. Typical result is -2 to -4, minus 1 as declarer. It loses to sensible and to random play.\n(b) Always bid 0, play lowest first. Hits only if the top card is beaten in the trick where it is finally forced out. Holding \u26667 (1 in 4 hands at N=3) means certain failure, and any card of 28+ fails often. Rough EV is 0.55*3 - 0.45*2.5, about 0.5 per deal. A sensible player who bids to hand strength and times plays makes about 2-3 per deal. (b) loses to sensible play.\n(c) Always bid 1, play highest first. P(exactly 1) is roughly 0.4, so EV is 0.4*4 - 0.6*2.5, about 0.1. It loses.\n(d) Always bid 2 or always bid last-option. Worse than (c).\nWinner rule: no policy wins or draws against every opponent action. Each loses to an opponent who bids to their hand and then hits it. No bid is strictly better whatever the others do, because the correct bid depends on the hand and on what the others intend to win.\n\nSEAT ORDER: the priority seat bids last with full information but is restricted by the hook. It also wins declarer ties, worth only \u00b11. Priority rotates so each seat holds it exactly 3 times (3N deals), so any edge cancels.\n\nBoth or all players can realistically win. Not a cooperation game, so the cooperation test does not apply."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES: complete. There are 36 unique strengths, so trick ties are impossible. Bidding order, the hook, the declarer tie-break, the no-declarer case, settlement, rotation, end and draw are all specified. Step 3 contains a garbled clause ('can only exceed 3 in this case if\u2026 it never matters') but ends with an unambiguous rule: if the others' sum is above 3, every bid is allowed.\n\nFINITE: 9, 12 or 15 deals. Winner by arithmetic on kept totals.\n\nLIMITS:\n- Choice steps: 1 sequential bid step plus 3 simultaneous trick polls = 4, at the limit of 4.\n- Steps: shuffle, deal, bid, hook check, declarer calculation, 3\u00d7(poll + resolve), settlement, rotate/announce. About 13-15 of 20.\n- One shuffle per deal: 1 random draw. Dealing uses remove/append via the shared_deck_draw workaround.\n- Hidden elements: hands and undealt cards = 2 of 3.\n- Rounds: up to 15 of 40.\n- Attributes: about 10 of 20.\n- Card strength needs no lookup if cards are listed as options carrying their strength number.\n\nNO judge, board or clock is needed. Trick play is a simultaneous poll, as the platform requires.\n\nTALK: absent, and that is defensible. Each player's goal is a private exact count and interests are mostly opposed, so cheap talk would mostly be bluff. Bids already serve as the public, costly signal, and played cards are public, so players have concrete information to reason from rather than pure guessing."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE COMPONENT: hand strength caps the achievable bid, so payoff (3+bid) is partly deal-driven. A trivially weak hand bids 0 for +3; a \u26667\u2666A\u2666K hand bids 3 for +7. Per-deal trick potential has SD of about 0.8. Over 9 deals the average differs by about 0.27 tricks per deal, or about 2-3 points of ceiling difference between players.\n\nSKILL COMPONENT: one avoidable miss swings 5-8 points. Mid-strength hands (most deals) need several kinds of reasoning:\n- inferring opponents' holdings from public bids;\n- timing a 28-33 card into a trick where someone else plays higher;\n- predicting simultaneous plays, which is mixed-strategy opponent modelling;\n- using the hook as an earlier bidder to push the priority seat off its natural bid;\n- tracking public played cards.\nTwo extra exact deals over a game (about +11) outweigh the deal variance.\n\nESTIMATE: about 30-35% chance among unequal players. Among equal good players, outcomes still turn on the simultaneous timing guesses, not on the deal alone.\n\nThere is real hidden information (hands, undealt cards) and a way to act on it (bid choice, play order). A better reasoner is clearly favoured."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

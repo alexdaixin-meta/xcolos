@@ -1,0 +1,165 @@
+{
+  "original_summary": "Officers' Schafkopf is a two-player trick-taking form of Schafkopf. Each player has rows of face-down cards topped by face-up cards. The non-dealer announces a Suit Solo or Wenz contract, the dealer may double, and the declarer needs 61 of the 120 card points to win.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy dominates. Always declaring loses on weak hands. Always playing the highest card wastes points against trumps. The choice of contract and the double both change the outcome. The original gives the non-dealer the contract choice, but alternating the deal balances this over a match."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Card play rewards counting trumps and points, managing which hidden card gets uncovered, and choosing the contract. A strong player reliably beats a random one over several deals, though a single deal carries a lot of card luck."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Contract evaluation, the decision to double, and trick-by-trick play under partial information all leave room to improve. A weak player still takes points and sometimes makes contracts."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Up to half the cards are face up, and the down cards surface during play, so much of the game is perfect information late in a hand. Inference is mostly about the face-down cards. This is real but limited."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Card points are summed, and 61 or more wins for the declarer. This is pure arithmetic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The rows of down cards topped by up cards, which turn face up when uncovered, are a positional layout. The engine would have to track per-stack state for 16 positions, which is beyond the attribute and step limits. The rules are also ambiguous: '32 cards minus Sixes' and an optional dealing method. A single hand is a single result with no match structure."
+    }
+  ],
+  "problems": [
+    "The face-up/face-down stack layout needs positional tracking of 16 stacks, which exceeds the attribute and step limits and behaves like a small board.",
+    "With many face-up cards there is little hidden information to reason about once play is under way.",
+    "A single hand is largely decided by the deal, so luck dominates one game.",
+    "The ordered announce-then-double sequence gives the non-dealer a fixed seat edge within a hand.",
+    "The previous variation's bid step said 'one of nine options' but listed eleven, so the legal option list for the simultaneous poll was ambiguous."
+  ],
+  "changes": [
+    {
+      "what": "Replace the stacks with 8-card concealed hands. The remaining 8 cards become an unseen Blind that is never played.",
+      "why": "This removes positional state and creates genuine hidden information. No one knows which 8 cards are out of play, so players must infer the opponent's hand from bids and play.",
+      "fixes": "The face-up/face-down stack layout needs positional tracking of 16 stacks, which exceeds the attribute and step limits and behaves like a small board."
+    },
+    {
+      "what": "Use a 24-card deck (Ace, Ten, King, Ober, Unter, Nine in four suits; 120 card points) with concealed hands and a Blind.",
+      "why": "This keeps the deck clean and makes the unknown cards the core of the reasoning.",
+      "fixes": "With many face-up cards there is little hidden information to reason about once play is under way."
+    },
+    {
+      "what": "Play a match of four hands of 8 tricks each (32 rounds), scored in match points with stakes set by contract level and the double.",
+      "why": "Several deals average out card luck. The match score creates planning across hands, such as a trailing player taking on Strong contracts.",
+      "fixes": "A single hand is largely decided by the deal, so luck dominates one game."
+    },
+    {
+      "what": "Use a simultaneous sealed bid with Strong above Simple above Pass. Priority breaks same-level ties and alternates by hand. The defender keeps the option to double.",
+      "why": "This removes the fixed announcer edge and makes each player predict the other's hand strength.",
+      "fixes": "The ordered announce-then-double sequence gives the non-dealer a fixed seat edge within a hand."
+    },
+    {
+      "what": "State the bid poll as exactly eleven options and list all eleven explicitly.",
+      "why": "The count and the list now agree, so the legal option set is exact.",
+      "fixes": "The previous variation's bid step said 'one of nine options' but listed eleven, so the legal option list for the simultaneous poll was ambiguous."
+    }
+  ],
+  "keeps": [
+    "Bavarian suits: Acorns, Leaves, Hearts, Bells.",
+    "Card values: Ace 11, Ten 10, King 4, Ober 3, Unter 2, Nine 0, totalling 120.",
+    "Contracts: Suit Solo with Obers and Unters as top trumps, and Wenz with only Unters as trumps.",
+    "The defender's double (Sto\u00df).",
+    "Must-follow trick play, with the trick winner leading next.",
+    "A two-player declarer-versus-defender contest over card points."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The previous variation passed every check except an inconsistent option count in the bid. Fixing that list makes it complete and buildable within the limits."
+  },
+  "variation": {
+    "name": "Blind Officers' Schafkopf",
+    "summary": "This is a two-player Schafkopf match of four hands. Each hand deals 8 concealed cards to each player and leaves 8 unseen cards in a Blind. Players sealed-bid a contract (Wenz or a Suit Solo, at Simple or Strong level), the defender may double, and 8 must-follow tricks decide whether the contract is made. Match points over four hands decide the winner.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "CARDS. There are 24 cards in four suits: Acorns, Leaves, Hearts, Bells. Each suit has Ace (11 card points), Ten (10), King (4), Ober (3), Unter (2) and Nine (0). The deck holds 120 card points.\n\nMATCH. The match is four hands of 8 tricks each, one trick per round: 32 rounds. Both players start with 0 match points. Seat 1 has priority in hands 1 and 3. Seat 2 has priority in hands 2 and 4.\n\nSTART OF EACH HAND (first round of the hand only).\n1) Shuffle and deal 8 cards face down to each player. Each player sees only their own cards. The remaining 8 cards form the Blind. They are never seen by anyone, never played and never scored.\n2) Sealed bid. Both players choose at the same moment exactly one of these eleven options:\n- Pass;\n- Wenz-Simple;\n- Acorns-Simple;\n- Leaves-Simple;\n- Hearts-Simple;\n- Bells-Simple;\n- Wenz-Strong;\n- Acorns-Strong;\n- Leaves-Strong;\n- Hearts-Strong;\n- Bells-Strong.\n3) Resolution. If both players pass, the hand is Ramsch. Otherwise Strong beats Simple, and any bid beats Pass. If both players bid at the same level (both Simple or both Strong), the priority player's bid wins whatever the contracts. The winning bidder is the declarer and the other player is the defender. The contract and level are those of the winning bid.\n4) Both bids and the resulting contract (or Ramsch) are announced to both players.\n5) Double. If the hand is not Ramsch, the defender chooses Double or No double. The choice is announced.\n\nCONTRACTS.\n- Wenz: the trumps are the four Unters only, ranked Acorns Unter > Leaves Unter > Hearts Unter > Bells Unter. In every suit the non-trump cards rank Ace > Ten > King > Ober > Nine. Unters belong to no plain suit.\n- Suit Solo (Acorns, Leaves, Hearts or Bells, as named): there are 12 trumps, ranked from high to low:\n  - the four Obers (Acorns > Leaves > Hearts > Bells);\n  - then the four Unters (Acorns > Leaves > Hearts > Bells);\n  - then the Ace, Ten, King and Nine of the named suit.\n  Obers and Unters belong to no plain suit. In the other three suits the non-trump cards rank Ace > Ten > King > Nine.\n- Ramsch: trumps and ranks exactly as in Wenz.\n\nTRICKS (every round).\n1) The leader plays any card from their hand. In the first trick of a hand the leader is the declarer, or the priority player in Ramsch. Afterwards the leader is the winner of the previous trick.\n2) The other player then plays a card. If a trump was led, they must play a trump if they have one. If a plain suit was led, they must play a non-trump card of that suit if they have one. Otherwise they may play any card.\n3) The trick is won by the highest trump in it. If it has no trump, it is won by the higher card of the led suit.\n4) The trick winner adds the card points of both cards to their card-point total for the hand, and leads next.\n5) The two cards, the trick winner and both players' card-point totals for the hand are announced.\n\nEND OF EACH HAND (after the 8th trick). Let D be the declarer's card points and F the defender's card points.\n- A Simple contract is made if D >= F + 10.\n- A Strong contract is made if D >= 2 x F and D >= 30.\n- Stake: Simple is 2 match points and Strong is 4 match points. The stake is doubled if the defender chose Double (Simple 4, Strong 8).\n- If the contract is made, the declarer gains the stake. Otherwise the defender gains the stake.\n- Ramsch: the player with fewer card points gains 1 match point. If the card points are equal, nobody scores.\n- Card-point totals reset to 0 and the next hand begins.\n\nEND. After the fourth hand the match ends.",
+    "objective": "After the fourth hand, the player with more match points wins. Equal match points is a draw.",
+    "expected_effect": "The Blind hides 8 cards, so players must infer the opponent's holdings from the sealed bid, the double and the cards played, rather than read them off the table.\n\nThe sealed bid with alternating priority makes bidding a prediction of the opponent's strength. Overbidding Strong on a mediocre hand loses to a double.\n\nAcross four hands, the match score drives risk. A trailing player must declare Strong or double aggressively, and a leader can pass safely into Ramsch.\n\nNo simple policy is safe:\n- Always Pass loses whenever the opponent declares and makes a contract.\n- Always Strong fails its contracts on weak hands and gets doubled.\n- Always Double pays out double whenever the declarer makes the contract.\n\nCard luck is reduced by four deals and by playing skill. With two players no talk phase is used."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 18,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 32
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Deck check: 4 suits x (11+10+3+2) = 104 card points. Half is 52, so 53 is the smallest strict majority. 61 needs about 59% of the points, so it is a real premium contract. The bid is a five-option sealed poll. Bid strength: 61 > 53 > Pass, and priority breaks ties. Payoffs: a made contract gives the declarer +2 (53) or +3 (61). A failed contract gives the defender the same amount. Ramsch gives +1 to the player with fewer points.\n\nThoughtless policies, judged by the winner rule:\n(a) Always Pass. If the opponent also passes, the hand is Ramsch, a 50/50 hand worth 1. If the opponent bids only on strong hands and makes them, the passer loses 2 or 3 per such hand. Against sensible play it loses most matches, and against random play its result is mixed. It is not a never-lose policy.\n(b) Always Solo-61 (the highest bid). With 7 Hearts Solo trumps out of 16 cards, a random 8-card hand holds about 3.5 trumps on average. Taking 61 of 104 with an average hand fails more often than it succeeds, even with the opening lead, and each failure hands the opponent 3. A sensible opponent who passes on weak hands and bids 61 on strong ones (and has priority in two hands) beats it. It loses often.\n(c) Always Wenz-53 (the first bidding option). Any 61 bid outranks it, it fails on hands without Unters, and it loses to selective play.\n(d) Random bidding. It loses to selective bidding by expected value.\n\nDominance: no bid is strictly better whatever the opponent does. Pass is right on weak hands, 61 on very strong ones, and 53 on medium hands when the opponent may pass.\n\nSeats: priority alternates. Seat 1 has priority in hands 1 and 3, seat 2 in hands 2 and 4, so the ordering edge is negligible.\n\nBoth seats can win. Draws (for example 3-3 or 2-2) are possible but not dominant. This is not a repeated cooperation game, so the late-round betrayal test does not apply."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete:\n- The deck is defined, with a display order.\n- The sealed bid is a simultaneous poll, which is the correct form.\n- Bid resolution and tie-breaks are explicit, including bids with the same number but different contracts.\n- Trump orders are given for Wenz, Hearts Solo and Ramsch. In Solo all Hearts cards are trumps, so there is no plain Hearts suit, and this is consistent.\n- Follow rules are defined by category (trump versus plain suit).\n- The first leader is defined in every case, including Ramsch.\n- Scoring for made, failed and Ramsch hands, including Ramsch ties, is purely arithmetic.\n\nLimits:\n- 32 fixed rounds (at most 40).\n- 14 steps per round (at most 20).\n- 3 choice steps (at most 4): bid, lead, follow.\n- 18 attributes (at most 20).\n- 2 hidden elements (at most 3).\n- 1 shuffle at the start of each hand (at most 1 random draw per round).\n\nNo board, clock, judge, trading or binding agreement is needed. It is a two-player game, so no talk phase is needed, and none is included."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "The sealed-information premise is false. All 16 cards are dealt, 8 to each player. Each player therefore knows the opponent's hand exactly: it is the 8 cards they do not hold. The claim of 2 hidden elements is illusory, and after the shuffle the game has perfect information:\n- Card play is a deterministic minimax over 8 tricks.\n- The sealed bid becomes a simultaneous game in which both players can compute every outcome. For each contract they can work out whether a declarer leading first reaches 53 or 61.\n\nWith intended good play, the declarer and the result of each hand are fixed by the deal plus priority:\n- The player who can make the highest contract bids it.\n- If both can make 61, the priority player bids 61 and wins the bid. The other player's best reply cannot change this.\n- Ramsch with optimal play is also fully determined.\n\nThere are no mixed-strategy bluffs, because nothing is unknown. So when both players play well, the match winner is decided by the four shuffles alone. Reasoning matters only through calculation errors. There is nothing to infer about the opponent's holding or type, and opponent modelling reduces to predicting mistakes. Estimated share of chance in results between two competent players: close to 100%."
+        },
+        "required_changes": [
+          "Leave cards undealt so that hands are genuinely hidden. For example, use a 24-card deck: add Kings worth 4 and Nines worth 0, for 120 card points. Deal 8 cards to each player and set the remaining 8 face down and unseen. Recalibrate the targets to about 61 and 71 of 120, and update the trump and plain rank lists to include Kings and Nines.",
+          "Alternatively, keep 16 cards but deal 6 to each player and leave 4 hidden, giving 6 tricks per hand. Retune the targets to the expected points in play, for example by requiring the declarer to take a majority of the points taken in tricks.",
+          "Optionally, let the declarer take the undealt pile (or 2 of its cards) and discard the same number face down, with the discarded points counting for the declarer. This creates hidden information the defender must infer from bids and play.",
+          "After the change, re-verify that the always-61 and always-Pass policies still lose to selective bidding, and update the hidden_elements and attributes counts."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Points in play per hand: 16 of the 24 cards are played (8 go to the Blind), so about 16/24 x 120 = 80 card points per hand on average, not 120. The thresholds (Simple D >= F+10; Strong D >= 2F and D >= 30) still work on these numbers.\n\nTrump counts: in a suit Solo there are 12 trumps. An 8-card hand holds about 2.67 of the 8 Obers/Unters plus, in its best suit, about 1.5 to 2.5 of that suit's 4 non-Ober/Unter cards. So a declarer who names their best suit holds about 4.5 to 5 trumps against the defender's about 3, and also leads first. A self-chosen Simple Solo on a sensible hand is roughly 55-65% to make. A Strong (2:1 split) is made only with heavy hands, about 15-25% from an average hand. In Wenz an average hand holds 1.33 of the 4 Unters, so Wenz is weak unless the hand holds Unters plus long Aces and Tens.\n\nThoughtless policies, judged by the winner rule (match points after 4 hands):\n(a) Always Pass. Scores only in Ramsch (max 1 per hand). When the opponent declares, the passer can still Double, but a sensible opponent declares only on good hands that make about 60%+, so the passer loses about 2-4 per such hand. Against sensible play it loses most matches. Against random play (a random bid is about 10/11 a contract, often a bad one) it wins by defending, but that is because the random player misbids, not because Pass dominates.\n(b) Always the first contract (Wenz-Simple). With about 1.33 Unters it fails often; the defender Doubles and gains 4. It loses to sensible play.\n(c) Always the last or highest option (Bells-Strong). It wins every bid it does not tie at lower priority, but makes a fixed-suit Strong only about 10-15% of the time. A sensible defender Doubles and gains 8 per failure. It loses heavily.\n(d) Always Double as defender. Against a declarer who bids only good hands (about 60% make) it changes EV from -0.4 to -0.8 per Simple hand, so it is worse than selective doubling.\nNo policy never loses.\n\nStrict dominance: no option is best for every opponent action. Pass gives up control, Strong risks a 2:1 requirement, and Simple can be overbid by Strong.\n\nSeat edge: tie priority and the Ramsch lead alternate (seat 1 in hands 1 and 3, seat 2 in hands 2 and 4), so the structure is symmetric. Both players can realistically win. There is no labelled payoff ordering to check.",
+          "risk_note": "a single doubled Strong (8) can outweigh the other three hands, so the match swings on one decision; this is acceptable but high-variance."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "1) Contradiction in the bid step. The rules say 'one of nine options', then list ELEVEN: Pass, five contracts at Simple, and five at Strong. The parenthetical (Pass, or 5 contracts x 2 levels) also gives 11. A model with only these words cannot tell whether two options are meant to be removed (e.g. Wenz-Strong) or whether 'nine' is a typo. The legal option list for the simultaneous poll must be exact.\n\n2) Everything else is complete:\n- Resolution is defined: Strong > Simple > Pass, and a same-level tie goes to priority.\n- The first-trick leader is defined, including in Ramsch.\n- Follow-suit is defined, with the trump/plain distinction correct per contract: Obers and Unters belong to no plain suit in a Solo, and Unters to no plain suit in Wenz or Ramsch.\n- Rankings are total, there are no equal cards, and all 16 cards are played over 8 tricks.\n- Scoring and Ramsch ties are defined.\n- The match is finite: 32 rounds, decided by arithmetic on stored match points.\n\n3) Limits: 32 rounds <= 40; 15 steps <= 20; 18 attributes <= 20; random draws: one shuffle in the first round of a hand <= 1. Choice steps in the first round of a hand are bid, double, lead and follow = 4 <= 4. Hidden elements: two hands plus the Blind, at most 3.\n\n4) Engine: the hand-start steps need `when` conditions on single steps, which is allowed. The trick winner under six ranking regimes is a complex rule check that the referee may rule. Card points and match points are then arithmetic.\n\n5) Talk: 2 players, none needed. The simultaneous bid is correctly a poll.\n\n6) Fixed-length repetition: each hand is a fresh deal with a stake set by hand quality, so there is no cooperate/betray structure for a safe option to dominate late. A trailing player in hand 4 must bid Strong, which is a genuine decision.\n\nFails solely on the bid-option inconsistency."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance: the deal and the 8-card Blind decide hand strength. With only 4 deals I estimate about 45-55% of results are deal-driven between equal players.\n\nReasoning levers:\n(1) Hand evaluation and contract choice: pick the best trump suit, Wenz or Pass.\n(2) Sealed bidding: Simple versus Strong against an unseen rival bid, aware that the priority holder wins Simple ties. The non-priority player must judge whether a Strong overcall is worth risking 4 or 8.\n(3) The Double decision: the defender weighs their own trump holding against the declarer's revealed contract and level.\n(4) Card play with inference: each unseen card is 50% in the opponent's hand and 50% in the Blind. Bids and announced plays update this, and following rules reveal voids.\n(5) Match-score planning in hands 3 and 4.\n\nGood play overcomes bad deals: passing weak hands limits losses to Ramsch (max 1), and selective doubling punishes overbids.\n\nNumbers: against a naive overbidder or always-doubler, a reasoning player gains about 1.5-3 match points per hand on decision quality alone. That is comparable to the 2-4 point stakes, so the skilled player is clearly favoured.\n\nUnder mutual good play, each side mostly declares on its own priority hands, so results come down to card play and double decisions as well as the deal. They are not decided by the draw alone."
+        },
+        "required_changes": [
+          "Fix the bid option list so the count and the list agree. State 'one of eleven options' and list all eleven: Pass; Wenz, Acorns, Leaves, Hearts or Bells at Simple; the same five at Strong. Or, if nine was intended, explicitly remove two options (e.g. Wenz-Strong and one other) and list exactly nine."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Deck check: each suit has 11+10+4+3+2+0 = 30 points, and 4 x 30 = 120, as stated. Only 16 of the 24 cards are played, so the points in play average 80 and vary from deal to deal. Both thresholds are relative to those points: Simple needs D >= F+10, about 45 of 80. Strong needs D >= 2F and D >= 30, about 54 of 80.\n\nBid resolution table (rows are my bid, columns are the opponent's bid):\n- Pass vs Pass: Ramsch. Pass vs Simple or Strong: the opponent declares.\n- Simple vs Pass: I declare. Simple vs Simple: the priority player declares. Simple vs Strong: the opponent declares.\n- Strong vs Pass or Simple: I declare. Strong vs Strong: the priority player declares.\n\nThoughtless policies under the winner rule:\n(a) Always Pass (first option). It never declares. Against a sensible opponent, who bids Simple when holding about 5+ trumps of the chosen suit with Aces or Tens, the Pass player only defends. It can still double bad bids. But it gives up every good hand, and in Ramsch, where both are weak, it gains at most 1 point. Over 4 hands it is behind in most matches. Against random play it can win, because random bids often fail. But a random opponent's failed bid only rewards it when it chooses Double well, and that is a reasoned choice, not part of the policy. Pure always-Pass with always No-double still collects stakes from failed random bids, so it beats random. That is expected and acceptable, since the check is against sensible play. It does not beat sensible play.\n(b) Always Bells-Strong (last option, also the highest bid). It wins the declarership almost always, but with Bells as trump whatever the hand. The expected trump holding is 12 x 8/24 = 4 of the 12 trumps, and the opponent also holds about 4. Strong needs about two thirds of the points in play, which a declarer with no fitted suit rarely reaches. The defender doubles and gains 8 per failure, so this policy loses heavily to sensible play. Against random play it fails often too.\n(c) Always a fixed Simple contract. It fails similarly whenever the suit does not fit, and the defender doubles for 4.\n\nNo option is strictly better whatever the opponent does. Pass gives up good hands, high bids are punished by Double, and the best suit depends on the deal. No policy never loses.\n\nSeats: priority alternates 2-2 (Seat 1 in hands 1 and 3, Seat 2 in hands 2 and 4), so move-order and tie-break edges cancel over the match. Declarer advantages (choosing trump, leading first) are earned by bidding, and either seat can earn them. Double is a real decision: it doubles the stake both ways, so it pays only when the defender judges the contract likely to fail. Both players can realistically win. A draw needs equal match points: possible from 2/4/8 stakes plus 1-point Ramsch results, but uncommon."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete and unambiguous:\n- Card ranks and points are specified for Wenz, Solo and Ramsch.\n- Obers and Unters are removed from the plain suits in a Solo; Unters only in Wenz and Ramsch. The plain orders (A>10>K>O>9 in Wenz, A>10>K>9 in Solo) are given.\n- The 12 trumps are listed in order: 4 Obers, 4 Unters, then A, 10, K, 9.\n- Follow rules cover a trump lead, a plain lead and a void.\n- The trick winner is defined. The first leader is the declarer, or the priority player in Ramsch.\n- Bid resolution covers every pair, including Pass/Pass and same-level ties.\n- The make conditions, stakes and doubling are pure arithmetic on card-point totals the game keeps. The winner is decided by comparing match points, with a draw on equality.\n\nThe game is finite at exactly 32 rounds. The hand-start steps (deal, sealed bid, resolution, double) can run in the first round of each hand using single-step `when` conditions, so no block selection is needed. The bid is a simultaneous poll, as required.\n\nAgainst the platform limits:\n- steps 15 of 20;\n- choice steps 4 of 4 (bid, double, lead, follow);\n- attributes 18 of 20;\n- hidden elements 3 of 3 (two hands plus the Blind);\n- one shuffle per hand, within 1 random draw per round;\n- rounds 32 of 40.\n\nIt needs no board, clock, trading or binding agreement. With two players the question of talk does not arise. There is no repeated-cooperation endgame issue: it is a zero-sum card match."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The deal is a large source of variance: hand quality and the unseen Blind. Over only 4 hands with stakes of 2, 4 or 8, I estimate chance at roughly 40-50% of match outcomes between equally skilled players. That is typical of trick-taking games, and skill still clearly matters:\n- Bidding: choosing the trump that fits the hand, Simple versus Strong, and anticipating the opponent's sealed bid and priority.\n- Doubling: estimating the declarer's hand from the announced bid and contract, then judging whether the contract will fail.\n- Card play: tracking which of the 24 cards have been played, and inferring which are in the opponent's hand versus the Blind.\n- Ramsch: deliberately ducking points.\n\nWhen both players play well, the deal is not the sole decider:\n- A strong hand that is bid modestly earns less.\n- A marginal hand that is overbid gets doubled.\n- 8-trick play with partial information rewards counting and inference.\n\nThere is genuine hidden information (the opponent's hand and the Blind) and real ways to act on it (bid level, Double, leads and discards). A reasoning player beats a naive one far more often than not."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

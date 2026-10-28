@@ -1,0 +1,872 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "dudo",
+    "name": "Short Dudo",
+    "players": {
+      "min": 2,
+      "max": 4,
+      "suggested": 3
+    },
+    "blurb": "A short bluffing dice game: bid on a face with 1s wild, then raise, call Dudo or call Calza, and the loser of each call loses a die."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "out",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "dice_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "out",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "round_num",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "opener_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "total_dice",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_qty",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_bidder",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "responder_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "call_type",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "caller_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "reveal_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "loser_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "start_dice",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "max_dice",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "die_faces",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "wild_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "min_bid_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "max_bid_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "opening_min_divisor",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "opening_min_floor",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "opening_max_divisor",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "raise_small",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "raise_big",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "dudo_loss",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "calza_loss",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "calza_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "first_opener_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_responses_per_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "die_slots",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "raise1_opts",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "raise2_opts",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "seat the players",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "dice_count",
+            "value": {
+              "calc": "start_dice"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "out",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "opener_seat",
+            "value": {
+              "calc": "first_opener_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round_num",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "die_slots",
+            "value": {
+              "calc": "[i for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] if i <= max_dice]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "raise1_opts",
+            "value": [
+              "raise1_face2",
+              "raise1_face3",
+              "raise1_face4",
+              "raise1_face5",
+              "raise1_face6"
+            ]
+          }
+        },
+        {
+          "set": {
+            "key": "raise2_opts",
+            "value": [
+              "raise2_face2",
+              "raise2_face3",
+              "raise2_face4",
+              "raise2_face5",
+              "raise2_face6"
+            ]
+          }
+        }
+      ],
+      "text": "Every player starts with {start_dice} dice. Seat {first_opener_seat} opens round 1."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "roll",
+      "label": "new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round_num",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "call_type",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "caller_seat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "loser_seat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "total_dice",
+            "value": {
+              "calc": "sum([p.dice_count for p in players if not p.out])"
+            }
+          }
+        }
+      ],
+      "text": "Round {round_num} begins. Dice in play: {total_dice}. Seat {opener_seat} opens."
+    },
+    {
+      "use": "update",
+      "phase": "roll",
+      "label": "the roll",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "[min(die_faces, int(uniform(wild_face, die_faces + 1))) for i in die_slots if i <= you.dice_count] if not you.out else []"
+            }
+          }
+        }
+      ],
+      "text": "Everyone still in the game rolls their dice in secret."
+    },
+    {
+      "use": "sync",
+      "phase": "roll",
+      "label": "your dice",
+      "mode": "self",
+      "to": "all",
+      "text": "Your dice this round, the dice in play ({total_dice}) and everyone's dice count:"
+    },
+    {
+      "use": "ask",
+      "phase": "bid",
+      "label": "opening face",
+      "to": {
+        "where": "you.seat == opener_seat"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_bid_face"
+        },
+        "max": {
+          "calc": "max_bid_face"
+        }
+      },
+      "verify": {
+        "bind": "face"
+      },
+      "text": "You open the bidding. Choose the face of your bid, from {min_bid_face} to {max_bid_face}. 1s are wild and count as your face."
+    },
+    {
+      "use": "ask",
+      "phase": "bid",
+      "label": "opening quantity",
+      "to": {
+        "where": "you.seat == opener_seat"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "max(opening_min_floor, int(total_dice / opening_min_divisor))"
+        },
+        "max": {
+          "calc": "int((total_dice + opening_max_divisor - 1) / opening_max_divisor)"
+        }
+      },
+      "verify": {
+        "bind": "qty"
+      },
+      "text": "Choose the quantity of your bid: at least that many of the {total_dice} dice show your face (1s count as your face)."
+    },
+    {
+      "use": "update",
+      "phase": "bid",
+      "label": "the opening bid",
+      "do": [
+        {
+          "set": {
+            "key": "current_face",
+            "value": "$face"
+          }
+        },
+        {
+          "set": {
+            "key": "current_qty",
+            "value": "$qty"
+          }
+        },
+        {
+          "set": {
+            "key": "current_bidder",
+            "value": {
+              "calc": "opener_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "responder_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if p.seat > current_bidder and not p.out]) if any(p.seat > current_bidder and not p.out for p in players) else min([p.seat for p in players if not p.out])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "(raise1_opts if current_qty + raise_small <= total_dice else []) + (raise2_opts if current_qty + raise_big <= total_dice else []) + ['dudo', 'calza']"
+            }
+          }
+        }
+      ],
+      "text": "Seat {current_bidder} bids: at least {current_qty} dice show {current_face} (1s wild). Seat {responder_seat} responds."
+    },
+    {
+      "use": "ask",
+      "phase": "respond",
+      "label": "response 1",
+      "to": {
+        "where": "you.seat == responder_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "r1"
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} answers the bid of {current_qty} x {current_face}: {value}."
+      },
+      "text": "The bid is at least {current_qty} dice showing {current_face} (1s wild), by seat {current_bidder}. Choose raise1_faceF (quantity +{raise_small}, face F), raise2_faceF (quantity +{raise_big}, face F), dudo (the bid is false) or calza (the count is exactly {current_qty})."
+    },
+    {
+      "use": "update",
+      "phase": "respond",
+      "label": "apply response 1",
+      "do": [
+        {
+          "adjust": {
+            "key": "current_qty",
+            "value": {
+              "calc": "raise_small if $r1 in raise1_opts else raise_big"
+            },
+            "if": {
+              "calc": "$r1 in raise1_opts or $r1 in raise2_opts"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_face",
+            "value": {
+              "calc": "int($r1[-1])"
+            },
+            "if": {
+              "calc": "$r1 in raise1_opts or $r1 in raise2_opts"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_bidder",
+            "value": {
+              "calc": "responder_seat"
+            },
+            "if": {
+              "calc": "$r1 in raise1_opts or $r1 in raise2_opts"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "call_type",
+            "value": "$r1",
+            "if": {
+              "calc": "$r1 == 'dudo' or $r1 == 'calza'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "caller_seat",
+            "value": {
+              "calc": "responder_seat"
+            },
+            "if": {
+              "calc": "$r1 == 'dudo' or $r1 == 'calza'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "responder_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if p.seat > current_bidder and not p.out]) if any(p.seat > current_bidder and not p.out for p in players) else min([p.seat for p in players if not p.out])"
+            },
+            "if": {
+              "calc": "$r1 in raise1_opts or $r1 in raise2_opts"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "(raise1_opts if current_qty + raise_small <= total_dice else []) + (raise2_opts if current_qty + raise_big <= total_dice else []) + ['dudo', 'calza']"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "respond",
+      "label": "response 2",
+      "when": {
+        "calc": "call_type == ''"
+      },
+      "to": {
+        "where": "you.seat == responder_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "r2"
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} answers the bid of {current_qty} x {current_face}: {value}."
+      },
+      "text": "The bid is at least {current_qty} dice showing {current_face} (1s wild), by seat {current_bidder}. Choose raise1_faceF (quantity +{raise_small}, face F), raise2_faceF (quantity +{raise_big}, face F), dudo (the bid is false) or calza (the count is exactly {current_qty})."
+    },
+    {
+      "use": "update",
+      "phase": "respond",
+      "label": "apply response 2",
+      "when": {
+        "calc": "call_type == ''"
+      },
+      "do": [
+        {
+          "adjust": {
+            "key": "current_qty",
+            "value": {
+              "calc": "raise_small if $r2 in raise1_opts else raise_big"
+            },
+            "if": {
+              "calc": "$r2 in raise1_opts or $r2 in raise2_opts"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_face",
+            "value": {
+              "calc": "int($r2[-1])"
+            },
+            "if": {
+              "calc": "$r2 in raise1_opts or $r2 in raise2_opts"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_bidder",
+            "value": {
+              "calc": "responder_seat"
+            },
+            "if": {
+              "calc": "$r2 in raise1_opts or $r2 in raise2_opts"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "call_type",
+            "value": "$r2",
+            "if": {
+              "calc": "$r2 == 'dudo' or $r2 == 'calza'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "caller_seat",
+            "value": {
+              "calc": "responder_seat"
+            },
+            "if": {
+              "calc": "$r2 == 'dudo' or $r2 == 'calza'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "responder_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if p.seat > current_bidder and not p.out]) if any(p.seat > current_bidder and not p.out for p in players) else min([p.seat for p in players if not p.out])"
+            },
+            "if": {
+              "calc": "$r2 in raise1_opts or $r2 in raise2_opts"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "respond",
+      "label": "final response",
+      "when": {
+        "calc": "call_type == ''"
+      },
+      "to": {
+        "where": "you.seat == responder_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "dudo",
+          "calza"
+        ]
+      },
+      "verify": {
+        "bind": "r3"
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} answers the bid of {current_qty} x {current_face}: {value}."
+      },
+      "text": "Final response: the bid is at least {current_qty} dice showing {current_face} (1s wild), by seat {current_bidder}. No more raises. Choose dudo (the bid is false) or calza (the count is exactly {current_qty})."
+    },
+    {
+      "use": "update",
+      "phase": "respond",
+      "label": "apply final response",
+      "when": {
+        "calc": "call_type == ''"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "call_type",
+            "value": "$r3"
+          }
+        },
+        {
+          "set": {
+            "key": "caller_seat",
+            "value": {
+              "calc": "responder_seat"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "the reveal",
+      "do": [
+        {
+          "set": {
+            "key": "reveal_count",
+            "value": {
+              "calc": "len([d for p in players for d in p.hand if d == current_face or d == wild_face])"
+            }
+          }
+        }
+      ],
+      "text": "Seat {caller_seat} calls {call_type} on {current_qty} x {current_face}. All dice [seat, dice]: {[[p.seat, p.hand] for p in players if not p.out]}. Dice showing {current_face} or 1: {reveal_count}."
+    },
+    {
+      "use": "update",
+      "phase": "settle",
+      "label": "settle the call",
+      "do": [
+        {
+          "set": {
+            "key": "loser_seat",
+            "value": {
+              "calc": "caller_seat if ((call_type == 'dudo' and reveal_count >= current_qty) or (call_type == 'calza' and reveal_count != current_qty)) else (current_bidder if call_type == 'dudo' else 0)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == loser_seat and you.dice_count > 0"
+            },
+            "key": "dice_count",
+            "value": {
+              "calc": "-(dudo_loss if call_type == 'dudo' else calza_loss)"
+            },
+            "if": {
+              "calc": "loser_seat > 0"
+            },
+            "text": "Seat {player} loses a die."
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == caller_seat"
+            },
+            "key": "dice_count",
+            "value": {
+              "calc": "min(you.dice_count + calza_gain, max_dice)"
+            },
+            "if": {
+              "calc": "call_type == 'calza' and reveal_count == current_qty"
+            },
+            "text": "Calza is exact! Seat {player} gains a die (never above the maximum)."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "settle",
+      "label": "elimination",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.dice_count <= 0"
+            },
+            "key": "out",
+            "value": true
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.dice_count <= 0"
+            },
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "you.dice_count <= 0"
+            },
+            "to": "out",
+            "text": "Seat {player} has no dice left and is out."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "settle",
+      "label": "next opener",
+      "do": [
+        {
+          "set": {
+            "key": "opener_seat",
+            "value": {
+              "calc": "loser_seat if loser_seat > 0 else caller_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "opener_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if p.seat > opener_seat and not p.out]) if any(p.seat > opener_seat and not p.out for p in players) else min([p.seat for p in players if not p.out])"
+            },
+            "if": {
+              "calc": "any(p.seat == opener_seat and p.out for p in players) and any(not p.out for p in players)"
+            }
+          }
+        }
+      ],
+      "text": "Dice counts [seat, dice]: {[[p.seat, p.dice_count] for p in players]}. Seat {opener_seat} opens the next round."
+    },
+    {
+      "use": "check",
+      "phase": "settle",
+      "label": "end check",
+      "when": {
+        "calc": "count(not p.out for p in players) <= 1 or round_num >= max_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "count(not p.out for p in players) <= 1 or round_num >= max_rounds"
+      },
+      "rank_by": "you.dice_count",
+      "text": "Winner: {result}. Final dice [seat, dice]: {[[p.seat, p.dice_count] for p in players]} after {round_num} rounds."
+    }
+  },
+  "limits": {
+    "rounds": 30,
+    "rounds_max": 30,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Players sit in a fixed seat order and each starts with {start_dice} dice. Seat {first_opener_seat} opens round 1. There is no talk: bids and calls are the only communication.\n\nEach round:\n1. ROLL. Every player still in the game rolls as many six-sided dice as they hold. You see only your own dice. Everyone is told the total dice in play (T = {total_dice} at the start of the round) and every player's dice count.\n2. OPENING BID. The opener chooses a face from {min_bid_face} to {max_bid_face} and a quantity Q with max({opening_min_floor}, floor(T/{opening_min_divisor})) <= Q <= ceil(T/{opening_max_divisor}). The bid means 'at least Q dice among all players show this face, with every 1 counting as this face'. The bid is announced to all.\n3. RESPONSE 1. The next player in seat order who is still in the game chooses one of: Raise +{raise_small} (raise1_faceF: quantity +{raise_small}, any face F from {min_bid_face} to {max_bid_face}); Raise +{raise_big} (raise2_faceF: quantity +{raise_big}, any face F); Dudo (challenge the current bid as false); Calza (claim the count is exactly the current quantity). A raise is not offered if the new quantity would exceed T; if both raises would, only Dudo or Calza may be chosen. The choice is announced. A player who raises becomes the current bidder.\n4. RESPONSE 2. Only if response 1 was a raise: the next player in seat order after the current bidder who is still in the game makes the same kind of choice. With 2 players, this is the opener again.\n5. FINAL RESPONSE. Only if response 2 was a raise: the next player in seat order after the current bidder who is still in the game must choose Dudo or Calza. Raising is not allowed.\n6. REVEAL. All dice are shown. N is the number of dice showing the current bid face plus the number showing 1.\n7. SETTLE. Dudo: if N >= the current quantity, the caller loses {dudo_loss} die; otherwise (N is less than the quantity) the current bidder loses {dudo_loss} die. Calza: if N equals the current quantity exactly, the caller gains {calza_gain} die, up to a maximum of {max_dice}; otherwise the caller loses {calza_loss} die.\n8. ELIMINATION. A player with 0 dice is out and is skipped in seat order from then on.\n9. NEXT OPENER. The player who lost a die opens the next round. After a successful Calza, the caller opens. If that player was eliminated, the next player in seat order who is still in the game opens.\n10. END CHECK. If only one player remains, the game ends and that player wins. If {max_rounds} rounds have been played, the game ends and the player holding the most dice wins; players tied for the most dice share the result as a draw."
+}

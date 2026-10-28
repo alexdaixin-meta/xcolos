@@ -1,0 +1,181 @@
+# 23 spec
+
+- time: 2026-10-28T03:17:16+00:00 (59.2s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 8bc01d08b93d4100, reply sha256 39bcc7873b91e141
+
+## Sent
+
+````
+Game: Malý Mariáš (Little Mariáš)
+Players in the source: 3 to 3
+Suggested table size, chosen by the designer of these rules (keep it): 3
+
+Rules, as filed in the inventory:
+CARDS. There are 12 cards: four suits, Hearts (H), Bells (B), Leaves (L) and Acorns (A), each with three ranks, Ace (A), Ten (10) and King (K). A card is written rank then suit, for example AH, 10L, KB. Internally, card code = 3 x suit index + rank index, with suits H=0, B=1, L=2, A=3 and ranks K=0, 10=1, A=2. Rank order within a suit is A > 10 > K. Card points: each Ace 10, each Ten 10, each King 0. Whoever wins the 4th (last) trick of a deal gets 10 more. The total per deal is 90.
+
+STRUCTURE. The match is 9 deals of 4 tricks each, which is 36 rounds. Each round is one trick. The eldest hand of deal d is seat ((d-1) mod 3)+1, so seats 1, 2, 3, 1, 2, 3, 1, 2, 3. Every player starts with score 0.
+
+WHAT PLAYERS SEE. Each player sees their own hand (private), all scores, the current deal and trick number, the declarer, contract and trump once set, the stake multiplier, the cards played so far in the current trick with who played them, the card points taken so far by the declarer and by the defenders, and every public announcement. Internal working values are not shown.
+
+ROUND STEPS (steps marked [trick 1] or [trick 2] happen only in that trick of a deal):
+1. [trick 1] Deal. Build the list of the 12 codes 0-11, shuffle it once, and give positions 1-4 to seat 1, positions 5-8 to seat 2 and positions 9-12 to seat 3. Reset the declarer points, defender points and multiplier to 1.
+2. [trick 1] Bid (simultaneous, secret). Each player answers 'PASS' or 'N S', where N is 50, 60, 70, 80 or 90 and S is H, B, L or A. The eldest may not pass: PASS or any invalid answer from the eldest counts as '50 A'. An invalid answer from anyone else counts as PASS.
+3. [trick 1] Resolve the bid. The highest N becomes the declarer, with contract N and trump S. On a tie, the tied player first in seat order starting from the eldest wins. The other two are defenders. Set base stake = N/10 - 4 (so 50→1, 60→2, 70→3, 80→4, 90→5). The declarer leads trick 1. Announce all bids, the declarer, the contract and the trump.
+4. [trick 2] Flek poll (simultaneous). Each defender answers FLEK or NO, and the declarer answers RE or NO. Invalid answers count as NO.
+5. [trick 2] Resolve. If at least one defender said FLEK, the multiplier is doubled. If, in addition, the declarer said RE, it is doubled again. Announce all answers and the multiplier.
+6. First card. The leader names a card from their hand.
+7. Resolve the first card. If the card is not in the leader's hand, the lowest-code card in their hand is played instead. Remove it from the hand and add it to the trick. Set led suit to its suit. Set best_key = rank index + (10 if its suit is trump) + 5, and set best_seat = the leader. Announce the card.
+8. Second card. The next seat clockwise, (leader mod 3)+1, names a card.
+9. Resolve the second card. The card is legal if: it is of the led suit; or the hand has no led-suit card and the card is trump; or the hand has neither led-suit cards nor trumps. If the named card is not held or not legal, play instead the lowest-code held card of the led suit, else the lowest-code held trump, else the lowest-code held card. Remove the card from the hand and add it to the trick. Its key = rank index + (10 if trump) + (5 if of the led suit). If its key is greater than best_key, set best_key to it and best_seat to this seat. Announce the card.
+10. Third card. The next seat names a card.
+11. Resolve the third card exactly as in step 9.
+12. Award the trick. Add the trick's card points, plus 10 if this is trick 4, to the declarer's points if best_seat is the declarer, otherwise to the defenders' points. Set leader = best_seat. Announce the winner and the running points.
+13. [trick 4] Settle the deal. Stake = base stake x multiplier x (2 if trump is Hearts, else 1). If the declarer's points are at least the contract N, the declarer gains 2 x stake and each defender loses stake. Otherwise the declarer loses 2 x stake and each defender gains stake. Announce the result and the scores.
+14. Advance. Add 1 to the trick number. After trick 4, reset it to 1, add 1 to the deal number and rotate the eldest. After deal 9, the match ends.
+
+There is no discussion phase. Hands are always non-empty when their owner must play, because each player plays exactly one card per trick and holds 4 cards for 4 tricks.
+
+How the winner is decided: After 9 deals, the player with the highest score wins. If two or three players tie for highest, those players draw. Scores are the sum of the zero-sum deal settlements in step 13.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Malý Mariáš (Little Mariáš)",
+  "summary": "Three-player trick-taking game with 12 cards: a secret bid picks a declarer, contract and trump, defenders may double (flek) and the declarer redouble (re), and 9 deals of 4 tricks are settled zero-sum.",
+  "players": {"min": 3, "max": 3, "suggested": 3},
+  "parameters": {
+    "num_cards": 12,
+    "num_suits": 4,
+    "num_ranks": 3,
+    "cards_per_hand": 4,
+    "ace_points": 10,
+    "ten_points": 10,
+    "king_points": 0,
+    "last_trick_bonus": 10,
+    "points_per_deal": 90,
+    "deals": 9,
+    "tricks_per_deal": 4,
+    "total_rounds": 36,
+    "bid_min": 50,
+    "bid_max": 90,
+    "bid_step": 10,
+    "eldest_default_bid": 50,
+    "stake_divisor": 10,
+    "stake_offset": 4,
+    "initial_multiplier": 1,
+    "flek_factor": 2,
+    "re_factor": 2,
+    "hearts_factor": 2,
+    "declarer_win_factor": 2,
+    "declarer_loss_factor": 2,
+    "trump_key_bonus": 10,
+    "led_suit_key_bonus": 5,
+    "initial_score": 0
+  },
+  "attributes": {
+    "player": [
+      {"key": "score", "type": "number", "visible": "public", "initial": 0, "meaning": "Running match score, the sum of the deal settlements.", "observable": true},
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Card codes held (code = 3 x suit + rank; suits H=0, B=1, L=2, A=3; ranks K=0, 10=1, A=2).", "observable": false},
+      {"key": "bid", "type": "text", "visible": "ally", "initial": "", "meaning": "This deal's secret bid, 'PASS' or 'N S'. It is announced after resolution.", "observable": false},
+      {"key": "bid_value", "type": "number", "visible": "ally", "initial": 0, "meaning": "N of the bid (0 for PASS), after the eldest default is applied.", "observable": false},
+      {"key": "flek_answer", "type": "text", "visible": "ally", "initial": "NO", "meaning": "Answer in the flek poll: FLEK, RE or NO. It is announced after resolution.", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": [0,1,2,3,4,5,6,7,8,9,10,11], "meaning": "The 12 card codes, shuffled and dealt at trick 1 of each deal.", "observable": false},
+      {"key": "deal", "type": "number", "visible": "public", "initial": 1, "meaning": "Current deal, 1 to 9 (10 means the match is over).", "observable": true},
+      {"key": "trick", "type": "number", "visible": "public", "initial": 1, "meaning": "Current trick within the deal, 1 to 4.", "observable": false},
+      {"key": "eldest", "type": "number", "visible": "public", "initial": 1, "meaning": "Eldest seat of this deal, equal to ((deal-1) mod 3)+1.", "observable": false},
+      {"key": "declarer", "type": "number", "visible": "public", "initial": 0, "meaning": "Seat of the declarer for this deal.", "observable": true},
+      {"key": "contract", "type": "number", "visible": "public", "initial": 0, "meaning": "Contract N (50 to 90).", "observable": true},
+      {"key": "trump", "type": "number", "visible": "public", "initial": -1, "meaning": "Trump suit index (H=0, B=1, L=2, A=3).", "observable": true},
+      {"key": "base_stake", "type": "number", "visible": "public", "initial": 0, "meaning": "Base stake, contract/10 - 4.", "observable": false},
+      {"key": "multiplier", "type": "number", "visible": "public", "initial": 1, "meaning": "Stake multiplier from flek and re.", "observable": true},
+      {"key": "declarer_points", "type": "number", "visible": "public", "initial": 0, "meaning": "Card points taken by the declarer this deal.", "observable": false},
+      {"key": "defender_points", "type": "number", "visible": "public", "initial": 0, "meaning": "Card points taken by the defenders this deal.", "observable": false},
+      {"key": "leader", "type": "number", "visible": "public", "initial": 1, "meaning": "Seat that leads the current trick.", "observable": false},
+      {"key": "trick_cards", "type": "list", "visible": "public", "initial": [], "meaning": "Card codes played to the current trick, in order.", "observable": false},
+      {"key": "trick_seats", "type": "list", "visible": "public", "initial": [], "meaning": "Seats that played each card of the current trick, in order.", "observable": false},
+      {"key": "led_suit", "type": "number", "visible": "public", "initial": -1, "meaning": "Suit index of the first card of the current trick.", "observable": false},
+      {"key": "best_key", "type": "number", "visible": "none", "initial": 0, "meaning": "Internal strength of the best card so far in the trick.", "observable": false},
+      {"key": "best_seat", "type": "number", "visible": "none", "initial": 0, "meaning": "Internal: seat currently winning the trick.", "observable": false}
+    ]
+  },
+  "setup": [
+    "Every player's score is set to 0.",
+    "Set deal = 1, trick = 1, eldest = 1, multiplier = 1.",
+    "The 12 card codes 0-11 are placed in the table list deck."
+  ],
+  "round": [
+    {"action": "update", "who": "table", "answer": null, "effect": "[when trick = 1] Shuffle deck once. Give positions 1-4 to seat 1's hand, 5-8 to seat 2's hand and 9-12 to seat 3's hand. Set declarer_points = 0, defender_points = 0, multiplier = 1, trick_cards = [], trick_seats = []."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "[when trick = 1] Each player is sent their own hand and the public state."},
+    {"action": "poll", "who": "all players", "answer": "eldest: one of the 20 bids 'N S' (N in 50,60,70,80,90; S in H,B,L,A); others: 'PASS' or one of the 20 bids", "effect": "[when trick = 1] Set each player's bid. If the eldest answers PASS or an invalid bid, it becomes '50 A'. An invalid answer from any other player becomes 'PASS'. Set bid_value = N, or 0 for PASS."},
+    {"action": "update", "who": "table", "answer": null, "effect": "[when trick = 1] The declarer is the seat with the highest value of bid_value*10 + (3 - ((seat - eldest) mod 3)), so ties go to the seat first in order from the eldest. Set contract = that seat's N, trump = that seat's suit index, base_stake = contract/10 - 4, leader = declarer. Announce all bids, the declarer, the contract and the trump."},
+    {"action": "poll", "who": "all players", "answer": "defenders: FLEK or NO; declarer: RE or NO", "effect": "[when trick = 2] Set each player's flek_answer. An invalid answer counts as NO."},
+    {"action": "update", "who": "table", "answer": null, "effect": "[when trick = 2] If at least one defender has flek_answer = FLEK, multiplier = multiplier x 2. If, in addition, the declarer's flek_answer = RE, multiplier = multiplier x 2 again. Announce all answers and the multiplier."},
+    {"action": "ask", "who": "the seat equal to leader", "answer": "a card from their hand", "effect": "The named card is recorded."},
+    {"action": "update", "who": "table", "answer": null, "effect": "If the named card is not in the leader's hand, use the lowest code in that hand instead. Remove the card from the hand. Append it to trick_cards and append leader to trick_seats. Set led_suit = floor(card/3), best_key = (card mod 3) + (10 if floor(card/3) = trump) + 5, best_seat = leader. Announce the card."},
+    {"action": "ask", "who": "the seat (leader mod 3)+1", "answer": "a card from their hand", "effect": "The named card is recorded."},
+    {"action": "update", "who": "table", "answer": null, "effect": "The card is legal if its suit = led_suit; or the hand has no led_suit card and its suit = trump; or the hand has neither led_suit cards nor trumps. If it is not held or not legal, use the lowest-code held led_suit card, else the lowest-code held trump, else the lowest-code held card. Remove it from the hand and append it to trick_cards and the seat to trick_seats. key = (card mod 3) + (10 if suit = trump) + (5 if suit = led_suit). If key > best_key, set best_key = key and best_seat = this seat. Announce the card."},
+    {"action": "ask", "who": "the seat ((leader mod 3)+1) mod 3 + 1", "answer": "a card from their hand", "effect": "The named card is recorded."},
+    {"action": "update", "who": "table", "answer": null, "effect": "Same as the second-card resolution, for this seat."},
+    {"action": "update", "who": "table", "answer": null, "effect": "Trick points = sum over trick_cards of (10 if card mod 3 >= 1 else 0), plus 10 if trick = 4. If best_seat = declarer, add them to declarer_points, otherwise to defender_points. Set leader = best_seat, then clear trick_cards and trick_seats. Announce the trick winner, declarer_points and defender_points."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "[when trick = 4] stake = base_stake x multiplier x (2 if trump = 0 else 1). If declarer_points >= contract: the declarer's score += 2 x stake and each defender's score -= stake. Otherwise: the declarer's score -= 2 x stake and each defender's score += stake. Announce the result and the scores."},
+    {"action": "update", "who": "table", "answer": null, "effect": "trick += 1. If trick > 4: trick = 1, deal += 1, eldest = ((deal-1) mod 3)+1, and every player's bid is reset to '', bid_value to 0 and flek_answer to 'NO'."},
+    {"action": "check", "who": "table", "answer": null, "effect": "End the match if deal > 9, otherwise continue with the next round."}
+  ],
+  "ending": {
+    "condition": "deal > 9",
+    "rank_by": "you.score",
+    "decided_by": "Each player's standing is their score, the sum of the zero-sum deal settlements over 9 deals. The highest score wins, and players tied at the top draw by sharing the win."
+  },
+  "rules": [
+    {"id": "R1", "text": "There are 12 cards, codes 0-11, with suit = floor(code/3) (H=0, B=1, L=2, A=3) and rank = code mod 3 (K=0, 10=1, A=2), and the rank order within a suit is A > 10 > K."},
+    {"id": "R2", "text": "When a trick is awarded, each Ace and each Ten in it is worth 10 points and each King 0."},
+    {"id": "R3", "text": "When trick 4 of a deal is awarded, its winner's side gets 10 extra points, so a deal totals 90 points."},
+    {"id": "R4", "text": "The match is 9 deals of 4 tricks (36 rounds), and the eldest of deal d is seat ((d-1) mod 3)+1."},
+    {"id": "R5", "text": "When trick 1 of a deal begins, the 12 codes are shuffled and positions 1-4 go to seat 1, 5-8 to seat 2 and 9-12 to seat 3, and declarer_points, defender_points and multiplier are reset to 0, 0 and 1."},
+    {"id": "R6", "text": "When bidding at trick 1, every player answers secretly and at the same time with PASS or 'N S', where N is in {50,60,70,80,90} and S is in {H,B,L,A}."},
+    {"id": "R7", "text": "When the eldest answers PASS or an invalid bid, it counts as '50 A'."},
+    {"id": "R8", "text": "When a non-eldest player gives an invalid bid, it counts as PASS."},
+    {"id": "R9", "text": "When bids are resolved, the highest N becomes the declarer with contract N and trump S, and on a tie the tied seat first in seat order starting from the eldest wins."},
+    {"id": "R10", "text": "When the declarer is set, base_stake = N/10 - 4 (50→1, 60→2, 70→3, 80→4, 90→5), and the declarer leads trick 1."},
+    {"id": "R11", "text": "When bids are resolved, all bids, the declarer, the contract and the trump are announced."},
+    {"id": "R12", "text": "When the flek poll runs at trick 2, defenders answer FLEK or NO and the declarer answers RE or NO, all at the same time, and invalid answers count as NO."},
+    {"id": "R13", "text": "When at least one defender says FLEK, the multiplier doubles to 2."},
+    {"id": "R14", "text": "When at least one defender says FLEK and the declarer says RE, the multiplier becomes 4."},
+    {"id": "R15", "text": "When no defender says FLEK, the multiplier stays 1, even if the declarer says RE."},
+    {"id": "R16", "text": "When the leader names a card not in their hand, their lowest-code card is played instead."},
+    {"id": "R17", "text": "When the first card is played, led_suit = its suit, best_key = rank + (10 if trump) + 5, and best_seat = the leader."},
+    {"id": "R18", "text": "When a following player plays, the card must be of the led suit; failing that a trump; failing both, any card."},
+    {"id": "R19", "text": "When a following player names an illegal or unheld card, the lowest-code held led-suit card is played, else the lowest-code held trump, else the lowest-code held card."},
+    {"id": "R20", "text": "When a following card's key = rank + (10 if trump) + (5 if led suit) exceeds best_key, that seat becomes best_seat."},
+    {"id": "R21", "text": "When a trick is awarded, its points go to declarer_points if best_seat is the declarer, otherwise to defender_points, and best_seat leads the next trick."},
+    {"id": "R22", "text": "When a deal is settled, stake = base_stake x multiplier x (2 if trump is Hearts, else 1)."},
+    {"id": "R23", "text": "When declarer_points >= contract at settlement, the declarer gains 2 x stake and each defender loses stake."},
+    {"id": "R24", "text": "When declarer_points < contract at settlement, the declarer loses 2 x stake and each defender gains stake."},
+    {"id": "R25", "text": "When deal 9's trick 4 has been settled, the match ends and the highest score wins, with players tied at the top drawing."}
+  ],
+  "offers": [
+    {"question": "Bid (trick 1)", "who": "all players at once", "options": "the eldest: the 20 bids '50 H' … '90 A' (no PASS); any other seat: PASS plus the 20 bids"},
+    {"question": "Flek poll (trick 2)", "who": "all players at once", "options": "the declarer: RE, NO; each defender: FLEK, NO"},
+    {"question": "First card", "who": "the leader", "options": "every card in the leader's hand"},
+    {"question": "Second card / third card", "who": "the next seat clockwise, then the one after", "options": "the cards in that hand of the led suit; if none, the trumps held; if neither, every card held"}
+  ],
+  "choices": [
+    {"what": "3 players (min = max = suggested = 3)", "why": "The designer fixed 3. The game is built on one declarer against two defenders, and the 12-card deck deals exactly 4 to each of 3 seats."},
+    {"what": "No talk step", "why": "The rules say there is no discussion phase. Strategy lies in bidding to hand strength, choosing trump, fleking against overbids and card play."},
+    {"what": "Bid tie-break computed as bid_value*10 + (3 - ((seat - eldest) mod 3))", "why": "This is an arithmetic form of 'first in seat order starting from the eldest'."},
+    {"what": "Bids, flek answers and the trick list are reset in the advance step", "why": "The source leaves the moment of resetting these working values unstated."}
+  ],
+  "simplifications": [
+    {"what": "Players are offered only legal options (no PASS for the eldest, only legal cards to follow)", "why": "A seat is never offered what it may not do. The source's fallback rules for invalid or illegal answers are kept in the effects anyway."},
+    {"what": "Steps for trick 1, trick 2 and trick 4 are single steps with a 'when trick = k' condition", "why": "The step list is flat, and each conditional part is a single step, so no block branching is needed."}
+  ],
+  "unsupported": []
+}
+```
+````

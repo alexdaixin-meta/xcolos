@@ -1,0 +1,1015 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "put",
+    "name": "Put: Twelve Hands",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "Twelve hands of three-card Put: check or Put, see or fold, then secretly order your cards for three tricks."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "up_card",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "order",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "tricks",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "order_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": "none"
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hand_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          6,
+          6,
+          6,
+          6,
+          7,
+          7,
+          7,
+          7,
+          8,
+          8,
+          8,
+          8,
+          9,
+          9,
+          9,
+          9,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          12,
+          12,
+          12,
+          12,
+          13,
+          13,
+          13,
+          13
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leader",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leader_call",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "responder_action",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "leader_reply",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "putter",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "folded",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "hands_shown",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "orders_shown",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "trick_results",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hands",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 52
+      },
+      {
+        "key": "copies_per_rank",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "ranks",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "face_up_cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "tricks_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "fold_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "check_win_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "put_seen_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "start_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "max_puts_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "start_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "hand_number",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "leader_call",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "responder_action",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "leader_reply",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "order_choice",
+            "value": "none"
+          }
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "a new hand",
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "deck + players[0].hand + players[1].hand"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "order",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "tricks",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "up_card",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand_points",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "order_choice",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": []
+          }
+        },
+        {
+          "adjust": {
+            "key": "hand_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "1 if hand_number % 2 == 1 else 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader_call",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "responder_action",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "leader_reply",
+            "value": "none"
+          }
+        },
+        {
+          "set": {
+            "key": "putter",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "folded",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "hands_shown",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "orders_shown",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "trick_results",
+            "value": []
+          }
+        }
+      ],
+      "text": "Hand {hand_number} of {hands} begins. Seat {leader} leads."
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "the deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(len(deck) - 1, int(uniform(0, len(deck))))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "up_card",
+            "value": {
+              "calc": "you.hand[0]"
+            }
+          }
+        }
+      ],
+      "text": "Three cards each are dealt. Face-up cards: seat 1 shows {players[0].up_card}, seat 2 shows {players[1].up_card}."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your cards",
+      "mode": "self",
+      "to": "all",
+      "text": "Your cards this hand (rank values, in dealt order) and the face-up cards:"
+    },
+    {
+      "use": "ask",
+      "phase": "betting",
+      "label": "leader's call",
+      "to": {
+        "where": "you.seat == leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Check",
+          "Put"
+        ]
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "leader_call",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "putter",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'Put'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} (leader) calls: {value}."
+      },
+      "text": "Hand {hand_number}: you are the leader. Look at your three cards and both face-up cards, then choose Check or Put."
+    },
+    {
+      "use": "update",
+      "phase": "betting",
+      "label": "the responder's options",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "['See', 'Fold'] if leader_call == 'Put' else ['Check', 'Put']"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "betting",
+      "label": "responder's action",
+      "to": {
+        "where": "you.seat != leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "responder_action",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "putter",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'Put'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "folded",
+              "value": true,
+              "if": {
+                "calc": "$answer == 'Fold'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} (responder): {value}."
+      },
+      "text": "Hand {hand_number}: you are the responder. The leader called {leader_call}. If the leader put, choose See or Fold; if the leader checked, choose Check or Put."
+    },
+    {
+      "use": "ask",
+      "phase": "betting",
+      "label": "leader's reply",
+      "when": {
+        "calc": "leader_call == 'Check' and responder_action == 'Put'"
+      },
+      "to": {
+        "where": "you.seat == leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "See",
+          "Fold"
+        ]
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "leader_reply",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "folded",
+              "value": true,
+              "if": {
+                "calc": "$answer == 'Fold'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} (leader) replies: {value}."
+      },
+      "text": "You checked and the responder put. Choose See (the cards are played for {put_seen_points} points) or Fold (the responder scores {fold_points} now and no cards are played)."
+    },
+    {
+      "use": "update",
+      "phase": "fold",
+      "label": "a fold",
+      "when": {
+        "calc": "folded"
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "putter"
+            },
+            "key": "score",
+            "value": {
+              "calc": "fold_points"
+            },
+            "if": {
+              "calc": "putter > 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "putter"
+            },
+            "key": "hand_points",
+            "value": {
+              "calc": "fold_points"
+            },
+            "if": {
+              "calc": "putter > 0"
+            }
+          }
+        }
+      ],
+      "text": "A player folded. Seat {putter}, who put, scores {fold_points}. No cards are played."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "card order",
+      "when": {
+        "calc": "not folded"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "1-2-3",
+          "1-3-2",
+          "2-1-3",
+          "2-3-1",
+          "3-1-2",
+          "3-2-1"
+        ]
+      },
+      "store": "order_choice",
+      "text": "Secretly choose the order to play your three cards, by dealt position. For example 2-3-1 plays your second dealt card in trick 1, your third in trick 2 and your first in trick 3."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "cards in order",
+      "when": {
+        "calc": "not folded"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "order",
+            "value": {
+              "calc": "[you.hand[0], you.hand[1], you.hand[2]] if you.order_choice == '1-2-3' else ([you.hand[0], you.hand[2], you.hand[1]] if you.order_choice == '1-3-2' else ([you.hand[1], you.hand[0], you.hand[2]] if you.order_choice == '2-1-3' else ([you.hand[1], you.hand[2], you.hand[0]] if you.order_choice == '2-3-1' else ([you.hand[2], you.hand[0], you.hand[1]] if you.order_choice == '3-1-2' else [you.hand[2], you.hand[1], you.hand[0]]))))"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "the tricks",
+      "when": {
+        "calc": "not folded"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "tricks",
+            "value": {
+              "calc": "count(you.order[i] > players[2 - you.seat].order[i] for i in [0, 1, 2])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "trick_results",
+            "value": {
+              "calc": "[(1 if players[0].order[i] > players[1].order[i] else (2 if players[1].order[i] > players[0].order[i] else 0)) for i in [0, 1, 2]]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "orders_shown",
+            "value": {
+              "calc": "[players[0].order, players[1].order]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "scoring",
+      "do": [
+        {
+          "set": {
+            "key": "hands_shown",
+            "value": {
+              "calc": "[players[0].hand, players[1].hand]"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.tricks > players[2 - you.seat].tricks"
+            },
+            "key": "score",
+            "value": {
+              "calc": "check_win_points"
+            },
+            "if": {
+              "calc": "not folded and putter == 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.tricks > players[2 - you.seat].tricks"
+            },
+            "key": "hand_points",
+            "value": {
+              "calc": "check_win_points"
+            },
+            "if": {
+              "calc": "not folded and putter == 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == putter"
+            },
+            "key": "score",
+            "value": {
+              "calc": "put_seen_points"
+            },
+            "if": {
+              "calc": "not folded and putter > 0 and players[putter - 1].tricks > players[2 - putter].tricks"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == putter"
+            },
+            "key": "hand_points",
+            "value": {
+              "calc": "put_seen_points"
+            },
+            "if": {
+              "calc": "not folded and putter > 0 and players[putter - 1].tricks > players[2 - putter].tricks"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat != putter"
+            },
+            "key": "score",
+            "value": {
+              "calc": "put_seen_points"
+            },
+            "if": {
+              "calc": "not folded and putter > 0 and players[putter - 1].tricks <= players[2 - putter].tricks"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat != putter"
+            },
+            "key": "hand_points",
+            "value": {
+              "calc": "put_seen_points"
+            },
+            "if": {
+              "calc": "not folded and putter > 0 and players[putter - 1].tricks <= players[2 - putter].tricks"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "results",
+      "label": "the results",
+      "to": "all",
+      "text": "Hand {hand_number} results. Leader call: {leader_call}; responder: {responder_action}; leader reply: {leader_reply}. Cards as dealt: seat 1 {hands_shown[0]}, seat 2 {hands_shown[1]}. Orders played (seat 1, seat 2): {orders_shown}. Trick winners by seat (0 = tie): {trick_results}. Tricks: seat 1 {players[0].tricks}, seat 2 {players[1].tricks}. Points this hand: seat 1 {players[0].hand_points}, seat 2 {players[1].hand_points}. Totals: seat 1 {players[0].score}, seat 2 {players[1].score}."
+    },
+    {
+      "use": "check",
+      "phase": "results",
+      "label": "after hand 12",
+      "when": {
+        "calc": "hand_number >= hands"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "hand_number >= hands"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score}, Seat 2 {players[1].score}."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 12,
+    "actions_max": 500,
+    "deadline_s": 120
+  },
+  "rules": "CARDS. A standard {deck_size}-card deck: {ranks} ranks, {copies_per_rank} of each; suits do not matter. Ranks from highest to lowest are 3, 2, A, K, Q, J, 10, 9, 8, 7, 6, 5, 4. Cards are shown as rank values: 4=1, 5=2, 6=3, 7=4, 8=5, 9=6, 10=7, J=8, Q=9, K=10, A=11, 2=12, 3=13 (higher value = higher rank).\n\nMATCH. The match is exactly {hands} hands. Both players start at {start_score} points. Seat 1 is the leader in hands 1, 3, 5, 7, 9 and 11. Seat 2 is the leader in hands 2, 4, 6, 8, 10 and 12. The other player is the responder.\n\nEACH HAND:\n1. Deal. Shuffle the full deck and deal {cards_per_player} cards to each player. Each player's first dealt card ({face_up_cards_per_player} card) is placed face up and both players see it. Each player's other two cards are private. Each player's hand is listed in the order dealt.\n2. Leader's call. The leader chooses one of two options: Check, or Put.\n3. Responder's action. If the leader chose Put, the responder chooses See ('I see it') or Fold. If the leader chose Check, the responder chooses Check or Put.\n4. Leader's reply. This happens only if the leader checked and the responder put. The leader then chooses See or Fold.\n5. Fold. If either player folded, the hand ends at once. The player who put scores {fold_points} point, the folder scores 0, and no cards are played. If nobody folded, the hand goes on to the cards.\n6. Card order. Otherwise, both players secretly and at the same moment choose an order for their three cards, naming which of their cards they will play first, second and third (by dealt position, e.g. 2-3-1).\n7. Tricks. Trick 1 compares both players' first cards, trick 2 their second cards, and trick 3 their third cards ({tricks_per_hand} tricks). The higher-ranked card wins the trick. Equal ranks tie the trick, and it counts for no one. Count each player's tricks won.\n8. Scoring when nobody put (both checked). The player with more tricks scores {check_win_points} point. If tricks are equal, nobody scores.\n9. Scoring when a Put was seen. The player who put scores {put_seen_points} points if they won strictly more tricks than the opponent. Otherwise (equal tricks, or the opponent won more), the opponent scores {put_seen_points} points.\n10. Results. Reveal all cards, both orders, the trick results and the scores.\n\nOnly {max_puts_per_hand} Put can be made per hand. There is no re-raise: a player facing a Put may only See or Fold. Talk is not part of the game.\n\nAfter hand {hands}, the player with the higher total score wins. If the totals are equal, the match is a draw."
+}

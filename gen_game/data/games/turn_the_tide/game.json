@@ -1,0 +1,777 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "turn_the_tide",
+    "name": "Turn The Tide: Short Seas (revised)",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "Play Weather cards at the same time to dodge high Tide levels, keep your lifelines, pass your hand left each deal, and finish with the highest score."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "played",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "card_played",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tide",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "lifelines",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "sunk",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "pass_buffer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "chosen",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "weather_deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48
+        ]
+      },
+      {
+        "key": "card_numbers",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "deal_keys",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "set_aside",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "tide_deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ]
+      },
+      {
+        "key": "t1",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "t2",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "low_tide",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "high_tide",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deal_no",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "hand_no",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_tide",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "min_tide",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "weather_cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "hands_per_deal",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "tide_deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "tide_start_level",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "lifelines_per_deal",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "sunk_penalty",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "lowest_tide_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "deals_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "set_aside_cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "tie_break_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "build the weather deck",
+      "do": [
+        {
+          "set": {
+            "key": "card_numbers",
+            "value": {
+              "calc": "[c for c in weather_deck if c <= tide_deck_size]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "weather_deck",
+            "value": {
+              "calc": "[c for c in weather_deck if c <= weather_cards_per_player * len(players)]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "shuffle and deal the hands",
+      "do": [
+        {
+          "set": {
+            "key": "deal_keys",
+            "value": {
+              "calc": "[[uniform(0, 1), c] for c in weather_deck]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "sorted([k[1] for k in deal_keys if count(j[0] < k[0] for j in deal_keys) >= (you.seat - 1) * hand_size and count(j[0] < k[0] for j in deal_keys) < you.seat * hand_size])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "weather_deck",
+            "value": {
+              "calc": "[c for c in weather_deck if not any(c in p.hand for p in players)]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "set aside the remaining cards",
+      "do": [
+        {
+          "set": {
+            "key": "set_aside",
+            "value": {
+              "calc": "weather_deck"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "weather_deck",
+            "value": []
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "starting scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "deal_no",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "hand_no",
+            "value": 1
+          }
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "pass the hands left",
+      "when": {
+        "calc": "hand_no == 1 and deal_no >= 2"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "pass_buffer",
+            "value": {
+              "calc": "you.played + you.hand"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "sorted([p.pass_buffer for p in players if p.seat == (len(players) if you.seat == 1 else you.seat - 1)][0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "played",
+            "value": []
+          }
+        }
+      ],
+      "text": "Deal {deal_no} begins: every player passes their 11 cards to the player on their left."
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "reset the seas",
+      "when": {
+        "calc": "hand_no == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "tide_deck",
+            "value": {
+              "calc": "[c for c in card_numbers if c <= tide_deck_size]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "tide",
+            "value": {
+              "calc": "tide_start_level"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "lifelines",
+            "value": {
+              "calc": "lifelines_per_deal"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "sunk",
+            "value": false
+          }
+        }
+      ],
+      "text": "Deal {deal_no}: the Tide deck is reshuffled, every Tide level is {tide_start_level}, everyone has {lifelines_per_deal} lifelines and nobody is Sunk."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your hand",
+      "when": {
+        "calc": "hand_no == 1"
+      },
+      "mode": "self",
+      "to": "all",
+      "text": "Deal {deal_no}. Your state:"
+    },
+    {
+      "use": "update",
+      "phase": "hand",
+      "label": "reveal the tide",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "chosen",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "t1",
+            "value": {
+              "calc": "tide_deck[int(uniform(0, len(tide_deck)))]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "tide_deck",
+            "value": {
+              "calc": "t1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "t2",
+            "value": {
+              "calc": "tide_deck[int(uniform(0, len(tide_deck)))]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "tide_deck",
+            "value": {
+              "calc": "t2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "low_tide",
+            "value": {
+              "calc": "min(t1, t2)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "high_tide",
+            "value": {
+              "calc": "max(t1, t2)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "hand",
+      "label": "tide announced",
+      "to": "all",
+      "text": "Deal {deal_no}, hand {hand_no}: Low Tide {low_tide}, High Tide {high_tide}."
+    },
+    {
+      "use": "poll",
+      "phase": "hand",
+      "label": "play a weather card",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "chosen",
+      "text": "Deal {deal_no}, hand {hand_no}: Low Tide {low_tide}, High Tide {high_tide}. Choose one Weather card from your hand to play face down. All cards are revealed together. The highest card takes Low Tide, the second highest takes High Tide."
+    },
+    {
+      "use": "update",
+      "phase": "hand",
+      "label": "cards go face up",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "card_played",
+            "value": {
+              "calc": "int(you.chosen)"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.card_played"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": "all",
+            "key": "played",
+            "value": {
+              "calc": "you.card_played"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.card_played == max([p.card_played for p in players])"
+            },
+            "key": "tide",
+            "value": {
+              "calc": "low_tide"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.card_played == max([p.card_played for p in players if p.card_played < max([q.card_played for q in players])])"
+            },
+            "key": "tide",
+            "value": {
+              "calc": "high_tide"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "hand",
+      "label": "the highest tide loses a lifeline",
+      "do": [
+        {
+          "set": {
+            "key": "max_tide",
+            "value": {
+              "calc": "max([p.tide for p in players if not p.sunk]) if any(not p.sunk for p in players) else 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "(not you.sunk) and you.tide == max_tide and you.lifelines == 0"
+            },
+            "key": "sunk",
+            "value": true,
+            "text": "Seat {player} is Sunk."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "(not you.sunk) and you.tide == max_tide and you.lifelines > 0"
+            },
+            "key": "lifelines",
+            "value": -1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "hand",
+      "label": "hand results",
+      "to": "all",
+      "text": "Hand {hand_no} of deal {deal_no} results [seat, card played, tide, lifelines, sunk]: {[[p.seat, p.card_played, p.tide, p.lifelines, p.sunk] for p in players]}."
+    },
+    {
+      "use": "update",
+      "phase": "scoring",
+      "label": "end of deal scoring",
+      "when": {
+        "calc": "hand_no == hands_per_deal"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "not you.sunk"
+            },
+            "key": "score",
+            "value": {
+              "calc": "you.lifelines"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.sunk"
+            },
+            "key": "score",
+            "value": {
+              "calc": "-sunk_penalty"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "min_tide",
+            "value": {
+              "calc": "min([p.tide for p in players if not p.sunk]) if any(not p.sunk for p in players) else 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "(not you.sunk) and you.tide == min_tide"
+            },
+            "key": "score",
+            "value": {
+              "calc": "lowest_tide_bonus"
+            }
+          }
+        }
+      ],
+      "text": "Deal {deal_no} is over. Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "update",
+      "phase": "scoring",
+      "label": "advance the hand",
+      "do": [
+        {
+          "adjust": {
+            "key": "hand_no",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "key": "deal_no",
+            "value": 1,
+            "if": {
+              "calc": "hand_no > hands_per_deal"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "hand_no",
+            "value": 1,
+            "if": {
+              "calc": "hand_no > hands_per_deal"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "scoring",
+      "label": "after the last deal",
+      "when": {
+        "calc": "deal_no > len(players) * deals_per_player"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "deal_no > len(players) * deals_per_player"
+      },
+      "rank_by": "you.score * 100 - you.tide",
+      "text": "Winner: {result}. Final [seat, score, final tide]: {[[p.seat, p.score, p.tide] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 40,
+    "rounds_max": 40,
+    "actions_max": 3000,
+    "deadline_s": 120
+  },
+  "rules": "SETUP. With P players, the Weather deck is the cards 1 to {weather_cards_per_player} x P, each number once. It is shuffled and each player is dealt {hand_size} cards face down as their hand. The remaining P cards ({set_aside_cards_per_player} per player) are set aside face down and are never shown. Everyone starts with a game score of 0. The game has P deals of {hands_per_deal} hands each.\n\nINFORMATION. You always see your own hand. Every Weather card becomes public the moment it is played and stays face up in front of whoever played it until the end of that deal. Unplayed cards and set-aside cards are never shown.\n\nSTART OF EACH DEAL: the Tide deck of cards 1 to {tide_deck_size} is shuffled; every Tide level is set to {tide_start_level}; every player gets {lifelines_per_deal} lifelines; every Sunk status is cleared. From deal 2 on, each player takes the 10 Weather cards face up in front of them plus the 1 card still in their hand (11 cards) and passes them as a hand to the player on their left; the face-up rows are emptied.\n\nEACH HAND:\n1. The next two Tide cards are revealed. The smaller is Low Tide, the larger is High Tide.\n2. Every player secretly chooses one Weather card from their hand. All are revealed at once and placed face up in front of whoever played them.\n3. The player who played the highest Weather card sets their Tide level to Low Tide. The player who played the second highest sets their Tide level to High Tide. Everyone else keeps their Tide level. Numbers are unique, so there are no ties. Sunk players take part in this step like anyone else.\n4. Among players who are NOT Sunk, find the highest Tide level. Every non-Sunk player at that level loses 1 lifeline; a player who must lose a lifeline while at 0 lifelines becomes Sunk instead. Players below that level lose nothing. A Sunk player stays Sunk until the next deal, keeps playing cards and is ignored in this step. If every player is Sunk, nothing happens.\n5. All cards played, Tide levels, lifelines and Sunk statuses are announced.\n\nEND OF EACH DEAL (after hand {hands_per_deal}): each player who is not Sunk adds their remaining lifelines (0 to {lifelines_per_deal}) to their score; each Sunk player subtracts {sunk_penalty}; among players who are not Sunk, the player or players with the lowest Tide level each add {lowest_tide_bonus}. After each deal every player holds exactly 1 unseen card.\n\nThere is no talk.\n\nEND. After deal P the game ends. The highest game score wins. If several players tie for the highest score, the tied player with the lowest Tide level at the end of the last deal wins. Players still tied on both share the win."
+}

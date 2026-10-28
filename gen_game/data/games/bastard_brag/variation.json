@@ -1,0 +1,171 @@
+{
+  "original_summary": "Bastard Brag is a 3-card Brag variant. Players take turns swapping cards with a three-card table hand (one card face up, two face down) or swapping their whole hand for it, until someone knocks. In the lives version the worst hand at showdown loses a life, and the last player with lives wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Only the single worst hand is punished, so no fixed policy is safe. Always knocking at once locks in a random hand and risks the penalty. Never knocking leaves the timing to others. Always taking the face-up card tells everyone what you hold. Seat order rotates, so no seat keeps an edge."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Any one deal is noisy. Over several lives, though, the better player wins more often: they track what others take and leave, choose between blind and open swaps, and time the knock. The betting version adds bluffing, but it relies on chips and pot sizes the platform cannot reward."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A weak player still survives deals, because only the worst hand loses. A strong player improves through card counting, reading the exposed cards, knock timing and judging when a mediocre hand is good enough."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands and the face-down table cards are hidden. The announcements (what was taken, what was left, what was exposed) let a player infer what opponents hold. Knocking is a bet on where you rank among the hidden hands."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Hand ranking and life loss are mechanical. Suit tie-breaks and flushes add bookkeeping but need no judge."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "Turn-based and text-only. However, 3 to 10 players, a 52-card deck with suits and flushes, open-ended knocking and the betting version push past the step limits and need a lookup the engine lacks. The previous variation also left several cases undefined and was over its step budget."
+    }
+  ],
+  "problems": [
+    "The previous variation did not say who wins when every remaining player ties for the lowest score and would reach 0 lives, nor what happens when a knocker is eliminated alongside others.",
+    "The previous variation defined a round as one player's turn, but a knock round held up to 4 actions, so the 40-round cap and the forced-showdown count were ambiguous.",
+    "The step budget did not fit: a 4-player knock round needed 4 choices plus scoring of 4 hands, life loss, elimination and a full redeal, all in one round.",
+    "The previous variation did not say whether runs wrap, whether the shuffle shares a round with the showdown (only 1 random draw is allowed per round), or whether a knock counts as a turn.",
+    "With knocks allowed from any seat mid-pass, players who acted earlier in the pass would get no final action, or the round would have to wrap around.",
+    "Suits, flushes and suit tie-breaks in the original need lookup tables the engine lacks.",
+    "The betting version's chip pot cannot be rewarded by a platform that only decides a winner."
+  ],
+  "changes": [
+    {
+      "what": "Fix the game at exactly 3 players, each with 3 lives.",
+      "why": "This caps a round at 3 choices and 3 hand scores, which brings the round inside the step budget.",
+      "fixes": "The step budget did not fit: a 4-player knock round needed 4 choices plus scoring of 4 hands, life loss, elimination and a full redeal, all in one round."
+    },
+    {
+      "what": "Define a round as one pass in which every active player takes exactly one action, starting with that round's leader. The leader moves one active player clockwise every round. Only the leader may knock, and not in the first round of a deal. After a knock, the other players' turns in that same round are their final actions.",
+      "why": "A round now always holds one action per active player. Every non-knocker gets exactly one final action without the pass wrapping around. Because the leader rotates, every player gets knock chances.",
+      "fixes": "The previous variation defined a round as one player's turn, but a knock round held up to 4 actions, so the 40-round cap and the forced-showdown count were ambiguous."
+    },
+    {
+      "what": "Same rule, applied to the knock: since the knocker always acts first in the round, every other player acts after the knock.",
+      "why": "No player who acted earlier in the pass misses a final action.",
+      "fixes": "With knocks allowed from any seat mid-pass, players who acted earlier in the pass would get no final action, or the round would have to wrap around."
+    },
+    {
+      "what": "Force a showdown at the end of deal-round 4 when 3 players are active, or deal-round 3 when 2 are active. The deal-round counter counts the rounds of the current deal.",
+      "why": "This gives a clear, countable end to each deal. With the rotating leader it also gives each player exactly one chance to knock in a full deal.",
+      "fixes": "The previous variation defined a round as one player's turn, but a knock round held up to 4 actions, so the 40-round cap and the forced-showdown count were ambiguous."
+    },
+    {
+      "what": "Add the rule: if all remaining players tie for the lowest score, nobody loses a life. Losing lives can then never eliminate everyone. Otherwise the knocker's double penalty applies as normal, and survivors continue.",
+      "why": "This closes the empty-table case. A lowest-score tie is the only way every remaining player could reach 0.",
+      "fixes": "The previous variation did not say who wins when every remaining player ties for the lowest score and would reach 0 lives, nor what happens when a knocker is eliminated alongside others."
+    },
+    {
+      "what": "Score each hand with one arithmetic formula on its sorted cards. The showdown only sets a redeal flag. The shuffle and deal happen at the start of the next round.",
+      "why": "Scoring needs no lookup and takes 1 step. The shuffle never shares a round with the showdown, so each round has at most 1 random draw.",
+      "fixes": "The step budget did not fit: a 4-player knock round needed 4 choices plus scoring of 4 hands, life loss, elimination and a full redeal, all in one round."
+    },
+    {
+      "what": "State explicitly: runs do not wrap; a knock is the knocker's action for that round; each action is a single compound choice (action type, own card, slot, card to expose).",
+      "why": "This removes the remaining ambiguities.",
+      "fixes": "The previous variation did not say whether runs wrap, whether the shuffle shares a round with the showdown (only 1 random draw is allowed per round), or whether a knock counts as a turn."
+    },
+    {
+      "what": "Keep the suitless 36-card deck (values 1 to 9, four of each) and the prial > run > pair > high card ranking. Drop the betting version.",
+      "why": "The suitless deck removes flushes and suit tie-breaks. The ranking order matches the real frequencies in this deck (prial 36, run 448, pair 1728 of the 7140 possible hands). The chip pot cannot be rewarded, so the lives game is the version to keep.",
+      "fixes": "Suits, flushes and suit tie-breaks in the original need lookup tables the engine lacks."
+    },
+    {
+      "what": "Use only the lives version, and decide the winner by survival and lives.",
+      "why": "The platform decides only a winner, so a chip pot has nothing to pay into.",
+      "fixes": "The betting version's chip pot cannot be rewarded by a platform that only decides a winner."
+    }
+  ],
+  "keeps": [
+    "A three-card table hand with one card face up and two face down",
+    "The three exchange options: take the face-up card, make a blind swap, or swap the whole hand and expose one card",
+    "Knocking to freeze your hand, followed by one final exchange for every other player",
+    "Lives: the worst hand loses one, players are eliminated at 0, and the last survivor wins",
+    "Prial is the top hand, 3-3-3 is the best prial, and 1-2-3 (A-2-3) is the best run",
+    "Knocking is risky: a knocker who ends with the worst hand is punished harder"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core (hidden hands, informative announcements, knock timing, worst-hand elimination) is strong reasoning material. The revision fixes the undefined end case, the round definition and the step budget."
+  },
+  "variation": {
+    "name": "Knock Brag (3-player)",
+    "summary": "Three players each hold three hidden cards and trade with a three-card table hand (one card face up) while every exchange is announced. The round's leader may knock to freeze their hand, after which the others get one final action. The worst hand at the showdown loses a life, a knocker who ends worst loses two, and the last player standing wins.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "PLAYERS AND LIVES: Exactly 3 players, in seats 1, 2 and 3 clockwise. Each starts with 3 lives. A player at 0 lives is eliminated and takes no further part. The others are 'active'.\n\nDECK: 36 cards, four copies each of the values 1, 2, 3, 4, 5, 6, 7, 8 and 9. There are no suits.\n\nHAND SCORE (used at the showdown): Sort a hand's three values so that a <= b <= c.\n- Prial (a = c): 300 + a. Exception: 3-3-3 scores 310.\n- Run (b = a+1 and c = b+1): 200 + c. Exception: 1-2-3 scores 210. Runs do not wrap: 8-9-1 and 9-1-2 are not runs.\n- Pair (a = b or b = c, but not a prial): 100 + 10 x b + (a + c - b). That is 100 + 10 x the pair value + the odd card.\n- High card (anything else): a + b + c.\nHigher is better.\n\nROUNDS, LEADER AND DEALS: The game is played in rounds, at most 40. In each round every active player takes exactly one action, in clockwise order starting with that round's leader. Seat 1 leads round 1. In each later round the leader is the next active player clockwise from the previous round's leader. This rotation continues across deals and skips eliminated players. A 'deal' is the series of rounds from one dealing of the cards to its showdown. The deal-round counter is 1 in the first round of a deal, 2 in the second, and so on.\n\nDEALING: At the very start of round 1, and at the start of every round that follows a showdown, the deck of 36 is shuffled (the round's one random event). Each active player receives 3 cards face down that only they see. Three cards go to the table: slot U face up, seen by everyone, and slots D1 and D2 face down, seen by nobody. The value of U is announced. The rest of the deck is not used in this deal.\n\nACTIONS: On your turn choose exactly one action. Give it as a single choice that includes every detail needed (which action, which of your cards, which slot, which card to expose).\n(a) TAKE UP: swap one of your cards for the face-up card U. The card you give becomes the new face-up U. Announced: 'X took the face-up [value] and left a face-up [value]'.\n(b) BLIND: swap one of your cards for D1 or D2 (your choice of slot) without seeing it first. Your card goes face down into that slot. You now see the card you received. Announced: 'X made a blind swap with D1' (or D2).\n(c) WHOLE HAND: take all three table cards into your hand; you now see them. Your old three cards become the table hand. You choose which of them goes face up as U; the other two go face down into D1 and D2. Announced: 'X swapped the whole hand and exposed a [value]'.\n(d) KNOCK: keep your hand and make no exchange. Only the round's leader may knock, and only when the deal-round counter is 2 or more. A knock is the knocker's action for that round. Announced: 'X knocks'.\n\nAFTER A KNOCK: The remaining active players in that same round (everyone after the knocker in clockwise order) each take their action as normal, but must choose (a), (b) or (c). These are their final actions. The showdown then happens at the end of that round.\n\nFORCED SHOWDOWN: If nobody has knocked, the showdown happens at the end of the round whose deal-round counter equals the number of active players plus 1. That is the end of deal-round 4 when 3 players are active, or deal-round 3 when 2 are active. There is no knocker.\n\nSHOWDOWN (at the end of the round): All active hands are revealed and scored, and every player's score is announced and recorded as their 'last showdown score'. If every active player has the same score, nobody loses a life. Otherwise every player with the lowest score loses 1 life, except a knocker with the lowest score, who loses 2 lives. Players at 0 lives or fewer are eliminated. The next round then begins with a new deal and the deal-round counter at 1. If no showdown happened, the deal-round counter rises by 1 for the next round.\n\nEND: The game ends at once when only one active player remains, or at the end of round 40.",
+    "objective": "If only one player remains, that player wins. If round 40 ends with two or three players still active, the player with the most lives wins. A tie on lives is broken by the higher last showdown score among the tied players. If they are still tied, or if no showdown has yet happened, the game is a draw between them.",
+    "expected_effect": "Each deal becomes a short inference contest. Take-up and whole-hand actions reveal values while blind swaps hide them, so players must track exposed cards to estimate opponents' hands and the face-down slots. Choosing the action is also a choice about how much to reveal. The rotating leader gives every player knock chances. Knocking early on a decent hand denies the others time to improve, but the double penalty makes a knock on a weak hand costly, so knocking is a calculated bet on one's rank. Only the single worst hand is punished, so a merely average hand often survives; the skill is judging 'good enough' from the signals. The all-tied rule and the fixed round structure make every case defined. Talk is left out: all three players want the others to lose, and talk would add bluffing words without changing the information, which comes from the forced announcements."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 17,
+    "choice_steps_per_round": 3,
+    "attributes": 14,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "HAND SCORE BANDS (no overlap): prial 301-310, with 3-3-3=310 on top and 9-9-9=309. Run 203-210: 2-3-4=204 up to 7-8-9=209, and 1-2-3=210. Pair 111-198: 1-1-2=112 at the bottom, 9-9-8=198 at the top. High card 7-23. Every pair is below every run, and the ordering matches the original's prial>run>pair>high. RANDOM-HAND FREQUENCIES (C(36,3)=7140): prial 36 (0.5%), run 7x64=448 (6.3%), pair 9x6x32=1728 (24.2%), high card 4928 (69.0%). The lowest hand at a 3-4 player showdown is almost always a high card, so being bottom is decided by small sum differences, which improving actions can change. DECISION TABLE for a mid-deal turn: TAKE UP gives a known card, can complete a pair or run, and hands U to the next player. BLIND gives an unknown card, information hidden from the table. WHOLE HAND gives 3 cards, partly known from earlier announcements, and exposes one card. KNOCK keeps the hand, forgoes an exchange, gives every other player one more action, and costs 2 lives if you are bottom. THOUGHTLESS POLICIES under the winner rule (lowest loses lives, last survivor or most lives wins): (1) Always KNOCK at first chance. A random hand is bottom about 1/3 of the time with 3 players, about 1/4 with 4, so the expected cost is about 0.67 or 0.5 lives per deal, against about 0.33 or 0.25 for a non-knocker. It also forfeits its own exchange while opponents still improve. It loses against sensible and against random play. (2) Always TAKE UP. It cannot keep a prial or run unless U matches, and its discards are visible, so opponents can read its hand. It beats random play, which is acceptable, but it is not unbeatable against sensible play, which can knock on a made hand or blind-swap. (3) Always WHOLE HAND. It takes the previous player's rejected cards or the original table cards and exposes information. It is often bottom, so it loses. (4) Always BLIND. This is a random walk on the hand, close to random play. No action is strictly best: TAKE UP's value depends on U, and KNOCK's value depends on hand strength (good with a prial or run, terrible with a high card). No policy avoids losing lives in every case. SEATS: the starter rotates each deal, which evens out first access to U and acting last before a forced showdown. Seat 1's first-deal start is a small edge that is not decisive. Both or all players can realistically win."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "(1) MISSING END CASE. Showdown rule: 'Every player with the lowest score (all tied players if several) loses 1 life.' With 2 remaining players at 1 life each who tie for lowest, or 3 players all at 1 life tying, every remaining player reaches 0 and is eliminated. The END rule only covers 'only one player remains' or round 40. The design does not say who wins when zero players remain. A knocker on 2 lives in the 4-player game can also be eliminated alongside others. (2) CONTRADICTORY ROUND DEFINITION. 'Each round is one turn of the active player', yet 'AFTER A KNOCK: In the same round, each other active player ... makes one final action'. A knock round therefore contains up to 4 player actions, and the 40-round cap and forced-showdown count ('every active player has taken 2 turns ... at the end of that round') are ambiguous about what a round is. (3) STEP BUDGET IMPLAUSIBLE. A knock round with 4 players needs: knocker choice, 3 final-action choices (each with action type, own card, slot and exposed card, applied through table/hand updates), a reveal, scoring of 4 hands (each needing prial, run and pair tests, sorting and calc, with no lookup operation, roughly 4-6 steps per hand), finding the minimum, life loss with the knocker doubling, elimination, then shuffling and dealing 15 cards to hands and slots and advancing the starter. That is far over 19 steps. The choice limit of 4 is only met if each action is one compound choice. (4) MINOR AMBIGUITIES. It does not say whether runs wrap (9-1-2). It does not say whether the new deal's shuffle happens in the same round as the showdown (the random-draw budget allows only 1 per round). It does not say whether a KNOCK counts as one of the '2 turns'. (5) TALK. There is no talk phase. This is acceptable here, because inference comes from mandatory announcements and everyone's interests conflict. No board, clock or judge is needed."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance: one shuffle per deal sets the starting hands and the hidden D1/D2. About 69% of starting hands are high card, and a player gets only 2 actions per deal (or 1 plus a final action), so the deal matters a lot in any single showdown. Rough estimate: 50-60% of a single deal's loser is luck. Over the 4-8 deals of a game, skill accumulates. Skill levers: (a) tracking public information (every TAKE UP reveals both cards, every WHOLE HAND exposes one card, and the slots persist across turns), which lets players infer opponents' hands and the contents of D1/D2 after their own blind swaps. (b) Discard choice, since a high card left face up can hand the next player a pair. (c) Knock timing: knock only with a prial or run, and read others' knocks as strength. (d) End-of-deal risk management, since only the bottom hand loses. With everyone playing well, the loser is the player whose deal plus exchanges came out worst. That is not decided by the draw alone, because exchanges routinely turn a high card into a pair (TAKE UP of a matching card). A reasoning player is clearly favoured over a random one, who will make poor swaps and knock blindly at a 2-life cost."
+        },
+        "required_changes": [
+          "Add a simultaneous-elimination rule, e.g. 'If every remaining player would reach 0 lives, those players instead stay at 1 life and the deal is replayed' or 'the player with the higher score at that showdown wins; if equal, draw'.",
+          "Redefine a round consistently, e.g. 'a round is one full clockwise pass in which every active player takes one action'. A knock then ends the round, and the knock's final actions are that round's remaining turns. Restate the forced showdown and the 40-round cap in these terms.",
+          "Bring the step budget within 20. Precompute hand score with a single calc formula per hand, or reduce to 3 players fixed. Move the redeal (shuffle plus dealing) into the next round's opening so showdown scoring and dealing do not share one round. Show the step list to prove it fits.",
+          "State that runs do not wrap (9-1-2 is not a run), that a KNOCK counts as a turn for the 2-turn limit, and that each action (type, own card, slot, exposed card) is made as one compound choice."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SCORE LADDER. Prial 301-310 > run 204-210 > pair 112-198 > high card 6-23. The bands never overlap: the best pair, 9-9-8, scores 100+90+8=198, below the lowest run, 2-3-4=204. The lowest pair, 1-1-2, scores 112, above the best high card, 9+8+6=23. The exceptions 3-3-3=310 and 1-2-3=210 are explicit and consistent.\n\nRARITY of a random 3-card hand (C(36,3)=7140):\n- Prial: 9 values x 4 ways = 36 hands (0.5%).\n- Run: 7 runs x 64 = 448 hands (6.3%).\n- Pair: 9 values x 6 x 32 = 1728 hands (24.2%).\n- High card: 4928 hands (69.0%).\nThe rarer the category, the higher it scores, so the labelled ordering matches the arithmetic.\n\nTHOUGHTLESS POLICIES under the winner rule (lowest showdown score loses lives; last player remaining wins):\n- Always TAKE UP (first option). This only cycles the public card. It never builds through the hidden D slots and announces every move. Each showdown it is lowest about 1/3 of the time against random play, and more often against sensible play, which assembles pairs and runs from the 3 circulating table cards. It loses lives at least at the base rate, so it does not never-lose.\n- Always KNOCK when allowed, otherwise anything. The knocker freezes a hand that is 69% high card. Both opponents then get a final exchange with knowledge of the knock. The knocker's chance of being lowest is about 0.4 or more, and that costs 2 lives. Expected loss is about 0.8 lives per knock, against about 0.33 for a non-knocker. This loses fast.\n- Always WHOLE HAND. You inherit a table hand whose U is public and whose D cards are often known to whoever deposited them. You hand your own cards to the next player. This is worse than random.\n- No option is strictly better whatever opponents do. Knocking trades keeping your hand against double jeopardy. Take-up is safe but slow, blind is informative but uncertain, and whole-hand is a big gamble.\n\nNO NEVER-LOSE POLICY EXISTS. Lives are lost at a showdown by whoever is lowest. Nobody can guarantee not being lowest, and holding still is impossible: non-leaders must always exchange, and only the leader may knock, at risk of losing 2 lives.\n\nSEAT AND ORDER. In deal 1, seat 3 acts last in the forced-showdown round and seat 1 is the round-4 leader who may knock. The leader advances one seat per round. A 4-round deal shifts the deal-opening leader by +1 (4 mod 3), so the last-mover advantage and the knock rights rotate across deals. Knock-shortened deals change the shift, but players choose that. Over roughly 3-10 deals no seat holds a structural edge. All three players can realistically win.",
+          "_": ""
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS.\n- The deck, hand scoring (with tie behaviour) and the 4 actions are fully specified. Each action has its announcement text.\n- Leader rotation is defined across deals and eliminations, including when the previous leader has just been eliminated (next active player clockwise from that seat).\n- The knock window (leader only, deal-round 2 or later) and the post-knock final actions are defined: the others must use (a), (b) or (c).\n- The forced showdown is defined: end of deal-round 4 with 3 active players, deal-round 3 with 2.\n- Life loss is defined, with ties at the lowest all losing, a lowest knocker losing 2, and an all-tie losing nothing.\n- Edge cases are covered:\n  - All players eliminated at once is impossible. Three tied means nobody loses; two active and tied means equal, so nobody loses.\n  - Round 40 ending mid-deal is decided by lives, then last showdown score, then a draw.\n\nKNOWLEDGE. Knowledge of D cards you deposited follows from your own history. This is implicit but unambiguous to a model with the transcript.\n\nFINITENESS AND ARITHMETIC. The game is finite (at most 40 rounds). The winner comes from lives and scores the game keeps. The hand score can be calculated: min, max and middle (sum minus min minus max), then if-tests for prial, run and pair.\n\nLIMITS.\n- Steps: 17 of 20.\n- Choice steps: 3 of 4. There is one sequential choice per active player per round. Each choice carries about 13 options: 3 take-up, 6 blind, 3 whole-hand exposures, plus knock.\n- Attributes: 14 of 20.\n- Hidden elements: 3 of 3 (private hands, D1, D2).\n- Random draws: 1 per round, the shuffle at a deal round. Dealing 12 cards uses the shared-deck remove/append workaround inside the stated budget. This is tight but plausible, given that one step can carry several operations with ifs.\n- Rounds: 40 of 40.\n- No board, judge, clock, trading or binding agreements are needed. The order is the point of the game, so sequential choice is the correct primitive.\n\nTALK. Omitting a talk phase is sensible. Every action is public and sequential, with the card taken and the card left or exposed announced. Players therefore reason from observed moves rather than guessing blindly. Talk would mostly be unenforceable cheap words on a pure individual-loser showdown.\n\nNOT A REPEATED FIXED-LENGTH COOPERATION GAME. The betrayal check does not apply.",
+          "_": ""
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE. The deal matters. Only 12 cards are in play per deal: 9 in hands and 3 on the table. Players can improve only through the 3 circulating table cards. A strong initial hand (pair or better, about 31%) is a real head start.\n\nSKILL LEVERS.\n- Tracking. Every take-up reveals the taken and left values, and every whole-hand swap reveals one exposed value. With only 4 copies of each value, counting sharply limits what opponents can hold. For example, 'took a 7, left a 2' signals collecting 7s or a 6-7-8 run.\n- Hidden slots. You know D cards you deposited, so a 'blind' swap into your own slot can be a known swap that others cannot read.\n- Forced exchange. Non-leaders must exchange every turn. Protecting a pair (swap the odd card) or a prial (needs U to match or a known D slot) is a planning problem.\n- Knock timing. Knocking freezes your hand, forces two final exchanges and risks 2 lives. Whether to knock depends on reading how far opponents have improved.\n- Denial. You can leave a useless U to starve the next player's visible needs.\n- Lives state. Targeting and caution shift as lives drop.\n\nESTIMATE. The result is roughly 35-45% chance per showdown. This is diluted across about 4-10 showdowns before anyone is eliminated, since 9 lives are in play.\n\nEQUAL GOOD PLAY. If all players play the intended good strategy, the winner is not fixed by one hidden type or deal. Lives are lost over many deals, and each deal's outcome is shaped by 3-4 rounds of informed exchanges. Strong reasoning, through counting, inference from announcements, knock timing and denial, is clearly favoured over thoughtless play. The knock policy alone costs about 0.8 lives per use, against a base rate of about 0.33.",
+          "_": ""
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

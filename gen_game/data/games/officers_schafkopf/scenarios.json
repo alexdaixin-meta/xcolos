@@ -1,0 +1,1657 @@
+[
+  {
+    "name": "Deal: each seat gets 8 cards, 8 go to the blind, the deck is left empty (one trick played, so 7 cards remain in each hand)",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "blind": 8,
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 7
+          },
+          "2": {
+            "hand": 7
+          }
+        }
+      }
+    },
+    "rule_text": "When a hand starts, then each player receives 8 cards from the 24-card deck into hand, and the other 8 go to blind, which is never played or scored."
+  },
+  {
+    "name": "Hand 2: seat 2 has priority, so equal Simple bids go to seat 2",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "hand_number": 2,
+        "trick_number": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Acorns-Simple"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wenz-Simple"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 2,
+        "contract": "Wenz",
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When it is hand 1 or 3, then priority_seat is 1; when it is hand 2 or 4, then priority_seat is 2."
+  },
+  {
+    "name": "Both seats are offered all bid options",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Pass"
+        },
+        {
+          "seat": 1,
+          "option": "Bells-Strong"
+        },
+        {
+          "seat": 1,
+          "option": "Wenz-Simple"
+        },
+        {
+          "seat": 2,
+          "option": "Pass"
+        },
+        {
+          "seat": 2,
+          "option": "Hearts-Strong"
+        },
+        {
+          "seat": 2,
+          "option": "Leaves-Simple"
+        }
+      ]
+    },
+    "rule_text": "When a hand starts, then both players bid simultaneously, choosing one of 11 options: Pass, or one of Wenz/Acorns/Leaves/Hearts/Bells at the Simple or Strong level."
+  },
+  {
+    "name": "Both pass: Ramsch with no declarer and no double question",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Pass"
+      },
+      {
+        "seat": 2,
+        "options_include": "Pass"
+      }
+    ],
+    "expect": {
+      "game": {
+        "contract": "Ramsch",
+        "declarer_seat": 0
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Double"
+        },
+        {
+          "seat": 2,
+          "option": "Double"
+        }
+      ]
+    },
+    "rule_text": "When both players pass, then contract is Ramsch and nobody is declarer."
+  },
+  {
+    "name": "Strong beats Simple even against the priority seat",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Hearts-Simple"
+      },
+      {
+        "seat": 2,
+        "options_include": "Leaves-Strong"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 2,
+        "contract": "Leaves"
+      }
+    },
+    "rule_text": "When one player bids Strong and the other bids Simple or Pass, then the Strong bidder is declarer."
+  },
+  {
+    "name": "Simple against Pass: the Simple bidder declares",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Pass"
+      },
+      {
+        "seat": 2,
+        "options_include": "Bells-Simple"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 2,
+        "contract": "Bells"
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Double"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Double"
+        }
+      ]
+    },
+    "rule_text": "When one player bids Simple and the other passes, then the Simple bidder is declarer."
+  },
+  {
+    "name": "Hand 1: equal Strong bids go to priority seat 1",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Hearts-Strong"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wenz-Strong"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 1,
+        "contract": "Hearts"
+      }
+    },
+    "rule_text": "When both players bid at the same level, then the priority player's bid wins, whatever the contracts."
+  },
+  {
+    "name": "Resolved contract and declarer are set after the bids",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Acorns-Simple"
+      },
+      {
+        "seat": 2,
+        "options_include": "Pass"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 1,
+        "contract": "Acorns"
+      }
+    },
+    "rule_text": "When the bids are resolved, then both bids and the resulting contract are announced to both players."
+  },
+  {
+    "name": "Only the defender is asked Double or No double",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wenz-Simple"
+      },
+      {
+        "seat": 2,
+        "options_include": "Pass"
+      },
+      {
+        "seat": 2,
+        "options_include": "Double"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 1,
+        "contract": "Wenz"
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "No double"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Double"
+        },
+        {
+          "seat": 1,
+          "option": "No double"
+        }
+      ]
+    },
+    "rule_text": "When the hand is not Ramsch, then the defender chooses Double or No double, and the choice is announced."
+  },
+  {
+    "name": "Wenz: an Ober is a plain card and beats a Nine of its suit",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Acorns Ober"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Acorns Nine",
+            "Bells Ace"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 3
+        },
+        "2": {
+          "card_points": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Bells Ace"
+        }
+      ]
+    },
+    "rule_text": "When the contract is Wenz or Ramsch, then the only trumps are the 4 Unters, ranked Acorns > Leaves > Hearts > Bells, and plain suits rank Ace > Ten > King > Ober > Nine."
+  },
+  {
+    "name": "Wenz: an Unter is a trump and beats a led Ace",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Hearts Unter",
+            "Leaves King"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Hearts Unter"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 0
+        },
+        "2": {
+          "card_points": 13
+        }
+      }
+    },
+    "rule_text": "When the contract is Wenz or Ramsch, then the only trumps are the 4 Unters, ranked Acorns > Leaves > Hearts > Bells, and plain suits rank Ace > Ten > King > Ober > Nine."
+  },
+  {
+    "name": "Ramsch: Acorns Unter outranks Leaves Unter",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Leaves Unter"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Acorns Unter",
+            "Hearts Ace"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Ramsch",
+        "level": "",
+        "declarer_seat": 0,
+        "defender_seat": 0,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 0
+        },
+        "2": {
+          "card_points": 4
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Hearts Ace"
+        }
+      ]
+    },
+    "rule_text": "When the contract is Wenz or Ramsch, then the only trumps are the 4 Unters, ranked Acorns > Leaves > Hearts > Bells, and plain suits rank Ace > Ten > King > Ober > Nine."
+  },
+  {
+    "name": "Hearts solo: Bells Ober is a trump above Hearts Ace",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Hearts Ace"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Bells Ober",
+            "Acorns Ace"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Hearts",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Ober",
+          "Leaves Ober",
+          "Hearts Ober",
+          "Bells Ober",
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter",
+          "Hearts Ace",
+          "Hearts Ten",
+          "Hearts King",
+          "Hearts Nine"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 0
+        },
+        "2": {
+          "card_points": 14
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Acorns Ace"
+        }
+      ]
+    },
+    "rule_text": "When the contract is a suit solo, then there are 12 trumps ranked: the 4 Obers (Acorns > Leaves > Hearts > Bells), then the 4 Unters in the same order, then Ace, Ten, King, Nine of the named suit; the other suits rank Ace > Ten > King > Nine."
+  },
+  {
+    "name": "Hearts solo: Bells Unter beats Hearts Nine (both trumps)",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Unter"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Hearts Nine",
+            "Acorns Ace"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Hearts",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Ober",
+          "Leaves Ober",
+          "Hearts Ober",
+          "Bells Ober",
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter",
+          "Hearts Ace",
+          "Hearts Ten",
+          "Hearts King",
+          "Hearts Nine"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 2
+        },
+        "2": {
+          "card_points": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Acorns Ace"
+        }
+      ]
+    },
+    "rule_text": "When the contract is a suit solo, then there are 12 trumps ranked: the 4 Obers (Acorns > Leaves > Hearts > Bells), then the 4 Unters in the same order, then Ace, Ten, King, Nine of the named suit; the other suits rank Ace > Ten > King > Nine."
+  },
+  {
+    "name": "First trick: the declarer (seat 2) is set up to lead (only the declarer is observable; chance hides the cards)",
+    "rule": "R12",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Pass"
+      },
+      {
+        "seat": 2,
+        "options_include": "Leaves-Simple"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 2,
+        "contract": "Leaves"
+      }
+    },
+    "rule_text": "When it is the first trick of a hand, then the declarer leads, or the priority player leads in Ramsch."
+  },
+  {
+    "name": "The winner of a trick leads the next one",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Nine",
+            "Acorns King"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Bells Ace",
+            "Leaves Ten"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Bells Nine"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 0
+        },
+        "2": {
+          "card_points": 25
+        }
+      }
+    },
+    "rule_text": "When a trick after the first starts, then the previous trick's winner leads."
+  },
+  {
+    "name": "Trump led: a follower holding a trump must play one",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Acorns Unter"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Bells Unter",
+            "Acorns Ace"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 4
+        },
+        "2": {
+          "card_points": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Bells Unter"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Acorns Ace"
+        }
+      ]
+    },
+    "rule_text": "When a trump is led and the follower holds a trump, then the follower must play a trump."
+  },
+  {
+    "name": "Plain suit led: must follow with a non-trump of that suit (the trump Ober of the suit does not count)",
+    "rule": "R15",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Acorns King"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Acorns Nine",
+            "Acorns Ober",
+            "Hearts Ace"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Hearts",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Ober",
+          "Leaves Ober",
+          "Hearts Ober",
+          "Bells Ober",
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter",
+          "Hearts Ace",
+          "Hearts Ten",
+          "Hearts King",
+          "Hearts Nine"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 4
+        },
+        "2": {
+          "card_points": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Acorns Nine"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Acorns Ober"
+        },
+        {
+          "seat": 2,
+          "option": "Hearts Ace"
+        }
+      ]
+    },
+    "rule_text": "When a plain suit is led and the follower holds a non-trump card of that suit, then the follower must play one."
+  },
+  {
+    "name": "Cannot follow: any card may be played, a discard loses",
+    "rule": "R16",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Leaves Ace"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Bells Ten",
+            "Hearts Unter"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Bells Ten"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 21
+        },
+        "2": {
+          "card_points": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Hearts Unter"
+        }
+      ]
+    },
+    "rule_text": "When the follower cannot follow as required, then the follower may play any card."
+  },
+  {
+    "name": "A trump played on a plain lead wins the trick",
+    "rule": "R17",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Leaves Ace"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Acorns Nine",
+            "Bells King"
+          ],
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Acorns",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Ober",
+          "Leaves Ober",
+          "Hearts Ober",
+          "Bells Ober",
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter",
+          "Acorns Ace",
+          "Acorns Ten",
+          "Acorns King",
+          "Acorns Nine"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Acorns Nine"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 0
+        },
+        "2": {
+          "card_points": 11
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Bells King"
+        }
+      ]
+    },
+    "rule_text": "When a trick contains a trump, then the highest trump wins it; otherwise the higher card of the led suit wins it."
+  },
+  {
+    "name": "Trick winner adds both cards' points to its total",
+    "rule": "R18",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Hearts Ten"
+          ],
+          "card_points": 20
+        },
+        "2": {
+          "hand": [
+            "Hearts King"
+          ],
+          "card_points": 5
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 34
+        },
+        "2": {
+          "card_points": 5
+        }
+      }
+    },
+    "rule_text": "When a trick is won, then the winner's card_points increase by the card points of both cards (Ace 11, Ten 10, King 4, Ober 3, Unter 2, Nine 0)."
+  },
+  {
+    "name": "After a trick both card_points totals reflect the result",
+    "rule": "R19",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Leaves Ten"
+          ],
+          "card_points": 7
+        },
+        "2": {
+          "hand": [
+            "Leaves King",
+            "Hearts Ober"
+          ],
+          "card_points": 9
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 2,
+        "contract": "Hearts",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Ober",
+          "Leaves Ober",
+          "Hearts Ober",
+          "Bells Ober",
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter",
+          "Hearts Ace",
+          "Hearts Ten",
+          "Hearts King",
+          "Hearts Nine"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 21
+        },
+        "2": {
+          "card_points": 9
+        }
+      }
+    },
+    "rule_text": "When a trick ends, then both cards, the winner and both card_points totals are announced."
+  },
+  {
+    "name": "Simple made at exactly D = F + 10: declarer gains 2, hand advances",
+    "rule": "R20",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 49
+        },
+        "2": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 50
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 2,
+          "card_points": 0
+        },
+        "2": {
+          "match_points": 0,
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When a Simple contract ends, then it is made if the declarer's card points D >= the defender's card points F + 10."
+  },
+  {
+    "name": "Simple missed by one point (D = F + 9): defender gains 2",
+    "rule": "R20",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 48
+        },
+        "2": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 50
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 0
+        },
+        "2": {
+          "match_points": 2
+        }
+      }
+    },
+    "rule_text": "When a Simple contract ends, then it is made if the declarer's card points D >= the defender's card points F + 10."
+  },
+  {
+    "name": "Strong made at D = 2F = 40: declarer seat 2 gains 4",
+    "rule": "R21",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 20
+        },
+        "2": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 29
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Strong",
+        "declarer_seat": 2,
+        "defender_seat": 1,
+        "doubled": false,
+        "leader_seat": 2,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 0
+        },
+        "2": {
+          "match_points": 4
+        }
+      }
+    },
+    "rule_text": "When a Strong contract ends, then it is made if D >= 2 x F and D >= 30."
+  },
+  {
+    "name": "Strong fails below 30 points even with F = 0: defender gains 4",
+    "rule": "R21",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 0
+        },
+        "2": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 18
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Strong",
+        "declarer_seat": 2,
+        "defender_seat": 1,
+        "doubled": false,
+        "leader_seat": 2,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 4
+        },
+        "2": {
+          "match_points": 0
+        }
+      }
+    },
+    "rule_text": "When a Strong contract ends, then it is made if D >= 2 x F and D >= 30."
+  },
+  {
+    "name": "Failed Simple contract: the defender's match points rise by 2",
+    "rule": "R22",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 40,
+          "match_points": 3
+        },
+        "2": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 55,
+          "match_points": 1
+        }
+      },
+      "game": {
+        "hand_number": 2,
+        "trick_number": 8,
+        "contract": "Hearts",
+        "level": "Simple",
+        "declarer_seat": 2,
+        "defender_seat": 1,
+        "doubled": false,
+        "leader_seat": 2,
+        "trump_list": [
+          "Acorns Ober",
+          "Leaves Ober",
+          "Hearts Ober",
+          "Bells Ober",
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter",
+          "Hearts Ace",
+          "Hearts Ten",
+          "Hearts King",
+          "Hearts Nine"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 5
+        },
+        "2": {
+          "match_points": 1
+        }
+      },
+      "game": {
+        "hand_number": 3
+      }
+    },
+    "rule_text": "When a contract is made, then the declarer gains the stake (Simple 2, Strong 4); when it is not made, then the defender gains it."
+  },
+  {
+    "name": "Doubled Strong contract made: declarer gains 8",
+    "rule": "R23",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 39
+        },
+        "2": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 25
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Strong",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": true,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 8
+        },
+        "2": {
+          "match_points": 0
+        }
+      }
+    },
+    "rule_text": "When the defender chose Double, then the stake is doubled (Simple 4, Strong 8)."
+  },
+  {
+    "name": "Ramsch: the seat with fewer card points gains 1",
+    "rule": "R24",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 30
+        },
+        "2": {
+          "hand": [
+            "Bells Ten"
+          ],
+          "card_points": 40
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 8,
+        "contract": "Ramsch",
+        "level": "",
+        "declarer_seat": 0,
+        "defender_seat": 0,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 1
+        },
+        "2": {
+          "match_points": 0
+        }
+      }
+    },
+    "rule_text": "When a Ramsch hand ends, then the player with fewer card points gains 1 match point, and nobody scores if the card points are equal."
+  },
+  {
+    "name": "Ramsch tied on card points: nobody scores",
+    "rule": "R24",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 40
+        },
+        "2": {
+          "hand": [
+            "Bells Ten"
+          ],
+          "card_points": 30
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "trick_number": 8,
+        "contract": "Ramsch",
+        "level": "",
+        "declarer_seat": 0,
+        "defender_seat": 0,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "match_points": 0
+        },
+        "2": {
+          "match_points": 0
+        }
+      }
+    },
+    "rule_text": "When a Ramsch hand ends, then the player with fewer card points gains 1 match point, and nobody scores if the card points are equal."
+  },
+  {
+    "name": "End of hand resets both card_points to 0",
+    "rule": "R25",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 60
+        },
+        "2": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 35
+        }
+      },
+      "game": {
+        "hand_number": 2,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 1,
+        "defender_seat": 2,
+        "doubled": false,
+        "leader_seat": 1,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "card_points": 0,
+          "match_points": 2
+        },
+        "2": {
+          "card_points": 0
+        }
+      },
+      "game": {
+        "hand_number": 3
+      }
+    },
+    "rule_text": "When a hand ends, then both card_points reset to 0."
+  },
+  {
+    "name": "Match ends after hand 4: more match points wins",
+    "rule": "R26",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 40,
+          "match_points": 5
+        },
+        "2": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 50,
+          "match_points": 4
+        }
+      },
+      "game": {
+        "hand_number": 4,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 2,
+        "defender_seat": 1,
+        "doubled": false,
+        "leader_seat": 2,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 5,
+        "2": 6
+      },
+      "players": {
+        "1": {
+          "match_points": 5
+        },
+        "2": {
+          "match_points": 6
+        }
+      },
+      "game": {
+        "hand_number": 5
+      }
+    },
+    "rule_text": "When the fourth hand (round 32) ends, then the match ends, the player with more match_points wins, and equal match_points is a draw."
+  },
+  {
+    "name": "Match ends level on match points: both share the win",
+    "rule": "R26",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Bells Nine"
+          ],
+          "card_points": 40,
+          "match_points": 6
+        },
+        "2": {
+          "hand": [
+            "Bells Ace"
+          ],
+          "card_points": 50,
+          "match_points": 4
+        }
+      },
+      "game": {
+        "hand_number": 4,
+        "trick_number": 8,
+        "contract": "Wenz",
+        "level": "Simple",
+        "declarer_seat": 2,
+        "defender_seat": 1,
+        "doubled": false,
+        "leader_seat": 2,
+        "trump_list": [
+          "Acorns Unter",
+          "Leaves Unter",
+          "Hearts Unter",
+          "Bells Unter"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 6,
+        "2": 6
+      }
+    },
+    "rule_text": "When the fourth hand (round 32) ends, then the match ends, the player with more match_points wins, and equal match_points is a draw."
+  }
+]

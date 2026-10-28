@@ -1,0 +1,58 @@
+# 06 critic
+
+- time: 2026-10-28T04:07:53+00:00 (66.3s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 0193d5702d95f182, reply sha256 c32f2dc4ff05626d
+
+## Sent
+
+````
+ORIGINAL GAME: Knock Rummy
+Deal 10 cards each for 2 players, 7 for 3-4 players, 6 for 5-6 players. Place remainder as stock, flip top as upcard discard pile. On turn draw the upcard or stock top, then you may knock before discarding to end the hand. Discard one. After knock, knocker lays melds (3-4 of a kind or 3+ sequence same suit) and announces unmatched count (face =10, ace=1, others pip value, though variations exist). Others do same. Lowest unmatched wins difference from each opponent. Knocker going rummy (zero unmatched) gets +25 bonus per opponent. If knocker ties, tying player wins. If knocker is not lowest, knocker pays 10 penalty plus difference to the lowest player. If stock empties, next player may take discard top or flip discard without shuffling to new stock.
+
+PROPOSED VARIATION: Knock Rummy Duel: Open Stock
+Players: 2 to 2
+Rules: DECK: 30 cards, values 1 to 10, three copies of each value, no suits. A card is worth its value.
+
+MATCH: The match is exactly 6 hands. Player A starts hands 1, 3 and 5. Player B starts hands 2, 4 and 6. Both scores start at 0 and carry across hands.
+
+DEALING A HAND:
+1. Shuffle all 30 cards.
+2. Deal 7 cards face down to each player.
+3. KEEP: Both players secretly and at the same time choose 5 of their 7 cards to keep. Each player's 2 other cards go face down into that player's own dead pile. Only the owner knows them. They are out of play for the hand.
+4. Turn the next card face up to start the discard pile. Its top card is the 'upcard'.
+5. The remaining 15 cards form the stock. The top card of the stock is always turned face up and visible to both players (the 'stock top'). Whenever it is taken, the next stock card is turned face up.
+
+TURNS: Players alternate turns, beginning with the starter. A hand has at most 6 turns, 3 per player. On a turn the active player makes one decision with three parts:
+(a) TAKE either the upcard or the stock top. Both players see which card was taken.
+(b) DISCARD one of their 6 cards face up onto the discard pile, where it becomes the new upcard. A card taken from the upcard this turn may not be discarded this turn. A card taken from the stock top may be.
+(c) Optionally KNOCK. A knock is allowed only if the player's deadwood after the discard is 10 or less.
+If the active player knocked, the defender's final turn follows. If the 6th turn ends with no knock, a showdown with no knocker follows. Otherwise play passes to the other player.
+
+DEFENDER'S FINAL TURN: After a knock, the defender is told the knocker's deadwood k. The defender then takes the upcard or the stock top and discards one card, under the same no-same-turn-discard rule for a taken upcard. The defender may not knock. Then a showdown happens.
+
+MELDS AND DEADWOOD:
+- A meld is 3 cards of equal value, or 3 or more cards of consecutive values (such as 4-5-6 or 6-7-8-9). 10 is not next to 1.
+- A 5-card hand contains at most one meld.
+- A hand's deadwood is computed automatically as the lowest possible: the sum of its 5 cards minus the sum of the meld that leaves the smallest remainder. With no meld, it is the sum of all 5 cards.
+
+SHOWDOWN: Both hands are revealed. The dead piles are revealed too. Let k be the knocker's deadwood and d the defender's, both measured after the defender's final turn.
+- If k < d, the knocker scores d - k. If k = 0, the knocker scores 5 more.
+- If k >= d, the defender scores (k - d) + 10.
+- With no knocker (6-turn cap reached), the player with the lower deadwood scores the difference. On a tie, nobody scores.
+- No player can score more than 20 points in a single hand. Any excess is lost.
+
+AFTER A SHOWDOWN: If fewer than 6 hands have been played, deal the next hand. After the 6th showdown, the match ends.
+
+INFORMATION: Each player knows their own hand and their own dead pile. Both players see the whole discard pile, the current stock top, every card taken and from where, every discard, any knock and its k value, the hand and turn number, and both scores. The opponent's hand and dead pile and the stock below its top card stay hidden until the showdown.
+How the winner is decided: After the 6th hand, the player with the higher total score wins. Equal totals are a draw.
+The designer's stated complexity: {"steps_per_round": 16, "choice_steps_per_round": 3, "attributes": 16, "hidden_elements": 3, "random_draws_per_round": 1, "rounds": 36}
+````
+
+## Reply
+
+````
+```json
+{"balanced": {"verdict": "pass", "evidence": "SEATS: Each player starts 3 of the 6 hands, so the starter's earlier knock chance and the second player's last draw in a capped hand cancel over the match. Information is symmetric: both see the upcard, the stock top, every take and every discard; each knows only their own dead pile.\n\nKNOCK EV TABLE (estimate). After the 5-of-7 keep with no meld, the best 5 low cards sum to about 15-20 (mean card 5.5). One more draw lowers deadwood by roughly 3-6, so the defender usually sits near 12-18.\n- Knock at k=10: undercut about 20%. EV is about 0.8*(+6) - 0.2*(10+2) = +2.4.\n- Knock at k=5: undercut about 5%. EV is about 0.95*(+10) - 0.05*(12) = +8.9.\n- Knock at k=0: EV is about +15+5, with the 20 cap biting.\nKnocking low is good. Knocking at 9-10 early, when the opponent has had only a draw or two and has taken low cards, is a real risk decision. The +10 undercut and the per-hand cap of 20 are internally consistent; there is no mislabelled ordering.\n\nTHOUGHTLESS POLICIES under the WINNER RULE:\n(1) Always take the upcard, discard the first card, never knock. It never reduces deadwood deliberately and never scores as knocker. Against sensible play it loses nearly every match; against random play it is about even.\n(2) Always take the stock top. It ignores a visible, often better upcard. It loses to sensible play and roughly ties random play.\n(3) Never knock. It scores only as defender (undercuts) or in capped showdowns. A sensible knocker banks d-k each hand, so it loses most matches.\n(4) Always knock as soon as allowed. This is close to the sensible policy, but it is undercut when a low-holding defender gets a draw, and it still loses whenever it is dealt worse. It does not win or draw almost always.\nNo option is strictly better regardless of the opponent, and no policy never loses. Both players can realistically win.", "playable": {"verdict": "pass", "evidence": "COMPLETENESS: The rules cover the keep step, the open stock top, what happens to the upcard (the next discard below it), the ban on discarding a taken upcard, the knock gate (deadwood <=10), the defender's final turn, ties (k>=d gives the defender the hand), the capped showdown with tie = no score, and the per-hand cap.\n\nFINITENESS: The stock holds 15 cards and at most 7 takes happen per hand (6 turns plus a defender turn), so it cannot run out. Deadwood is an automatic arithmetic minimum over at most one meld; checking a triple or a run of 3, 4 or 5 is calc, with no judge needed.\n\nPLATFORM LIMITS: steps 16 <=20; choice steps 3 <=4 (keep, active take/discard/knock, defender response); attributes 16 <=20; random draws 1 per round (the shuffle in a hand's first slot); rounds 36 <=40, mapped as 6 hands x 6 turn slots. Slots left after an early knock are skipped with `when` conditions. A knock on turn 6 puts the defender's turn in the same slot through a `when` step; this needs single conditional steps, not block branching. Hidden elements: hands, dead piles and the stock below its top = 3 classes.\n\nOTHER: Two players, so no talk is needed. No board, clock, trading or binding agreements. This passes, but implementers must count the defender's step and skipped slots carefully.", "reasoning_over_luck": {"verdict": "fail", "evidence": "DECISIONS: Each player has at most 3 draws per hand, and both draw options are face-up. 'Take whichever card lowers my deadwood most, discard the card that leaves minimum deadwood' is mechanically computable and nearly always optimal. The keep step is also largely computable (keep the meld if any, else the lowest cards). Real judgement is concentrated in one place: whether to knock at k of about 6-10, inferring the opponent's d from their takes and discards.\n\nMIRROR TEST: When both players follow this good policy, the hand is decided by the 7-card deal and the order of the face-up stock. Who holds a meld or low cards after the keep largely determines who reaches k<=10 first and by how much. One hand swings up to 20 points, and only 6 hands are played.\n\nESTIMATE: About 60-70% of match outcomes between competent players come from the deal. A strong reasoner is favoured only modestly over a greedy computer of deadwood. There is something to infer (opponent deadwood from visible takes and discards; unknown cards from your own dead pile), but with 3 draws there is little room to act on it, so good play rarely overcomes a bad deal."}, "required_changes": ["Reduce deal luck with duplicate dealing. Hands come in 3 pairs; the second hand of each pair reuses the first hand's 7-card hands and stock order with seats swapped. Score each pair as the difference between the two players' results. Alternatively, have both players draft their 7 cards alternately from a face-up row of 14, so the starting hand is chosen, not dealt.", "Lengthen hands so draws, inference and knock timing matter. Allow up to 5 turns per player (10 turns) while keeping rounds <=40, for example 4 hands x 10 slots, with the defender's turn inside the knock slot.", "Add an inference target. Make the stock top hidden and leave only the upcard open, so opponents' stock draws are unknown and their deadwood must be read from discards and upcard takes. Or reveal one of each player's dead cards to the opponent at the keep step.", "Lower the per-hand cap from 20 to 12, so one lucky meld deal cannot decide the match, and raise the undercut bonus to 15, so knock timing against an inferred defender hand carries more weight than the deal."]}
+```
+````

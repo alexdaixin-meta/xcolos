@@ -1,0 +1,184 @@
+{
+  "original_summary": "Skull is a 3-6 player bluffing game. Players secretly stack Roses or their single Skull, bid on how many Roses they can flip, and the winning bidder flips cards, starting with their own. Succeeding twice wins. Hitting a Skull costs a card, and a player with no cards is eliminated.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "In the tabletop original, open sequential bidding and permanent card loss make choices matter. In the tested simultaneous adaptation it collapsed. Placing was free and a revealed card only ever hurt the challenger, so 'always Skull, bid 0' was a best response for every non-start player. The forced all-pass challenge then cost the start player a card every hand, and the last seat in rotation won with certainty."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The original rewards reading the table. In the tested version, equilibrium play scored no marks and elimination followed the start-player rotation, so skill did not change the winner."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "Reading bluffs and tracking who lost their Skull has depth in principle. Under the passive equilibrium that depth was never used."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Placements and hand contents are hidden, and bids are signals to interpret. The inference is real whenever deviation pays. The tested version made deviation unprofitable."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Marks, card counts and eliminations are all arithmetic on tracked state."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The open-ended raise/pass bidding loop and choosing flips one card at a time do not fit a flat step list. Simultaneous polls fit, but the tested version had an ambiguous RESOLVE clause, where 'Then' could be read as removing a card after any challenge, and a seat-order tie-break."
+    }
+  ],
+  "problems": [
+    "P1: Placing Skull was free and weakly dominant for non-challengers. A revealed Rose only helped an opponent, and Roses were never rewarded for their owner.",
+    "P2: If every bid was 0, the start player was forced to challenge, so universal passing punished the start player every hand and made elimination follow seat rotation.",
+    "P3: Bid ties broken by seat order gave earlier seats a built-in edge, and with rotation the last seat won the equilibrium outright.",
+    "P4: Under intended good play no marks were scored, so the winner was fixed by seat (lottery-like, with no reasoning involved).",
+    "P5: The end tie-break 'most marks, then most cards' rewarded stalling.",
+    "P6: The RESOLVE wording was ambiguous about whether a card is removed after a successful challenge.",
+    "P7: Cooperation, such as two players placing Rose and bidding to set each other up, did not pay, because the mark went to the earlier seat and the partner got nothing."
+  ],
+  "changes": [
+    {
+      "what": "An unrevealed placed Skull costs its owner 1 point at the end of the hand. Scores may go negative.",
+      "why": "Skull becomes a gamble: +1 if named, -1 if ignored. 'Always Skull' now bleeds points.",
+      "fixes": "P1: Placing Skull was free and weakly dominant for non-challengers."
+    },
+    {
+      "what": "A named player whose Rose is revealed in a successful challenge gains 1 point. A named player whose Skull catches the challenger gains 1 point.",
+      "why": "Being named is worth +1 either way, so the placement choice is really 'help or hurt the challenger' against 'risk being ignored'. Roses now have value for their owner.",
+      "fixes": "P1, and P7: cooperation did not pay because the partner got nothing."
+    },
+    {
+      "what": "Points replace marks. A successful challenger gains B+1 points, and the first hand that ends with anyone at 6 or more ends the game.",
+      "why": "This is a target race in which challengers outpace helpers. Bigger bids are riskier but worth more, so passivity cannot win.",
+      "fixes": "P4: under good play no marks were scored and seat decided the winner."
+    },
+    {
+      "what": "If every bid is 0 there is no challenge. If two or more players tie for the highest bid there is also no challenge.",
+      "why": "No forced challenger and no seat tie-break. Bidding becomes a guessing duel: be the unique top bidder, or spoil a rival by matching their bid.",
+      "fixes": "P2 (forced all-pass challenge) and P3 (seat-order tie-break)."
+    },
+    {
+      "what": "Remove the start player and rotation entirely. All choices are simultaneous.",
+      "why": "Every seat is identical, so no seat has any edge.",
+      "fixes": "P3: earlier and later seats had built-in edges."
+    },
+    {
+      "what": "If no one reaches 6 points by the end of hand 24, the game is a draw. The 'most cards' tie-break is dropped.",
+      "why": "Stalling can at best draw. It cannot win.",
+      "fixes": "P5: the end tie-break rewarded stalling."
+    },
+    {
+      "what": "RESOLVE now states explicitly that a card is removed only when a challenge fails.",
+      "why": "Removes the ambiguity a model could misread.",
+      "fixes": "P6: the RESOLVE wording was ambiguous."
+    }
+  ],
+  "keeps": [
+    "Each player has a secret hand of 3 Roses and 1 Skull, and secretly places one card each hand.",
+    "The challenger's own card is revealed first, so challenging while on your own Skull fails.",
+    "Bidding a number of cards to reveal, with bigger bids harder and worth more.",
+    "A failed challenger loses a random card permanently, and only they learn which one.",
+    "Elimination at 0 cards, with the last player standing winning.",
+    "Bluffing about whether you placed a Rose or a Skull, and tracking who has lost their Skull."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Skull's core inference survives a simultaneous redesign: guessing hidden placements and reading bids and talk. The changes give both cards a real price and remove every seat effect."
+  },
+  "variation": {
+    "name": "Skull Gambit",
+    "summary": "A simultaneous Skull played as a race to 6 points. Each hand, everyone secretly places a Rose or their Skull, talks, then bids. The unique top bidder names that many rivals to reveal. All Roses scores big for the challenger and +1 for each named Rose. Any Skull costs the challenger a card and pays +1 to each Skull that caught them. A Skull that nobody reveals costs its owner a point.",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "rules": "SETUP: Each player has a private hand of 4 cards: 3 Roses and 1 Skull. Each player starts with 0 points. Points and card counts are public. Which cards a player still holds is private to that player. There is no start player; all players are equal.\n\nEACH HAND (at most 24 hands). Only active (non-eliminated) players take part.\n\n1. PLACE: All active players at the same moment secretly choose a placed card. They may choose Rose only if they hold at least one Rose, and Skull only if they still hold their Skull. Placing does not remove the card from the hand.\n\n2. TALK: Every active player writes one short message at the same time without seeing the others. All messages are then shown to everyone. Talk is not binding.\n\n3. BID: All active players at the same moment submit a secret whole-number bid from 0 to K. K is the number of OTHER active players.\n\n4. BIDS SHOWN: All bids are announced to everyone.\n\n5. CHALLENGER: If every bid is 0, there is no challenge this hand; go to step 10. If two or more players share the highest bid, there is no challenge this hand; go to step 10. Otherwise the unique highest bidder is the challenger, and their bid is B.\n\n6. TARGETS: The challenger names exactly B distinct other active players.\n\n7. REVEAL: The challenger's placed card and the placed cards of the named players are shown to everyone. Other placed cards stay secret.\n\n8. SUCCESS: If every revealed card is a Rose, the challenge succeeds. The challenger gains B+1 points. Each named player gains 1 point. No card is removed from anyone.\n\n9. FAILURE: If any revealed card is a Skull, the challenge fails. Each named player whose revealed card is a Skull gains 1 point. A Skull placed by the challenger themselves earns nothing for anyone. Only when a challenge fails, one card is removed permanently from the challenger's hand (all cards they hold), chosen uniformly at random. Only the challenger is told whether it was a Rose or their Skull. Everyone sees their card count drop by 1. A player who has lost their Skull can never place Skull again. A player with only their Skull left must place Skull.\n\n10. HIDDEN SKULL COST: Every active player who placed Skull and whose card was NOT revealed this hand loses 1 point. This also applies in hands with no challenge. Scores may go below 0.\n\n11. ELIMINATION: A player with 0 cards is eliminated and takes no further part. Their points no longer count.\n\n12. END CHECK: If only one active player remains, that player wins. Otherwise, if any active player has 6 or more points, the game ends. The active player with the most points wins. If two or more active players tie for the most, the game is a draw.\n\n13. If the game has not ended and fewer than 24 hands have been played, start the next hand.\n\nAFTER HAND 24: If no one has won, the game is a draw.",
+    "objective": "The game ends after the first hand in which any active player has at least 6 points. The active player with the most points then wins; a tie for the most is a draw. A player also wins if they are the last active player. If 24 hands pass without either ending, the game is a draw.",
+    "expected_effect": "Neither card dominates. Skull pays +1 if you are named but costs 1 if you are ignored. Rose costs nothing, pays +1 if named in a success, and is required for anyone who wants to challenge. Each player must therefore predict whether they will be named.\n\nChallengers must infer who placed Rose. A positive bid reveals the bidder's own Rose, so losing bidders become safe targets who still earn +1. Bidding 0 hides your card but forfeits the challenge. Tie-voiding turns bidding into a duel: a player can spoil a leader's challenge by matching their bid, at the risk of becoming challenger themselves.\n\nNo seat order exists. Simple policies all lose to sensible play:\n- Always Skull, bid 0 bleeds a point every unnamed hand and is never named once read.\n- Always Rose, bid 0 earns only +1 per success while challengers earn at least 2.\n- Always the top bid ties into voids or gets caught by Skulls and loses cards.\n- Always Skull, top bid fails every challenge it wins and is eliminated.\nIf everyone passes forever, it is only a draw.\n\nTalk passes both tests. Players disagree because only one can win. A named Rose helps a rival by B+1 while gaining only 1, so a player who promises 'name me, I'm Rose' may be laying a Skull trap, and a challenger who follows such a claim can lose a card. A player who trusts a proposed alternating partnership can be betrayed with a Skull, or watch the partner pull ahead by more each time. After a betrayal, cooperating again still pays, because the +1 for being named and the target race keep partnership worthwhile against the third player."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 12,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 24
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "There are no fixed payoffs. Players score only by marks: 2 marks wins, or after hand 30 the most marks. The main decision is a placement and bid pair, (Rose or Skull, bid 0..K), and the outcome follows the WINNER RULE.\n\nOutcomes for the challenger:\n- Placed Skull and becomes challenger: always fails. Loses a random card.\n- Placed Rose with bid B: succeeds only if all B named players placed Rose. P(success) = (1-s)^B, where s is the chance a target placed Skull.\n- A Skull placer gains nothing except that the challenger is hurt if the Skull placer is named.\n\nThoughtless policies, judged by who wins:\n(a) Always Skull, bid 0. Gains 0 marks. Any opponent who succeeds twice wins. Against sensible play (Rose plus a positive bid) it loses almost every game. Against random play (Skull placed 25% of the time, random bids) a random challenger still succeeds often. It loses.\n(b) Always Rose, always bid K. Wins the challenge whenever it is earliest among the K bidders. It must then flip every other player and fails if ANY of them placed a Skull. With 3 opponents each placing Skull 25% of the time, P(success) = 0.75^3 = 0.42. Sensible opponents counter it by placing Skull more often, and it bleeds cards. It loses often.\n(c) Always Rose, bid 1. Becomes challenger only when no one bids 2 or more and it is earliest in the tie order. P(success) = 1-s per attempt. Sensible bidders outbid it and win marks first. It can lose.\n(d) Always bid 0. It is never challenger except as start player in an all-zero hand. It gains marks very slowly and loses to anyone who succeeds twice.\n\nNo option is strictly better: placing Skull is right when you will not challenge, and Rose is right when you will. No policy avoids losing.\n\nSeat effects: the tie-break favours the start player, but the start player rotates every hand. Over many hands the edge evens out, apart from a small first-hand edge for seat 1. Every player can realistically win. The game has no labelled payoff ordering to check."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Platform limits are met: 17 steps, 4 choice steps (place, talk, bid, targets), 13 attributes, 2 hidden elements, 1 random draw (the removal), and 30 rounds. Simultaneous polls are used for place, talk and bid. The game is finite. Talk is justified: Skull placers want to be named and Rose placers want to look safe, so players disagree, and talk is simultaneous.\n\nTwo gaps block play.\n\n1) Bid visibility is unspecified. Step 4 does not say whether each player's individual bid is revealed or only the winner and winning bid. This decides the whole inference game. If bids are public, positive bidders are probably Rose placers and become safe targets. Skull placers must then bluff with a low positive bid. If bids are hidden, targeting is mostly guesswork. A model given only these words cannot know what it is allowed to see.\n\n2) Removal timing breaks with a 1-card challenger. Removal happens in step 7, 'from the cards they hold', but placed cards return only in step 8. Consider a challenger with exactly 1 card: they placed it, so they hold 0 cards at step 7, and nothing can be removed. A 1-card player therefore cannot lose a card or be eliminated. In general it is also unclear whether the placed card is part of the pool. This changes the odds: a Rose placer with 2 Roses and the Skull loses the Skull with probability 1/2 if the placed card is excluded, or 1/3 if it is included."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The only random element is which card is removed after a failed challenge. A failed challenge needs a wrong read or a forced all-zero start. The removal mainly matters through whether the challenger loses the Skull, roughly a 1/4 to 1/3 chance per failure. That changes their future threat, but it never directly awards marks.\n\nMarks come entirely from choices:\n- inferring who placed a Skull from talk, bids and past reveals;\n- tracking who probably still holds a Skull from Skulls revealed in earlier hands and card counts;\n- bluffing bids and talk;\n- choosing targets.\n\nWhen everyone plays well, players mix placement and bluffing. Who wins then depends on reading opponents across about 4 to 10 hands, not on a deal. There is no hidden type or deal that decides the game. I estimate chance at about 20 to 30% of the result. A good reasoner, for example one who targets observed Rose placers and avoids players with a revealed Skull still in hand, is clearly favoured over a random player."
+        },
+        "required_changes": [
+          "Step 4: state explicitly that all individual bids are revealed to everyone after the bid poll and before targets are named (or explicitly that only the challenger and winning bid are shown), so the inference available is defined.",
+          "Step 7/8: return all placed cards to their owners BEFORE the removal, and remove one card uniformly at random from the challenger's full hand (placed card included), so a 1-card challenger who fails loses that card and is eliminated."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "1) Placing a card is free. It does not leave the hand, and a revealed card only ever hurts the challenger, never its owner. A non-challenger therefore weakly prefers Skull: a Rose can only hand an opponent a mark, while a Skull can make them lose a card. Rose is needed only by a player who will challenge.\n\n2) Bids give placements away. Bidding more than 0 with your own Skull risks becoming challenger, which is an automatic fail. So a positive bid strongly signals Rose, and a bid of 0 signals Skull.\n\n3) Payoff table for one hand, 3 players. Rows are what the two non-start players do; entries are the result for the start player S.\n- Both play Skull and bid 0:\n  - S plays Skull, bids 0: forced to challenge at B=1, own Skull, S loses a card.\n  - S plays Rose, bids 0 or 1: forced or chosen challenger, the target is a Skull, S loses a card.\n- One plays Rose and bids 1, the other plays Skull and bids 0:\n  - S plays Skull, bids 0: the Rose bidder challenges, names S (a Skull), fails. Good for S.\n  - S plays Rose, bids 1: S wins the tie-break, names the Rose bidder, gains a mark. The deviator gave S the mark.\n- Deviating as a non-start player (Rose and bid 1 while the others play Skull and bid 0): you become challenger, must name a Skull, and lose a card.\n\nSo 'always Skull, always bid 0' is a best response for every non-start player. Against it the start player loses a card every hand whatever they do.\n\n4) Winner rule under that policy. No marks are ever scored. Each player loses exactly one card per turn as start player.\n- 3 players: seat 1 starts hands 1, 4, 7, 10 and is out at hand 10. Seat 2 has started 2, 5, 8, starts hand 11 and is out. Seat 3 wins.\n- 4 players: seats are out at hands 13, 14, 15, and seat 4 wins.\n- In general the last seat in rotation wins with certainty.\n\nThe thoughtless policy never loses unless you happen to sit in an early seat. Breaking out of it needs two players to place Rose and bid 1 together. But the mark always goes to the earlier seat in tie order, so the later player is just gifting it. Talk cannot bind any reciprocation, so this cooperation does not pay.\n\n5) Seat edge: very large. The last seat wins the equilibrium outright, and the start player both wins ties and is forced to challenge when everyone passes. Both or all players cannot realistically win from every seat."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Mostly complete and within limits:\n- 17 of 20 steps; 4 choice steps (place, talk, bid, targets); 14 attributes; 2 hidden elements (placed card, hand composition); 1 random draw; 30 of 40 rounds.\n- No board, no clock, no judge.\n- Simultaneous polls are used correctly.\n- B never exceeds K, so naming B distinct other active players is always possible.\n- Talk is simultaneous and placed after placement, where players have conflicting interests (luring a challenger onto a Skull, bluffing a Rose). Talk is justified here.\n\nThere is one material ambiguity in RESOLVE. 'If any revealed card is a Skull... the challenge fails. Then one card is removed permanently from the challenger's full hand.' A model can read 'Then' as applying after every challenge, including successful ones. That changes the core economy.\n\nThe all-pass rule (start player forced to challenge with B=1) is playable but creates the degenerate loop described under balanced."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Chance is small. The only random draw is which card the failed challenger loses, which affects Skull retention but not card count. Elimination therefore depends on counts only, so perhaps 10\u201315% of outcomes hinge on luck.\n\nThe problem is the outcome under intended good play, which is the 'Skull and bid 0' best response shown above. With every player following it, no marks are ever scored, and elimination follows the start-player rotation deterministically. The winner is fixed by seat number, the last seat, before any reasoning happens. A good reasoner is not favoured over a passive one. In fact the passive policy is the equilibrium.\n\nThe interesting inference (who placed a Rose, bluffing a positive bid while sitting later in tie order, spotting players who have lost their Skull and must place Rose) only arises when someone deviates. Deviation is unprofitable, so that inference rarely matters."
+        },
+        "required_changes": [
+          "Make Skull placement costly so that Rose and Skull are a real mixed choice. For example, a player who places Skull cannot place Skull in the next hand; track this on a public 'skull_cooldown' attribute so it adds no hidden element. Alternatively, a placed Skull that is not revealed is discarded permanently. Then verify that 'always Skull, bid 0' no longer avoids losses, and that a seat-1 player using it loses against sensible play.",
+          "Remove the forced all-pass challenge. If every bid is 0, the hand ends with no challenger and no card loss. This stops the start player from being punished every hand by universal passing.",
+          "To stop stalling to hand 30, replace the end tie-break. 'Most marks, then most cards' rewards passing. Use 'most marks, then most successful Roses revealed as a target', or award 1 tiebreak point to each named player whose Rose was revealed in a successful challenge. This gives placing Rose a reason beyond helping the challenger.",
+          "Reduce the tie-order advantage. Break bid ties by fewest marks first, then seat order from the player after the start player. Simulate a 3-player and a 4-player all-good-play run to confirm the winner is no longer fixed by seat.",
+          "Clarify RESOLVE as: 'Only if the challenge fails, one card is removed permanently from the challenger's full hand, chosen uniformly at random. A successful challenge removes no card.'"
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "PLACEMENT PAYOFFS (own points; target unknown when placing). Skull: +1 if targeted, -1 if not. Rose: +1 if targeted and no named Skull, 0 otherwise. Skull minus Rose: targeted and challenge would succeed = 0; targeted and another Skull present = +1; not targeted = -1. With p = P(targeted) and q = P(no other Skull among targets), Skull beats Rose only if p(2-q) > 1. That needs p close to 1. Rose is therefore the default card.\n\nBID PAYOFFS, 3 players, K=2, everyone placing Rose. Each row is my bid; columns are the best other bid (max of the two opponents).\n- I bid 0: vs others 0 = nothing; vs 1 = I get +1 if named, else 0; vs 2 = +1 (named), challenger +3.\n- I bid 1: vs 0 = I challenge, +2, target +1; vs 1 = tie, nothing; vs 2 = +1 (named), challenger +3.\n- I bid 2: vs 0 = I challenge, +3, both others +1; vs 1 = I challenge, +3, others +1; vs 2 = tie, nothing.\nBid 2 (=K) never leaves me behind: I either net +2 relative or nothing happens. It weakly dominates 0 and 1. The same holds for K in 4-5 players (+K+1 vs +1).\n\nTie rule = veto. Bids are capped at K, so bidding K always either matches or exceeds every opponent. Any player can therefore veto every challenge. The only alternative is challenging all others, which makes target choice vanish. If all players bid K, nothing happens for 24 hands (only unrevealed Skulls lose points) and the game is a draw.\n\nWINNER RULE, thoughtless policy 'always Rose, always bid K':\n- (a) Two such players in one game (any size 3-5): they always tie on K. Nobody else can outbid K, so no challenge ever happens. Nobody reaches 6, and hand 24 is a draw. The thoughtless players never lose, and sensible players can only lose points by placing Skull.\n- (b) Alone vs sensible opponents: it can be beaten only by opponents bidding below K and placing Skull. That costs it a card per hand, so it needs 4 failures to eliminate. If any one opponent ever also bids K, it is safe that hand.\n- (c) vs random opponents (3p): a random opponent bids 2 with prob 1/3 each; P(no opponent bids 2) = 4/9. When it challenges both, success needs both Rose (random Skull 1/2 while held, so about 1/4). It gains +3 or loses a card. This is mixed, not a clean win.\n\nLATE GAME: after hand 24 the result is a draw regardless of points. Any player below 6 who fears losing has a safe veto: always bid K. They then get a draw or a full challenge. The leader below 6 cannot convert a lead. The safe option wins (draws) every late hand.\n\nSeat order: symmetric, no edge.\n\nConclusion: a dominant-bid race with a free veto, plus a 24-hand draw, makes a non-losing thoughtless policy (when paired) and makes draws the likely outcome of good play."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules cover every case:\n- Placement is legal from held cards, and a Skull-only hand forces Skull.\n- Bids are bounded 0..K, so B \u2264 K and B distinct targets always exist.\n- No challenge occurs on all-zero bids or a tied top bid.\n- Success and failure scoring are defined, and a challenger's own Skull is handled.\n- The hidden-Skull cost applies in all hands.\n- Card removal is uniform from held cards and only the challenger is informed, which is private info (supported).\n- Elimination happens at 0 cards; at most one per hand, so the active count never jumps to 0.\n- End check: 6 points or last standing; ties draw; 24-hand cap.\n\nAll choices are simultaneous polls (place, bid) plus a sequential target choice by one player. Talk is simultaneous and justified: players disagree about who challenges and who bluffs Skull.\n\nComplexity vs limits:\n- 15 steps \u2264 20\n- 4 choice steps (place, talk, bid, target) \u2264 4\n- 12 attributes \u2264 20\n- 2 hidden elements (hand contents, placed cards) \u2264 3\n- 1 random draw \u2264 1\n- 24 rounds \u2264 40\n\nNo board, clock, trading or binding agreements. The draw-forcing late game is scored under balanced."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The only chance is the uniform card removal after a failed challenge. Losing the Skull removes the bluff option; keeping only the Skull forces a guaranteed self-fail. This affects maybe 10-15% of outcomes and is caused by a choice to challenge, so good play can manage it. There is real inference:\n- From talk, guess who placed Skull.\n- Pick B < K targets to avoid suspected Skulls.\n- Predict others' bids to be the unique top bidder.\n- Skull pays only if you are targeted, so bluffs must be sold through talk.\n\nWhen all play well, the result is not decided by the random draw. The problem is that it tends toward a no-challenge draw, which is a balance failure (see above), not luck."
+        },
+        "required_changes": [
+          "Remove the free veto. Resolve tied top bids by a rule that still produces a challenger, e.g. the tied player with the lowest score challenges (further ties: the one who has challenged least, then no challenge), or all tied top bidders each lose 1 point.",
+          "Stop bid K from being a dominant 'challenge everyone' move. Cap bids at K-1 (so in 3 players B \u2264 1 and the challenger must pick whom to trust), or give the challenger a sub-linear reward (e.g. B points) so a full challenge is not always best.",
+          "Replace 'after hand 24 the game is a draw' with 'after hand 24 the active player with the most points wins; a tie for most is a draw', so trailing players cannot force a draw by vetoing, and leads matter in late hands.",
+          "Rebalance Skull so it is not nearly always worse than Rose. Reduce the hidden-Skull cost to 0 in hands with no challenge, or give a revealed Skull +2, so placing Skull is a credible bluff and placement becomes a real guessing game.",
+          "Re-test after the changes: show the 3-player bid table and the 'always Rose, always max bid' and 'always bid 0' policies against sensible and random play under the winner rule, confirming each can lose."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

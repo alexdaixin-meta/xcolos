@@ -1,0 +1,455 @@
+{
+  "name": "Simultaneous Yaniv: Claims",
+  "summary": "Low-hand card game played in simultaneous turns: each round players secretly call or discard, then secretly claim another player's discarded card or take a shared blind draw. A caller who is not strictly lowest is caught (Asaf) for +30, and the lowest total when someone reaches 150 or after 40 rounds wins.",
+  "players": {
+    "min": 3,
+    "max": 5,
+    "suggested": 4
+  },
+  "parameters": {
+    "hand_size_start": 5,
+    "call_limit": 7,
+    "asaf_penalty": 30,
+    "end_total": 150,
+    "max_rounds": 40,
+    "min_set_size": 2,
+    "min_run_length": 3,
+    "max_tens_in_run": 1,
+    "min_cards_kept": 1,
+    "shoe_size": 54,
+    "copies_per_value_1_to_9": 4,
+    "copies_value_10": 16,
+    "copies_value_0": 2,
+    "run_offer_cards": 2,
+    "set_or_single_offer_cards": 1,
+    "contest_threshold": 2,
+    "blind_draws_per_round": 1
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "type": "list",
+        "visible": "ally",
+        "initial": [],
+        "meaning": "Card values the player holds (0 to 10). Revealed to all at a showdown.",
+        "observable": false
+      },
+      {
+        "key": "hand_sum",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "Sum of the values in hand.",
+        "observable": false
+      },
+      {
+        "key": "hand_size",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Number of cards in hand.",
+        "observable": true
+      },
+      {
+        "key": "total",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Running score. Lower is better.",
+        "observable": true
+      },
+      {
+        "key": "round_score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Points scored at the latest showdown.",
+        "observable": true
+      },
+      {
+        "key": "first_choice",
+        "type": "text",
+        "visible": "ally",
+        "initial": "",
+        "meaning": "This round's secret first choice: CALL, a list of discarded values, or NONE.",
+        "observable": false
+      },
+      {
+        "key": "called",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "Whether the player called this round. Revealed at the showdown.",
+        "observable": false
+      },
+      {
+        "key": "discard",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "Values discarded this round. Announced at the offers step.",
+        "observable": false
+      },
+      {
+        "key": "claim",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "This round's second choice: BLIND or an offer id. Made secretly and announced in the public result.",
+        "observable": false
+      },
+      {
+        "key": "claim_failed",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "Whether this round's claim was lost to a contest.",
+        "observable": false
+      },
+      {
+        "key": "took_blind",
+        "type": "bool",
+        "visible": "public",
+        "initial": false,
+        "meaning": "Whether the player received the blind card this round.",
+        "observable": false
+      }
+    ],
+    "game": [
+      {
+        "key": "shoe",
+        "type": "list",
+        "visible": "none",
+        "initial": "[0,0, 1x4, 2x4, 3x4, 4x4, 5x4, 6x4, 7x4, 8x4, 9x4, 10x16] (54 values)",
+        "meaning": "Card source. Every draw picks a value at random and does not remove it (reshuffled before every draw).",
+        "observable": false
+      },
+      {
+        "key": "round",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Current round number.",
+        "observable": true
+      },
+      {
+        "key": "called_count",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Number of players who called this round.",
+        "observable": false
+      },
+      {
+        "key": "lowest_sum",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "L, the lowest hand sum at a showdown.",
+        "observable": false
+      },
+      {
+        "key": "offers",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "Offered cards this round, each 'seat S: value V'.",
+        "observable": false
+      },
+      {
+        "key": "blind_card",
+        "type": "number",
+        "visible": "none",
+        "initial": 0,
+        "meaning": "Value of this round's blind card. Each BLIND player gets a copy and is told the value privately.",
+        "observable": false
+      },
+      {
+        "key": "last_results",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "Previous round's public results: discards, claims, failed claims, BLIND takers, or the showdown outcome.",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Every player's total is set to 0 and round is set to 1.",
+    "The shoe holds 54 values: two 0s, four each of 1 to 9, and sixteen 10s.",
+    "Each player is dealt 5 cards. Each card is a value drawn at random from the shoe without removing it, appended to that player's hand.",
+    "Each player's hand_sum and hand_size are computed. hand_size is public and the hand is private."
+  ],
+  "round": [
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce round, every player's hand_size and total, and last_results."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "Each player privately sees their own hand and hand_sum."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "CALL, or the list of card values from own hand to discard (one card, two or more equal values, or a run of 3 or more consecutive values). A 1-card player with hand_sum <= 7 is offered only CALL. A 1-card player with hand_sum > 7 is offered only NONE.",
+      "effect": "first_choice := the answer."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Any illegal first_choice is replaced: a player with hand_size >= 2 discards their single highest card; a player with hand_size 1 discards nothing (NONE). Then called := (first_choice == CALL), and called_count := the number of players with called true.",
+      "judged": "This player's first choice is legal: CALL with hand_sum at most 7; or values all held in their hand that form a single card, two or more cards of equal value, or a run of three or more consecutive values with no 0 and at most one 10; and at least one card is left in hand."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count >= 1 (showdown): all discards are cancelled and lowest_sum := the minimum hand_sum. For each player: if called and hand_sum == lowest_sum and the count of players with hand_sum == lowest_sum is 1, round_score := 0; else if called, round_score := hand_sum + 30; else if hand_sum == lowest_sum, round_score := 0; else round_score := hand_sum. total += round_score. last_results records the revealed hands, the callers and the scores."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count >= 1: reveal every hand, hand_sum, called, round_score and total."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count >= 1: end the game if any total >= 150 or round == 40."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count >= 1 and round < 40: each hand is cleared and gets 5 random draws from the shoe (without removal). hand_sum and hand_size are recomputed."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count == 0: discard := the discarded values, which are removed from hand; hand_sum and hand_size are recomputed. offers := for each player who discarded one card or an equal-value set, one entry 'seat S: value V'; for each player who discarded a run, two entries, its lowest and its highest value. A player who discarded nothing makes no offer."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count == 0: announce every player's discard and the offers list."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "BLIND, or one entry of offers that belongs to another seat.",
+      "effect": "When called_count == 0: claim := the answer. An illegal answer becomes BLIND."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count == 0 (contests): for each offer entry claimed by 2 or more players, each of those players gets claim_failed := true and claim := BLIND. took_blind := (claim == BLIND)."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count == 0: blind_card := one value drawn at random from the shoe (without removal). Each player whose claim is an offer appends that offer's value to hand. Each player with took_blind appends blind_card to hand. hand_sum and hand_size are recomputed."
+    },
+    {
+      "action": "tell",
+      "who": "each player with took_blind true",
+      "answer": null,
+      "effect": "When called_count == 0: privately tell the player the value of blind_card."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count == 0: last_results := who claimed which card, which claims failed through contest, and who took BLIND. The blind_card value is not included."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "When called_count == 0: announce last_results."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "When round == 40 and called_count == 0 (final showdown): lowest_sum := the minimum hand_sum. Each player gets round_score := 0 if hand_sum == lowest_sum, else round_score := hand_sum. total += round_score."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "When round == 40 and called_count == 0: reveal every hand, hand_sum, round_score and total."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Reset called, discard, claim, claim_failed, took_blind and offers. round += 1."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "End the game if any total >= 150 or round > 40."
+    }
+  ],
+  "ending": {
+    "condition": "any player's total >= 150 after a showdown, or round > 40 (after round 40 is played)",
+    "rank_by": "-you.total",
+    "decided_by": "The player with the lowest total wins. Players level at the lowest total share the result (the source calls this a draw)."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "Card values: Ace = 1, 2 to 10 = face value, J/Q/K = 10, Joker = 0. Every draw is a random value from a 54-card shoe (two 0s, four each of 1 to 9, sixteen 10s), reshuffled before each draw."
+    },
+    {
+      "id": "R2",
+      "text": "Before round 1, each player is dealt 5 cards and every total is 0."
+    },
+    {
+      "id": "R3",
+      "text": "When a player's hand_sum is 7 or less, then CALL is a legal first choice; when it is 8 or more, CALL is illegal."
+    },
+    {
+      "id": "R4",
+      "text": "When a player discards, then the discard is exactly one card, two or more cards of equal value, or a run of 3 or more consecutive values."
+    },
+    {
+      "id": "R5",
+      "text": "When a run contains a 0 or more than one 10, then it is illegal; 8-9-10 is legal and 9-10-10 is not."
+    },
+    {
+      "id": "R6",
+      "text": "When a discard would leave 0 cards in hand, then it is illegal."
+    },
+    {
+      "id": "R7",
+      "text": "When a player holds 1 card and hand_sum <= 7, then that player must CALL; when they hold 1 card and hand_sum > 7, then they discard nothing and still make the second choice."
+    },
+    {
+      "id": "R8",
+      "text": "When a first choice is illegal, then it is replaced by discarding the single highest card, or by discarding nothing for a player with 1 card."
+    },
+    {
+      "id": "R9",
+      "text": "When at least one player calls, then all discards are cancelled and a showdown is held on the hands as they stood."
+    },
+    {
+      "id": "R10",
+      "text": "At a showdown, when a caller's hand_sum is strictly lower than every other player's, then that caller scores 0."
+    },
+    {
+      "id": "R11",
+      "text": "At a showdown, when a caller is not strictly lowest, then the caller is caught (Asaf) and scores hand_sum + 30 (a caller with sum 6 tied at 6 scores 36)."
+    },
+    {
+      "id": "R12",
+      "text": "At a showdown, when a non-caller's hand_sum equals the lowest sum L, then they score 0; otherwise they score their hand_sum."
+    },
+    {
+      "id": "R13",
+      "text": "After a showdown, when no total is 150 or more and the round is not 40, then every player is dealt a fresh hand of 5 cards, and steps 5 to 10 are skipped."
+    },
+    {
+      "id": "R14",
+      "text": "When no one calls, then every discard is announced publicly and leaves play."
+    },
+    {
+      "id": "R15",
+      "text": "When a single card or an equal-value set is discarded, then it makes one offer of that value; when a run is discarded, then it makes two offers, its lowest and its highest value."
+    },
+    {
+      "id": "R16",
+      "text": "When no one calls, then each player chooses BLIND or a claim on one offered card of another player; claiming one's own offer is illegal and becomes BLIND."
+    },
+    {
+      "id": "R17",
+      "text": "When two or more players claim the same offered card, then none of them receives it and each is treated as BLIND."
+    },
+    {
+      "id": "R18",
+      "text": "When exactly one player claims an offered card, then that card is added to that player's hand."
+    },
+    {
+      "id": "R19",
+      "text": "When no one calls, then one blind card is drawn, and each BLIND player adds a copy of it to their hand and is privately told its value."
+    },
+    {
+      "id": "R20",
+      "text": "When the public result is announced, then it names who claimed which card, which claims failed through contest, and who took BLIND, but not the blind card's value."
+    },
+    {
+      "id": "R21",
+      "text": "When round 40 ends with no showdown that round, then all hands are revealed, each player at the lowest sum scores 0 and every other player scores their hand_sum."
+    },
+    {
+      "id": "R22",
+      "text": "When any total is 150 or more after a showdown, or round 40 is over, then the game ends."
+    },
+    {
+      "id": "R23",
+      "text": "When the game ends, then the player with the strictly lowest total wins; when two or more tie for lowest, then the game is a draw (shared result)."
+    }
+  ],
+  "offers": [
+    {
+      "question": "First choice (step 3)",
+      "who": "all players",
+      "options": "A player with 2 or more cards and hand_sum <= 7: CALL, or any legal discard from their hand (one card, an equal-value set of 2 or more, or a run of 3 or more consecutive values with no 0 and at most one 10), keeping at least 1 card. A player with 2 or more cards and hand_sum > 7: any such legal discard only. A player with 1 card and hand_sum <= 7: CALL only. A player with 1 card and hand_sum > 7: NONE only."
+    },
+    {
+      "question": "Second choice (step 6)",
+      "who": "all players, including those who discarded nothing",
+      "options": "BLIND, or any entry of offers that belongs to a seat other than their own."
+    }
+  ],
+  "choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "4 is the designer's size and is kept. Three is the minimum for contests over offered cards and for a caller to face more than one rival. More than five makes contests near-certain and the showdown arithmetic too long to follow."
+    },
+    {
+      "what": "No talk step",
+      "why": "The source has no talk. Strategy lies in reading discards and claims (claiming a card reveals what you hold), timing the call, and avoiding contested claims."
+    },
+    {
+      "what": "A 1-card player is offered only the forced option",
+      "why": "The rules force CALL (if allowed) or discarding nothing, so no other option is offered."
+    },
+    {
+      "what": "Draws are with replacement from a 54-value list",
+      "why": "The source reshuffles the shoe before every draw, so the shoe's frequencies never change."
+    },
+    {
+      "what": "Each card of a run's two offers is claimable separately",
+      "why": "The rules call each one an offered card that a player may claim."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The legality of a discard (set or run) is judged by a referee sentence",
+      "why": "Checking that values are held and form a set or a valid run is list logic, beyond simple arithmetic. Scoring stays arithmetic."
+    },
+    {
+      "what": "A tie for the lowest total is a shared win rather than a declared draw",
+      "why": "The engine shares the win among players level at the top. This is the same outcome as the source's draw."
+    },
+    {
+      "what": "The lowest total wins via rank_by = -total",
+      "why": "The engine ranks the highest value first."
+    }
+  ],
+  "unsupported": []
+}

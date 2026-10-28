@@ -1,0 +1,685 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "cash_and_guns",
+    "name": "Cash and Guns: Standoff",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Eight rounds of gangster bluffing: aim, load Bang or Click in secret, then Stand or Duck; unwounded players who Stand split the pot, and three wounds take you out."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "out",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "cash",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "wounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "alive",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "aim_target",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "target",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "bullet",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "stance",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "fired",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "revealed_bullets",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hit_this_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tnum",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "target_offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "bullet_offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pot",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "sharers",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "living",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "starting_cash",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "starting_wounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bang_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "click_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "pot_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "pot_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 14
+      },
+      {
+        "key": "pot_unit_dollars",
+        "visible": "public",
+        "type": "number",
+        "initial": 1000
+      },
+      {
+        "key": "wounds_per_bang",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "wounds_to_eliminate",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "talk_messages_per_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "rank_alive_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 1000000
+      },
+      {
+        "key": "rank_cash_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 1000
+      },
+      {
+        "key": "rank_wound_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the gang assembles",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "cash",
+            "value": {
+              "calc": "starting_cash"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "wounds",
+            "value": {
+              "calc": "starting_wounds"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "alive",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the bullets",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "['Bang'] * bang_cards + ['Click'] * click_cards"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the table",
+      "do": [
+        {
+          "set": {
+            "key": "living",
+            "value": {
+              "calc": "count(p.alive for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "your starting state",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "cash",
+        "wounds",
+        "alive",
+        "hand"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "loot",
+      "label": "loot",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "pot",
+            "value": {
+              "calc": "min(pot_max, int(uniform(pot_min, pot_max + 1)))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "target",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "aim_target",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bullet",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "stance",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "fired",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hit_this_round",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "tnum",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "target_offer",
+            "value": {
+              "calc": "[['1', '2', '3', '4', '5'][p.seat - 1] for p in players if p.alive and p.seat != you.seat]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bullet_offer",
+            "value": {
+              "calc": "(['Bang'] if 'Bang' in you.hand else []) + (['Click'] if 'Click' in you.hand else [])"
+            }
+          }
+        }
+      ],
+      "text": "Round {round}: the pot is {pot} thousand dollars."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": {
+        "where": "you.alive"
+      },
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Round {round}, pot {pot} thousand. Say one short thing to the table. Everyone writes at the same time and nothing said is binding."
+    },
+    {
+      "use": "poll",
+      "phase": "aim",
+      "label": "aim the gun",
+      "to": {
+        "where": "you.alive"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "target_offer"
+        }
+      },
+      "store": "aim_target",
+      "text": "Choose your target: the seat number of another living player. Targets are shown to everyone once all have aimed."
+    },
+    {
+      "use": "poll",
+      "phase": "aim",
+      "label": "load a bullet",
+      "to": {
+        "where": "you.alive"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "bullet_offer"
+        }
+      },
+      "store": "bullet",
+      "text": "Load one bullet card from your hand: Bang or Click. It is removed from your hand this round whatever happens, and stays hidden unless it is fired."
+    },
+    {
+      "use": "update",
+      "phase": "guns shown",
+      "label": "guns shown",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.alive"
+            },
+            "key": "target",
+            "value": {
+              "calc": "you.aim_target"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.alive and you.aim_target != ''"
+            },
+            "key": "tnum",
+            "value": {
+              "calc": "int(you.aim_target)"
+            }
+          }
+        }
+      ],
+      "text": "Guns shown. Targets [seat, target]: {[[p.seat, p.target] for p in players if p.alive]}. Bullets stay hidden."
+    },
+    {
+      "use": "poll",
+      "phase": "stand or duck",
+      "label": "stand or duck",
+      "to": {
+        "where": "you.alive"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Stand",
+          "Duck"
+        ]
+      },
+      "store": "stance",
+      "text": "Stand or Duck? If you Stand and your target Stands, your bullet fires and is revealed. If you Duck, or your target Ducks, your bullet is discarded unseen and causes no wound. If you Duck, no bullet aimed at you can hit you, and you get no share of the pot."
+    },
+    {
+      "use": "tell",
+      "phase": "stand or duck",
+      "label": "stances shown",
+      "to": "all",
+      "text": "Stances [seat, stance]: {[[p.seat, p.stance] for p in players if p.alive]}."
+    },
+    {
+      "use": "update",
+      "phase": "fire",
+      "label": "fire",
+      "do": [
+        {
+          "remove": {
+            "players": {
+              "where": "you.alive and you.bullet != ''"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "you.bullet"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.alive"
+            },
+            "key": "fired",
+            "value": {
+              "calc": "you.tnum > 0 and you.stance == 'Stand' and players[you.tnum - 1].alive and players[you.tnum - 1].stance == 'Stand'"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": {
+              "where": "you.alive and you.fired"
+            },
+            "key": "revealed_bullets",
+            "value": {
+              "calc": "you.bullet"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.alive"
+            },
+            "key": "hit_this_round",
+            "value": {
+              "calc": "count(p.alive and p.fired and p.tnum == you.seat and p.bullet == 'Bang' for p in players) * wounds_per_bang"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.alive"
+            },
+            "key": "wounds",
+            "value": {
+              "calc": "you.hit_this_round"
+            }
+          }
+        }
+      ],
+      "text": "Fire! Bullets fired and revealed [seat, bullet]: {[[p.seat, p.bullet] for p in players if p.alive and p.fired]}. Other bullets were discarded unseen. Wounds taken this round [seat, wounds]: {[[p.seat, p.hit_this_round] for p in players if p.alive]}."
+    },
+    {
+      "use": "update",
+      "phase": "elimination",
+      "label": "elimination",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.alive and you.wounds >= wounds_to_eliminate"
+            },
+            "key": "alive",
+            "value": false
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "not you.alive"
+            },
+            "to": "out",
+            "text": "Seat {player} has taken too many wounds and is eliminated."
+          }
+        },
+        {
+          "set": {
+            "key": "living",
+            "value": {
+              "calc": "count(p.alive for p in players)"
+            }
+          }
+        }
+      ],
+      "text": "Players still alive: {living}."
+    },
+    {
+      "use": "update",
+      "phase": "split",
+      "label": "split",
+      "do": [
+        {
+          "set": {
+            "key": "sharers",
+            "value": {
+              "calc": "count(p.alive and p.stance == 'Stand' and p.hit_this_round == 0 for p in players)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.alive and you.stance == 'Stand' and you.hit_this_round == 0"
+            },
+            "key": "cash",
+            "value": {
+              "calc": "pot / sharers"
+            },
+            "if": {
+              "calc": "sharers > 0"
+            },
+            "text": "Seat {player} takes a share of the pot."
+          }
+        }
+      ],
+      "text": "Split: {sharers} sharer(s) of the {pot} thousand pot. Cash [seat, cash]: {[[p.seat, p.cash] for p in players]}."
+    },
+    {
+      "use": "tell",
+      "phase": "split",
+      "label": "pot lost",
+      "when": {
+        "calc": "sharers == 0"
+      },
+      "to": "all",
+      "text": "Nobody qualified to share. The pot of {pot} thousand is lost."
+    },
+    {
+      "use": "sync",
+      "phase": "split",
+      "label": "where you stand",
+      "when": {
+        "calc": "round < rounds and living > 1"
+      },
+      "mode": "self",
+      "to": "acting",
+      "fields": [
+        "cash",
+        "wounds",
+        "hand"
+      ],
+      "text": "Where you stand:"
+    },
+    {
+      "use": "check",
+      "phase": "end check",
+      "label": "end check",
+      "when": {
+        "calc": "living <= 1 or round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "living <= 1 or round >= rounds"
+      },
+      "rank_by": "you.alive * 1000000 + you.cash * 1000 + you.wounds",
+      "min_to_win": 1000000,
+      "text": "Winner: {result}. Final [seat, alive, cash in thousands, wounds]: {[[p.seat, p.alive, p.cash, p.wounds] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 8,
+    "rounds_max": 10,
+    "actions_max": 2000,
+    "deadline_s": 120
+  },
+  "rules": "Each player starts with {starting_cash} cash, {starting_wounds} wounds and a private hand of {hand_size} bullet cards: {bang_cards} Bang and {click_cards} Click. Only you know which cards remain in your hand. The game lasts {rounds} rounds.\n\nEACH ROUND:\n1. LOOT. A whole number from {pot_min} to {pot_max} is drawn at random. That number, in thousands of dollars ({pot_unit_dollars} dollars each), is this round's pot. It is announced to everyone.\n2. TALK. Every living player writes {talk_messages_per_round} short message at the same time, without seeing the others. All messages are then shown to everyone. Nothing said is binding.\n3. AIM. At the same time, every living player secretly chooses a target, which is any other living player, and one bullet card from their hand, Bang or Click, which must be a card they still hold. You are only offered card types still in your hand.\n4. GUNS SHOWN. Everyone's target is announced publicly. Bullets stay hidden.\n5. STAND OR DUCK. At the same time, every living player chooses Stand or Duck. The choices are then announced.\n6. FIRE. Each player's chosen bullet is removed from their hand whatever happens. A bullet is FIRED only if its shooter Stood and its target Stood; fired bullets are revealed publicly. A shooter who Ducked, or whose target Ducked, discards the bullet face down: its type is never revealed and it causes no wound. Each fired Bang gives its target {wounds_per_bang} wound; a player hit by several Bangs takes several wounds. A fired Click does nothing. All shots happen at once, so a player who is wounded still fires their own bullet.\n7. ELIMINATION. A player with {wounds_to_eliminate} or more wounds is eliminated. They keep their cash for the record but cannot win, and they take no further part.\n8. SPLIT. The SHARERS are the players who Stood, were not wounded this round, and were not eliminated. Each sharer gains the pot divided equally among them, which may be fractional. If there are no sharers, the pot is lost. Players who Ducked or were wounded this round gain nothing.\n9. END CHECK. If only one player is alive, the game ends. If no player is alive, the game ends in a draw. Otherwise, after round {rounds}, the game ends.\n\nRevealed bullets are public; discarded bullets are not, so a player's remaining Bang count can be inferred only from what was revealed.\n\nWINNING: Only players still alive at the end can win. The living player with the highest cash wins. If living players are tied on cash, the one among them with the most wounds wins. If still tied, they share the win (a draw). If exactly one player is alive, that player wins. If no player is alive, nobody wins and the game is a draw."
+}

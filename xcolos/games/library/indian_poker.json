@@ -1,0 +1,983 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "indian_poker",
+    "name": "Forehead Poker Match",
+    "players": {
+      "min": 4,
+      "max": 6,
+      "suggested": 4
+    },
+    "blurb": "Sixteen hands of one-card poker where you see every card but your own: talk, bet, call, and finish with the most chips."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "out",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "chips",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "active",
+        "visible": "public",
+        "type": "bool",
+        "initial": true
+      },
+      {
+        "key": "card",
+        "visible": "others",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "card_value",
+        "visible": "others",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bet",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "folded",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "called",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "shown_card",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "bet_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "call_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "starting_chips",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "starting_pot",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hands",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "elimination_below",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "ante",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "bet_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "bet_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "message_max_words",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 52
+      },
+      {
+        "key": "cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "suits_per_rank",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "pot",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "high_bet",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "caller_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "best_value",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting chips",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "chips",
+            "value": {
+              "calc": "starting_chips"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "active",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the pot and the hand count",
+      "do": [
+        {
+          "set": {
+            "key": "pot",
+            "value": {
+              "calc": "starting_pot"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "hand_number",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "fill the deck",
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "[['2','3','4','5','6','7','8','9','10','J','Q','K','A'][int(n / suits_per_rank)] + ' of ' + ['Clubs','Diamonds','Hearts','Spades'][n - suits_per_rank * int(n / suits_per_rank)] for n in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51]]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "chips",
+        "active"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "eligibility",
+      "label": "eligibility and reset",
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "deck + [p.card for p in players if p.card != '']"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.active and you.chips < elimination_below"
+            },
+            "key": "active",
+            "value": false,
+            "text": "Seat {player} has fewer than {elimination_below} chips and is eliminated, keeping their chips as a final total."
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "not you.active"
+            },
+            "to": "out"
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bet",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "folded",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "called",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card_value",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "shown_card",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bet_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "call_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "high_bet",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "caller_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "best_value",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "eligibility",
+      "label": "enough players left",
+      "when": {
+        "calc": "count(p.active for p in players) <= 1"
+      },
+      "against": [
+        "over"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "the deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "players[0].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[0].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "card_value",
+            "value": {
+              "calc": "sum([n + 1 for n in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] if ['2','3','4','5','6','7','8','9','10','J','Q','K','A'][int(n / suits_per_rank)] + ' of ' + ['Clubs','Diamonds','Hearts','Spades'][n - suits_per_rank * int(n / suits_per_rank)] == pick])"
+            },
+            "if": {
+              "calc": "players[0].active"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[0].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "players[1].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[1].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "card_value",
+            "value": {
+              "calc": "sum([n + 1 for n in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] if ['2','3','4','5','6','7','8','9','10','J','Q','K','A'][int(n / suits_per_rank)] + ' of ' + ['Clubs','Diamonds','Hearts','Spades'][n - suits_per_rank * int(n / suits_per_rank)] == pick])"
+            },
+            "if": {
+              "calc": "players[1].active"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[1].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "players[2].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[2].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "card_value",
+            "value": {
+              "calc": "sum([n + 1 for n in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] if ['2','3','4','5','6','7','8','9','10','J','Q','K','A'][int(n / suits_per_rank)] + ' of ' + ['Clubs','Diamonds','Hearts','Spades'][n - suits_per_rank * int(n / suits_per_rank)] == pick])"
+            },
+            "if": {
+              "calc": "players[2].active"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[2].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "players[3].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 4,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[3].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 4,
+            "key": "card_value",
+            "value": {
+              "calc": "sum([n + 1 for n in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] if ['2','3','4','5','6','7','8','9','10','J','Q','K','A'][int(n / suits_per_rank)] + ' of ' + ['Clubs','Diamonds','Hearts','Spades'][n - suits_per_rank * int(n / suits_per_rank)] == pick])"
+            },
+            "if": {
+              "calc": "players[3].active"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "players[3].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 5 and players[4].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 5,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5 and players[4].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 5,
+            "key": "card_value",
+            "value": {
+              "calc": "sum([n + 1 for n in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] if ['2','3','4','5','6','7','8','9','10','J','Q','K','A'][int(n / suits_per_rank)] + ' of ' + ['Clubs','Diamonds','Hearts','Spades'][n - suits_per_rank * int(n / suits_per_rank)] == pick])"
+            },
+            "if": {
+              "calc": "len(players) >= 5 and players[4].active"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5 and players[4].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 6 and players[5].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 6,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 6 and players[5].active"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 6,
+            "key": "card_value",
+            "value": {
+              "calc": "sum([n + 1 for n in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] if ['2','3','4','5','6','7','8','9','10','J','Q','K','A'][int(n / suits_per_rank)] + ' of ' + ['Clubs','Diamonds','Hearts','Spades'][n - suits_per_rank * int(n / suits_per_rank)] == pick])"
+            },
+            "if": {
+              "calc": "len(players) >= 6 and players[5].active"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 6 and players[5].active"
+            }
+          }
+        }
+      ],
+      "text": "The full deck of {deck_size} cards is shuffled and one card is dealt to each active player."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "the cards you can see",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "chips",
+        "card",
+        "card_value"
+      ],
+      "text": "The hand is dealt. You can see every other player's card, never your own:"
+    },
+    {
+      "use": "update",
+      "phase": "ante",
+      "label": "the ante",
+      "do": [
+        {
+          "adjust": {
+            "key": "pot",
+            "value": {
+              "calc": "ante * count(p.active and p.chips >= ante for p in players)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.active and you.chips >= ante"
+            },
+            "key": "chips",
+            "value": {
+              "calc": "-ante"
+            }
+          }
+        }
+      ],
+      "text": "Each active player pays the ante of {ante}. The pot is now {pot}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": {
+        "where": "you.active"
+      },
+      "answer": {
+        "type": "text",
+        "max_words": 40
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message (at most {message_max_words} words) to the table. You may say anything, including claims about anyone's card; nothing said binds anyone."
+    },
+    {
+      "use": "poll",
+      "phase": "bet",
+      "label": "first bet",
+      "to": {
+        "where": "you.active"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Fold",
+          "Bet 1",
+          "Bet 2",
+          "Bet 3"
+        ]
+      },
+      "store": "bet_choice",
+      "text": "First bet: choose Fold, Bet 1, Bet 2 or Bet 3. A bet is paid into the pot now. Folding takes you out of this hand having lost only the ante."
+    },
+    {
+      "use": "update",
+      "phase": "bet",
+      "label": "pay the first bets",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.active"
+            },
+            "key": "bet",
+            "value": {
+              "calc": "1 if you.bet_choice == 'Bet 1' else (2 if you.bet_choice == 'Bet 2' else (3 if you.bet_choice == 'Bet 3' else 0))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.active and you.chips < you.bet"
+            },
+            "key": "bet",
+            "value": {
+              "calc": "you.chips"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.active"
+            },
+            "key": "folded",
+            "value": {
+              "calc": "you.bet == 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.active and you.bet > 0"
+            },
+            "key": "chips",
+            "value": {
+              "calc": "-you.bet"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "pot",
+            "value": {
+              "calc": "sum([p.bet for p in players if p.active])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "high_bet",
+            "value": {
+              "calc": "max([0] + [p.bet for p in players if p.active])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "bet",
+      "label": "reveal the bets",
+      "to": "all",
+      "text": "First bets [seat, bet] (0 means fold): {[[p.seat, p.bet] for p in players if p.active]}. The highest bet H is {high_bet}. The pot is {pot}."
+    },
+    {
+      "use": "poll",
+      "phase": "call",
+      "label": "call or fold",
+      "when": {
+        "calc": "high_bet >= bet_min"
+      },
+      "to": {
+        "where": "you.active and you.bet >= bet_min"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Call",
+          "Fold"
+        ]
+      },
+      "store": "call_choice",
+      "text": "Call or Fold. The highest bet H is {high_bet}. Calling costs H minus your own first bet (nothing if your bet was already H) and takes you to the showdown. Folding forfeits everything you put in this hand; nothing is returned."
+    },
+    {
+      "use": "update",
+      "phase": "call",
+      "label": "pay the calls",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.active and you.bet >= bet_min"
+            },
+            "key": "called",
+            "value": {
+              "calc": "you.call_choice == 'Call' and you.chips >= high_bet - you.bet"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.active and you.bet >= bet_min and not you.called"
+            },
+            "key": "folded",
+            "value": true
+          }
+        },
+        {
+          "adjust": {
+            "key": "pot",
+            "value": {
+              "calc": "sum([high_bet - p.bet for p in players if p.called])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.called"
+            },
+            "key": "chips",
+            "value": {
+              "calc": "-(high_bet - you.bet)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "caller_count",
+            "value": {
+              "calc": "count(p.called for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "best_value",
+            "value": {
+              "calc": "max([0] + [p.card_value for p in players if p.called])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "showdown",
+      "label": "the showdown",
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.called and you.card_value == best_value"
+            },
+            "key": "chips",
+            "value": {
+              "calc": "pot"
+            },
+            "if": {
+              "calc": "caller_count >= 1"
+            },
+            "text": "Seat {player} wins the pot of {pot}."
+          }
+        },
+        {
+          "set": {
+            "key": "pot",
+            "value": 0,
+            "if": {
+              "calc": "caller_count >= 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "shown_card",
+            "value": {
+              "calc": "you.card"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "hand_number",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "showdown",
+      "label": "the reveal",
+      "to": "all",
+      "text": "Hand {hand_number} of {hands} is over. Cards [seat, card]: {[[p.seat, p.shown_card] for p in players if p.shown_card != '']}. Callers: {[p.seat for p in players if p.called]}. Pot winner: {[p.seat for p in players if p.called and p.card_value == best_value]} (an empty list means nobody called and the pot carries over). Pot now: {pot}. Chips [seat, chips]: {[[p.seat, p.chips] for p in players]}."
+    },
+    {
+      "use": "check",
+      "phase": "showdown",
+      "label": "after the hand",
+      "when": {
+        "calc": "hand_number >= hands or count(p.active for p in players) <= 1"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "hand_number >= hands or count(p.active for p in players) <= 1"
+      },
+      "rank_by": "you.chips",
+      "text": "Winner: {result}. Final chips [seat, chips]: {[[p.seat, p.chips] for p in players]}; hands played: {hand_number}."
+    }
+  },
+  "limits": {
+    "rounds": 16,
+    "rounds_max": 20,
+    "actions_max": 3000,
+    "deadline_s": 120
+  },
+  "rules": "SETUP: Each player starts with {starting_chips} chips. The pot starts at {starting_pot}. The match lasts {hands} hands.\n\nCARD STRENGTH: A standard {deck_size}-card deck is used. Rank from high to low is A, K, Q, J, 10, 9, 8, 7, 6, 5, 4, 3, 2. Between equal ranks, suit decides, from high to low: Spades, Hearts, Diamonds, Clubs. No two cards are ever equal. A card's strength runs from 1 (2 of Clubs) to 52 (A of Spades).\n\nEACH HAND:\n1. ELIGIBILITY: Any active player with fewer than {elimination_below} chips is eliminated. They take no further part, and their current chips are their final total. A player with {elimination_below} or more chips stays active.\n2. DEAL: The full deck is shuffled and {cards_per_player} card is dealt to each active player. Each player is privately told the card of every other active player, but never their own.\n3. ANTE: Each active player pays {ante} chip into the pot.\n4. TALK: Every active player writes one short message (at most {message_max_words} words) at the same moment, without seeing the others. All messages are then shown to everyone. Messages may say anything, including claims about anyone's card, and none of them binds anyone.\n5. FIRST BET: Every active player, at the same moment, chooses one option: Fold, Bet 1, Bet 2 or Bet 3. A player who bets pays that many chips into the pot immediately. A player who folds is out of this hand, has lost only the ante, and is not asked to call.\n6. REVEAL BETS: Every player's choice from step 5 is shown to everyone. Let H be the highest bet made.\n7. CALL OR FOLD: Every player who bet in step 5, at the same moment, chooses Call or Fold. Calling costs H minus that player's own step-5 bet, paid into the pot. A player whose bet was already H calls for free. Folding forfeits everything that player has put in this hand; nothing is returned. If nobody bet, this step is skipped.\n8. SHOWDOWN: Find the players who called.\n   - Two or more callers: their cards are compared, and the caller with the strongest card wins the whole pot.\n   - Exactly one caller: that player wins the whole pot without comparison.\n   - No callers (including when everyone folded in step 5): the pot stays and carries over to the next hand.\n   All cards are then revealed to everyone, so players can check what was said and bet.\n9. Winnings are added to the winner's chips, the pot resets to 0 (unless it carried over), and the next hand begins.\n\nEND: The match ends after hand {hands}, or earlier if only one player (or none) is still active. Any pot remaining at that moment is discarded.\n\nThe player with the most chips at the end of the match wins. Eliminated players count with the chips they held when eliminated. If two or more players tie for the most chips, the game is a draw among them."
+}

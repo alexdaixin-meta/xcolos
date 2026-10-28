@@ -1,0 +1,585 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "go_nuts_for_donuts",
+    "name": "Go Nuts for Donuts: Secret Budget",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "Four players, ten simultaneous rounds, five donuts: a donut scores only for the player who picks it alone, and your split of premium picks is secret."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "donuts",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "split_g",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "glazed_used",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "jelly_used",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "glazed_left",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "jelly_left",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "choice",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "void",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "gained",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "shown",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_glazed",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_jelly",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_cruller",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_sprinkle",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_plain",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "glazed_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "jelly_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "cruller_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "sprinkle_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "plain_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "premium_picks",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "split_g_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "split_g_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "rank_score_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting state",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "donuts",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "split_g",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "glazed_used",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "jelly_used",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "score",
+        "donuts",
+        "glazed_used",
+        "jelly_used"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "poll",
+      "phase": "split",
+      "label": "secret split",
+      "when": {
+        "calc": "round == 0"
+      },
+      "to": "all",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "split_g_min"
+        },
+        "max": {
+          "calc": "split_g_max"
+        }
+      },
+      "store": "split_g",
+      "text": "How many of your {premium_picks} premium picks are Glazed picks? Answer with a whole number from {split_g_min} to {split_g_max}. The rest are Jelly picks. Nobody else will ever see this number, and it cannot be changed later."
+    },
+    {
+      "use": "sync",
+      "phase": "split",
+      "label": "your split",
+      "when": {
+        "calc": "round == 0"
+      },
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "split_g"
+      ],
+      "text": "Your secret split is set (number of Glazed picks):"
+    },
+    {
+      "use": "update",
+      "phase": "talk",
+      "label": "new round",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "void",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "gained",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "glazed_left",
+            "value": {
+              "calc": "you.split_g - you.glazed_used"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "jelly_left",
+            "value": {
+              "calc": "premium_picks - you.split_g - you.jelly_used"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_glazed",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "count_jelly",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "count_cruller",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "count_sprinkle",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "count_plain",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "all",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table. Everyone writes at the same time and all messages are shown after all are in. Messages bind no one."
+    },
+    {
+      "use": "sync",
+      "phase": "choose",
+      "label": "picks left",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "glazed_left",
+        "jelly_left"
+      ],
+      "text": "Your premium picks left (Glazed, Jelly):"
+    },
+    {
+      "use": "poll",
+      "phase": "choose",
+      "label": "choose a donut",
+      "to": "all",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Glazed",
+          "Jelly",
+          "Cruller",
+          "Sprinkle",
+          "Plain"
+        ]
+      },
+      "store": "choice",
+      "text": "Choose one donut: Glazed ({glazed_points}), Jelly ({jelly_points}), Cruller ({cruller_points}), Sprinkle ({sprinkle_points}) or Plain ({plain_points}). A Glazed or Jelly choice with no picks of that kind left is void and gains nothing. A donut scores only if you are the only non-void chooser of it."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "void check",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "void",
+            "value": {
+              "calc": "(you.choice == 'Glazed' and you.glazed_used >= you.split_g) or (you.choice == 'Jelly' and you.jelly_used >= premium_picks - you.split_g)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "count",
+      "do": [
+        {
+          "set": {
+            "key": "count_glazed",
+            "value": {
+              "calc": "count(p.choice == 'Glazed' and not p.void for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_jelly",
+            "value": {
+              "calc": "count(p.choice == 'Jelly' and not p.void for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_cruller",
+            "value": {
+              "calc": "count(p.choice == 'Cruller' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_sprinkle",
+            "value": {
+              "calc": "count(p.choice == 'Sprinkle' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_plain",
+            "value": {
+              "calc": "count(p.choice == 'Plain' for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "award",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "gained",
+            "value": {
+              "calc": "0 if you.void else (glazed_points if (you.choice == 'Glazed' and count_glazed == 1) else (jelly_points if (you.choice == 'Jelly' and count_jelly == 1) else (cruller_points if (you.choice == 'Cruller' and count_cruller == 1) else (sprinkle_points if (you.choice == 'Sprinkle' and count_sprinkle == 1) else (plain_points if (you.choice == 'Plain' and count_plain == 1) else 0)))))"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "you.gained"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "donuts",
+            "value": {
+              "calc": "1 if you.gained > 0 else 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "shown",
+            "value": {
+              "calc": "you.choice + (' (VOID)' if you.void else '')"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "use picks",
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.choice == 'Glazed' and not you.void"
+            },
+            "key": "glazed_used",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.choice == 'Jelly' and not you.void"
+            },
+            "key": "jelly_used",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "reveal",
+      "label": "reveal",
+      "to": "all",
+      "text": "Round results. Seat 1: {players[0].shown}, gained {players[0].gained}, score {players[0].score}, donuts {players[0].donuts}. Seat 2: {players[1].shown}, gained {players[1].gained}, score {players[1].score}, donuts {players[1].donuts}. Seat 3: {players[2].shown}, gained {players[2].gained}, score {players[2].score}, donuts {players[2].donuts}. Seat 4: {players[3].shown}, gained {players[3].gained}, score {players[3].score}, donuts {players[3].donuts}."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "round done",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "reveal",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score * 100 + you.donuts",
+      "text": "Winner: {result}. Final scores (donuts): Seat 1 {players[0].score} ({players[0].donuts}), Seat 2 {players[1].score} ({players[1].donuts}), Seat 3 {players[2].score} ({players[2].donuts}), Seat 4 {players[3].score} ({players[3].donuts})."
+    }
+  },
+  "limits": {
+    "rounds": 10,
+    "rounds_max": 10,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "Four players play exactly {rounds} rounds. Every round the same five donuts are offered: Glazed ({glazed_points} points), Jelly ({jelly_points} points), Cruller ({cruller_points} points), Sprinkle ({sprinkle_points} points), Plain ({plain_points} points). Everyone starts with score 0 and 0 donuts.\n\nSECRET SPLIT (once, before round 1). Each player has {premium_picks} premium picks for the whole game. All players are asked at the same time how many of their {premium_picks} premium picks are Glazed picks, a whole number from {split_g_min} to {split_g_max}. This number (split_g) is seen only by you and never changes. You then have split_g Glazed picks and ({premium_picks} - split_g) Jelly picks.\n\nEACH ROUND:\n1. TALK. Every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Messages bind no one.\n2. CHOOSE. You are privately reminded of your Glazed picks left (split_g - Glazed used) and Jelly picks left ({premium_picks} - split_g - Jelly used). All players then choose at the same time one of: Glazed, Jelly, Cruller, Sprinkle, Plain. All five are always offered.\n3. VOID CHECK. Your choice is void if and only if you chose Glazed with no Glazed picks left, or Jelly with no Jelly picks left. Otherwise it is not void. Cruller, Sprinkle and Plain are never void. A void choice gains 0, counts for no donut and uses no pick.\n4. COUNT. For each donut, count how many players made a non-void choice of it.\n5. AWARD. If exactly 1 player made a non-void choice of a donut, that player adds its points to their score and 1 to their donuts. If 2 or more did, the donut is discarded and none of them gains anything for it. (A void Glazed beside one non-void Glazed does not stop the non-void player winning it.)\n6. USE PICKS. Every non-void Glazed choice uses 1 Glazed pick and every non-void Jelly choice uses 1 Jelly pick, whether the donut was won or discarded.\n7. REVEAL. Everyone sees every player's choice (marked VOID if void), what each gained, and all scores and donut counts. Nobody's split is ever shown.\n8. After round {rounds} the game ends.\n\nWINNER. The highest score wins. Ties on score are broken by most donuts (rank value = score x {rank_score_multiplier} + donuts). Players still tied on both share the win."
+}

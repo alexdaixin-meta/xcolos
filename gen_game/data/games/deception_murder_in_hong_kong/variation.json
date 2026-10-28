@@ -1,0 +1,167 @@
+{
+  "original_summary": "Deception: Murder in Hong Kong is a hidden-role deduction game. A silent Forensic Scientist knows which Clue and Means card the secret Murderer chose, and gives coded hints on scene tiles. Investigators discuss and spend badges to name the pair, while the Murderer misdirects, and an optional Witness, who knows the Murderer, must not be exposed or the Murderer wins anyway. The variation reviewed here is the previous XColos adaptation ('Case File'), with fixed tiles, 2 badges per seat and a single Witness hunt.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "Seats have no built-in edge: seat 1 is always the Scientist and all other roles are random. Each simple policy can lose. 'Always pass' hands the Murderer the win, and 'Witness names the murderer at once' gets hunted. But the best play for the Witness collapses to 'stay silent and look like an Investigator', because 2 badges per seat (up to 14 accusations at N=8) can brute-force the remaining candidates without the Witness. The Witness's private knowledge, the central choice of the original, then changes nothing."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The testers estimated 30-40% of outcomes are chance. Under good play the Murderer's hunt is a uniform guess among N-2 seats: 33% at N=5 and 17% at N=8. The free-form tiles also map unevenly onto some cards. For example, Location of Crime and Time of Death say little about a Receipt or a Map, so some case files are barely hintable whatever the Scientist does."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "The Investigators' side is close to solved: hint plus blanket coverage. The Witness side has no headroom, since the right play is to do nothing. The Murderer's skill is capped by a hunt that has no evidence to work with."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "There is real inference: reading hints, pruning with the wrong accusations that get revealed, and spotting the Murderer's talk. But the information-rich parts (the Witness's knowledge and the Murderer's reading of who leaked) are made pointless by the badge budget. The hint reading itself depends on loose meanings rather than on a public structure that can be worked out."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "The 'solved' flag compares an accusation string with the case file, the hunt compares seat numbers, and the team outcome follows by arithmetic. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "It is turn-based text with simultaneous talk and polls, a flat step list, 4 rounds and no board. It fits the limits. The free-text accusation format is the only fragile point."
+    }
+  ],
+  "problems": [
+    "P1 Brute-force coverage: 2 badges per seat lets Investigators cover all plausible candidates without the Witness, so the Witness's private knowledge is unnecessary.",
+    "P2 Lottery hunt: because the Witness plays best by staying invisible, the Murderer's hunt is an uninformed guess among N-2 seats, and in solved games the winner is decided by the role deal.",
+    "P3 Deal luck in hints: the tiles have no defined link to the cards, so some dealt Clue/Means pairs can hardly be hinted, and solvability depends on the deal rather than on play.",
+    "P4 Uncoordinated accusations: independent simultaneous accusations by every seat reward spreading guesses blindly rather than agreeing a case through talk. They also give the Murderer no vote to sway and the table no record of who backed what."
+  ],
+  "changes": [
+    {
+      "what": "Replace per-seat badges with a small shared team pool: 1 test at N=5-6, 2 tests at N=7-8. At most one accusation is tested per round, chosen by a public vote.",
+      "why": "After the two hints there are about 3-4 plausible candidates at N=5 and about 5-6 at N=8. With these pool sizes blind solving drops to roughly 30-40%, so the team usually needs the Witness's steer to win reliably.",
+      "fixes": "P1 Brute-force coverage"
+    },
+    {
+      "what": "Accusations become a simultaneous vote. Each seat 2..N votes for one accusation or passes. The accusation with the most votes, needing at least 2, is tested and costs 1 from the pool. Ties go to the tied accusation backed by the lowest-numbered seat. Every vote is revealed afterwards.",
+      "why": "The table has to converge through talk. The Murderer can try to split the vote. Who backed the correct accusation first, and when, becomes public evidence.",
+      "fixes": "P4 Uncoordinated accusations"
+    },
+    {
+      "what": "The Witness hunt uses the public record: all talk messages and all revealed votes. The Murderer names 1 seat at N=5-6 and 2 seats at N=7-8.",
+      "why": "A Witness who wants the case solved must steer talk or votes, which leaves traces. Investigators can provide cover by backing candidates and voting with the table. The hunt becomes an inference about who knew too early, not a lottery.",
+      "fixes": "P2 Lottery hunt"
+    },
+    {
+      "what": "Every Means and Clue card carries a fixed public tag: exactly 2 of the 4 options on its tile. The tags are given in a lookup table, and each option appears on exactly 8 of the 16 cards. There are two hint tiles: Cause of Death for Means and Location for Clues.",
+      "why": "Every case file can be hinted to the same degree. Pruning is exact arithmetic over a public table. The Scientist reasons about which of the two true options removes more decoys, and the Murderer reasons about which of their four combos is hardest to isolate.",
+      "fixes": "P3 Deal luck in hints"
+    },
+    {
+      "what": "The game is cut to 3 rounds. Round 1 has the Means hint and talk. Round 2 has the Clue hint, talk and a vote. Round 3 has talk and a final vote.",
+      "why": "With exact tags, 2 hints are enough to narrow the case without solving it. A third hint would let hints alone finish the job and push out the Witness again. The extra talk-and-vote round lets the Witness react to a failed test.",
+      "fixes": "P1 Brute-force coverage"
+    }
+  ],
+  "keeps": [
+    "A silent Forensic Scientist who knows the solution and can only hint through scene tiles.",
+    "A hidden Murderer who chooses their own Clue+Means combination and misdirects in open discussion.",
+    "A Witness who knows the Murderer and must help without being exposed; the Murderer still wins by naming the Witness after being caught.",
+    "Accusations naming one Clue and one Means, a limited budget for them, and the Murderer winning if the case goes unsolved.",
+    "The same Clue and Means card lists and the Cause of Death and Location of Crime tiles."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core tension of the Witness (leak enough to solve, not enough to be found) survives once blind coverage is scarce, hints are exact over a public table, and the hunt reads a public vote record. All of this fits in 3 rounds and about 10 steps."
+  },
+  "variation": {
+    "name": "Deception: Tagged Case File",
+    "summary": "A team hidden-role deduction game for 5-8 players. A silent Scientist gives two exact hints over a public tag table. The table votes on at most 1-2 accusations, so a secret Witness must steer the vote, and a caught Murderer can still win by reading the talk and vote record to find the Witness.",
+    "players": {
+      "min": 5,
+      "max": 8,
+      "suggested": 7
+    },
+    "rules": "SETUP (once, before round 1)\nS1. Roles. Seat 1 is always the Forensic Scientist, and everyone knows this. Among seats 2..N, roles are dealt at random and in secret: 1 Murderer, 1 Witness, and the rest Investigators. Each player sees only their own role. The Witness is privately told the Murderer's seat number. The Scientist is not told any roles.\n\nS2. Cards. Shuffle the 16 Clues and the 16 Means. Deal each seat 2..N two Clues (labelled C1, C2) and two Means (labelled M1, M2). All dealt cards are public.\n\nS3. Public tag table. Each card has exactly two tags on its tile.\nCause of Death options are Breathing, Blunt, Bleeding and Chemical. Means tags:\n- Breathing+Blunt: Rope, Bare Hands, Pillow.\n- Breathing+Bleeding: Knife, Axe, Strangling Scarf.\n- Breathing+Chemical: Drowning, Fire.\n- Blunt+Bleeding: Brick, Push from Height.\n- Blunt+Chemical: Electric Shock, Car Crash, Sleeping Pills.\n- Bleeding+Chemical: Poison, Injection, Pistol.\nLocation options are Home, Outdoors, Public Venue and Workplace. Clue tags:\n- Home+Outdoors: Muddy Boots, Glove, Key.\n- Home+Public Venue: Lipstick, Wine Bottle, Necklace.\n- Home+Workplace: Diary, Photograph.\n- Outdoors+Public Venue: Train Ticket, Map.\n- Outdoors+Workplace: Cigarette Butt, Fingerprint, Hair Strand.\n- Public Venue+Workplace: Receipt, Letter, Wedding Ring.\nA card is consistent with a hint if the hinted option is one of its two tags.\n\nS4. Counters. The team pool is 1 at N=5-6 and 2 at N=7-8, and it is public. solved = 0. The hunt list is empty.\n\nS5. Murderer's pick (private poll, once). The Murderer chooses one of C1+M1, C1+M2, C2+M1 or C2+M2 from their own cards. It is recorded as the case file 'Seat s: Cx + My'. Only the Scientist sees the case file.\n\nEACH ROUND r = 1..3, in this order:\n1. Scientist's hint (private poll; rounds 1 and 2 only). In round 1 the Scientist picks one Cause of Death option. In round 2 the Scientist picks one Location option. The Scientist may pick any option but is on the Investigators' team.\n2. Announce. The hint is shown to everyone.\n3. Talk. Every seat 2..N writes one short message at the same time, without seeing the others. All messages are then shown together. The Scientist never speaks.\n4. Accusation vote (rounds 2 and 3 only; only if the pool is at least 1). Every seat 2..N votes at the same time, either 'pass' or one accusation 'Seat s: Cx + My'. s may be any seat 2..N, including the voter's own seat, and Cx and My must be cards held by seat s.\n5. Test. Among non-pass votes, find the accusation with the most votes. If it has at least 2 votes, it is tested and the pool falls by 1. If several accusations are tied for most votes, test the one voted for by the lowest-numbered seat among those tied. If the tested accusation equals the case file, set solved = 1.\n6. Reveal. Every seat's vote, and whether the tested accusation was correct, are shown to everyone.\n7. Witness hunt (private poll; only if solved = 1). The Murderer names seats that are neither themselves nor seat 1: 1 seat at N=5-6, 2 different seats at N=7-8. The named seats are recorded in the hunt list.\n8. End check. The game ends if solved = 1, or r = 3, or the pool is 0 after a test. Otherwise the next round begins.\n\nAt the end, the case file, all roles and the hunt list are revealed.",
+    "objective": "It is a team win, decided by arithmetic. If solved = 1 and the Witness's seat is not in the hunt list, the Scientist, all Investigators and the Witness win. If solved = 1 and the Witness's seat is in the hunt list, the Murderer wins alone. If the game ends with solved = 0, the Murderer wins alone. There are no draws.",
+    "expected_effect": "After the two exact hints, about 3-4 combos remain consistent at N=5 and about 5-6 at N=8. With only 1-2 tests, the Investigators win blind only about 30-40% of the time, so they need the Witness's knowledge of the seat.\n\nThe Witness faces a real trade-off. Steering hard almost guarantees a solve but leaves an early, confident trail in talk and votes. Staying silent leaves the team at blind odds.\n\nInvestigators can protect the Witness by floating candidates and joining the winning vote. The Murderer can pose as the Witness to split or hijack the vote, so following the loudest proposal can waste the only test.\n\nThe Murderer's hunt becomes evidence-based: who first argued for the correct seat, who changed vote after a failed test. The Murderer's initial pick and the Scientist's choice between two true options each reward working through the public tag table.\n\nTalk passes both tests. The Murderer and the team want opposite outcomes. The Witness and the Investigators agree on solving but disagree about who should take the risk of revealing knowledge. A player who just follows the first proposal can lose by spending the pool on the Murderer's decoy or by exposing the Witness."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 4,
+    "attributes": 14,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 3
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Winner-rule check of thoughtless policies:\n(a) Investigator always accusing the first listed option (lowest other seat, C1+M1). This wins only if that seat is the Murderer and the Murderer picked C1+M1. Chance is about 1/(N-2) x 1/4: 12.5% at N=4, 8% at N=6. It loses almost always against random or sensible play.\n(b) Always pass. Round 4 forbids pass, so a seat with badges must accuse once. Total guesses fall from 2 to 1 per seat and the Murderer wins more often. Bad, not dominant.\n(c) Murderer always picks C1+M1. This is a Schelling target, but investigators still need the seat. Against hint-following play the pick is found regardless, so it is not dominant.\n(d) Murderer always hunts the lowest eligible seat. This finds the Witness 1/(N-2) of the time: 1/3 at N=5, 1/4 at N=6. Random-equivalent, not dominant.\nNo option wins or draws against every opponent action.\n\nSolution-space table (seats 2..N, 4 combos each):\nN=4: 12 combos, 0 Witness, 2 Investigators x 2 badges = 4 good-team guesses.\nN=5: 16 combos, Witness and 2 Investigators = 6 guesses.\nN=6: 20 combos, Witness and 3 Investigators = 8 guesses.\nEach investigator excludes their own seat. The Witness knows the seat, so 2 badges cover 2 of 4 combos: 50% blind. With 8 hint tiles the Scientist can steer toward the 1 means and 1 clue among the 6-10 on the table.\n\nThe Murderer's counterplay is real at N>=5. All accusations are revealed. If only one seat accused the Murderer's seat, the hunt is trivial. So investigators must also accuse that seat, which requires the Witness to signal in talk, which exposes the Witness. At N=4 the Murderer relies only on misleading talk and ambiguous hints, so the Murderer is weaker. That is still plausible at roughly 20-35%.\n\nSeats: seat 1 is fixed as Scientist on the good team, and other roles are random, so there is no move-order edge. Accusations are simultaneous. Both sides can realistically win. There is no mislabelled payoff ordering and no cooperate/defect structure."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "The rules are otherwise complete:\n- Accusation menu is (N-2)x4+pass options.\n- The Murderer can never match the case_file because they cannot accuse their own seat.\n- If badges run out, the round-4 poll is empty and the game ends unsolved.\n- The hunt excludes self and seat 1.\n- Winner cases are exhaustive with no draws.\n- The game is finite at 4 rounds and decided by arithmetic on solved, the case_file and hunt_target.\n\nTalk is placed correctly. It is simultaneous, and the Murderer and Witness disagree with investigators about what to say, so following a claim can cost.\n\nComplexity: 4 rounds (<=40), 1 random draw at setup (<=1), hidden elements are roles and case_file (2, <=3), about 12 attributes (<=20), 8 listed steps (<=20).\n\nFailure: the flat round step list contains FIVE player-input steps: (1) Murderer's pick, (2) Scientist's hint, (4) Talk, (5) Accusation poll, (7) Witness Hunt. The limit is choice_steps_per_round <= 4. Conditions mean at most 4 fire in any single round, but the engine's step list is flat and the same every round, so all 5 exist in it. The designer's stated 4 understates this. The pick is a one-time action that belongs in setup."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance sources: the card deal decides how distinctive the murderer's cards are, and the role deal decides seats. Results depend on:\n- the Scientist encoding 8 semantic hints (16 options per round) toward one of 4 own combos;\n- investigators inferring the seat and combo from hints and from talk in which the Murderer lies;\n- the Witness balancing helping against revealing themselves;\n- the Murderer reading talk and accusation patterns to pick the hunt target.\n\nUnder all-good play the case is usually solved. The result then hinges on the hunt, a player choice informed by who signalled and who accused what, not a random draw. A blind hunt sits at 25-33%, and a perceptive Murderer beats that. A careful Witness lowers it. Chance from the deal is maybe 20-30% of variance and can be overcome by clear hints. A reasoning player is clearly favoured."
+        },
+        "required_changes": [
+          "Move the Murderer's pick out of the round step list into SETUP, so the case_file is written once before round 1. That leaves 4 choice steps per round (hint, talk, accusation, hunt) and makes choice_steps_per_round = 4 accurate. Alternatively, fold the hunt into an end-of-game step outside the per-round list."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "No option dominates and both sides can win; neither seat order nor information settles the game. Because the polls are simultaneous, no seat moves first. The Scientist's fixed seat 1 is public and on the majority team.\n\nCandidate solutions and blind badge coverage. Candidates = 4 x (N-1). Effective investigator guesses = 2 x (number of Investigators), since the Murderer's badges are wasted and a Witness who accuses risks exposure.\n- N=4: 12 candidates, 2 Investigators, 4 guesses, blind coverage 33%.\n- N=5: 16 candidates, 2 Investigators, 4 guesses, 25%.\n- N=6: 20 candidates, 3 Investigators, 6 guesses, 30%.\n- N=7: 24 candidates, 4 Investigators, 8 guesses, 33%.\n- N=8: 28 candidates, 5 Investigators, 10 guesses, 36%.\n\nThoughtless policies, judged by the winner rule:\n- Scientist always picks the first option: the hints carry no information. Investigators fall back to about 25-36% coverage and the Murderer usually wins, so this loses.\n- Investigators always accuse C1+M1 of the next seat: this solves only when that exact cell is the case file (well under 30%), so it loses most games.\n- Always pass in rounds 2-3: this wastes badges. Round 4 forces accusations but leaves at most 1-2 per player, so coverage falls. It does not dominate.\n- Murderer always picks C1+M1: harmless, but it gives up the chance to choose the least hintable pair.\n- Murderer hunts at random: wins about 1/(N-2) of solved games (1/3 at N=5, 1/6 at N=8).\n\nNone of these policies never loses. Rough split: P(solved) with reasonable hints is about 0.7-0.85. The Murderer's chance is then P(unsolved) + P(solved) x hunt success, about 25-40% at N>=5 and about 20-30% at N=4 (no Witness). The game leans toward the investigator team but both sides realistically win. The win conditions are stated as arithmetic and match the description; there are no draws."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules cover every situation:\n- The accusation format 'Seat s: Cx + My' matches the case_file format exactly, so solved is string equality.\n- Badges, solved and hunt_target are tracked numbers.\n- Round 1 has no poll. In round 4, pass is removed, and seats with 0 badges are excluded.\n- The Murderer cannot accuse their own seat, so a forced round-4 accusation cannot self-solve.\n- Reveals happen before the Witness Hunt, so the Murderer can use them, and the order is stated.\n- The game is finite (4 rounds) and the winner is computed from solved and hunt_target versus the Witness's seat.\n\nLimits: 7 steps per round (max 20); 3 choice steps per round (hint, accusation, hunt) plus the one-time setup pick (max 4); 12 attributes (max 20); 2 hidden elements, roles and case_file (max 3); random draws only at setup (max 1); 4 rounds (max 40). There is no board, clock or judge. Interpreting how a hint fits a card is the players' job, not the engine's.\n\nTalk is simultaneous and placed where interests conflict: the Murderer misleads, the Witness must signal without exposing themselves, and Investigators coordinate coverage. Following a proposal can cost a player, so the talk is justified. It is not a fixed-length repeated cooperation dilemma, so the late-round betrayal check does not apply."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Work out play when everyone plays well. The Scientist hints well, and Investigators split coverage in talk. After the Round 1 hints (Cause of Death narrows the Means; the second tile partly narrows the Clue) and the revealed wrong accusations, 10 guesses over the remaining plausible candidates at N=8 (4 at N=5) solve the case most of the time without any help from the Witness.\n\nThe Witness therefore plays best by saying nothing useful, never accusing the murderer's seat, and making a deliberately wrong forced accusation in round 4. In that case the Witness is indistinguishable from an Investigator. The Murderer's hunt becomes a uniform guess among N-2 seats, a hidden-type lottery:\n- N=5: 33%\n- N=6: 25%\n- N=7: 20%\n- N=8: 17%\n\nIn solved games under good play, then, the winner is decided by whether an uninformed guess hits a randomly dealt role. That fails the 'all play well' test.\n\nThe second chance source is the card deal. Some Clue/Means pairs map poorly onto the tiles; for example, Location of Crime and Time of Death say little about Receipt or Map. Rough estimate: 30-40% of outcomes are chance.\n\nThere is real inference: reading hints, spotting the Murderer's talk, and pruning with revealed accusations. But the brute-force badge budget makes the Witness's private knowledge unnecessary, and that is exactly what turns the hunt into a coin toss."
+        },
+        "required_changes": [
+          "Cut blind coverage so the Investigators need the Witness's information. Options:\n- give each seat 1 badge instead of 2; or\n- use a shared team pool of N-3 badges (minimum 2), spent one per accusation.\nThis drops blind coverage to about 10-18% (e.g. 5/28 at N=8). Solving then usually needs signals from the Witness, and those signals give the Murderer real evidence for the hunt.",
+          "Make the Witness Hunt informed rather than a lottery. Before the hunt, publicly reveal which seat or seats made the correct accusation. Also allow an option that grows with information, e.g. the Murderer also wins if they correctly name the Witness *and* the Witness's talk is cited. The simplest arithmetic fix is to let the Murderer name 2 seats at N>=7 and 1 seat otherwise, but only if the badge change above holds, so the Witness must leak to win.",
+          "Reduce deal luck. Either let the Scientist replace one tile per round from a fixed list of 4 alternative tiles (one option-set choice, all arithmetic), or require each dealt Clue and Means to be tagged with matching tile options in a public lookup list, so every case file is hintable."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "TAG ARITHMETIC. Each Cause of Death option appears on 8 of the 16 Means: Breathing 3+3+2, Blunt 3+2+3, Bleeding 3+2+3, Chemical 2+3+3. Each Location option appears on 8 of the 16 Clues: Home 3+3+2, Outdoors 3+2+3, Public 3+2+3, Workplace 2+3+3. So each of the two hints keeps about half of the other cards (7/15 is roughly 0.47).\n\nCANDIDATES LEFT AFTER BOTH HINTS (Scientist picks the better of the true card's two tags):\nN | combos 4(N-1) | decoys, random tag | decoys, chosen tag | test pool | blind hit\n5 | 16 | about 4.3 | about 3 | 1 | about 25%\n6 | 20 | about 5.6 | about 4 | 1 | about 20%\n7 | 24 | about 6.8 | about 5 | 2 | about 33%\n8 | 28 | about 8 | about 5.5 | 2 | about 30%\nThe Murderer's own seat always leaves extra decoys: C1+M2, C2+M1 and C2+M2 survive with about 0.5, 0.5 and 0.25, so about 1.25. The hints never point at a seat.\n\nWITNESS TRADE-OFF. The only seat information is the Witness's. If the Witness reveals the seat, the Murderer, who knows the Witness is the one player correctly pointing at them, names that seat in the hunt and wins. Blind hunt success is 1/3 at N=5 (3 eligible seats), 1/4 at N=6, 2/5 at N=7 and 1/3 at N=8.\n\nVOTE SABOTAGE. A test needs only 2 votes, and ties go to the accusation backed by the lowest-numbered seat. The Murderer's vote plus any one investigator's vote on a decoy forces a wrong test. At N=5-6 that empties the only pool point and ends the game. Investigators must reach a 3+ bloc through one round of simultaneous talk with no agreed leader.\n\nWINNER-RULE CHECK OF THOUGHTLESS POLICIES.\n- Investigators always pass: they never solve, so the Murderer wins 100%.\n- Scientist always picks the first option (Breathing, Home): about half the time the hint is inconsistent and misleading. Investigators lose almost always.\n- Murderer always votes pass and hunts at random: not a never-lose policy, because investigators win if a 3-bloc forms on the true combo.\n- Murderer always backs a consistent decoy: loses only when investigators converge.\nSo no option is strictly dominant and no policy never loses.\n\nOVERALL ESTIMATE. With sensible play, investigators solve only about 25-45%. Converting a solve into a win requires the Witness to survive the hunt (60-75% blind, less if the Witness leaked). The investigator team wins only about 20-35% and the Murderer about 65-80%. Seat 2 also gets a small tie-break edge. One side is clearly favoured."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete.\n- Setup deal: 2 Clues and 2 Means to each of up to 7 seats, so at most 14 of 16 cards are needed.\n- Murderer's pick is one of 4 options, stored as the case file. Accusations are an enumerable list of up to 28 options plus pass.\n- Test, tie-break and solved check are arithmetic equality. The Witness hunt is a seat poll and the winner rule is arithmetic. No draws are possible and the game has at most 3 rounds.\n\nLimits are respected:\n- steps 10 of 20\n- choice steps per round 4 of 4 (hint, talk, vote, hunt; the Murderer's pick is setup-only)\n- attributes 14 of 20\n- hidden elements 2 of 3 (roles, case file)\n- random draws: setup only\n- rounds 3 of 40\n\nNo board, clock, judge or trading is needed. Talk is correctly present: hidden Murderer and Witness interests conflict, so following a proposal can cost a player. Talk is simultaneous. The Scientist sees the case file, so the hint choice is a real decision. Unused branches are defined: no vote in round 1, all-pass means no test, and the game ends when the pool is 0."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "There is real inference: the Scientist chooses the disambiguating tag, the Murderer picks a hard-to-isolate combo, players read Witness and Murderer claims, and the Murderer hunts by reading talk. But when everyone plays well, the Witness stays hidden to survive the hunt. Then:\n1. Investigators choose among about 3-5 surviving combos with one test at N=5-6, roughly a 20-33% lottery.\n2. The Murderer's hunt is close to blind: 1/4 to 2/5.\n3. The number of surviving decoys is set by the random deal. A seat survives both hints with about (1-0.28)^2, roughly 0.52, so how many other seats look guilty is decided by the shuffle, not by play.\n\nEstimated chance share of the result is about 50%. Good investigators are not clearly favoured over weak ones, because the final accusation and the hunt are usually guesses."
+        },
+        "required_changes": [
+          "Add more evidence: give a third hint in round 3 (e.g. the Scientist names one seat 2..N whose cards are NOT the case file, or a second Cause/Location option that the true card lacks). Allow an accusation in round 3 after it. Target at most 2 surviving combos with good Scientist play.",
+          "Raise the pool to 2 at N=5-6 and 3 at N=7-8, or let a wrong test reveal which half (Clue or Means) was wrong, so the first test gives information.",
+          "Require a strict majority of seats 2..N (not just 2 votes) for an accusation to be tested, so a Murderer plus one confused voter cannot burn the pool.",
+          "Make the hunt name exactly 1 seat at every N, and only after the Murderer is publicly identified. Optionally exclude seats that voted for the correct accusation, so the Witness can vote correctly without being trivially exposed.",
+          "Re-estimate the win rate after the changes. Aim for the investigator team at about 45-55%. List the per-N solve and hunt probabilities in the design notes."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

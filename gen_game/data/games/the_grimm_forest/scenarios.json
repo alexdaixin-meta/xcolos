@@ -1,0 +1,1534 @@
+[
+  {
+    "name": "3 players: the 3-card favour deck is fully dealt, one card each",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "favour_deck": 0
+        }
+      }
+    },
+    "rule_text": "When setup runs with 3 players, then favour_deck holds one Straw, one Wood and one Brick and each player is dealt one, so all three favoured materials differ."
+  },
+  {
+    "name": "4 players: 6-card favour deck, 4 dealt, 2 remain",
+    "rule": "R2",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "favour_deck": 2
+        }
+      }
+    },
+    "rule_text": "When setup runs with 4 players, then favour_deck holds two Straw, two Wood and two Brick, each player is dealt one, and the 2 undealt cards stay hidden."
+  },
+  {
+    "name": "At start every pile is 0 and nothing is built",
+    "rule": "R3",
+    "players": 3,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "fields_pile": 0,
+        "forest_pile": 0,
+        "brickyard_pile": 0,
+        "round": 0
+      },
+      "players": {
+        "1": {
+          "sections": 0,
+          "completed": 0
+        },
+        "2": {
+          "sections": 0,
+          "completed": 0
+        },
+        "3": {
+          "sections": 0,
+          "completed": 0
+        }
+      }
+    },
+    "rule_text": "When the game starts, then every pile is 0 and every player has straw = 0, wood = 0 and brick = 0."
+  },
+  {
+    "name": "Market gain changes a private stock that enables only the owner to build",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Market"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Straw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "straw_progress": 1,
+          "sections": 1
+        },
+        "2": {
+          "sections": 0
+        },
+        "3": {
+          "sections": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Build Straw"
+        },
+        {
+          "seat": 3,
+          "option": "Build Straw"
+        }
+      ]
+    },
+    "rule_text": "When a player's favoured material or stockpile changes, then only that player is told it."
+  },
+  {
+    "name": "Round begins: round becomes 1 and bonus is drawn from the locations list",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "locations": [
+          "Brickyard"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Market"
+      },
+      {
+        "seat": 2,
+        "options_include": "Market"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1,
+        "bonus_location": "Brickyard"
+      }
+    },
+    "rule_text": "When a round begins, then bonus_location is drawn at random from Fields, Forest and Brickyard and announced to all."
+  },
+  {
+    "name": "Refill: each pile +3, bonus Forest gets +5",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "locations": [
+          "Forest"
+        ],
+        "fields_pile": 0,
+        "forest_pile": 0,
+        "brickyard_pile": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Market"
+      },
+      {
+        "seat": 2,
+        "options_include": "Market"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      }
+    ],
+    "expect": {
+      "game": {
+        "fields_pile": 3,
+        "forest_pile": 5,
+        "brickyard_pile": 3
+      }
+    },
+    "rule_text": "When the refill happens, then each pile gains 3 and the bonus location's pile gains 2 more, so it gains 5 in total."
+  },
+  {
+    "name": "Talk step runs for all and the round completes",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Market"
+      },
+      {
+        "seat": 2,
+        "options_include": "Market"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "gather_choice": "Market"
+        },
+        "2": {
+          "gather_choice": "Market"
+        },
+        "3": {
+          "gather_choice": "Market"
+        }
+      }
+    },
+    "rule_text": "When the talk step runs, then every player submits one message at the same time and all messages are shown to everyone."
+  },
+  {
+    "name": "Gather choice offers all seven options and choices are public",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 2,
+        "options_include": "Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gather_choice": "Wolf-Brickyard"
+        },
+        "2": {
+          "gather_choice": "Forest"
+        },
+        "3": {
+          "gather_choice": "Market"
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Fields"
+        },
+        {
+          "seat": 1,
+          "option": "Wolf-Fields"
+        },
+        {
+          "seat": 2,
+          "option": "Wolf-Forest"
+        },
+        {
+          "seat": 3,
+          "option": "Brickyard"
+        }
+      ]
+    },
+    "rule_text": "When the gather choice is made, then all players choose at the same time from Fields, Forest, Brickyard, Market, Wolf-Fields, Wolf-Forest and Wolf-Brickyard, and all choices are revealed afterwards."
+  },
+  {
+    "name": "Wolf at Fields: gatherer gets nothing and pile unchanged",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "locations": [
+          "Forest"
+        ],
+        "fields_pile": 4
+      },
+      "players": {
+        "1": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "2": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      }
+    ],
+    "expect": {
+      "game": {
+        "fields_pile": 7
+      },
+      "players": {
+        "1": {
+          "sections": 0,
+          "straw_progress": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Build Straw"
+        }
+      ]
+    },
+    "rule_text": "When at least one player chose Wolf at a location, then nobody gathers there and that pile is unchanged."
+  },
+  {
+    "name": "5 straw split by 2: each gets 2, 1 stays",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "locations": [
+          "Fields"
+        ],
+        "fields_pile": 0
+      },
+      "players": {
+        "1": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "2": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fields"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Straw",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Build Straw",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "fields_pile": 1
+      },
+      "players": {
+        "1": {
+          "straw_progress": 1,
+          "sections": 1
+        },
+        "2": {
+          "straw_progress": 1,
+          "sections": 1
+        }
+      }
+    },
+    "rule_text": "When no Wolf is at a location and g >= 1 players chose it, then each of them gains floor(pile / g) of its material and the remainder stays: 5 straw split by 2 gives each 2 and leaves 1."
+  },
+  {
+    "name": "Unchosen piles carry over",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "locations": [
+          "Fields"
+        ],
+        "fields_pile": 0,
+        "forest_pile": 2,
+        "brickyard_pile": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Market"
+      },
+      {
+        "seat": 2,
+        "options_include": "Market"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      }
+    ],
+    "expect": {
+      "game": {
+        "fields_pile": 5,
+        "forest_pile": 5,
+        "brickyard_pile": 7
+      }
+    },
+    "rule_text": "When nobody chose a location, then its pile stays and carries over to the next round."
+  },
+  {
+    "name": "All choose Market: each gains 1 favoured and builds it at cost 1",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Market"
+      },
+      {
+        "seat": 2,
+        "options_include": "Market"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Straw"
+      },
+      {
+        "seat": 2,
+        "options_include": "Build Wood"
+      },
+      {
+        "seat": 3,
+        "options_include": "Build Brick"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "straw_progress": 1,
+          "sections": 1
+        },
+        "2": {
+          "wood_progress": 1,
+          "sections": 1
+        },
+        "3": {
+          "brick_progress": 1,
+          "sections": 1
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Build Wood"
+        },
+        {
+          "seat": 2,
+          "option": "Build Brick"
+        },
+        {
+          "seat": 3,
+          "option": "Build Straw"
+        }
+      ]
+    },
+    "rule_text": "When a player chose Market, then they gain 1 of their favoured material, however many others also chose Market."
+  },
+  {
+    "name": "Wolf chooser gains nothing and can build nothing",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "locations": [
+          "Fields"
+        ],
+        "forest_pile": 0
+      },
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 2,
+        "options_include": "Market"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      }
+    ],
+    "expect": {
+      "game": {
+        "forest_pile": 3
+      },
+      "players": {
+        "1": {
+          "sections": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Build Straw"
+        },
+        {
+          "seat": 1,
+          "option": "Build Wood"
+        },
+        {
+          "seat": 1,
+          "option": "Build Brick"
+        }
+      ]
+    },
+    "rule_text": "When a player chose a Wolf option, then they gain nothing that round."
+  },
+  {
+    "name": "Lone gatherers empty their piles; choices and piles public (bonus-independent)",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "forest_pile": 0,
+        "brickyard_pile": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Brickyard"
+      },
+      {
+        "seat": 2,
+        "options_include": "Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Market"
+      }
+    ],
+    "expect": {
+      "game": {
+        "forest_pile": 0,
+        "brickyard_pile": 0
+      },
+      "players": {
+        "1": {
+          "gather_choice": "Brickyard"
+        },
+        "2": {
+          "gather_choice": "Forest"
+        },
+        "3": {
+          "gather_choice": "Market"
+        }
+      }
+    },
+    "rule_text": "When gathering is resolved, then each player is privately told their own gain, and the remaining piles and the counts of gatherers and wolves are public."
+  },
+  {
+    "name": "Favoured section costs 1, other costs 2",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 2,
+          "brick": 0
+        },
+        "2": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 3,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Wood",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Build Wood",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "wood_progress": 2,
+          "sections": 2
+        },
+        "2": {
+          "wood_progress": 1,
+          "sections": 1
+        }
+      }
+    },
+    "rule_text": "When a player builds a section of material M, then it costs 1 M if favoured = M, otherwise 2 M, taken from their stockpile."
+  },
+  {
+    "name": "Build adds to the unfinished house, or starts a new one at the Floor",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 1,
+          "wood": 0,
+          "brick": 0,
+          "straw_progress": 1,
+          "sections": 1
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 1,
+          "brick": 0,
+          "wood_done": 1,
+          "completed": 1,
+          "sections": 3
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Straw"
+      },
+      {
+        "seat": 2,
+        "options_include": "Build Wood"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "straw_progress": 2,
+          "sections": 2
+        },
+        "2": {
+          "wood_progress": 1,
+          "wood_done": 1,
+          "completed": 1,
+          "sections": 4
+        }
+      }
+    },
+    "rule_text": "When a player builds M and has an unfinished M house, then the next section is added (Floor, then Walls, then Roof); otherwise a new M house is started at the Floor."
+  },
+  {
+    "name": "Roof completes the house: done +1, completed +1, progress back to 0",
+    "rule": "R17",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 1,
+          "brick_progress": 2,
+          "sections": 2
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Brick"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "brick_progress": 0,
+          "brick_done": 1,
+          "completed": 1,
+          "sections": 3,
+          "finished": 0
+        }
+      }
+    },
+    "rule_text": "When a build brings M_progress to 3, then the house is complete: M_done += 1, completed += 1 and M_progress returns to 0."
+  },
+  {
+    "name": "No third house of a material, and unaffordable builds are not offered",
+    "rule": "R18",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 5,
+          "wood": 0,
+          "brick": 0,
+          "straw_done": 2,
+          "completed": 2,
+          "sections": 6
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 1
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "straw_done": 2,
+          "straw_progress": 0,
+          "completed": 2,
+          "sections": 6
+        },
+        "2": {
+          "brick_progress": 0,
+          "sections": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Build Straw"
+        },
+        {
+          "seat": 2,
+          "option": "Build Brick"
+        }
+      ]
+    },
+    "rule_text": "When a player cannot pay the cost, or the build would start a third house of material M (M_done = 2), then the build counts as Pass and nothing changes."
+  },
+  {
+    "name": "Building a section adds 1 to sections",
+    "rule": "R19",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 1,
+          "wood": 0,
+          "brick": 0
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Straw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "straw_progress": 1,
+          "sections": 1
+        },
+        "2": {
+          "sections": 0
+        },
+        "3": {
+          "sections": 0
+        }
+      }
+    },
+    "rule_text": "When a section is built, then sections += 1, and the house states are shown to all but the cost paid is not."
+  },
+  {
+    "name": "Exactly 2 build actions per round even with stock for more",
+    "rule": "R20",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 5
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Brick",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "brick_progress": 2,
+          "sections": 2,
+          "completed": 0
+        }
+      }
+    },
+    "rule_text": "When a round's builds happen, then there are exactly 2 simultaneous build actions, the second resolved after the first."
+  },
+  {
+    "name": "Third completed house sets finished and ends the game after the round",
+    "rule": "R21",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 1,
+          "straw_done": 1,
+          "wood_done": 1,
+          "brick_progress": 2,
+          "completed": 2,
+          "sections": 8
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        },
+        "3": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Brick"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 100000,
+        "2": 0,
+        "3": 0
+      },
+      "game": {
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "completed": 3,
+          "brick_done": 1,
+          "finished": 1
+        },
+        "2": {
+          "finished": 0
+        }
+      }
+    },
+    "rule_text": "When a player has completed >= 3 at the end of a round, then finished = 1 and the game ends after that round."
+  },
+  {
+    "name": "Single finisher wins over a non-finisher with more leftovers",
+    "rule": "R22",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 1,
+          "straw_done": 1,
+          "wood_done": 1,
+          "brick_progress": 2,
+          "completed": 2,
+          "sections": 8
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 9,
+          "wood": 0,
+          "brick": 0,
+          "straw_done": 1,
+          "brick_done": 1,
+          "completed": 2,
+          "sections": 6
+        },
+        "3": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Brick"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 100000,
+        "3": 0
+      },
+      "players": {
+        "1": {
+          "finished": 1
+        },
+        "2": {
+          "finished": 0
+        }
+      }
+    },
+    "rule_text": "When exactly one player has finished, then that player wins."
+  },
+  {
+    "name": "Two finishers: most leftover materials wins",
+    "rule": "R23",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 4,
+          "straw_done": 1,
+          "wood_done": 1,
+          "brick_progress": 2,
+          "completed": 2,
+          "sections": 8
+        },
+        "2": {
+          "favoured": "Straw",
+          "straw": 2,
+          "wood": 0,
+          "brick": 0,
+          "wood_done": 1,
+          "brick_done": 1,
+          "straw_progress": 2,
+          "completed": 2,
+          "sections": 8
+        },
+        "3": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Brick"
+      },
+      {
+        "seat": 2,
+        "options_include": "Build Straw"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 100003,
+        "2": 100001,
+        "3": 0
+      },
+      "players": {
+        "1": {
+          "finished": 1
+        },
+        "2": {
+          "finished": 1
+        }
+      }
+    },
+    "rule_text": "When several players finish in the same round, then the one with the most leftover straw + wood + brick wins, and players tied for the most share a draw."
+  },
+  {
+    "name": "Two finishers with equal leftovers share the win",
+    "rule": "R23",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 3,
+          "straw_done": 1,
+          "wood_done": 1,
+          "brick_progress": 2,
+          "completed": 2,
+          "sections": 8
+        },
+        "2": {
+          "favoured": "Straw",
+          "straw": 3,
+          "wood": 0,
+          "brick": 0,
+          "wood_done": 1,
+          "brick_done": 1,
+          "straw_progress": 2,
+          "completed": 2,
+          "sections": 8
+        },
+        "3": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      },
+      {
+        "seat": 1,
+        "options_include": "Build Brick"
+      },
+      {
+        "seat": 2,
+        "options_include": "Build Straw"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 100002,
+        "2": 100002,
+        "3": 0
+      }
+    },
+    "rule_text": "When several players finish in the same round, then the one with the most leftover straw + wood + brick wins, and players tied for the most share a draw."
+  },
+  {
+    "name": "Round 15 ends with no finisher: most completed, then sections",
+    "rule": "R24",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 14
+      },
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0,
+          "straw_done": 1,
+          "wood_done": 1,
+          "straw_progress": 1,
+          "completed": 2,
+          "sections": 7
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0,
+          "straw_done": 1,
+          "wood_done": 1,
+          "completed": 2,
+          "sections": 6
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0,
+          "brick_done": 1,
+          "wood_progress": 2,
+          "completed": 1,
+          "sections": 5
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 207,
+        "2": 206,
+        "3": 105
+      },
+      "game": {
+        "round": 15
+      }
+    },
+    "rule_text": "When round 15 ends with no finisher, then the game ends and the most completed houses wins, then the most sections, and a remaining tie is a draw."
+  },
+  {
+    "name": "Round 15 ends with a full tie at the top: shared win",
+    "rule": "R24",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 14
+      },
+      "players": {
+        "1": {
+          "favoured": "Straw",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0,
+          "straw_done": 1,
+          "wood_done": 1,
+          "completed": 2,
+          "sections": 6
+        },
+        "2": {
+          "favoured": "Wood",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0,
+          "straw_done": 1,
+          "brick_done": 1,
+          "completed": 2,
+          "sections": 6
+        },
+        "3": {
+          "favoured": "Brick",
+          "straw": 0,
+          "wood": 0,
+          "brick": 0,
+          "brick_done": 1,
+          "completed": 1,
+          "sections": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Wolf-Fields"
+      },
+      {
+        "seat": 2,
+        "options_include": "Wolf-Forest"
+      },
+      {
+        "seat": 3,
+        "options_include": "Wolf-Brickyard"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 206,
+        "2": 206,
+        "3": 103
+      }
+    },
+    "rule_text": "When round 15 ends with no finisher, then the game ends and the most completed houses wins, then the most sections, and a remaining tie is a draw."
+  }
+]

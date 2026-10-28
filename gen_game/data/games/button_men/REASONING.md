@@ -1,0 +1,36 @@
+# Reasoning and planning: Button Men: Guard and Strike
+
+**Verdict: adequate.** Winning rewards real reasoning (value tracking through rerolls, guard-pattern reads, bonus arithmetic) and some multi-turn endgame planning. However, dice values swing many legs, as match 3 shows. More hidden information that players control, or fewer free max-value rolls, would make skill matter more than the roll.
+
+From 3 play(s): 180 choices, 180 with a reason given (about 61.8 words each); results {'seat 1': 2, 'seat 2': 1}.
+
+## Reasoning: 3 of 3
+
+Most decisions rest on correct, specific inference. Players track which announced values are still live under the reroll rules, compute odds against fresh dice, and read opponents' guard patterns. Players on both seats consistently remember revealed values across several exchanges and work out bonus arithmetic correctly, which is exactly what the designer said a good player must do.
+
+- match 1, turn 34, seat 2: "It was announced at 12 when its attack failed in exchange 15. In exchange 16 they guarded their d4, so only the d4 was rerolled and the d12 still shows 12." (Tracks a hidden value over several exchanges using the one-reroll rule.)
+- match 2, turn 33, seat 1: "An action naming one of my captured dice does nothing, so it works as a pass. That keeps my 8 in place: any attack on it fails and gives me 2 points." (Finds a non-obvious rules exploit to keep a safe known value instead of being forced to reroll.)
+- match 2, turn 47, seat 1: "If both sides just guard until the leg ends, the bonuses make it 65–66, and I lose. So I need to score now." (Correct survival-bonus arithmetic drives the choice to attack despite leading.)
+- match 3, turn 40, seat 2: "A failed attack does not trigger a reroll, so it is still 9. My d12 is 10, which beats it." (Uses a revealed opponent value to make a near-certain capture.)
+
+## Planning: 2 of 3
+
+Players often keep resources for later. They choose which die attacks so that a good value is preserved, and they lock in endgames by guarding or passing through to the leg's end. Several of these plans are carried out over many exchanges, but most mid-leg moves are still one-exchange EV choices.
+
+- match 1, turn 49, seat 1: "If I guard my d12 for every remaining exchange of this leg (through exchange 30), the opponent cannot score at all." (A multi-turn lock plan, followed through exchanges 25-30.)
+- match 2, turn 46, seat 2: "A successful attacker gets rerolled, so attacking with the d12 keeps my d4 at 4 for later threats." (Chooses the attacker to keep a strong value for future turns.)
+- match 2, turn 48, seat 2: "That means A has to attack, and guarding gets me points whenever A attacks a guarded die." (A plan built on what the opponent is forced to do over the remaining exchanges.)
+- match 2, turn 51, seat 1: "Repeating this each exchange keeps my d12 alive for the end-of-match bonus." (Commits to a repeated pass to secure the end bonus, and carries it out.)
+
+## Luck: 2 of 3
+
+Leg-start values and rerolls decided many captures, and simultaneous blind choices often traded dice evenly. Match 3's 178-74 blowout came largely from seat 2's repeated high rolls (11s and 12s) against seat 1's low values. Choices still mattered in the closer matches, where guard timing and bonus arithmetic settled the result.
+
+- match 3, turn 10, seat 2: "With 11 on my d12, attacking their d12 succeeds unless their die shows 12" (High rolls handed seat 2 near-certain big captures.)
+- match 3, turn 11, seat 1: "My d4 and d8 both show 1, so almost any attack on them will succeed" (Seat 1 was left with dead dice by the roll.)
+
+## Weak spots
+
+- match 2, turn 39, seat 1: Attacked a d4 that had been guarded every recent exchange, admitting this loses if the guard rate is above ~60%, on the last exchange of the leg. The pass action used just before was safe and gave nothing away.
+- match 1, turn 17, seat 1: Attacked with a 12 into an opponent who had guarded their lone d8 every exchange. Guarding or passing to keep the 12 for the final exchange was better against a known always-guarder.
+- match 1, turn 33, seat 1: Estimated a 70% guard rate when the opponent had guarded its d12 every exchange this leg, which overstated the attack's value. Guarding the exposed d4, as done on the next turns, was the better-reasoned option.

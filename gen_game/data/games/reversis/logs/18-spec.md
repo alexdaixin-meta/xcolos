@@ -1,0 +1,182 @@
+# 18 spec
+
+- time: 2026-10-28T03:19:08+00:00 (43.5s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 620da7b9214e32bc, reply sha256 7bf57d3d121a665c
+
+## Sent
+
+````
+Game: Quick Reversis
+Players in the source: 4 to 4
+Suggested table size, chosen by the designer of these rules (keep it): 4
+
+Rules, as filed in the inventory:
+SETUP
+- Players are seats 1, 2, 3 and 4. Every player's total starts at 0.
+- The deck has 24 cards: A, K, Q, J, 9 and 8 in each of Spades, Hearts, Diamonds and Clubs.
+- Within a suit the ranking is A (highest), K, Q, J, 9, 8. There are no trumps.
+
+CARD POINTS
+- Each Ace counts 4, each King 3, each Queen 2 and each Jack 1. Nines and eights count 0.
+- The exception is the Jack of Hearts (the Quinola), which counts 5.
+- Each hand contains 44 points in total.
+
+STRUCTURE
+- The game has 4 hands of 6 tricks each, so 24 rounds. Each round is one trick.
+
+START OF A HAND (rounds 1, 7, 13 and 19)
+- Shuffle the 24 cards and deal 6 face down to each player. Each player sees only their own hand.
+- The leader of the first trick of hand h is seat h.
+- Set the sweeper to 'none'.
+
+EACH ROUND (ONE TRICK)
+1. The leader plays any one card from their hand face up. Its suit is the led suit. Announce it.
+2. The other three players each choose one card at the same moment, without seeing each other's choices.
+   - A player who holds a card of the led suit must play one.
+   - A player who holds none may play any card.
+3. All cards are revealed together.
+4. The highest card of the led suit wins the trick.
+5. Add up the points of the 4 cards played. The trick winner adds them to their total.
+6. Played cards leave the game for the rest of the hand.
+7. Update the sweeper:
+   - On the first trick of a hand, the sweeper becomes the trick winner.
+   - On later tricks, if the trick winner is not the sweeper, the sweeper becomes 'none'.
+8. The trick winner leads the next trick.
+9. Announce every player's total.
+
+END OF A HAND (after tricks 6, 12, 18 and 24)
+- If the sweeper is a player (that player took all 6 tricks, a reversis):
+  - that player subtracts 44 from their total, so the hand counts 0 for them;
+  - each other player adds 15 to their total.
+
+TALK
+- There is no table talk.
+
+END OF GAME
+- After round 24 the game ends.
+
+How the winner is decided: After 4 hands, the player with the lowest total wins. If two or more players tie for the lowest total, the game is a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Quick Reversis",
+  "summary": "A four-player trick-avoidance card game over 4 hands of 6 tricks: take as few card points as possible, unless you take every trick of a hand (a reversis), which wipes that hand's points for you and charges 15 to each opponent; the lowest total wins.",
+  "players": {"min": 4, "max": 4, "suggested": 4},
+  "parameters": {
+    "deck_size": 24,
+    "cards_per_suit": 6,
+    "suits": 4,
+    "cards_dealt_per_player": 6,
+    "hands": 4,
+    "tricks_per_hand": 6,
+    "total_rounds": 24,
+    "ace_points": 4,
+    "king_points": 3,
+    "queen_points": 2,
+    "jack_points": 1,
+    "nine_points": 0,
+    "eight_points": 0,
+    "quinola_points": 5,
+    "points_per_hand": 44,
+    "reversis_subtract": 44,
+    "reversis_bonus_to_others": 15,
+    "rank_ace": 6,
+    "rank_king": 5,
+    "rank_queen": 4,
+    "rank_jack": 3,
+    "rank_nine": 2,
+    "rank_eight": 1,
+    "sweeper_none_code": 0
+  },
+  "attributes": {
+    "player": [
+      {"key": "total", "type": "number", "visible": "public", "initial": 0, "meaning": "Card points taken so far, with reversis adjustments. Lower is better.", "observable": true},
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Cards the player holds in the current hand, for example 'QH' or 'JH'.", "observable": false},
+      {"key": "played_card", "type": "text", "visible": "public", "initial": "", "meaning": "The card this player played to the current trick, revealed when all cards are shown.", "observable": true},
+      {"key": "tricks_this_hand", "type": "number", "visible": "public", "initial": 0, "meaning": "Tricks this player has won in the current hand.", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": ["AS","KS","QS","JS","9S","8S","AH","KH","QH","JH","9H","8H","AD","KD","QD","JD","9D","8D","AC","KC","QC","JC","9C","8C"], "meaning": "The undealt cards. It is refilled to all 24 cards at the start of each hand.", "observable": false},
+      {"key": "round", "type": "number", "visible": "public", "initial": 0, "meaning": "The current trick number, from 1 to 24.", "observable": true},
+      {"key": "hand_number", "type": "number", "visible": "public", "initial": 0, "meaning": "The current hand, from 1 to 4.", "observable": true},
+      {"key": "leader", "type": "number", "visible": "public", "initial": 1, "meaning": "The seat that leads the current trick.", "observable": true},
+      {"key": "led_suit", "type": "text", "visible": "public", "initial": "", "meaning": "The suit of the card led to the current trick: S, H, D or C.", "observable": true},
+      {"key": "trick_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "The seat that played the highest card of the led suit in the current trick.", "observable": true},
+      {"key": "trick_points", "type": "number", "visible": "public", "initial": 0, "meaning": "The sum of the card points of the 4 cards in the current trick.", "observable": false},
+      {"key": "sweeper", "type": "number", "visible": "public", "initial": 0, "meaning": "The seat that has won every trick of the hand so far, or 0 for 'none'.", "observable": true}
+    ]
+  },
+  "setup": [
+    "Seats are numbered 1, 2, 3 and 4, and every player's total is set to 0.",
+    "The table deck is defined as the 24 cards A, K, Q, J, 9 and 8 of Spades, Hearts, Diamonds and Clubs.",
+    "round and hand_number start at 0, and sweeper starts at 0 (none)."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "effect": "round += 1; if (round - 1) % 6 == 0: hand_number += 1, deck is reset to all 24 cards, every player's hand is cleared and tricks_this_hand is set to 0, then 6 cards are dealt to each player by random draws (each card is removed from deck and appended to that player's hand), leader = hand_number, and sweeper = 0 (none). Every player's played_card is cleared."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "Each player is sent their own hand, plus the public total, leader, round, hand_number and sweeper."},
+    {"action": "ask", "who": "the seat equal to leader", "answer": "one card from their hand", "effect": "The card is removed from the leader's hand and set as the leader's played_card; led_suit = the suit of that card."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce: 'Seat {leader} leads {played_card}; the led suit is {led_suit}.'"},
+    {"action": "poll", "who": "every seat except leader", "answer": "one card from their hand; if the hand holds any card of led_suit, only cards of led_suit", "effect": "Each chosen card is removed from that player's hand and set as their played_card. No answer is seen until all three are in."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Reveal all four played_card values together."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "trick_winner = the seat whose played_card is of led_suit with the highest rank (A=6, K=5, Q=4, J=3, 9=2, 8=1); trick_points = the sum of the points of the 4 played cards (A=4, K=3, Q=2, J=1, 9=0, 8=0, but JH=5); the trick_winner's total += trick_points and their tricks_this_hand += 1."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "If (round - 1) % 6 == 0: sweeper = trick_winner. Otherwise, if trick_winner != sweeper: sweeper = 0."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "leader = trick_winner."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce: 'Seat {trick_winner} wins the trick and takes {trick_points} points. Totals: seat 1 {total}, seat 2 {total}, seat 3 {total}, seat 4 {total}.'"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When round % 6 == 0 and sweeper != 0: the player whose seat equals sweeper subtracts 44 from total, and every other player adds 15 to total. Announce the reversis if it happened."},
+    {"action": "check", "who": "all players", "answer": null, "effect": "If round == 24, end the game; otherwise continue with the next round."}
+  ],
+  "ending": {
+    "condition": "round == 24",
+    "rank_by": "0 - you.total",
+    "decided_by": "Each player's standing is minus their total, so the lowest total ranks highest. The player with the lowest total wins. If two or more players tie for the lowest total, they share the result, which is the source's draw."
+  },
+  "rules": [
+    {"id": "R1", "text": "When the game starts, then every player's total is 0."},
+    {"id": "R2", "text": "When a hand starts (rounds 1, 7, 13 and 19), then the deck is refilled to 24 cards and each player is dealt 6 cards from it into their hand, leaving the deck empty."},
+    {"id": "R3", "text": "When hand h starts, then the leader of its first trick is seat h (hand 1 seat 1, hand 2 seat 2, hand 3 seat 3, hand 4 seat 4)."},
+    {"id": "R4", "text": "When a hand starts, then the sweeper is set to none (0)."},
+    {"id": "R5", "text": "When a player's hand is dealt, then only that player sees it; other players do not."},
+    {"id": "R6", "text": "When the leader leads, then they may play any card in their hand, and that card's suit becomes the led suit."},
+    {"id": "R7", "text": "When a non-leader holds at least one card of the led suit, then they must play a card of the led suit."},
+    {"id": "R8", "text": "When a non-leader holds no card of the led suit, then they may play any card in their hand."},
+    {"id": "R9", "text": "When the three non-leaders choose, then they choose simultaneously, and no choice is seen until all are revealed together."},
+    {"id": "R10", "text": "When cards are compared, then the highest card of the led suit wins, with ranking A > K > Q > J > 9 > 8, and cards of other suits never win because there are no trumps."},
+    {"id": "R11", "text": "When a trick is won, then its winner adds the points of all 4 cards to their total: Ace 4, King 3, Queen 2, Jack 1, Nine 0, Eight 0, except the Jack of Hearts (Quinola), which counts 5."},
+    {"id": "R12", "text": "When a card is played, then it is removed from the player's hand and does not return for the rest of the hand."},
+    {"id": "R13", "text": "When the first trick of a hand is won, then the sweeper becomes that trick's winner."},
+    {"id": "R14", "text": "When a later trick of a hand is won by a player other than the sweeper, then the sweeper becomes none (0)."},
+    {"id": "R15", "text": "When a trick is won, then its winner leads the next trick."},
+    {"id": "R16", "text": "When a trick ends, then every player's total is announced."},
+    {"id": "R17", "text": "When a hand ends (after tricks 6, 12, 18 and 24) and the sweeper is a player who took all 6 tricks, then that player subtracts 44 from their total and each other player adds 15 to their total."},
+    {"id": "R18", "text": "When a hand ends and the sweeper is none, then no totals are adjusted."},
+    {"id": "R19", "text": "When round 24 has been played, then the game ends."},
+    {"id": "R20", "text": "When the game ends, then the player with the lowest total wins, and players tied for the lowest total share the result (a draw)."},
+    {"id": "R21", "text": "When a hand is played, then there is no table talk."}
+  ],
+  "offers": [
+    {"question": "The leader's lead", "who": "the seat equal to leader", "options": "every card currently in that seat's hand"},
+    {"question": "A follower's card", "who": "each of the three seats other than leader", "options": "if the seat holds any card of led_suit: exactly the cards of led_suit in its hand; otherwise: every card in its hand"}
+  ],
+  "choices": [
+    {"what": "4 players: min 4, max 4, suggested 4", "why": "The designer fixed 4. The 24-card deck deals exactly 6 cards to each of 4 players, and the 44-point and 15-point values assume this size. Fewer seats would leave cards undealt and change the avoidance tension; more would not fit the deck."},
+    {"what": "The sweeper's 'none' is encoded as 0", "why": "Seats are 1 to 4, so 0 marks no sweeper unambiguously as a number."},
+    {"what": "Card ranks are encoded as numbers (A=6, K=5, Q=4, J=3, 9=2, 8=1)", "why": "This lets the trick winner be found by arithmetic comparison within the led suit."},
+    {"what": "Card names are written as rank followed by suit letter (for example JH is the Quinola)", "why": "Hands, the deck and played cards need a compact text form."},
+    {"what": "No talk step", "why": "The source says there is no table talk."},
+    {"what": "The leader is asked with ask; the followers answer with poll", "why": "The source plays the lead face up first, then has the other three choose at the same moment."},
+    {"what": "Ranking expression 0 - total", "why": "The engine picks the highest value, and the source's winner is the lowest total. A tie at the top is shared, which matches the source's draw."},
+    {"what": "Strategy at the table", "why": "A thoughtful player sheds high-point cards (especially the Quinola) when void in the led suit, ducks under the current high card, tracks which cards have left the hand, and judges when to try a reversis or deliberately break an opponent's sweep."}
+  ],
+  "simplifications": [
+    {"what": "The reveal of the three simultaneous cards is a tell after the poll", "why": "The engine reveals the polled answers together once all are in, which matches 'all cards are revealed together'."},
+    {"what": "The trick winner's tricks_this_hand counter is added", "why": "It is a scratch counter that makes 'took all 6 tricks' checkable. The sweeper alone already decides the reversis."}
+  ],
+  "unsupported": []
+}
+```
+````

@@ -1,0 +1,169 @@
+{
+  "original_summary": "Dudo (Perudo) is a bluffing dice game for 2 to 10 players. Each player hides a cup of dice, players make rising claims about how many dice of a face exist across all cups (ones are wild), and anyone may call 'Dudo' to challenge the standing claim. The loser of each challenge loses a die, and the last player holding dice wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Simple policies all lose. 'Always call Dudo' loses to an opener who bids near the expected count. 'Always raise by the minimum' walks into a challenge on an impossible bid. 'Always bid high' is caught. Seat advantage from bidding first is balanced by rotating who starts. Every choice moves the probability of losing a die."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Each roll is random, but losing a die needs a misjudged bid or call. A player who conditions on their own dice and reads the opponent's bids as evidence beats one who does not, over many challenges. In the 2-player cut, the game ends only after 5 lost dice, which averages out the luck of single rolls."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Basic play is easy to learn: bid about a third of the table plus your own matches. Strong play is not solved within a few rounds. It needs Bayesian updating on bids, bluffing about which face you hold, adjusting as dice counts shrink, and exploiting the opponent's calling tendencies. A weak player still wins some challenges."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Every die is hidden from the opponent. Each bid is a signal that may be honest or a bluff. Deciding to raise or challenge requires inferring the opponent's dice from their bids and modelling whether they bluff."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "A challenge is settled by counting the dice showing the bid face plus ones against the bid quantity. Elimination follows from dice counts. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The original has up to 10 players and 50 dice. Its bidding chain is unbounded within a round, so the round has no fixed step count. Ace-switching (halve, or more than double) adds rule branches. A long multi-player elimination can exceed the step and round limits. The previous 2-player, four-bid cut fits the limits, but it left the 'T sixes' dead end undefined at steps 3 and 4."
+    }
+  ],
+  "problems": [
+    "The unbounded bidding chain gives a round no fixed number of steps, which the engine needs (at most 20 steps and 4 choices per round).",
+    "With up to 10 players the game is long and has a large hidden state, and players knocked out early sit idle.",
+    "Ace-switching rules (halve rounded up, or more than double) add branches that models misapply and that cost steps.",
+    "Gap in the previous variation: the highest possible bid, T sixes, can be the current bid at step 3 (after an opening of T sixes) or at step 4 (after the responder raises to T sixes). No raise exists there, so the rule 'an illegal raise is replaced by the lowest higher bid' is undefined. Forced Dudo was stated only for step 5.",
+    "Gap in the previous variation: the rule for an unreadable response did not say what happens when no legal raise exists, and did not say whether an unreadable response could be read as Dudo."
+  ],
+  "changes": [
+    {
+      "what": "Two players only, 5 dice each, with the opener role alternating every round.",
+      "why": "This keeps the hidden state small and the game short (at most 9 rounds, since exactly one die is lost per round). Alternation removes any seat edge.",
+      "fixes": "With up to 10 players the game is long and has a large hidden state, and players knocked out early sit idle."
+    },
+    {
+      "what": "Each round is capped at four bidding actions: opening, answer, answer, and a final answer. A final raise is resolved immediately as if the opener had challenged it.",
+      "why": "Every round then has a bounded, flat step list within 4 choice steps, using per-step 'when' conditions only.",
+      "fixes": "The unbounded bidding chain gives a round no fixed number of steps, which the engine needs (at most 20 steps and 4 choices per round)."
+    },
+    {
+      "what": "Ones are wild but can never be bid as a face. Bid order is quantity first, then face. The opening quantity floor is Q0 = ceil(T/3) and the cap is T.",
+      "why": "This removes ace-switching while keeping the wild ones that make Dudo recognisable. The floor stops trivially safe openings.",
+      "fixes": "Ace-switching rules (halve rounded up, or more than double) add branches that models misapply and that cost steps."
+    },
+    {
+      "what": "Forced Dudo at every answer step. At steps 3, 4 and 5, if the current bid is quantity T and face 6, the player to act must call Dudo, and any other response counts as Dudo. Opening or raising to T sixes stays legal.",
+      "why": "This defines the only dead end in the bid order. It keeps the real tactic of a 'T sixes' bid that forces the opponent to challenge, which is true with probability 1/3 at T=2 when you hold a 1 or a 6.",
+      "fixes": "Gap in the previous variation: the highest possible bid, T sixes, can be the current bid at step 3 (after an opening of T sixes) or at step 4 (after the responder raises to T sixes). No raise exists there, so the rule 'an illegal raise is replaced by the lowest higher bid' is undefined. Forced Dudo was stated only for step 5."
+    },
+    {
+      "what": "Explicit default rule. An unreadable or illegal opening becomes Q0 twos, which always exists. An unreadable or illegal answer becomes the lowest legal raise if one exists, and otherwise Dudo. The response is counted as Dudo only if it clearly says Dudo, or if no raise exists. Every replacement is announced.",
+      "why": "Every response then has exactly one defined outcome.",
+      "fixes": "Gap in the previous variation: the rule for an unreadable response did not say what happens when no legal raise exists, and did not say whether an unreadable response could be read as Dudo."
+    }
+  ],
+  "keeps": [
+    "Concealed dice: each player sees only their own.",
+    "Rising bids of 'at least Q dice show face F' across the whole table.",
+    "Ones are wild.",
+    "Calling Dudo to challenge. A true bid costs the caller a die and a false bid costs the bidder a die.",
+    "Losing dice shrinks your information and the table total.",
+    "The last player with dice wins (elimination)."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The game is a strong hidden-information bluffing game. The capped two-player form fits the limits, and the only defect found (the undefined T-sixes dead end) is closed by extending forced Dudo to every answer step."
+  },
+  "variation": {
+    "name": "Four-Bid Dudo",
+    "summary": "Two-player Dudo with wild ones, a four-action cap on bidding each round, an alternating opener and elimination at 0 dice. When the current bid is the maximum (T sixes), the player to act must call Dudo.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "SETUP: There are two players, each starting with 5 six-sided dice. Seat 1 is the opener in round 1. After that the opener role alternates every round. The other player in a round is the responder.\n\nTERMS: A bid is two whole numbers: a quantity Q and a face F, where F is 2, 3, 4, 5 or 6. It claims that at least Q dice on the whole table show F. Every die showing 1 also counts as showing F (ones are wild). 1 can never be bid as a face. T is the total number of dice in play this round. Q must be between 1 and T. Bid B is higher than bid A if B's quantity is larger, or if the quantities are equal and B's face is larger. A raise must be higher than the current bid. The highest possible bid is 'T sixes'.\n\nDEFAULTS: If the opening is illegal or unreadable, it is replaced by 'Q0 twos'. If an answer is illegal or unreadable, it is replaced by the lowest legal raise: the current quantity with the next higher face, or, if the face is 6, quantity plus 1 with face 2. If no legal raise exists, the answer is replaced by Dudo. Every replacement is announced.\n\nFORCED DUDO: At steps 3, 4 and 5, if the current bid is quantity T and face 6, the player to act must call Dudo. Any other response from them counts as Dudo.\n\nEACH ROUND:\n1. Roll. All dice in play are rolled. Each player privately sees only their own dice. Both players are told T, Q0 = ceil(T/3) and each player's dice count. Examples: T=10 gives Q0=4, T=9 gives 3, T=4 gives 2, T=2 gives 1.\n2. Opening (opener). The opener bids with quantity at least Q0 and at most T, with face 2 to 6. The bid is announced and becomes the current bid.\n3. Answer (responder). The responder either calls Dudo or raises. A raise is announced and becomes the current bid. If Dudo is called, the opener is the bidder and the responder is the challenger; go to Resolution.\n4. Answer (opener; only if no Dudo yet). The opener either calls Dudo or raises. A raise is announced and becomes the current bid. If Dudo is called, the responder is the bidder and the opener is the challenger; go to Resolution.\n5. Final answer (responder; only if no Dudo yet). The responder either calls Dudo or makes a final raise. If Dudo is called, the opener is the bidder and the responder is the challenger. A final raise is announced and resolved immediately, with the responder as bidder and the opener as challenger. The opener makes no further choice.\n\nRESOLUTION: All dice are revealed. Count the dice showing the bid face plus all dice showing 1. If the count is at least the bid quantity, the bid is true and the challenger loses one die. Otherwise the bid is false and the bidder loses one die. The count, the result and both dice counts are announced.\n\nEND OF ROUND: If a player has 0 dice, they are eliminated and the other player wins. Otherwise the opener role passes to the other player and a new round begins. Exactly one die is lost each round, so the game ends after at most 9 rounds.",
+    "objective": "Elimination. As soon as a player's dice count reaches 0, the other player wins. Exactly one die is lost per round, so the game always ends within 9 rounds and draws cannot occur.",
+    "expected_effect": "Play centres on judging the bid against the expected count: a third of the opponent's dice plus your own matches, including ones. Players read the opponent's bids as evidence about their dice and bluff about which face they hold. Because a bid of T sixes forces Dudo at any answer step, a player can push the opponent into a challenge at the maximum, which matters most late in the game when T is small and every bid is a sharp probability call. The responder's last word (the final raise, resolved as a challenge by the opener) is offset by the opener's control of the opening and by alternating roles. Simple policies lose: always calling Dudo, always raising minimally, and always bidding the maximum are each beaten by a player who bids near the expected count. No talk is used, since with two players talk would only be cheap bluffing already captured by the bids."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 4,
+    "attributes": 13,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 9
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "Arithmetic, T=10 so q0=3. Each die counts for a named face with p=1/3, since ones are wild. With X~Bin(10,1/3): P(X<=2)=0.299 and P(X<=3)=0.559. A blind opening bid (3 of a face) is true 70.1% of the time, and a blind q0+1 bid (4) is true 44.1%. The opener picks the face from their own 5 dice. The expected best face plus ones in 5 dice is about 2.3. Needing 3 of 10 then gives roughly 85% truth. Calling Dudo at step 3 is therefore rarely right, and step 3 collapses to 'raise'. An honest responder raising their best face to 4 needs the opener's 5 dice to supply about 1.7: P(>=1)=0.87 and P(>=2)=0.54, so such raises are true roughly 55-85% of the time.\n\nThoughtless policies under the winner rule. ALWAYS-LAST (bid sixes, raise to 4 sixes, re-bid 4 sixes, Pass) never calls Dudo. It loses dice whenever a sensible opponent calls Dudo on its blind sixes bids: about 30% false at q0 and 56% false at q0+1, and the opponent calls selectively using their own dice. It loses. ALWAYS-FIRST (twos, raise twos, re-bid twos, Dudo at step 5) calls Dudo on the opener's re-bid every time. That re-bid is chosen with information and is usually true, so this policy loses too. ALWAYS-DUDO-AT-STEP-3 is wrong about 85% of the time and loses. None of these policies survives by luck.\n\nThe structural flaw is the step-4 'echo' plus the step-5 Pass. Step 4 lets the opener re-bid the responder's exact raise ('may name any face, including the current one'). The responder then either calls Dudo on their own claim or passes for free. Against an honest raise, echoing guarantees the opener loses nothing. Pass gives the responder a guaranteed zero-loss exit. So the round tree reduces to two outcomes:\n- the opener calls Dudo on the raise, or\n- the opener echoes, and the responder calls Dudo only if they bluffed; otherwise no die is lost.\n\nSequences in which nobody loses a die are the modal outcome between careful players. That also suits the leader in the fixed 40-round race:\n- As opener, the leader bids the best face (about 85% safe) and echoes any plausible raise.\n- As responder, the leader raises honestly and always passes.\n- The trailer can only gain by bluffing raises or by calling Dudo on likely-true bids.\n\nThe safe line wins late rounds for whoever is ahead. With decisive rounds rare, ties in dice at round 40 (draws) are frequent. The re-bid gives the responder no new bid to evaluate, so step 5 is decorative."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Stated complexity is within limits: 16/20 steps, 4/4 choice steps, 13/20 attributes, 2/3 hidden elements, 1 random draw, 40 rounds. The 'go to Resolution' branches are single steps with arithmetic `when` conditions, not block substitution, so they are supported. Every situation is covered:\n- The quantities q0 and q0+1 never exceed T. The minimum T is 2, giving q0=1 and q0+1=2.\n- Ones are wild and cannot be named.\n- Who counts as the caller and who as the bidder is defined.\n- Elimination ends the game immediately, and the round-40 tiebreak and draw are arithmetic.\n\nThis is a 2-player game, so no opening talk is needed. Responder and opener choices are sequential by design, which is correct because order is the point. Hidden dice are supported by hidden_hands, and there is no board, judge or clock."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "There is real inference: estimating the opponent's count of a face from one's own 5 dice and from their bid choice, and spotting bluffed raises. Opponent modelling also matters, in how often they bluff. Single rounds are noisy: an informed Dudo call is right only about 60-75% of the time. Over up to 40 rounds, with 5 dice lost needed to win, chance averages out, so chance decides roughly 30-40% of outcomes. A player who bids informed faces and calls selectively clearly beats a thoughtless or random one, as shown by the losses computed above. Between two equal good players the dice break ties, but good play shapes every round, and the deal is not a fixed hidden type."
+        },
+        "required_changes": [
+          "Forbid the echo: at step 4 a re-bid must name a different face from the responder's raise, or must raise the quantity to q0+2.",
+          "Remove the free exit at step 5. Either delete Pass, so the responder must call Dudo or raise to q0+2 (any face) with a forced Dudo by the opener afterwards, or make Pass cost the passer one die.",
+          "Make the step-3 choice meaningful by lowering opening-bid safety, e.g. q0 = max(1, floor(T/3)) + 1 for the opening bid, so calling Dudo on it is right about 40-50% of the time rather than about 15%.",
+          "Optionally reduce rounds or make the round-40 tiebreak also count dice lost on failed Dudo calls, so stalling by the leader is not free."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "**Opening bid.** The opener must bid at least Q0 = ceil(T/3). Each die matches a given face (that face or a wild 1) with p = 1/3.\n\nAt T = 10, Q0 = 4, so the opener has 5 dice and the responder has 5. The opener's best own count is ones plus the most common other face:\n- P(count \u2264 1) = 5!/6^5 = 0.015. This needs no 1s and five different faces from 2 to 6.\n- P(count = 2) \u2248 0.45.\n- P(count \u2265 3) \u2248 0.53.\n\nThe opener needs the rest from the responder's 5 dice, which follow Bin(5, 1/3):\n\n| Opener's own count | Still needed | P(opponent supplies it) |\n|---|---|---|\n| 1 | 3 | 0.21 |\n| 2 | 2 | 1 \u2212 0.132 \u2212 0.329 = 0.539 |\n| 3 | 1 | 0.868 |\n| 4+ | 0 | 1 |\n\nA sensible opening at Q0 is therefore true about 0.45\u00d70.54 + 0.53\u00d70.9 \u2248 0.72 of the time.\n\n**Thoughtless policies (winner rule applied per round, one die lost per round):**\n- **Responder always calls Dudo at step 3:** wins only about 28% of those rounds against a sensible opener. It loses the game.\n- **Always make the lowest legal raise:** opener bids Q0 twos, then Q0 threes, Q0 fours, then the responder's final Q0 fives is auto-challenged. Each bid is true only about P(Bin(10, 1/3) \u2265 4) = 0.44 unconditionally. A sensible opponent calls Dudo exactly when their own dice show few of the face, so it loses most rounds.\n- **Always the highest bid (T sixes):** at T = 10 it needs 10 dice in {1, 6}, probability (1/3)^10. It is almost always false and loses the round when called.\n- **Always open at Q0 twos regardless of hand:** the hand-blind opening is true only about 44% of the time, against about 72% for the best face. A sensible responder exploits this by calling.\n\nNo option is strictly better whatever the opponent does. At every step, Dudo versus raise depends on your own dice and on what the opponent's bid reveals. Both players can win any round.\n\n**Seats.** Roles alternate (opener, then responder), so each seat holds each role within \u00b11 round over a game of 5 to 9 rounds. The responder has the last word: step 5 offers Dudo or a final raise that is auto-challenged. The opener gets the low-risk forced opening at about the median quantity. These roughly offset; my estimate is a responder edge of at most about 55/45 per round.\n\nThere is a mild residual seat edge: seat 1 opens rounds 1, 3, 5, 7 and 9, including the decisive 1-v-1 round 9. It is not large enough to fail the check.\n\nThe game is zero-sum with no cooperation element, so the 'safe option every late round' test does not apply.\n\n**Endgame check at T = 2.** An honest opening '1 of my face' is always true. The responder can raise truthfully only with a 1 or a higher face, so bluffing and inference decide the round. Neither side wins automatically."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "**Limits.** The stated complexity is 16 steps (\u2264 20), 4 choice steps (\u2264 4), 13 attributes (\u2264 20), 1 hidden element (\u2264 3), 1 random draw per round (\u2264 1) and 9 rounds (\u2264 40). All are within limits.\n- Steps 4 and 5 and the resolution can be done with per-step `when` conditions on a stored 'challenger' and 'bid maker'. That is arithmetic conditional scoring, not block selection.\n- Exactly one die is lost per round, so the game ends within 9 rounds.\n- The game uses no board, judge, clock, trading or binding agreements.\n- With 2 players and no need for talk, omitting talk is correct.\n- Ones being wild, the bid order (quantity first, then face) and the Q \u2264 T cap are unambiguous.\n\n**Gap.** The opening may legally be 'T sixes' because Q \u2264 T is allowed. Step 4 can also produce T sixes. The rule 'if the current bid already has quantity T and face 6, the responder must call Dudo' covers only step 5.\n- At step 3 (responder) or step 4 (opener), facing T sixes, no raise exists.\n- An attempted raise is 'replaced by the lowest higher bid', which does not exist, so the outcome is undefined.\n\nThis matters in practice. At T = 2, opening '2 sixes' while holding a 1 or 6 is a real tactic: it is true with probability 1/3 and leaves the responder no legal raise. A model with only these words cannot resolve that case."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "**Chance.** Dice drive any single round between equals. My estimate is that roughly 40\u201350% of single-round variance is chance.\n\n**Skill.** The game is decided over 5 to 9 rounds, and skill compounds across them:\n- An opener who picks the best face is true about 72% of the time, against about 44% for a hand-blind opening.\n- A responder who calls Dudo based on their own count of the bid face beats always-Dudo by a wide margin. Always-Dudo wins only about 28% of those rounds.\n- Every bid leaks information about the bidder's hand. For example, a jump in face or quantity signals holdings. Players can act on this at steps 3, 4 and 5 by calling or by choosing a raise their own dice support.\n- The responder's final choice is a real inference problem: P(opener's step-4 bid is true) against P(my best final raise is true).\n\n**Equal good play.** When both play well, the winner is not fixed by the deal alone. Bluffing and inference still shift the outcomes, as the T = 2 endgame shows. When one side reasons better, it is clearly favoured. There is hidden information (each player's dice) and a way to act on it (calling versus raising)."
+        },
+        "required_changes": [
+          "Extend the forced-Dudo rule to every answer step: 'At step 3, 4 or 5, if the current bid has quantity T and face 6, the player to act must call Dudo; any other response is treated as Dudo.' Alternatively, forbid opening or raising to T sixes.",
+          "Optional: also state that an unreadable response at steps 3\u20135 is treated as the lowest legal raise only when one exists, and otherwise as Dudo."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "The step structure gives the responder a built-in per-round edge, and the opener's step-4 raise is almost never right.\n\nSTEP 5 (responder, facing the opener's raise b3 = (q,f)). The responder wins if b3 is false (call Dudo) OR if some higher bid b4 is true (a final raise, auto-challenged). The responder picks whichever is likelier given their own dice, so they get two chances against the opener's one.\nWorked case, T=10, b3 = 5 fives, responder holds two dice showing 5 or 1:\n- P(b3 true) = P(opponent has 3 or more of their 5 dice showing 5/1) = P(Bin(5,1/3) >= 3) = (40+10+1)/243 = 0.21.\n- Dudo wins 0.79. Raising to 5 sixes is a second option if the responder is strong in sixes.\nIn general, P(b3 false) + P(lowest raise above b3 true) is about 1 or more, because adjacent bids are nearly equally likely. So the responder wins at least about half of step-5 positions, usually much more.\n\nSTEP 4 (opener). Raising therefore yields roughly 0.2 to 0.45. The alternative is Dudo on b2, a bid the responder chose because it looked true for them. Raising is near-dominated, so the round collapses to two decisions: the opener bids b1, then the responder takes max(P(b1 false | info), P(b2 true | info)). The second mover sees b1 before acting and has two outs (doubt it, or outbid it), against the opener's single committed claim.\n\nThoughtless policies, T=10, opener opening Q0=4 of their best face (best-face count c):\n| c | P(b1 true) |\n|---|---|\n| 1 | P(opp >= 3) = 0.21 |\n| 2 | P(opp >= 2) = 0.54 |\n| 3 | P(opp >= 1) = 0.87 |\nOverall about 0.65.\n- Always-Dudo responder: wins only about 35%. It loses; it is not dominant.\n- Always-minimum-raise: its bids quickly become false. It loses to sensible play and roughly ties random play.\n- Opener always opening T sixes: false in about 100% of rolls. It loses.\nSo no thoughtless policy never loses, and there is no strictly dominant option.\n\nSeat order. Openers alternate from Seat 1, so Seat 1 opens rounds 1, 3, 5, 7 and 9. In 7- or 9-round games Seat 1 takes the weaker opener role once more than Seat 2. Combined with the responder edge (my estimate is roughly 55-65% for the responder in a sensible-vs-sensible round), this is a move-order edge for Seat 2 that the design neither measures nor compensates. One of the four choice steps (step 4) is also effectively dead."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete:\n- Bid ordering is quantity first, then face.\n- Wild ones are counted at resolution.\n- Defaults are defined (illegal opening becomes 'Q0 twos'; illegal raise becomes the lowest legal raise; no legal raise becomes Dudo).\n- Forced Dudo applies at 'T sixes'.\n- Step 5 resolves with no further choice.\n\nThe game is finite (exactly one die lost per round, at most 9 rounds) and decided by arithmetic (count >= Q). Elimination, hidden_hands and sequential_choice are all supported.\n\nComplexity is within limits: 16 steps (<=20), 4 choice steps (<=4), 13 attributes (<=20), 1 hidden element, 1 random draw (the dice roll), 9 rounds (<=40).\n\nIt needs no judge, board or clock. It is two-player, so no talk phase is needed, and choices are sequential by design."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Dice decide much of each round. A sensible-vs-sensible round is decided by the roll in perhaps 60-70% of cases, because many bids are near-certain or near-hopeless whatever is chosen.\n\nThere is still real inference:\n- Binomial estimation from your own dice. Example: with c=2, '4 of F' is true 54% of the time; with c=1, 21%.\n- Reading the opponent's face and quantity choice. An opening on sixes signals a strong six count or an attempt to push the responder up a quantity.\n- Choosing Dudo versus a raise.\n\nA bot that always Dudos or always min-raises wins only about 35-45% of rounds against a sensible player. A per-round edge of 60/40 compounds over a first-to-lose-5-dice match to roughly 70%+ for the better reasoner.\n\nWhen both players play well, the winner is decided by the rolls plus the role edge, not by a hidden type alone. Good play can overcome bad rolls across rounds."
+        },
+        "required_changes": [
+          "Remove the responder's two-outs edge so the opener's step 4 is a live choice. For example, make step 4 the last choice: the opener either calls Dudo or makes a final raise that is resolved immediately with the responder as challenger, and delete step 5. Then the opener has open + final raise and the responder has one Dudo/raise answer.",
+          "Alternatively keep the steps but compensate the role: make the loser of the previous round the responder (a catch-up choice) instead of strict alternation from Seat 1. This removes the extra opener round Seat 1 takes in odd-length games.",
+          "Support the fix with a simulated or computed per-round win rate for opener versus responder under sensible play at T=10, 8, 6 and 4, showing it lies within about 45-55%."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

@@ -1,0 +1,55 @@
+# 05 critic
+
+- time: 2026-10-28T01:37:14+00:00 (93.2s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 5a0cc0c2965d5c49, reply sha256 43ff3f04ca5a7409
+
+## Sent
+
+````
+ORIGINAL GAME: Salem 1692
+Each player gets face-down Tryal cards; any Witch card makes you a Witch forever, even if later lost. One Town Hall power each. Deal 3 playing cards. Put Conspiracy in deck and Night at bottom; set Black Cat aside. At Dawn, Witches eyes-open secretly give Black Cat to any player. First player is Black Cat holder. On your turn you must either draw 2 cards (Black cards revealed and resolved instantly) or play any number of cards on others, never yourself. Green cards are one-shot, Blue stay, Red are accusations. At 7 accusations the accuser reveals one of that player's Tryal cards; if Witch revealed, that player dies. When Conspiracy is drawn, reveal one Tryal on Black Cat holder, then each player takes one unrevealed Tryal from left, becoming Witch if they gain a Witch card. When Night is drawn, all close eyes, Witches choose a kill, Constable chooses a save; if different player, victim dies. Witches win when all non-Witches dead; Town wins when all Witch Tryal cards are revealed.
+
+PROPOSED VARIATION: Salem 1692: Gossip and Gallows (revised)
+Players: 5 to 6
+Rules: SETUP. Seat the players in a circle, numbered 1 to N (N = 5 or 6). Deal hidden roles at random: exactly 1 Witch, 1 Constable, and the rest Townsfolk. Each player sees only their own role. Every player starts alive with 0 accusation tokens. The game lasts at most 6 rounds.
+
+TERMS. L is the number of living players at the moment of checking. A player's 'living neighbours' are the nearest living player clockwise and the nearest living player counter-clockwise, skipping dead players. When L = 3, these are simply the other two living players. Dead players take no further part, cannot vote, cannot be voted for and hold no tokens.
+
+EACH ROUND, in this order:
+1. GOSSIP DRAW. The engine draws one living player uniformly at random from the living players who are NOT the Witch. That player is the Gossip and is told so privately. Nobody else learns who the Gossip is.
+2. GOSSIP RESULT. The Gossip is privately told either 'The Witch IS one of your two living neighbours' or 'The Witch is NOT one of your two living neighbours'. Nobody else learns the result.
+3. TALK A. Every living player writes one short message at the same time, without seeing the others. Then all messages are shown to everyone. Players may claim to be the Gossip, claim any role, accuse, lie or stay silent. Nothing said is binding.
+4. TALK B. Every living player again writes one short message at the same time, having seen all the Talk A messages but not each other's Talk B messages. Then all are shown to everyone.
+5. ACCUSATION. All living players simultaneously name one other living player, never themselves. Each named player gains 1 accusation token per vote received. Tokens from earlier rounds are kept.
+6. ANNOUNCE. Every vote and every living player's token total are made public.
+7. TRIAL CHECK. Let T = floor(L/2) + 1: T is 4 when 6 are alive, 3 when 5 or 4 are alive, and 2 when 3 are alive. If exactly one living player holds strictly more tokens than every other living player, AND that player holds at least T tokens, that player is tried. Otherwise nobody is tried this round, and every player keeps their tokens. This applies both to a tie for the most tokens and to a sole leader with fewer than T tokens.
+8. TRIAL. The tried player's role is revealed to all. If they are the Witch, the game ends immediately and the Town wins. Otherwise they are hanged (eliminated), and every living player's tokens reset to 0.
+9. PARITY CHECK. If the Witch is alive and there is at most 1 living non-Witch, the game ends and the Witch wins.
+10. NIGHT. Every living player privately names one living player as their night target. Only two choices count:
+    - The Witch's choice is the kill. It must be a living player other than the Witch.
+    - The Constable's choice is the protection. It must be a living player other than the Constable, and it may NOT be the same player the Constable protected on the previous night.
+    Everyone else's choice is ignored; everyone names a target so that nobody can tell who holds an active role. If the Constable is dead, there is no protection.
+11. NIGHT RESOLUTION. If the kill target is different from the protection target, the kill target dies, their role is revealed to all, and their tokens are removed. The other players' tokens are unchanged. If the two targets are the same, nobody dies, and it is announced only that the night passed peacefully. The engine records the Constable's protection target for the next night's restriction.
+12. PARITY CHECK. Repeat the check in step 9.
+13. ROUND END. If this was round 6 and the game has not ended, the Witch wins. Otherwise begin the next round.
+How the winner is decided: Team game, no draws. The Town (the Constable and all Townsfolk, alive or dead) wins together the moment the Witch is tried and revealed. The Witch wins if, after a trial or a night, the Witch is alive and at most 1 non-Witch is alive, or if the Witch is still alive at the end of round 6.
+The designer's stated complexity: {"steps_per_round": 18, "choice_steps_per_round": 4, "attributes": 15, "hidden_elements": 3, "random_draws_per_round": 1, "rounds": 6}
+````
+
+## Reply
+
+````
+```json
+{"balanced": {"verdict": "fail", "evidence": "The Gossip is always a non-Witch, so a true Gossip claim is always truthful. Two claims in one round prove the Witch is one of the two claimants.\n\nN=5 (1 Witch, 1 Constable, 3 Townsfolk). The Gossip has 4 living others: 2 neighbours and 2 non-neighbours. Either result therefore leaves a candidate set S of exactly 2 players.\n\nCase A, the Witch stays silent:\n- The real Gossip claims, giving S = {X, Y}.\n- Round 1: the 4 non-Witches all vote X, giving 4 tokens against T=3, so X is tried.\n  - X is the Witch (50%): Town wins.\n  - X is not (50%): X is revealed as Town, so Y is certainly the Witch.\n- Night: the Witch kills one player. L=3: Witch plus 2 Town. Parity does not trigger.\n- Round 2: T=2. Both Town vote Y, giving Y 2 tokens against at most 1 for anyone else. Y is tried and Town wins.\n\nCase B, the Witch counter-claims Gossip:\n- Two claimants mean the Witch is one of them.\n- Town lynches one: right 50%. If wrong, the same Round 2 finish follows. Town wins.\n\nThe Witch cannot block a lynch, because 4 votes beat T=3 and the Witch has only 1 vote. Silence is no better for the Witch than claiming.\n\nWINNER-RULE table, Town policy 'trust the lone Gossip claim, or lynch a claimant if two claim; then lynch the remaining candidate':\n- Witch silent: Town wins.\n- Witch fakes a Gossip claim: Town wins.\n- Witch accuses randomly: Town wins.\n- Witch votes with the Town: Town wins.\nThis mechanical policy never loses at N=5, and so fails the check.\n\nN=6 (1 Witch, 1 Constable, 4 Town). P(Witch among the 2 neighbours of the 5 others) = 2/5:\n- S size 2 (p=0.4): a wrong lynch leaves L=5. The night kill leaves L=4: Witch plus 3 Town, and the Witch is now identified. Round 2: T=3, and 3 votes try the Witch. Town wins about 100%.\n- S size 3 (p=0.6): first lynch right 1/3. If wrong, the candidates fall to 2. Round 2 adds a new Gossip, whose result usually splits the two (only one is a neighbour), plus 50% even if it does not. The Constable can also save. Rough estimate: Town wins about 75-85% of this branch.\n- Overall Town wins about 85-90% at N=6 and about 100% at N=5.\n\nThere is no seat edge, because roles are random. Still, the Witch side cannot realistically win against competent Town play. The 'social deduction' label is undercut by the numbers."},
+ "playable": {"verdict": "pass", "evidence": "Complexity is within limits:\n- 18 steps.\n- 4 choice steps: Talk A, Talk B, Accusation, Night (exactly at the limit).\n- 1 random draw per round: the Gossip draw. The role deal is setup only.\n- 6 rounds.\n- 3 declared hidden elements: roles, Gossip identity, Gossip result.\n\nRules are complete and arithmetic:\n- Trial check: the T values are correct. floor(6/2)+1=4; L=5 gives 3; L=4 gives 3; L=3 gives 2.\n- Ties are handled, and the token reset is defined.\n- Night: kill versus protection, the no-repeat protection rule, and the dead-Constable case are all defined.\n- Parity runs after the trial and after the night.\n- The round-6 cap makes the game finite.\n- When L=3 the Gossip result is always 'IS'. That is trivial but well-defined.\n\nTalk:\n- It is present, which is correct: the Witch and the Town disagree, so a false claim can cost a vote.\n- It is simultaneous, with two passes.\n\nThe game needs no board, clock or judge.\n\nMinor clarification needed: state that the recorded previous protection target is known only to the Constable. If it is engine-private it may count as a hidden element, and should be checked against the limit of 3."},
+ "reasoning_over_luck": {"verdict": "fail", "evidence": "With all sides playing the intended good strategy, Town wins about 100% at N=5 and about 85-90% at N=6 (see balanced). The Witch's reasoning is therefore nearly irrelevant: a skilled Witch is not clearly favoured over an unskilled one, because no bluff survives the 'two claimants means one is the Witch' deduction.\n\nTown's inference is real but mechanical. The residual uncertainty, in the N=6 S=3 branch, is settled by:\n- coin-flip lynches between symmetric claimants who make identical 'I'm Town, it's the other one' arguments;\n- the 1/3 versus 2/5 Gossip geometry chosen by the random draw;\n- the Witch-versus-Constable night guess.\n\nSo there is something to infer, but there is almost no opponent modelling on the Witch side. The outcome hinges on the deduction from the Gossip draw rather than on contested reasoning."},
+ "required_changes": [
+  "Draw the Gossip uniformly from ALL living players, including the Witch. If the Witch is drawn, it is told it is the Gossip and receives no true result. A lone claim can then be a lie, and a double claim no longer pins the Witch to two players.",
+  "Weaken the information: the Gossip learns 'the Witch IS / IS NOT among these 3 players' about a random set of 3 living others, OR the result is wrong with a stated probability such as 1 in 3.",
+  "Give the Witch side real counterplay. Options: a second Witch at N=6 (the Witches know each other and the parity check counts living Witches against living non-Witches), OR a once-per-game Witch 'frame' that replaces the Gossip result with a false one.",
+  "Re-run the N=5 and N=6 analysis after the changes and show that the Town win rate under good play is roughly 40-60%, with no fixed Town or Witch policy that never loses.",
+  "State explicitly that the Constable's previous protection target is private to the Constable, and count it in hidden_elements if the engine stores it privately."
+ ]}
+```
+````

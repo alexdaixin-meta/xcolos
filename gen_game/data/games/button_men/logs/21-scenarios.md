@@ -1,0 +1,550 @@
+# 21 scenarios
+
+- time: 2026-10-28T05:34:09+00:00 (33.9s)  model: claude-opus-5-5
+- system prompt: [system/6dcf03e1-scenarios.md](system/6dcf03e1-scenarios.md) (sha256 6dcf03e15fe36c21)
+- sent sha256 d6c70ae04930dab3, reply sha256 bc4c463d18938ed8
+
+## Sent
+
+````
+SPEC:
+{
+  "name": "Button Men: Guard and Strike",
+  "summary": "Two players each hold a d4, d8 and d12 with hidden values. Over 30 exchanges they pick at the same moment to guard one of their dice or to attack an opponent's die, capturing it if the attacker's value is at least the target's. Legs reset the dice, and surviving dice score bonuses.",
+  "players": {
+    "min": 2,
+    "max": 2,
+    "suggested": 2
+  },
+  "parameters": {
+    "dice_per_player": 3,
+    "small_die_size": 4,
+    "medium_die_size": 8,
+    "large_die_size": 12,
+    "starting_score": 0,
+    "random_max": 110075314175,
+    "digit_base": 24,
+    "digit_count": 8,
+    "total_exchanges": 30,
+    "max_exchanges_per_leg": 10,
+    "action_count": 12,
+    "guard_defense_points": 3,
+    "failed_attack_defense_points": 2,
+    "survive_bonus_d4": 2,
+    "survive_bonus_d8": 4,
+    "survive_bonus_d12": 6,
+    "a_d4_digit": 0,
+    "a_d8_digit": 1,
+    "a_d12_digit": 2,
+    "b_d4_digit": 3,
+    "b_d8_digit": 4,
+    "b_d12_digit": 5,
+    "a_reroll_digit": 6,
+    "b_reroll_digit": 7
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Total points so far",
+        "observable": true
+      },
+      {
+        "key": "d4_value",
+        "type": "number",
+        "visible": "ally",
+        "initial": 1,
+        "meaning": "Current value of own d4 (1-4)",
+        "observable": false
+      },
+      {
+        "key": "d8_value",
+        "type": "number",
+        "visible": "ally",
+        "initial": 1,
+        "meaning": "Current value of own d8 (1-8)",
+        "observable": false
+      },
+      {
+        "key": "d12_value",
+        "type": "number",
+        "visible": "ally",
+        "initial": 1,
+        "meaning": "Current value of own d12 (1-12)",
+        "observable": false
+      },
+      {
+        "key": "d4_alive",
+        "type": "bool",
+        "visible": "public",
+        "initial": true,
+        "meaning": "Own d4 not captured this leg",
+        "observable": true
+      },
+      {
+        "key": "d8_alive",
+        "type": "bool",
+        "visible": "public",
+        "initial": true,
+        "meaning": "Own d8 not captured this leg",
+        "observable": true
+      },
+      {
+        "key": "d12_alive",
+        "type": "bool",
+        "visible": "public",
+        "initial": true,
+        "meaning": "Own d12 not captured this leg",
+        "observable": true
+      },
+      {
+        "key": "action",
+        "type": "number",
+        "visible": "ally",
+        "initial": 0,
+        "meaning": "Action chosen this exchange (1-12); revealed in results",
+        "observable": false
+      },
+      {
+        "key": "attack_result",
+        "type": "text",
+        "visible": "public",
+        "initial": "",
+        "meaning": "Outcome of own attack this exchange: none, success, fail_guarded, fail_low, or no_effect",
+        "observable": false
+      },
+      {
+        "key": "revealed_values",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "Die values of this player announced this exchange because of failed attacks",
+        "observable": false
+      }
+    ],
+    "game": [
+      {
+        "key": "exchange",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Current exchange number (1-30)",
+        "observable": true
+      },
+      {
+        "key": "leg_exchange",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "Exchange number within the current leg (1-10)",
+        "observable": true
+      },
+      {
+        "key": "leg_start",
+        "type": "bool",
+        "visible": "public",
+        "initial": true,
+        "meaning": "This exchange starts a new leg",
+        "observable": false
+      },
+      {
+        "key": "digits",
+        "type": "list",
+        "visible": "none",
+        "initial": [],
+        "meaning": "D0 to D7, the base-24 digits of this exchange's random R",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Seat 1 is player A and seat 2 is player B.",
+    "Both scores are set to 0.",
+    "Set exchange to 1, leg_exchange to 1 and leg_start to true.",
+    "All dice are marked alive."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Draw R uniformly from 0 to 110075314175 and store its base-24 digits D0..D7 in digits, where Dk = floor(R/24^k) mod 24. If leg_start: set every die's alive flag to true; set A's d4_value=(D0 mod 4)+1, d8_value=(D1 mod 8)+1, d12_value=(D2 mod 12)+1; set B's d4_value=(D3 mod 4)+1, d8_value=(D4 mod 8)+1, d12_value=(D5 mod 12)+1; set leg_exchange=1 and leg_start=false. Clear each player's revealed_values and attack_result."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce exchange, leg_exchange, both scores, and both players' d4_alive, d8_alive and d12_alive."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "Each player privately sees their own d4_value, d8_value and d12_value."
+    },
+    {
+      "action": "poll",
+      "who": "all players",
+      "answer": "one of 12 actions: 1 Guard my d4; 2 Guard my d8; 3 Guard my d12; 4 My d4 attacks their d4; 5 My d4 attacks their d8; 6 My d4 attacks their d12; 7 My d8 attacks their d4; 8 My d8 attacks their d8; 9 My d8 attacks their d12; 10 My d12 attacks their d4; 11 My d12 attacks their d8; 12 My d12 attacks their d12",
+      "effect": "Set each player's action. Nobody sees the other's choice until both are in."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Resolve both attacks at once, using the values held at the start of this exchange. For each attacker X against opponent Y, where the action is 4-12 with attacking die a and target die t: if the X die a or the Y die t is not alive at the start of the exchange, attack_result=no_effect. Otherwise, if Y's action is the guard of die t (guard of d4=1, d8=2, d12=3) and that die is alive, attack_result=fail_guarded, Y.score += 3, and X's a value is appended to X.revealed_values. Otherwise, if X.a_value >= Y.t_value, attack_result=success, X.score += size of t (4, 8 or 12), and Y.t_alive is set to false after both attacks are resolved. Otherwise attack_result=fail_low, Y.score += 2, X's a value is appended to X.revealed_values and Y's t value is appended to Y.revealed_values. A die may capture and be captured in the same exchange."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Rerolls, at most one die per player. A player's die is rerolled if it was guarded this exchange and was alive at the start (action 1-3), or if it attacked with attack_result=success and is still alive after the captures. Player A's rerolled die is set to (D6 mod size)+1. Player B's rerolled die is set to (D7 mod size)+1. New values are visible only to their owner."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce both actions, each attack_result, each player's revealed_values, which dice were captured, and both scores. Rerolled values are not announced."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "If a player has d4_alive, d8_alive and d12_alive all false, or leg_exchange = 10, or exchange = 30, the leg ends: each player's score += 2*d4_alive + 4*d8_alive + 6*d12_alive, and leg_start is set to true. Otherwise leg_exchange += 1. Then exchange += 1."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "End the game if exchange > 30; otherwise continue to the next exchange."
+    }
+  ],
+  "ending": {
+    "condition": "exchange > 30",
+    "rank_by": "you.score",
+    "decided_by": "After 30 exchanges and the final surviving-dice bonuses, the player with the higher total score wins. Equal totals share the win, which is a draw."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "When the match begins, then each player has a d4, a d8 and a d12, all alive, and both scores are 0."
+    },
+    {
+      "id": "R2",
+      "text": "When an exchange starts, then a random R from 0 to 110075314175 is drawn and split into base-24 digits D0..D7, with Dk = floor(R/24^k) mod 24."
+    },
+    {
+      "id": "R3",
+      "text": "When a leg starts, then all six dice are alive again; A's d4, d8 and d12 are set to (D0 mod 4)+1, (D1 mod 8)+1 and (D2 mod 12)+1; and B's d4, d8 and d12 are set to (D3 mod 4)+1, (D4 mod 8)+1 and (D5 mod 12)+1."
+    },
+    {
+      "id": "R4",
+      "text": "When an exchange begins, then both players are told the exchange number, the leg exchange number, both scores and which dice each player still has, and each player privately sees only their own die values."
+    },
+    {
+      "id": "R5",
+      "text": "When choosing, then both players choose at the same time one of the 12 actions, without seeing the other's choice."
+    },
+    {
+      "id": "R6",
+      "text": "When an action names a die that was already captured before this exchange (the actor's or the opponent's), then that action does nothing."
+    },
+    {
+      "id": "R7",
+      "text": "When an attack targets a die its owner guards this exchange, then the attack fails, the defender scores 3, and the attacking die's value is announced to both players."
+    },
+    {
+      "id": "R8",
+      "text": "When an unguarded target is attacked and the attacking value is greater than or equal to the target's value, then the attacker scores the target's size (4, 8 or 12) and the target is captured for the rest of the leg."
+    },
+    {
+      "id": "R9",
+      "text": "When an unguarded target is attacked and the attacking value is lower than the target's value, then the attack fails, the defender scores 2, and both dice's values are announced to both players."
+    },
+    {
+      "id": "R10",
+      "text": "When both attacks are resolved, then they use the values from the start of the exchange, and a die may both capture and be captured in the same exchange."
+    },
+    {
+      "id": "R11",
+      "text": "When a die guarded this exchange, or a die that attacked successfully and was not captured this exchange, then it is rerolled: A's from (D6 mod size)+1 and B's from (D7 mod size)+1, with the new value shown only to its owner."
+    },
+    {
+      "id": "R12",
+      "text": "When results are announced, then both actions, each attack's outcome, any announced values, any captures and the new scores are shown, but rerolled values are not."
+    },
+    {
+      "id": "R13",
+      "text": "When a player has no dice left, or the leg reaches its 10th exchange, then the leg ends and each player scores +2 for a surviving d4, +4 for a surviving d8 and +6 for a surviving d12."
+    },
+    {
+      "id": "R14",
+      "text": "When a leg ends, then the next exchange starts a new leg."
+    },
+    {
+      "id": "R15",
+      "text": "When exchange 30 ends and the leg in progress has not already ended, then it ends and the surviving-dice bonuses are scored."
+    },
+    {
+      "id": "R16",
+      "text": "When the match is over, then the higher total score wins, and equal totals are a draw."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Choice of action each exchange",
+      "who": "both seats",
+      "options": "always all 12: Guard my d4; Guard my d8; Guard my d12; My d4 attacks their d4/d8/d12; My d8 attacks their d4/d8/d12; My d12 attacks their d4/d8/d12. An action naming an already-captured die is allowed but does nothing."
+    }
+  ],
+  "choices": [
+    {
+      "what": "2 players, as filed",
+      "why": "The designer fixed the game at 2. It is a head-to-head duel in which every action targets the single opponent's dice, so there is no room for more seats."
+    },
+    {
+      "what": "Seat 1 is player A and seat 2 is player B",
+      "why": "The rules assign different random digits to A and B, so each seat needs a fixed role."
+    },
+    {
+      "what": "No talk step",
+      "why": "The rules give no communication, and the game is purely adversarial with simultaneous choices."
+    },
+    {
+      "what": "All 12 actions are offered even when a named die is captured",
+      "why": "The rules list exactly 12 actions and state that an action naming a captured die does nothing, so offering them stays faithful."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player tracks announced values and which dice were rerolled, guards a high-value die that is likely to be attacked, and attacks dice whose values are revealed as low or that are small. A thoughtless player attacks blindly into guards."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "R is stored as its eight base-24 digits",
+      "why": "24^8 = 110075314176, so a uniform R from 0 to 110075314175 is exactly eight independent uniform digits from 0 to 23. Every die value rule is unchanged."
+    },
+    {
+      "what": "The match-end leg closure is folded into the leg-end step as the condition exchange = 30",
+      "why": "This gives the same scoring without needing a separate block of steps."
+    },
+    {
+      "what": "Announced die values are kept in a per-exchange public list, revealed_values",
+      "why": "Every reveal needs a stated piece of state."
+    }
+  ],
+  "unsupported": []
+}
+
+OBSERVABLE (the only attributes you may assert on): player: score, d4_alive, d8_alive, d12_alive; table: exchange, leg_exchange.
+
+YOUR PREVIOUS REPLY WAS REFUSED. Here it is:
+[
+  {"name": "Match begins with all dice alive and both scores 0", "rule": "R1", "players": 2, "rounds": 0,
+   "expect": {"players": {"1": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true},
+                          "2": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true}},
+              "game": {"exchange": 1, "leg_exchange": 1}}},
+  {"name": "An exchange with guards only advances the counters (random digits not asserted)", "rule": "R2", "players": 2, "rounds": 1, "default": "decline",
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 0}},
+              "game": {"exchange": 2, "leg_exchange": 2}}},
+  {"name": "Leg start revives every captured die", "rule": "R3", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d8_alive": false}, "2": {"d4_alive": false, "d12_alive": false}},
+             "game": {"leg_start": true, "exchange": 1, "leg_exchange": 1}},
+   "expect": {"players": {"1": {"d4_alive": true, "d8_alive": true, "d12_alive": true, "score": 0},
+                          "2": {"d4_alive": true, "d8_alive": true, "d12_alive": true, "score": 0}}}},
+  {"name": "Both seats are offered the guard actions each exchange", "rule": "R4", "players": 2, "rounds": 1, "default": "decline",
+   "expect": {"offered": [{"seat": 1, "option": "Guard my d12"}, {"seat": 2, "option": "Guard my d12"},
+                          {"seat": 1, "option": "Guard my d8"}, {"seat": 2, "option": "Guard my d8"}],
+              "game": {"exchange": 2}}},
+  {"name": "Both seats choose from all 12 actions, including attacks", "rule": "R5", "players": 2, "rounds": 1, "default": "decline",
+   "expect": {"offered": [{"seat": 1, "option": "My d12 attacks their d12"}, {"seat": 2, "option": "My d12 attacks their d12"},
+                          {"seat": 1, "option": "My d4 attacks their d4"}, {"seat": 2, "option": "My d4 attacks their d4"}]}},
+  {"name": "Attacking an already captured die does nothing", "rule": "R6", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d8_alive": false, "d8_value": 1}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d8"}],
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 0, "d8_alive": false, "d4_alive": true, "d12_alive": true}}}},
+  {"name": "Attack into a guarded die fails and the defender scores 3", "rule": "R7", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d8_value": 2}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d8"},
+             {"seat": 2, "options_include": "Guard my d8"}],
+   "expect": {"players": {"1": {"score": 0, "d12_alive": true}, "2": {"score": 3, "d8_alive": true}}}},
+  {"name": "Higher attack on unguarded d8 captures it for 8 points", "rule": "R8", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 10}, "2": {"d8_value": 5}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d8"}],
+   "expect": {"players": {"1": {"score": 8, "d12_alive": true}, "2": {"score": 0, "d8_alive": false, "d4_alive": true, "d12_alive": true}}}},
+  {"name": "Equal attack value captures an unguarded d12 for 12 points", "rule": "R8", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d4_value": 3}, "2": {"d12_value": 3}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d4 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 12}, "2": {"score": 0, "d12_alive": false}}}},
+  {"name": "Lower attack on unguarded die fails and the defender scores 2", "rule": "R9", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d4_value": 2}, "2": {"d12_value": 9}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d4 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 0, "d4_alive": true}, "2": {"score": 2, "d12_alive": true}}}},
+  {"name": "Two d8s capture each other at the same time", "rule": "R10", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d8_value": 6}, "2": {"d8_value": 6}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d8 attacks their d8"},
+             {"seat": 2, "options_include": "My d8 attacks their d8"}],
+   "expect": {"players": {"1": {"score": 8, "d8_alive": false}, "2": {"score": 8, "d8_alive": false}}}},
+  {"name": "Guarding rerolls privately but changes no score or capture", "rule": "R11", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "Guard my d12"}],
+   "expect": {"players": {"1": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true},
+                          "2": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true}}}},
+  {"name": "Results show the new score after a guarded attack", "rule": "R12", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d4_value": 1}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "Guard my d12"},
+             {"seat": 2, "options_include": "My d4 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 3, "d12_alive": true}, "2": {"score": 0, "d4_alive": true}}}},
+  {"name": "Capturing the last die ends the leg with surviving-dice bonuses", "rule": "R13", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d4_alive": false, "d8_alive": false, "d12_value": 4}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 24}, "2": {"score": 0, "d12_alive": false}},
+              "game": {"exchange": 3}}},
+  {"name": "10th exchange of a leg ends it with bonuses for surviving dice", "rule": "R13", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"score": 5}, "2": {"score": 5, "d8_alive": false}},
+             "game": {"leg_start": false, "exchange": 10, "leg_exchange": 10}},
+   "expect": {"players": {"1": {"score": 17}, "2": {"score": 13}},
+              "game": {"exchange": 11}}},
+  {"name": "After a leg ends the next exchange starts a new leg with all dice alive", "rule": "R14", "players": 2, "rounds": 2, "default": "decline",
+   "given": {"players": {"2": {"d8_alive": false}},
+             "game": {"leg_start": false, "exchange": 10, "leg_exchange": 10}},
+   "expect": {"players": {"1": {"score": 12}, "2": {"score": 8, "d8_alive": true}},
+              "game": {"exchange": 12, "leg_exchange": 2}}},
+  {"name": "Exchange 30 closes the leg in progress and bonuses decide the match", "rule": "R15", "players": 2, "default": "decline",
+   "given": {"players": {"1": {"score": 10}, "2": {"score": 15, "d12_alive": false}},
+             "game": {"leg_start": false, "exchange": 30, "leg_exchange": 5}},
+   "expect": {"winner": 1, "standings": {"1": 22, "2": 21},
+              "players": {"1": {"score": 22}, "2": {"score": 21}}}},
+  {"name": "Equal final totals share the win", "rule": "R16", "players": 2, "default": "decline",
+   "given": {"players": {"1": {"score": 20}, "2": {"score": 20}},
+             "game": {"leg_start": false, "exchange": 30, "leg_exchange": 10}},
+   "expect": {"winner": [1, 2], "standings": {"1": 32, "2": 32}}},
+  {"name": "Higher final total wins", "rule": "R16", "players": 2, "default": "decline",
+   "given": {"players": {"1": {"score": 20}, "2": {"score": 30}},
+             "game": {"leg_start": false, "exchange": 30, "leg_exchange": 3}},
+   "expect": {"winner": 2, "standings": {"1": 32, "2": 42}}}
+]
+
+Why it was refused: scenario 1: needs `rules` (what each seat answers, by option name); scenario 2: needs `rules` (what each seat answers, by option name); scenario 3: needs `rules` (what each seat answers, by option name); scenario 4: needs `rules` (what each seat answers, by option name); scenario 5: needs `rules` (what each seat answers, by option name); scenario 15: needs `rules` (what each seat answers, by option name); scenario 16: needs `rules` (what each seat answers, by option name); scenario 17: needs `rules` (what each seat answers, by option name); scenario 18: needs `rules` (what each seat answers, by option name); scenario 19: needs `rules` (what each seat answers, by option name)
+Correct it: change what the problem requires and keep the rest. Reply in the same format as before, complete, and nothing else.
+````
+
+## Reply
+
+````
+```json
+[
+  {"name": "Match begins with all dice alive and both scores 0", "rule": "R1", "players": 2, "rounds": 0, "rules": [],
+   "expect": {"players": {"1": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true},
+                          "2": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true}},
+              "game": {"exchange": 1, "leg_exchange": 1}}},
+  {"name": "An exchange with guards only advances the counters (random digits not asserted)", "rule": "R2", "players": 2, "rounds": 1, "default": "decline",
+   "rules": [{"seat": 1, "options_include": "Guard my d4"}, {"seat": 2, "options_include": "Guard my d4"}],
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 0}},
+              "game": {"exchange": 2, "leg_exchange": 2}}},
+  {"name": "Leg start revives every captured die", "rule": "R3", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d8_alive": false}, "2": {"d4_alive": false, "d12_alive": false}},
+             "game": {"leg_start": true, "exchange": 1, "leg_exchange": 1}},
+   "rules": [{"seat": 1, "options_include": "Guard my d4"}, {"seat": 2, "options_include": "Guard my d4"}],
+   "expect": {"players": {"1": {"d4_alive": true, "d8_alive": true, "d12_alive": true, "score": 0},
+                          "2": {"d4_alive": true, "d8_alive": true, "d12_alive": true, "score": 0}}}},
+  {"name": "Both seats are offered the guard actions each exchange", "rule": "R4", "players": 2, "rounds": 1, "default": "decline",
+   "rules": [{"seat": 1, "options_include": "Guard my d12"}, {"seat": 2, "options_include": "Guard my d12"}],
+   "expect": {"offered": [{"seat": 1, "option": "Guard my d12"}, {"seat": 2, "option": "Guard my d12"},
+                          {"seat": 1, "option": "Guard my d8"}, {"seat": 2, "option": "Guard my d8"}],
+              "game": {"exchange": 2}}},
+  {"name": "Both seats choose from all 12 actions, including attacks", "rule": "R5", "players": 2, "rounds": 1, "default": "decline",
+   "rules": [{"seat": 1, "options_include": "Guard my d8"}, {"seat": 2, "options_include": "Guard my d8"}],
+   "expect": {"offered": [{"seat": 1, "option": "My d12 attacks their d12"}, {"seat": 2, "option": "My d12 attacks their d12"},
+                          {"seat": 1, "option": "My d4 attacks their d4"}, {"seat": 2, "option": "My d4 attacks their d4"}]}},
+  {"name": "Attacking an already captured die does nothing", "rule": "R6", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d8_alive": false, "d8_value": 1}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d8"}],
+   "expect": {"players": {"1": {"score": 0}, "2": {"score": 0, "d8_alive": false, "d4_alive": true, "d12_alive": true}}}},
+  {"name": "Attack into a guarded die fails and the defender scores 3", "rule": "R7", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d8_value": 2}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d8"},
+             {"seat": 2, "options_include": "Guard my d8"}],
+   "expect": {"players": {"1": {"score": 0, "d12_alive": true}, "2": {"score": 3, "d8_alive": true}}}},
+  {"name": "Higher attack on unguarded d8 captures it for 8 points", "rule": "R8", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 10}, "2": {"d8_value": 5}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d8"}],
+   "expect": {"players": {"1": {"score": 8, "d12_alive": true}, "2": {"score": 0, "d8_alive": false, "d4_alive": true, "d12_alive": true}}}},
+  {"name": "Equal attack value captures an unguarded d12 for 12 points", "rule": "R8", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d4_value": 3}, "2": {"d12_value": 3}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d4 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 12}, "2": {"score": 0, "d12_alive": false}}}},
+  {"name": "Lower attack on unguarded die fails and the defender scores 2", "rule": "R9", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d4_value": 2}, "2": {"d12_value": 9}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d4 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 0, "d4_alive": true}, "2": {"score": 2, "d12_alive": true}}}},
+  {"name": "Two d8s capture each other at the same time", "rule": "R10", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d8_value": 6}, "2": {"d8_value": 6}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d8 attacks their d8"},
+             {"seat": 2, "options_include": "My d8 attacks their d8"}],
+   "expect": {"players": {"1": {"score": 8, "d8_alive": false}, "2": {"score": 8, "d8_alive": false}}}},
+  {"name": "Guarding rerolls privately but changes no score or capture", "rule": "R11", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "Guard my d12"}],
+   "expect": {"players": {"1": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true},
+                          "2": {"score": 0, "d4_alive": true, "d8_alive": true, "d12_alive": true}}}},
+  {"name": "Results show the new score after a guarded attack", "rule": "R12", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d4_value": 1}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "Guard my d12"},
+             {"seat": 2, "options_include": "My d4 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 3, "d12_alive": true}, "2": {"score": 0, "d4_alive": true}}}},
+  {"name": "Capturing the last die ends the leg with surviving-dice bonuses", "rule": "R13", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"d12_value": 12}, "2": {"d4_alive": false, "d8_alive": false, "d12_value": 4}},
+             "game": {"leg_start": false, "exchange": 2, "leg_exchange": 2}},
+   "rules": [{"seat": 1, "options_include": "My d12 attacks their d12"}],
+   "expect": {"players": {"1": {"score": 24}, "2": {"score": 0, "d12_alive": false}},
+              "game": {"exchange": 3}}},
+  {"name": "10th exchange of a leg ends it with bonuses for surviving dice", "rule": "R13", "players": 2, "rounds": 1, "default": "decline",
+   "given": {"players": {"1": {"score": 5}, "2": {"score": 5, "d8_alive": false}},
+             "game": {"leg_start": false, "exchange": 10, "leg_exchange": 10}},
+   "rules": [{"seat": 1, "options_include": "Guard my d4"}, {"seat": 2, "options_include": "Guard my d4"}],
+   "expect": {"players": {"1": {"score": 17}, "2": {"score": 13}},
+              "game": {"exchange": 11}}},
+  {"name": "After a leg ends the next exchange starts a new leg with all dice alive", "rule": "R14", "players": 2, "rounds": 2, "default": "decline",
+   "given": {"players": {"2": {"d8_alive": false}},
+             "game": {"leg_start": false, "exchange": 10, "leg_exchange": 10}},
+   "rules": [{"seat": 1, "options_include": "Guard my d4", "times": "all"}, {"seat": 2, "options_include": "Guard my d4", "times": "all"}],
+   "expect": {"players": {"1": {"score": 12}, "2": {"score": 8, "d8_alive": true}},
+              "game": {"exchange": 12, "leg_exchange": 2}}},
+  {"name": "Exchange 30 closes the leg in progress and bonuses decide the match", "rule": "R15", "players": 2, "default": "decline",
+   "given": {"players": {"1": {"score": 10}, "2": {"score": 15, "d12_alive": false}},
+             "game": {"leg_start": false, "exchange": 30, "leg_exchange": 5}},
+   "rules": [{"seat": 1, "options_include": "Guard my d4"}, {"seat": 2, "options_include": "Guard my d4"}],
+   "expect": {"winner": 1, "standings": {"1": 22, "2": 21},
+              "players": {"1": {"score": 22}, "2": {"score": 21}}}},
+  {"name": "Equal final totals share the win", "rule": "R16", "players": 2, "default": "decline",
+   "given": {"players": {"1": {"score": 20}, "2": {"score": 20}},
+             "game": {"leg_start": false, "exchange": 30, "leg_exchange": 10}},
+   "rules": [{"seat": 1, "options_include": "Guard my d4"}, {"seat": 2, "options_include": "Guard my d4"}],
+   "expect": {"winner": [1, 2], "standings": {"1": 32, "2": 32}}},
+  {"name": "Higher final total wins", "rule": "R16", "players": 2, "default": "decline",
+   "given": {"players": {"1": {"score": 20}, "2": {"score": 30}},
+             "game": {"leg_start": false, "exchange": 30, "leg_exchange": 3}},
+   "rules": [{"seat": 1, "options_include": "Guard my d4"}, {"seat": 2, "options_include": "Guard my d4"}],
+   "expect": {"winner": 2, "standings": {"1": 32, "2": 42}}}
+]
+```
+````

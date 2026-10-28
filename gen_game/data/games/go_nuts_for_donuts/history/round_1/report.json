@@ -1,0 +1,460 @@
+{
+  "game": "go_nuts_for_donuts",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state a player is shown has empty fields (choice, shown, shown, shown); hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Every seat starts at 0: after one round with no Glazed or Jelly, totals equal only that round's gains",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A split of G=3 gives Glazed picks, so a lone Glazed choice is not void and scores 9",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A split of G=0 leaves no Glazed picks, so a Glazed choice is void",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The public counters reveal nothing of a secret split of G=4",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Each round begins by adding 1 to the round number",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Talk and choose run for all seats and the first round is round 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "All five donuts are offered, even Glazed and Jelly with no picks left",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Glazed with 0 Glazed picks and Jelly with 0 Jelly picks are void; Glazed with picks is not",
+      "passed": false,
+      "failures": [
+        "rule R7 is broken: When a player chooses Glazed with glazed_picks == 0, or Jelly with jelly_picks == 0, then void = true. Otherwise void = false.",
+        "seat 2 void: expected True, got False",
+        "seat 2 score: expected 0, got 6",
+        "seat 3 void: expected False, got True",
+        "seat 3 score: expected 9, got 0",
+        "seat 3 donuts: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 'Glazed'; r1 seat 2: 'Jelly'; r1 seat 3: 'Glazed'; r1 seat 4: 'Plain'. First attribute changes: seat 1 choice: '' -> 'none yet'; seat 2 choice: '' -> 'none yet'; seat 3 choice: '' -> 'none yet'; seat 4 choice: '' -> 'none yet'; seat 1 jelly_picks: 0 -> 6; seat 2 glazed_picks: 0 -> 6; seat 3 glazed_picks: 0 -> 2; seat 3 jelly_picks: 0 -> 4; seat 2 glazed_picks: 6 -> 0; seat 3 glazed_picks: 2 -> 0; seat 2 jelly_picks: 0 -> 6; seat 3 jelly_picks: 4 -> 6; seat 4 jelly_picks: 0 -> 6; table round: 0 -> 1 .... Final: players {\"seat 1\": {\"score\": 0, \"donuts\": 0, \"glazed_picks\": 0, \"jelly_picks\": 6, \"glazed_used\": 0, \"jelly_used\": 0, \"choice\": \"Glazed\", \"void\": true, \"gain\": 0, \"split_g\": 0, \"shown\": \"Glazed (VOID)\"}, \"seat 2\": {\"score\": 6, \"donuts\": 1, \"glazed_picks\": 0, \"jelly_picks\": 5, \"glazed_used\": 0, \"jelly_used\": 1, \"choice\": \"Jelly\", \"void\": false, \"gain\": 6, \"split_g\": 0, \"shown\": \"Jelly\"}, \"seat 3\": {\"score\": 0, \"donuts\": 0, \"gl; table {\"round\": 1, \"player_count\": 4, \"rounds\": 10, \"glazed_value\": 9, \"jelly_value\": 6, \"cruller_value\": 4, \"sprinkle_value\": 2, \"plain_value\": 1, \"premium_picks_total\": 6, \"split_min\": 0, \"split_max\": 6, \"lone_chooser_count\": 1, \"donut_collected_increment\": 1, \"pick_use_per_choice\": 1, \"tiebreak_multiplier\": 100}"
+    },
+    {
+      "name": "A void Jelly gains 0, uses no pick and does not collide with a real Jelly",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When a choice is void, that player gains 0, uses no pick, and is not counted as choosing that donut.",
+        "seat 1 void: expected True, got False",
+        "seat 1 jelly_used: expected 0, got 1",
+        "seat 2 score: expected 6, got 0",
+        "seat 2 donuts: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 'Jelly'; r1 seat 2: 'Jelly'; r1 seat 3: 'Cruller'; r1 seat 4: 'Sprinkle'. First attribute changes: seat 1 choice: '' -> 'none yet'; seat 2 choice: '' -> 'none yet'; seat 3 choice: '' -> 'none yet'; seat 4 choice: '' -> 'none yet'; seat 1 glazed_picks: 0 -> 6; seat 2 glazed_picks: 0 -> 3; seat 2 jelly_picks: 0 -> 3; seat 1 glazed_picks: 6 -> 0; seat 2 glazed_picks: 3 -> 0; seat 1 jelly_picks: 0 -> 6; seat 2 jelly_picks: 3 -> 6; seat 3 jelly_picks: 0 -> 6; seat 4 jelly_picks: 0 -> 6; table round: 0 -> 1 .... Final: players {\"seat 1\": {\"score\": 0, \"donuts\": 0, \"glazed_picks\": 0, \"jelly_picks\": 5, \"glazed_used\": 0, \"jelly_used\": 1, \"choice\": \"Jelly\", \"void\": false, \"gain\": 0, \"split_g\": 0, \"shown\": \"Jelly\"}, \"seat 2\": {\"score\": 0, \"donuts\": 0, \"glazed_picks\": 0, \"jelly_picks\": 5, \"glazed_used\": 0, \"jelly_used\": 1, \"choice\": \"Jelly\", \"void\": false, \"gain\": 0, \"split_g\": 0, \"shown\": \"Jelly\"}, \"seat 3\": {\"score\": 4, \"donuts\": 1, \"glazed_pic; table {\"round\": 1, \"player_count\": 4, \"rounds\": 10, \"glazed_value\": 9, \"jelly_value\": 6, \"cruller_value\": 4, \"sprinkle_value\": 2, \"plain_value\": 1, \"premium_picks_total\": 6, \"split_min\": 0, \"split_max\": 6, \"lone_chooser_count\": 1, \"donut_collected_increment\": 1, \"pick_use_per_choice\": 1, \"tiebreak_multiplier\": 100}"
+    },
+    {
+      "name": "At the reveal only the void choice is marked void",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A lone Glazed chooser gains 9 and one donut",
+      "passed": false,
+      "failures": [
+        "rule R10 is broken: When exactly one non-void player chooses Glazed, that player gains 9 points and donuts += 1.",
+        "seat 1 score: expected 9, got 0",
+        "seat 1 donuts: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 'Glazed'; r1 seat 2: 'Cruller'; r1 seat 3: 'Sprinkle'; r1 seat 4: 'Plain'. First attribute changes: seat 1 choice: '' -> 'none yet'; seat 2 choice: '' -> 'none yet'; seat 3 choice: '' -> 'none yet'; seat 4 choice: '' -> 'none yet'; seat 1 glazed_picks: 0 -> 4; seat 1 jelly_picks: 0 -> 2; seat 1 glazed_picks: 4 -> 0; seat 1 jelly_picks: 2 -> 6; seat 2 jelly_picks: 0 -> 6; seat 3 jelly_picks: 0 -> 6; seat 4 jelly_picks: 0 -> 6; table round: 0 -> 1; seat 1 choice: 'none yet' -> 'Glazed'; seat 2 choice: 'none yet' -> 'Cruller' .... Final: players {\"seat 1\": {\"score\": 0, \"donuts\": 0, \"glazed_picks\": 0, \"jelly_picks\": 6, \"glazed_used\": 0, \"jelly_used\": 0, \"choice\": \"Glazed\", \"void\": true, \"gain\": 0, \"split_g\": 0, \"shown\": \"Glazed (VOID)\"}, \"seat 2\": {\"score\": 4, \"donuts\": 1, \"glazed_picks\": 0, \"jelly_picks\": 6, \"glazed_used\": 0, \"jelly_used\": 0, \"choice\": \"Cruller\", \"void\": false, \"gain\": 4, \"split_g\": 0, \"shown\": \"Cruller\"}, \"seat 3\": {\"score\": 2, \"donuts\": 1,; table {\"round\": 1, \"player_count\": 4, \"rounds\": 10, \"glazed_value\": 9, \"jelly_value\": 6, \"cruller_value\": 4, \"sprinkle_value\": 2, \"plain_value\": 1, \"premium_picks_total\": 6, \"split_min\": 0, \"split_max\": 6, \"lone_chooser_count\": 1, \"donut_collected_increment\": 1, \"pick_use_per_choice\": 1, \"tiebreak_multiplier\": 100}"
+    },
+    {
+      "name": "A lone Jelly chooser gains 6 and one donut",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A lone Cruller chooser gains 4 and one donut",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A lone Sprinkle chooser gains 2 and one donut",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A lone Plain chooser gains 1 and one donut",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Two non-void players on the same donut both gain nothing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A discarded non-void Glazed still uses a pick",
+      "passed": false,
+      "failures": [
+        "rule R16 is broken: When a player makes a non-void Glazed choice, glazed_picks decreases by 1 and glazed_used increases by 1, whether the donut was won or discarded.",
+        "seat 1 glazed_used: expected 3, got 2",
+        "seat 1 void: expected False, got True",
+        "seat 2 glazed_used: expected 1, got 0",
+        "seat 2 void: expected False, got True"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 'Glazed'; r1 seat 2: 'Glazed'; r1 seat 3: 'Cruller'; r1 seat 4: 'Sprinkle'. First attribute changes: seat 1 choice: '' -> 'none yet'; seat 2 choice: '' -> 'none yet'; seat 3 choice: '' -> 'none yet'; seat 4 choice: '' -> 'none yet'; seat 1 glazed_picks: 0 -> 1; seat 1 jelly_picks: 0 -> 3; seat 1 glazed_used: 0 -> 2; seat 2 glazed_picks: 0 -> 2; seat 2 jelly_picks: 0 -> 4; seat 1 glazed_picks: 1 -> 0; seat 2 glazed_picks: 2 -> 0; seat 1 jelly_picks: 3 -> 6; seat 2 jelly_picks: 4 -> 6; seat 3 jelly_picks: 0 -> 6 .... Final: players {\"seat 1\": {\"score\": 0, \"donuts\": 0, \"glazed_picks\": 0, \"jelly_picks\": 6, \"glazed_used\": 2, \"jelly_used\": 0, \"choice\": \"Glazed\", \"void\": true, \"gain\": 0, \"split_g\": 0, \"shown\": \"Glazed (VOID)\"}, \"seat 2\": {\"score\": 0, \"donuts\": 0, \"glazed_picks\": 0, \"jelly_picks\": 6, \"glazed_used\": 0, \"jelly_used\": 0, \"choice\": \"Glazed\", \"void\": true, \"gain\": 0, \"split_g\": 0, \"shown\": \"Glazed (VOID)\"}, \"seat 3\": {\"score\": 4, \"donuts\"; table {\"round\": 1, \"player_count\": 4, \"rounds\": 10, \"glazed_value\": 9, \"jelly_value\": 6, \"cruller_value\": 4, \"sprinkle_value\": 2, \"plain_value\": 1, \"premium_picks_total\": 6, \"split_min\": 0, \"split_max\": 6, \"lone_chooser_count\": 1, \"donut_collected_increment\": 1, \"pick_use_per_choice\": 1, \"tiebreak_multiplier\": 100}"
+    },
+    {
+      "name": "A discarded non-void Jelly still uses a pick",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round gains add to the existing score and donut totals",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The game ends after round 10 and unused picks are worth nothing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A tie on score is broken by more donuts",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Players level on score and donuts share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        4
+      ],
+      "results": {
+        "seat 4": 8,
+        "seat 1": 4,
+        "seat 3": 5,
+        "seat 2": 3
+      },
+      "turns_min": 84,
+      "turns_max": 84
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 4": 18,
+      "seat 1": 16,
+      "seat 3": 13,
+      "seat 2": 13
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "first@seat2": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "last@seat1": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "last@seat2": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 84.0,
+      "prompt_chars_avg": 211,
+      "prompt_chars_max": 263
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 4 players (min 4, max 4, suggested 4)",
+      "why": "The designer fixed the table at 4. The five-donut row against four choosers is what creates the collision tension, so another count would change the game."
+    },
+    {
+      "what": "Talk kept as a simultaneous poll broadcast to all",
+      "why": "The rules specify simultaneous, non-binding messages. Players want different donuts, so claims and bluffs about plans (and hidden pick splits) give real material to reason about."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player infers others' remaining premium picks from the public glazed_used and jelly_used, times Glazed for rounds when others are likely out, and uses talk to bluff or deter. A thoughtless player always grabs Glazed and collides."
+    },
+    {
+      "what": "Tie-break encoded as score * 100 + donuts",
+      "why": "Donuts can never exceed 10, so multiplying the score by 100 keeps points primary and donuts as the tie-break."
+    },
+    {
+      "what": "Glazed and Jelly are always offered, even with no picks left",
+      "why": "The rules define void choices as possible outcomes, so the option must exist."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A final draw among tied players is represented as a shared win",
+      "why": "The engine has no separate draw: players level at the top share the win, which matches the source's draw among those players."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 12,
+    "choice_steps_per_round": 3,
+    "attributes": 26,
+    "hidden_elements": 5
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Go Nuts for Donuts is a 2-6 player game. A face-up row of N+1 donut cards is dealt from a shuffled deck, and every round each player secretly picks a row position. A donut picked by exactly one player goes to that player; a donut picked by two or more is discarded. Some donuts carry action powers (steal, draw, manipulate). The game ends when the deck cannot refill the row, and the most points wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "weak",
+        "evidence": "Seats are symmetric and the sealed picks are simultaneous, so no seat has an edge. The core is a chicken game over the most valuable donut, and nothing limits how often a player can go for it. A stubborn 'always pick the best donut' player wins whenever rivals give way, because blocking costs the blocker as much as the target and hands the gain to the bystanders. The previous variation showed exactly this: always-9 scored about 46 against random play and about 90 against rivals who gave way."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "The shuffled deck decides which values appear each round, and the action cards (steal, draw) swing totals by luck of timing. Among equally careful players, mixed picks over a random row largely decide who ends up uncontested."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Predicting which donut each rival will chase, and using action cards well, gives a strong player something to improve on. A weak player still collects uncontested donuts."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "weak",
+        "evidence": "The row is face-up and nothing links rounds except the deck running down. The only thing to infer is the rivals' simultaneous pick, so there is no hidden state to deduce and no resource to plan with. The previous variation's rotating row was a public relabelling: round 7 was strategically identical to round 1."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Points on collected donuts are summed and the tie-break is a card count, all plain arithmetic."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "It is turn-based and text-only. However, a deck filtered by player count, refills and many distinct action-card powers need far more steps and rules than the limits allow, and the action-card powers are mostly luck."
+      }
+    ],
+    "problems": [
+      "P1: Chicken over the top donut. Nothing limits how often a player can chase the best donut, so a stubborn always-best policy wins or draws against sensible rivals, because blocking it is self-harm that helps the bystanders.",
+      "P2: No state links the rounds. There is no budget or resource to plan with, so every round is the same one-shot game and multi-round planning is impossible.",
+      "P3: Nothing hidden to infer. Apart from the sealed pick everything is public, and the previous rotating row was a pure relabelling.",
+      "P4: Luck from the shuffled deck and from action-card powers decides much of the outcome among careful players.",
+      "P5: Action cards, deck filtering and refills exceed the platform's step and complexity limits.",
+      "P6: Cooperative-draw risk. If players can agree a schedule in which everyone scores the same, talk produces a stable four-way draw and the interesting choice disappears.",
+      "P7: The previous variation's complexity report was inconsistent about hidden elements."
+    ],
+    "changes": [
+      {
+        "what": "Premium picks: each player has exactly 6 premium picks for the whole game. A premium pick is needed to choose the Glazed (9) or the Jelly (6). The three lower donuts can be chosen without limit. A premium choice uses up its pick whether it scores or collides. A premium choice with no matching pick left is void: it scores 0 and blocks nobody.",
+        "why": "Always-best can now only chase the Glazed 6 times. If it does so early, rivals can spend a few of their oversupplied picks contesting it, which cheaply drains it. There are 24 premium picks against only 20 premium donuts, so burning one to block is no longer pure self-harm.",
+        "fixes": "P1: Chicken over the top donut."
+      },
+      {
+        "what": "The budget is spent over 10 fixed rounds, and every player's premium uses so far are announced each round.",
+        "why": "Timing now matters: when to spend premium picks, when to let a rival burn theirs, and whether to save picks for the final rounds.",
+        "fixes": "P2: No state links the rounds."
+      },
+      {
+        "what": "Secret split: at setup each player privately writes how many of their 6 premium picks are Glazed picks (0 to 6). The rest are Jelly picks. The split is never announced; only uses are visible.",
+        "why": "This is one strong hidden element, chosen by the player rather than dealt, so it is not a lottery. Rivals must infer from play and from talk who can still take the Glazed late, and bluffing about remaining picks becomes possible. It is also a Blotto-like guess: if everyone loads up on Glazed, the Jelly goes cheap.",
+        "fixes": "P3: Nothing hidden to infer."
+      },
+      {
+        "what": "Remove the deck, the action cards and the rotation. The row is the same five donuts every round: 9, 6, 4, 2, 1.",
+        "why": "This removes draw luck and power-card swings and fits the step limits. What varies between rounds is each player's budget, not the row.",
+        "fixes": "P4: Luck from the deck and action cards; P5: Exceeds the platform's limits."
+      },
+      {
+        "what": "The values 9, 6, 4, 2 and 1 are chosen so that a stable collision-free round yields 21 points. Over 10 rounds that is 210, which cannot be split equally among 4 players.",
+        "why": "Leaving any donut but the Plain untaken is unstable: whoever took a lower donut gains by switching to the untaken one. A stable perfect schedule therefore leaves only the Plain untaken each round, totalling 210, which is not divisible by 4. Someone must end ahead, so trailing players always have a reason to contest.",
+        "fixes": "P6: Cooperative-draw risk."
+      },
+      {
+        "what": "Report the complexity consistently: 2 hidden elements (the secret split, and the sealed simultaneous choice), and 0 random draws.",
+        "why": "This corrects the earlier inconsistency.",
+        "fixes": "P7: Inconsistent complexity report."
+      }
+    ],
+    "keeps": [
+      "Everyone secretly picks a donut from a face-up row at the same moment.",
+      "A donut picked by exactly one player scores for them; a donut picked by two or more is discarded and nobody scores it.",
+      "The row has N+1 donuts for N players (5 donuts for 4 players), so one donut always goes untaken.",
+      "Most points wins, with the original tie-break of most donuts collected."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The sealed anti-coordination pick is a good strategic core. A limited, secretly split premium budget and an unequal-splitting payoff fix the chicken problem and the lack of planning inside the platform's limits."
+    },
+    "variation": {
+      "name": "Go Nuts for Donuts: Premium Picks",
+      "summary": "Four players pick donuts from the same row of five each round, and a donut picked by two or more is lost. The two best donuts can only be chosen with premium picks: 6 per player, split secretly between Glazed and Jelly at the start. Players talk, bluff about what they have left, and time their premium picks over 10 rounds.",
+      "players": {
+        "min": 4,
+        "max": 4,
+        "suggested": 4
+      },
+      "rules": "SETUP: There are exactly 4 players, each starting with 0 points and 0 donuts collected.\n\nTHE ROW: Every round the same five donuts are offered:\n- Glazed, worth 9 points\n- Jelly, worth 6 points\n- Cruller, worth 4 points\n- Sprinkle, worth 2 points\n- Plain, worth 1 point\n\nSECRET SPLIT: Before round 1, each player privately and simultaneously writes a whole number G from 0 to 6. That player has G Glazed picks and 6 minus G Jelly picks. Nobody else is told this number, at any time during the game.\n\nEACH ROUND (10 rounds):\n1. ANNOUNCE: The round number is announced, along with, for every player, their points, how many donuts they have collected, and how many Glazed choices and how many Jelly choices they have made so far that used a pick. Remaining picks are not announced.\n2. TALK: Every player writes one short message at the same time, without seeing the others. All four messages are then shown to everyone. Messages are not binding.\n3. CHOOSE: Every player secretly and simultaneously chooses exactly one donut: Glazed, Jelly, Cruller, Sprinkle or Plain.\n4. CHECK PICKS: A player who chose Glazed with no Glazed picks left, or Jelly with no Jelly picks left, has made a VOID choice. A void choice scores nothing, uses no pick, and does not count as choosing that donut for anyone else.\n5. REVEAL: All four choices are revealed together, with any void choice marked VOID.\n6. RESOLVE: For each donut, count the non-void players who chose it. If exactly one did, that player gains the donut's value and adds 1 to their donuts collected. If two or more did, the donut is discarded and none of them gains anything. A donut nobody chose has no effect.\n7. USE PICKS: Every non-void Glazed choice uses up one of that player's Glazed picks, and every non-void Jelly choice uses up one of that player's Jelly picks. This happens whether the donut was won or discarded.\n8. SCORE: Each player's gain this round and everyone's new totals are announced.\n\nEND: The game ends after round 10. Unused picks are worth nothing.",
+      "objective": "The player with the highest point total after round 10 wins. If several players tie for the highest total, the one among them with the most donuts collected wins. If they are still tied, the game is a draw among those players.",
+      "expected_effect": "Always-best can lose. It spends its Glazed picks in a visible run, and rivals with spare picks (24 picks for 20 premium donuts) can take turns contesting it cheaply, then share the later Glazeds among themselves. Always-Cruller, always-Plain and random play score well below a player who takes premium donuts uncontested, so each can lose. No random draw exists, so the winner is decided by the secret split, by timing and by reading rivals.\n\nTalk passes both tests. Only one player can win, and no equal schedule exists, because the stable 210 points per game cannot split four ways. Players therefore disagree about who takes each round's Glazed and Jelly. A player who follows a proposal such as 'you take Cruller, I take Glazed' hands the proposer the lead. A player who trusts a rival's claim to be out of Glazed picks can be ambushed by a hidden one. Talk is used to propose rotations, to bluff about remaining picks, and to test promises against revealed choices.\n\nCooperation stays worth trying after a betrayal, because each round's collision costs both parties, so mutual avoidance remains individually valuable until the end. The final rounds turn on inferred remaining picks rather than collapsing to one safe option."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 2,
+      "attributes": 9,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 10
+    },
+    "critic": {
+      "rounds": 2,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "fail",
+            "evidence": "The rotation does nothing. Every round's values are announced publicly before anyone chooses (step 1), so choosing 'position k' is just choosing a value from {9,7,5,3,1}. All 10 rounds are therefore the same one-shot game: 4 players pick from 5 values, and only a value picked by exactly one player scores. Seats are symmetric and move order gives no edge.\n\nThoughtless policy 'always take the 9' (whatever position it sits in):\n\n(a) Against 3 uniformly random players.\n- The 9 is uncontested with probability (4/5)^3 = 0.512, so the always-9 player expects about 0.512 x 9 = 4.6 per round, or 46 over the game.\n- A random player scores 0 whenever it picks the 9. Otherwise its value must avoid the 2 other random players: P = 0.8^2 = 0.64.\n- Its expectation is (7+5+3+1)/5 x 0.64 = 2.05 per round, or about 20 over the game.\n- Always-9 wins almost every game.\n\n(b) Against sensible players who see the commitment (stated in talk, or plain after round 1). Per-round payoff for an opponent who responds:\n\n| Opponent's choice | Opponent's gain | Always-9's gain |\n|---|---|---|\n| Also takes 9 | 0 | 0 |\n| Takes uncontested 7 | 7 | 9 |\n| Takes uncontested 5 / 3 / 1 | 5 / 3 / 1 | 9 |\n\n- The myopic best response is to leave the 9 alone, so the committer gets 90.\n- The best any other player can do is 70, and only if both remaining players also avoid the 7.\n- Blocking the committer costs the blocker 0 that round and hands the relative gain to the other two players. A lone spiteful blocker therefore falls behind them and does not win either.\n- Always-9 loses only when someone repeatedly self-sacrifices, or draws when everyone plays always-9 (all on 0).\n\nThis is a commitment/chicken game in which the stubborn thoughtless policy wins or draws in nearly every realistic line. There is no budget, carry-over or cost that ever makes the 9 a bad long-run choice. Talk is non-binding and is used only to announce the commitment. There is no cooperative structure to reward: four players wanting the same top prize is pure conflict.",
+            "verdict_note": "fail"
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules are complete and unambiguous. There are 10 fixed rounds, and all positions and values are listed. Resolution is arithmetic: a unique pick scores its value, and a collision scores 0 for everyone in it. Ties for first are a shared draw.\n\nComplexity is within the platform limits:\n- steps 8 (limit 20)\n- choice steps 2 (limit 4)\n- attributes 8 (limit 20)\n- random draws 0 (limit 1)\n- rounds 10 (limit 40)\n\nThe stated hidden_elements = 1 contradicts 'no hidden cards or types'. Presumably it counts the sealed simultaneous choice, which is supported. Clarify, but this is minor.\n\nNo board, judge or clock is needed. The choice is correctly a simultaneous poll.\n\nTalk is simultaneous and sits where players genuinely disagree (everyone wants the 9). Following a proposal ('you take 7, I take 9') can cost a player, so talk is justified here.\n\nNo cooperate/defect cycle exists to unravel, so the late-round check does not apply. The final round is just the same one-shot game."
+          },
+          "reasoning_over_luck": {
+            "verdict": "fail",
+            "evidence": "No random draw exists, so chance is not formally a factor. However, there is almost nothing to reason about.\n- The rotation is a fully public relabelling: it gives no inference and no planning. Round 7 is strategically identical to round 1.\n- There is no state linking rounds (no budgets, no depletion, no hidden values). Planning over rounds is therefore impossible, and 'opponent modelling' reduces to guessing who will be stubborn about the 9.\n\nWhen everyone plays the intended good strategy, there are two possible outcomes:\n- Everyone plays the symmetric mixed equilibrium of the one-shot 4-player/5-value anti-coordination game. Collisions then fall out of the players' randomisation, totals are close, and the winner is effectively decided by which mixed picks happened to land uncontested. That is luck in all but name.\n- One player commits loudly to the 9 and wins. That rewards bluster, not inference.\n\nA well-reasoning player is not clearly favoured over one who simply always takes the 9."
+          },
+          "required_changes": [
+            "Add state that links the rounds so planning and inference matter. For example: each player may choose each value at most twice across the 10 rounds (exactly two uses of each of 9/7/5/3/1). Remaining uses are tracked as public attributes, so players must plan their timing and infer when opponents will spend their 9s. This removes the always-9 policy outright.",
+            "Either drop the rotating-row schedule or make position meaningful. One option: some values are private per player (private_values), so a player's best target differs and must be inferred from talk and past picks. Another option: one hidden element, such as a secret bonus value per player revealed at the end.",
+            "Recheck balance after the change. Show that no fixed spending order of the value budget (for example all 9s first, or all 9s last) wins or draws almost every game against random and sensible opponents.",
+            "Resolve the hidden_elements inconsistency: either state that it counts the sealed simultaneous choice, or set it to 0."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "SETUP ARITHMETIC: Values are G=9, J=6, C=4, S=2, P=1. Each player has 6 premium picks (G+J=6) over 10 rounds, so every player has at least 4 rounds that must be C, S or P. Supply is 10 Glazed and 10 Jelly slots, and demand is 24 premium picks. Premium is oversupplied by 4 picks, so collisions are structural and choosing when to spend picks matters.\n\nONE-ROUND PAYOFF for a player choosing X:\n| Choice | Alone | Collision |\n|---|---|---|\n| Glazed | 9, uses a pick | 0, still uses a pick |\n| Jelly | 6, uses a pick | 0, still uses a pick |\n| Cruller | 4 | 0 |\n| Sprinkle | 2 | 0 |\n| Plain | 1 | 0 |\nNo option pays when shared, so no option is strictly dominant. Each option's value depends wholly on whether others choose it, which makes this an anti-coordination game.\n\nTHOUGHTLESS POLICIES under the WINNER RULE:\n(a) Always first, Glazed with G=6: Glazed in rounds 1-6, then VOID in rounds 7-10 for 0, so the maximum is 54. The publicly announced Glazed count exposes it after round 1. One opponent who also contests Glazed with G=6 holds it to 0, while P3 and P4 split Jelly and Cruller (e.g. 6+4 per round), so it finishes last. It can lose.\n(b) Always last, Plain: the maximum is 10. Any opponent taking Cruller uncontested in 3 rounds (12) beats it, so it loses against almost any sensible play.\n(c) Always Cruller, the strongest unlimited option: the maximum is 40. Against careless opponents (each premium about 60% of rounds, P(exactly one of 3 picks Glazed) about 0.44) they average roughly 2.8 per round against its 4, so it beats naive play. Against sensible play it is visible after round 2. Opponents can (i) spend non-premium rounds on Cruller, costing them at most 2 (a forgone Sprinkle) to deny it 4, or (ii) agree in talk that one player takes Glazed 5 times uncontested, which is 45 > 40. It can lose, and does against attentive opponents.\n(d) Always pass/void: 0, which always loses unless everyone scores 0.\nSo no policy never loses, and none wins almost every time against sensible play.\n\nSEATS: Fully symmetric. G is written simultaneously, talk is simultaneous, choices are simultaneous, and there is no move order, so no seat has an edge.\n\nLATE ROUNDS: There is no safe option. Every donut pays 0 when shared, so round 10 is a one-shot anti-coordination game and nobody is guaranteed a payoff. Each player's remaining premium total is public (6 minus announced uses), so endgame play is planned, not automatic.\n\nWINNABILITY: All four players can realistically win. Most points wins, the tie-break is most donuts, and any remaining tie is a draw, which is consistent with the stated rules. No labelled payoff ordering is misdescribed."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "COMPLETENESS: The rules are complete for every situation.\n- A void choice is defined: it scores nothing, uses no pick, does not count toward collisions, and is shown as VOID.\n- Pick use on a collision is defined: the pick is used.\n- Unchosen donuts are defined: they have no effect.\n- The announced information is exact: points, donuts collected, Glazed and Jelly uses made with a pick. The split stays hidden.\n- The range of G is 0-6 whole numbers.\n- The winner rule and tie-breaks are pure arithmetic on tracked numbers.\n\nFINITE: The game is a fixed 10 rounds.\n\nENGINE FIT: It needs private_values (G and the remaining picks), simultaneous_choice, numeric_bids (G), free_text_talk and fixed_rounds, all supported. Conditional scoring uses per-step `when` and per-operation `if` (count of non-void choosers == 1), which is allowed. No board, judge, clock, trading or binding agreement is needed.\n\nLIMITS: steps 10 \u2264 20. Choice steps 2 per round \u2264 4; the one-time G choice can be a step gated `when round==1`, which gives 3 and is still \u2264 4. Attributes 9 \u2264 20. Hidden elements 2 \u2264 3. Random draws 0 \u2264 1. Rounds 10 \u2264 40.\n\nTALK: Talk is justified. All four players want Glazed and Jelly, and with 24 picks for 20 slots and Cruller desirable, interests genuinely conflict. A proposal like 'I take Glazed this round, you take Jelly' can be exploited, so following it can cost a player. Talk is simultaneous, as required.\n\nREPEATED-GAME CHECK: After a betrayal (someone collides on an agreed donut), coordination still pays. Uncontested donuts are the only source of points and there is no safe fallback. Players can also punish a defector by contesting their likely target, so late rounds are not won by a safe option."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "CHANCE: There are no random draws at all (random_draws_per_round 0), so the platform contributes no luck. The only uncertainty is opponents' simultaneous choices, which is strategic, not random.\n\nINFERENCE: Each player's remaining premium total is public (6 minus announced uses), but the Glazed/Jelly split is hidden. A player who has used 3 Glazed and 0 Jelly has G between 3 and 6. A revealed VOID Glazed proves G is exhausted. Talk messages can be checked against announced behaviour to find liars. Tracking who has premium picks left, and of which kind, tells you which donut is likely contested in a given round, especially late.\n\nPLANNING: The initial G is a commitment under uncertainty. Spending picks early, while others are also flush, invites collisions. Holding them late, when others' totals are visible, can win but risks a crowded endgame.\n\nINTENDED GOOD PLAY: If all players play well, the result comes from the mixed anti-coordination game, talk and tracking, not from a deal or hidden random type. A player who reads the public counts and avoids predicted collisions clearly beats one who picks naively. For example, the always-Cruller exploit beats careless players but loses to attentive ones."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "The rules are clear and the platform can express them. The trace shows the game setting the secret-split picks (seat 2 glazed_picks 0\u21926, seat 3 glazed_picks 0\u21922 and jelly_picks 0\u21924) and then overwriting them with glazed_picks = 0 and jelly_picks = 6 for every seat. Every legitimate Glazed choice therefore comes out VOID, every Jelly is wrongly allowed, and the void, scoring and pick-use tests all fail as a result.",
+      "guidance": "Fix how the split is recorded and applied:\n1. Store each player's own answer G in their private split_g. The trace shows split_g = 0 and the move log shows 0 for every seat, so check that the answer is read from that player's own response and not from a default or another seat.\n2. Set glazed_picks = split_g and jelly_picks = premium_picks_total - split_g exactly once, before round 1.\n3. Remove the later step that resets the picks. It is currently setting glazed_picks back to 0 and jelly_picks to 6.\n4. Make sure no per-round step touches glazed_picks or jelly_picks, except the use-pick decrement on non-void choices.\n5. Compute void per player from that player's own remaining picks: Glazed when glazed_picks == 0, or Jelly when jelly_picks == 0. Then resolve lone choosers counting only non-void choices.\n6. Decrement picks and increment glazed_used or jelly_used for each non-void Glazed or Jelly choice, whether the donut was won or discarded.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The trace shows each seat's picks first set correctly from its answer (seat 2 to 6 Glazed, seat 3 to 2 Glazed and 4 Jelly). A second update then resets every seat to 0 Glazed and 6 Jelly, using `split_g` = 0. Every legitimate Glazed choice therefore becomes VOID, and every Jelly pick is wrongly available. The four failures all follow from this bug in the file, not from the tests.",
+      "guidance": "The secret split must be applied exactly once, from each player's own answer to the simultaneous G poll (0 to 6). Set `glazed_picks` = G and `jelly_picks` = `premium_picks_total` - G for that player only. Remove the second assignment that overwrites the picks, or make sure `split_g` is stored from the answer before any step reads it, so it is never read as its default 0. Then check the following. (1) `void` is set per player each round: true only if the choice is Glazed with `glazed_picks` = 0 or Jelly with `jelly_picks` = 0, otherwise false. (2) Void choices are left out of the per-donut counts. (3) A lone non-void chooser gains the donut's value and +`donut_collected_increment`. (4) Every non-void Glazed or Jelly choice decrements the matching picks and increments `glazed_used` or `jelly_used`, whether the donut was won or discarded.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "The trace shows the split being applied correctly and then overwritten: seat 2's glazed_picks went 0->6 and then 6->0, with jelly_picks set to 6, and seat 3 went 2/4 and then 0/6. Every player ends up as if G=0, so Glazed is wrongly void and Jelly wrongly allowed, which breaks the void, scoring and pick-use scenarios. The tests match the rules.",
+      "guidance": "Fix the secret-split resolution so that each player's answer G sets glazed_picks = G and jelly_picks = premium_picks_total - G exactly once, and nothing later in setup or round 1 resets them. Look for a second operation that is overwriting the values. It may be a default or fallback that treats the answer as 0, an unconditional 'glazed_picks = 0, jelly_picks = premium_picks_total' step, or a step that reads the wrong attribute or the wrong player instead of split_g. Store the answer in split_g, compute both picks from split_g after the poll, and keep them private. Then check the following: void is true only for Glazed with glazed_picks == 0 or Jelly with jelly_picks == 0. A void choice is left out of the per-donut counts. A lone non-void chooser gains the donut's value and donuts += donut_collected_increment. Every non-void Glazed or Jelly choice decrements its picks and increments glazed_used or jelly_used, whether the donut was won or discarded.",
+      "missing": ""
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 2,
+      "attributes": 9,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 10
+    },
+    "measured": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 3,
+      "attributes": 26,
+      "hidden_elements": 5
+    }
+  },
+  "verdict": "needs_review"
+}

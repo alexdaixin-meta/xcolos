@@ -1,0 +1,950 @@
+[
+  {
+    "name": "Setup: both scores start at 0 and no hand has been played",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "hand_number": 0
+      }
+    },
+    "rule_text": "The match is exactly 12 hands, and both players start at 0 points."
+  },
+  {
+    "name": "Match lasts exactly 12 hands: every hand the leader puts and the responder folds, 6-6 draw",
+    "rule": "R2",
+    "players": 2,
+    "seed": 2,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put",
+        "times": "all"
+      },
+      {
+        "seat": 1,
+        "options_include": "Fold",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Put",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 6,
+        "2": 6
+      },
+      "players": {
+        "1": {
+          "score": 6
+        },
+        "2": {
+          "score": 6
+        }
+      },
+      "game": {
+        "hand_number": 12
+      }
+    },
+    "rule_text": "The match is exactly 12 hands, and both players start at 0 points."
+  },
+  {
+    "name": "Hand 1 is odd so seat 1 leads",
+    "rule": "R3",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 1,
+        "leader": 1,
+        "leader_call": "Put",
+        "responder_action": "Fold",
+        "putter": 1,
+        "folded": true
+      },
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Check"
+        },
+        {
+          "seat": 1,
+          "option": "Put"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Check"
+        }
+      ]
+    },
+    "rule_text": "When hand_number is odd, seat 1 leads; when it is even, seat 2 leads."
+  },
+  {
+    "name": "Hand 2 is even so seat 2 leads",
+    "rule": "R3",
+    "players": 2,
+    "seed": 4,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "hand_number": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Put"
+      },
+      {
+        "seat": 1,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2,
+        "leader": 2,
+        "leader_call": "Put",
+        "responder_action": "Fold",
+        "putter": 2,
+        "folded": true
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 1
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Check"
+        },
+        {
+          "seat": 2,
+          "option": "Put"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Check"
+        },
+        {
+          "seat": 1,
+          "option": "Put"
+        }
+      ]
+    },
+    "rule_text": "When hand_number is odd, seat 1 leads; when it is even, seat 2 leads."
+  },
+  {
+    "name": "After the deal each player holds 3 cards and the deck holds 46",
+    "rule": "R4",
+    "players": 2,
+    "seed": 5,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 46
+        },
+        "players": {
+          "1": {
+            "hand": 3
+          },
+          "2": {
+            "hand": 3
+          }
+        }
+      }
+    },
+    "rule_text": "Each hand, a full 52-card deck is shuffled and each player is dealt 3 cards, so the deck holds 46 after the deal."
+  },
+  {
+    "name": "Each player is dealt three cards, the first of which is the face-up card (values are chance, only counts asserted)",
+    "rule": "R5",
+    "players": 2,
+    "seed": 6,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 3
+          },
+          "2": {
+            "hand": 3
+          }
+        }
+      },
+      "game": {
+        "folded": true
+      }
+    },
+    "rule_text": "Each player's first dealt card is visible to both players, and their other two cards are visible only to that player."
+  },
+  {
+    "name": "Leader is offered Check and Put and checks",
+    "rule": "R6",
+    "players": 2,
+    "seed": 7,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Check"
+      },
+      {
+        "seat": 2,
+        "options_include": "Check"
+      }
+    ],
+    "expect": {
+      "game": {
+        "leader_call": "Check",
+        "responder_action": "Check",
+        "putter": 0,
+        "folded": false
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Check"
+        },
+        {
+          "seat": 1,
+          "option": "Put"
+        }
+      ]
+    },
+    "rule_text": "The leader chooses Check or Put."
+  },
+  {
+    "name": "Leader puts, responder is offered See and Fold and sees",
+    "rule": "R7",
+    "players": 2,
+    "seed": 8,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "See"
+      }
+    ],
+    "expect": {
+      "game": {
+        "leader_call": "Put",
+        "responder_action": "See",
+        "putter": 1,
+        "folded": false,
+        "leader_reply": ""
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "See"
+        },
+        {
+          "seat": 2,
+          "option": "Fold"
+        }
+      ]
+    },
+    "rule_text": "When the leader puts, the responder chooses See or Fold."
+  },
+  {
+    "name": "Leader checks, responder is offered Check and Put and puts",
+    "rule": "R8",
+    "players": 2,
+    "seed": 9,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Check"
+      },
+      {
+        "seat": 2,
+        "options_include": "Put"
+      },
+      {
+        "seat": 1,
+        "options_include": "See"
+      }
+    ],
+    "expect": {
+      "game": {
+        "leader_call": "Check",
+        "responder_action": "Put",
+        "leader_reply": "See",
+        "putter": 2,
+        "folded": false
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Check"
+        },
+        {
+          "seat": 2,
+          "option": "Put"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "See"
+        },
+        {
+          "seat": 2,
+          "option": "Fold"
+        }
+      ]
+    },
+    "rule_text": "When the leader checks, the responder chooses Check or Put."
+  },
+  {
+    "name": "Leader checked, responder put: leader is offered See or Fold and folds, putter scores 1",
+    "rule": "R9",
+    "players": 2,
+    "seed": 10,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Check"
+      },
+      {
+        "seat": 2,
+        "options_include": "Put"
+      },
+      {
+        "seat": 1,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "game": {
+        "leader_call": "Check",
+        "responder_action": "Put",
+        "leader_reply": "Fold",
+        "putter": 2,
+        "folded": true
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "tricks": 0
+        },
+        "2": {
+          "score": 1,
+          "tricks": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "See"
+        },
+        {
+          "seat": 1,
+          "option": "Fold"
+        }
+      ]
+    },
+    "rule_text": "When the leader checked and the responder put, the leader chooses See or Fold."
+  },
+  {
+    "name": "Responder facing the leader's Put is not offered Put",
+    "rule": "R10",
+    "players": 2,
+    "seed": 11,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "game": {
+        "putter": 1
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "See"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Put"
+        },
+        {
+          "seat": 2,
+          "option": "Check"
+        }
+      ]
+    },
+    "rule_text": "Only one Put is made per hand: a player facing a Put is never offered Put."
+  },
+  {
+    "name": "A fold gives the putter 1 point, the folder 0, and no cards are played",
+    "rule": "R11",
+    "players": 2,
+    "seed": 12,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 5,
+          "tricks": 0
+        },
+        "2": {
+          "score": 2,
+          "tricks": 0
+        }
+      },
+      "game": {
+        "folded": true,
+        "putter": 1
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "1-2-3"
+        },
+        {
+          "seat": 2,
+          "option": "1-2-3"
+        }
+      ]
+    },
+    "rule_text": "When a player folds, the putter scores 1 point, the folder scores 0, and no cards are played."
+  },
+  {
+    "name": "With no fold both seats are offered the six card orders",
+    "rule": "R12",
+    "players": 2,
+    "seed": 13,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Check"
+      },
+      {
+        "seat": 2,
+        "options_include": "Check"
+      },
+      {
+        "seat": 1,
+        "options_include": "3-2-1"
+      },
+      {
+        "seat": 2,
+        "options_include": "2-3-1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "folded": false
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "1-2-3"
+        },
+        {
+          "seat": 1,
+          "option": "1-3-2"
+        },
+        {
+          "seat": 1,
+          "option": "2-1-3"
+        },
+        {
+          "seat": 1,
+          "option": "2-3-1"
+        },
+        {
+          "seat": 1,
+          "option": "3-1-2"
+        },
+        {
+          "seat": 1,
+          "option": "3-2-1"
+        },
+        {
+          "seat": 2,
+          "option": "1-2-3"
+        },
+        {
+          "seat": 2,
+          "option": "1-3-2"
+        },
+        {
+          "seat": 2,
+          "option": "2-1-3"
+        },
+        {
+          "seat": 2,
+          "option": "2-3-1"
+        },
+        {
+          "seat": 2,
+          "option": "3-1-2"
+        },
+        {
+          "seat": 2,
+          "option": "3-2-1"
+        }
+      ]
+    },
+    "rule_text": "When nobody folded, both players secretly and at the same moment choose an order of their 3 cards."
+  },
+  {
+    "name": "Card ranks decide tricks (dealt cards are chance: only that cards are played is asserted)",
+    "rule": "R1",
+    "players": 2,
+    "seed": 14,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Check"
+      },
+      {
+        "seat": 2,
+        "options_include": "Check"
+      }
+    ],
+    "expect": {
+      "game": {
+        "folded": false,
+        "putter": 0
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "1-2-3"
+        },
+        {
+          "seat": 2,
+          "option": "1-2-3"
+        }
+      ]
+    },
+    "rule_text": "Card ranks from highest to lowest are 3, 2, A, K, Q, J, 10, 9, 8, 7, 6, 5, 4, and suits do not matter."
+  },
+  {
+    "name": "Three tricks are played when nobody folds (trick winners are chance, not asserted)",
+    "rule": "R13",
+    "players": 2,
+    "seed": 15,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "See"
+      }
+    ],
+    "expect": {
+      "game": {
+        "folded": false,
+        "putter": 1,
+        "leader_call": "Put",
+        "responder_action": "See"
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "3-2-1"
+        },
+        {
+          "seat": 2,
+          "option": "3-2-1"
+        }
+      ]
+    },
+    "rule_text": "Trick i compares the two players' i-th played cards: the higher rank wins the trick, and equal ranks give the trick to no one."
+  },
+  {
+    "name": "Both check: an unput hand with no fold (point winner is chance, not asserted)",
+    "rule": "R14",
+    "players": 2,
+    "seed": 16,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Check"
+      },
+      {
+        "seat": 2,
+        "options_include": "Check"
+      }
+    ],
+    "expect": {
+      "game": {
+        "leader_call": "Check",
+        "responder_action": "Check",
+        "putter": 0,
+        "folded": false,
+        "leader_reply": ""
+      }
+    },
+    "rule_text": "When both players checked, the player with more tricks scores 1 point, and equal tricks score nothing."
+  },
+  {
+    "name": "Leader's Put is seen and the hand is played out (who gets the 3 points is chance, not asserted)",
+    "rule": "R15",
+    "players": 2,
+    "seed": 17,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "See"
+      }
+    ],
+    "expect": {
+      "game": {
+        "putter": 1,
+        "folded": false,
+        "responder_action": "See"
+      }
+    },
+    "rule_text": "When a Put was seen and the putter won strictly more tricks, the putter scores 3 points."
+  },
+  {
+    "name": "Responder's Put is seen by the leader and the hand is played out (scoring is chance, not asserted)",
+    "rule": "R16",
+    "players": 2,
+    "seed": 18,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Check"
+      },
+      {
+        "seat": 2,
+        "options_include": "Put"
+      },
+      {
+        "seat": 1,
+        "options_include": "See"
+      }
+    ],
+    "expect": {
+      "game": {
+        "putter": 2,
+        "folded": false,
+        "leader_reply": "See"
+      }
+    },
+    "rule_text": "When a Put was seen and the putter won equal or fewer tricks, the opponent scores 3 points."
+  },
+  {
+    "name": "End of hand reveal: public results stay visible after a fold",
+    "rule": "R17",
+    "players": 2,
+    "seed": 19,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 1,
+          "tricks": 0
+        },
+        "2": {
+          "score": 0,
+          "tricks": 0
+        }
+      },
+      "game": {
+        "hand_number": 1,
+        "leader_call": "Put",
+        "responder_action": "Fold",
+        "folded": true
+      }
+    },
+    "rule_text": "At the end of each hand, all cards, both orders, the trick results and the scores are revealed."
+  },
+  {
+    "name": "After hand 12 the higher score wins",
+    "rule": "R18",
+    "players": 2,
+    "seed": 20,
+    "default": "decline",
+    "given": {
+      "game": {
+        "hand_number": 11
+      },
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Put"
+      },
+      {
+        "seat": 1,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 5,
+        "2": 4
+      },
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": 4
+        }
+      },
+      "game": {
+        "hand_number": 12,
+        "leader": 2
+      }
+    },
+    "rule_text": "After hand 12 the higher total score wins, and equal totals are a draw."
+  },
+  {
+    "name": "After hand 12 equal totals are a shared win",
+    "rule": "R18",
+    "players": 2,
+    "seed": 21,
+    "default": "decline",
+    "given": {
+      "game": {
+        "hand_number": 11
+      },
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Put"
+      },
+      {
+        "seat": 1,
+        "options_include": "Fold"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 4,
+        "2": 4
+      },
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 4
+        }
+      }
+    },
+    "rule_text": "After hand 12 the higher total score wins, and equal totals are a draw."
+  },
+  {
+    "name": "Full match: seat 1 always puts and seat 2 always checks then folds, so seat 1 wins 12-0",
+    "rule": "R18",
+    "players": 2,
+    "seed": 22,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Put",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Check",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fold",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 12,
+        "2": 0
+      },
+      "players": {
+        "1": {
+          "score": 12
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "hand_number": 12
+      }
+    },
+    "rule_text": "After hand 12 the higher total score wins, and equal totals are a draw."
+  }
+]

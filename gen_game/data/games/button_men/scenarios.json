@@ -1,0 +1,798 @@
+[
+  {
+    "name": "Match begins with all dice alive and both scores 0",
+    "rule": "R1",
+    "players": 2,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "d4_alive": true,
+          "d8_alive": true,
+          "d12_alive": true
+        },
+        "2": {
+          "score": 0,
+          "d4_alive": true,
+          "d8_alive": true,
+          "d12_alive": true
+        }
+      },
+      "game": {
+        "exchange": 1,
+        "leg_exchange": 1
+      }
+    },
+    "rule_text": "When the match begins, then each player has a d4, a d8 and a d12, all alive, and both scores are 0."
+  },
+  {
+    "name": "An exchange with guards only advances the counters (random digits not asserted)",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d4"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rule_text": "When an exchange starts, then a random R from 0 to 110075314175 is drawn and split into base-24 digits D0..D7, with Dk = floor(R/24^k) mod 24."
+  },
+  {
+    "name": "Leg start revives every captured die",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d8_alive": false
+        },
+        "2": {
+          "d4_alive": false,
+          "d12_alive": false
+        }
+      },
+      "game": {
+        "leg_start": true,
+        "exchange": 1,
+        "leg_exchange": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d4"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "d4_alive": true,
+          "d8_alive": true,
+          "d12_alive": true,
+          "score": 0
+        },
+        "2": {
+          "d4_alive": true,
+          "d8_alive": true,
+          "d12_alive": true,
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a leg starts, then all six dice are alive again; A's d4, d8 and d12 are set to (D0 mod 4)+1, (D1 mod 8)+1 and (D2 mod 12)+1; and B's d4, d8 and d12 are set to (D3 mod 4)+1, (D4 mod 8)+1 and (D5 mod 12)+1."
+  },
+  {
+    "name": "Both seats are offered the guard actions each exchange",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d12"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d12"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Guard my d12"
+        },
+        {
+          "seat": 2,
+          "option": "Guard my d12"
+        },
+        {
+          "seat": 1,
+          "option": "Guard my d8"
+        },
+        {
+          "seat": 2,
+          "option": "Guard my d8"
+        }
+      ],
+      "game": {
+        "exchange": 2
+      }
+    },
+    "rule_text": "When an exchange begins, then both players are told the exchange number, the leg exchange number, both scores and which dice each player still has, and each player privately sees only their own die values."
+  },
+  {
+    "name": "Both seats choose from all 12 actions, including attacks",
+    "rule": "R5",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d8"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d8"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "My d12 attacks their d12"
+        },
+        {
+          "seat": 2,
+          "option": "My d12 attacks their d12"
+        },
+        {
+          "seat": 1,
+          "option": "My d4 attacks their d4"
+        },
+        {
+          "seat": 2,
+          "option": "My d4 attacks their d4"
+        }
+      ]
+    },
+    "rule_text": "When choosing, then both players choose at the same time one of the 12 actions, without seeing the other's choice."
+  },
+  {
+    "name": "Attacking an already captured die does nothing",
+    "rule": "R6",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d12_value": 12
+        },
+        "2": {
+          "d8_alive": false,
+          "d8_value": 1
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "My d12 attacks their d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0,
+          "d8_alive": false,
+          "d4_alive": true,
+          "d12_alive": true
+        }
+      }
+    },
+    "rule_text": "When an action names a die that was already captured before this exchange (the actor's or the opponent's), then that action does nothing."
+  },
+  {
+    "name": "Attack into a guarded die fails and the defender scores 3",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d12_value": 12
+        },
+        "2": {
+          "d8_value": 2
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "My d12 attacks their d8"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "d12_alive": true
+        },
+        "2": {
+          "score": 3,
+          "d8_alive": true
+        }
+      }
+    },
+    "rule_text": "When an attack targets a die its owner guards this exchange, then the attack fails, the defender scores 3, and the attacking die's value is announced to both players."
+  },
+  {
+    "name": "Higher attack on unguarded d8 captures it for 8 points",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d12_value": 10
+        },
+        "2": {
+          "d8_value": 5
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "My d12 attacks their d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 8,
+          "d12_alive": true
+        },
+        "2": {
+          "score": 0,
+          "d8_alive": false,
+          "d4_alive": true,
+          "d12_alive": true
+        }
+      }
+    },
+    "rule_text": "When an unguarded target is attacked and the attacking value is greater than or equal to the target's value, then the attacker scores the target's size (4, 8 or 12) and the target is captured for the rest of the leg."
+  },
+  {
+    "name": "Equal attack value captures an unguarded d12 for 12 points",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d4_value": 3
+        },
+        "2": {
+          "d12_value": 3
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "My d4 attacks their d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 12
+        },
+        "2": {
+          "score": 0,
+          "d12_alive": false
+        }
+      }
+    },
+    "rule_text": "When an unguarded target is attacked and the attacking value is greater than or equal to the target's value, then the attacker scores the target's size (4, 8 or 12) and the target is captured for the rest of the leg."
+  },
+  {
+    "name": "Lower attack on unguarded die fails and the defender scores 2",
+    "rule": "R9",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d4_value": 2
+        },
+        "2": {
+          "d12_value": 9
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "My d4 attacks their d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "d4_alive": true
+        },
+        "2": {
+          "score": 2,
+          "d12_alive": true
+        }
+      }
+    },
+    "rule_text": "When an unguarded target is attacked and the attacking value is lower than the target's value, then the attack fails, the defender scores 2, and both dice's values are announced to both players."
+  },
+  {
+    "name": "Two d8s capture each other at the same time",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d8_value": 6
+        },
+        "2": {
+          "d8_value": 6
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "My d8 attacks their d8"
+      },
+      {
+        "seat": 2,
+        "options_include": "My d8 attacks their d8"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 8,
+          "d8_alive": false
+        },
+        "2": {
+          "score": 8,
+          "d8_alive": false
+        }
+      }
+    },
+    "rule_text": "When both attacks are resolved, then they use the values from the start of the exchange, and a die may both capture and be captured in the same exchange."
+  },
+  {
+    "name": "Guarding rerolls privately but changes no score or capture",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "d4_alive": true,
+          "d8_alive": true,
+          "d12_alive": true
+        },
+        "2": {
+          "score": 0,
+          "d4_alive": true,
+          "d8_alive": true,
+          "d12_alive": true
+        }
+      }
+    },
+    "rule_text": "When a die guarded this exchange, or a die that attacked successfully and was not captured this exchange, then it is rerolled: A's from (D6 mod size)+1 and B's from (D7 mod size)+1, with the new value shown only to its owner."
+  },
+  {
+    "name": "Results show the new score after a guarded attack",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d12_value": 12
+        },
+        "2": {
+          "d4_value": 1
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d12"
+      },
+      {
+        "seat": 2,
+        "options_include": "My d4 attacks their d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 3,
+          "d12_alive": true
+        },
+        "2": {
+          "score": 0,
+          "d4_alive": true
+        }
+      }
+    },
+    "rule_text": "When results are announced, then both actions, each attack's outcome, any announced values, any captures and the new scores are shown, but rerolled values are not."
+  },
+  {
+    "name": "Capturing the last die ends the leg with surviving-dice bonuses",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "d12_value": 12
+        },
+        "2": {
+          "d4_alive": false,
+          "d8_alive": false,
+          "d12_value": 4
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 2,
+        "leg_exchange": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "My d12 attacks their d12"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 24
+        },
+        "2": {
+          "score": 0,
+          "d12_alive": false
+        }
+      },
+      "game": {
+        "exchange": 3
+      }
+    },
+    "rule_text": "When a player has no dice left, or the leg reaches its 10th exchange, then the leg ends and each player scores +2 for a surviving d4, +4 for a surviving d8 and +6 for a surviving d12."
+  },
+  {
+    "name": "10th exchange of a leg ends it with bonuses for surviving dice",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": 5,
+          "d8_alive": false
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 10,
+        "leg_exchange": 10
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d4"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 17
+        },
+        "2": {
+          "score": 13
+        }
+      },
+      "game": {
+        "exchange": 11
+      }
+    },
+    "rule_text": "When a player has no dice left, or the leg reaches its 10th exchange, then the leg ends and each player scores +2 for a surviving d4, +4 for a surviving d8 and +6 for a surviving d12."
+  },
+  {
+    "name": "After a leg ends the next exchange starts a new leg with all dice alive",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "d8_alive": false
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 10,
+        "leg_exchange": 10
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d4",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d4",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 12
+        },
+        "2": {
+          "score": 8,
+          "d8_alive": true
+        }
+      },
+      "game": {
+        "exchange": 12,
+        "leg_exchange": 2
+      }
+    },
+    "rule_text": "When a leg ends, then the next exchange starts a new leg."
+  },
+  {
+    "name": "Exchange 30 closes the leg in progress and bonuses decide the match",
+    "rule": "R15",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 15,
+          "d12_alive": false
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 30,
+        "leg_exchange": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d4"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d4"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 22,
+        "2": 21
+      },
+      "players": {
+        "1": {
+          "score": 22
+        },
+        "2": {
+          "score": 21
+        }
+      }
+    },
+    "rule_text": "When exchange 30 ends and the leg in progress has not already ended, then it ends and the surviving-dice bonuses are scored."
+  },
+  {
+    "name": "Equal final totals share the win",
+    "rule": "R16",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "score": 20
+        },
+        "2": {
+          "score": 20
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 30,
+        "leg_exchange": 10
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d4"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d4"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 32,
+        "2": 32
+      }
+    },
+    "rule_text": "When the match is over, then the higher total score wins, and equal totals are a draw."
+  },
+  {
+    "name": "Higher final total wins",
+    "rule": "R16",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "score": 20
+        },
+        "2": {
+          "score": 30
+        }
+      },
+      "game": {
+        "leg_start": false,
+        "exchange": 30,
+        "leg_exchange": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Guard my d4"
+      },
+      {
+        "seat": 2,
+        "options_include": "Guard my d4"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 32,
+        "2": 42
+      }
+    },
+    "rule_text": "When the match is over, then the higher total score wins, and equal totals are a draw."
+  }
+]

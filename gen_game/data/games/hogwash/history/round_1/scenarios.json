@@ -1,0 +1,1410 @@
+[
+  {
+    "name": "Setup: 3 hands of 8 plus 1 pile card make up the 25-card deck",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 8
+        },
+        "2": {
+          "hand_count": 8
+        },
+        "3": {
+          "hand_count": 8
+        }
+      },
+      "game": {
+        "pile_count": 1
+      },
+      "lens": {
+        "game": {
+          "pile": 1,
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 8
+          },
+          "2": {
+            "hand": 8
+          },
+          "3": {
+            "hand": 8
+          }
+        }
+      }
+    },
+    "rule_text": "When the game is set up, the deck holds 25 cards, five of each rank 1 to 5."
+  },
+  {
+    "name": "Setup with 4 players deals 6 cards each",
+    "rule": "R2",
+    "players": 4,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 6
+        },
+        "2": {
+          "hand_count": 6
+        },
+        "3": {
+          "hand_count": 6
+        },
+        "4": {
+          "hand_count": 6
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          },
+          "3": {
+            "hand": 6
+          },
+          "4": {
+            "hand": 6
+          }
+        }
+      }
+    },
+    "rule_text": "When there are 3 players, each player is dealt 8 cards; when there are 4 players, each is dealt 6 cards."
+  },
+  {
+    "name": "Setup with 3 players deals 8 cards each",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 8
+        },
+        "2": {
+          "hand_count": 8
+        },
+        "3": {
+          "hand_count": 8
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 8
+          },
+          "2": {
+            "hand": 8
+          },
+          "3": {
+            "hand": 8
+          }
+        }
+      }
+    },
+    "rule_text": "When there are 3 players, each player is dealt 8 cards; when there are 4 players, each is dealt 6 cards."
+  },
+  {
+    "name": "Leftover card goes to the pile and the deck is empty (4 players)",
+    "rule": "R3",
+    "players": 4,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "game": {
+        "pile_count": 1
+      },
+      "lens": {
+        "game": {
+          "deck": 0,
+          "pile": 1
+        }
+      }
+    },
+    "rule_text": "When dealing is complete, the 1 remaining card goes face down into the pile, so pile_count starts at 1 and the deck is empty."
+  },
+  {
+    "name": "Initial taken, turn, rank and active seat",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "taken": 0,
+          "finished": false
+        },
+        "2": {
+          "taken": 0,
+          "finished": false
+        },
+        "3": {
+          "taken": 0,
+          "finished": false
+        }
+      },
+      "game": {
+        "turn": 1,
+        "required_rank": 1,
+        "active_seat": 1,
+        "end_marked": false
+      }
+    },
+    "rule_text": "When the game starts, every player's taken = 0, turn = 1, required_rank = 1 and active_seat = 1."
+  },
+  {
+    "name": "With 2 cards in hand the active player may play 1 or 2 but not 3",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_count": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 1
+        },
+        {
+          "seat": 1,
+          "option": 2
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 3
+        }
+      ]
+    },
+    "rule_text": "When an unfinished player is active, they must play at least 1 and at most min(3, hand_count) cards from their hand onto the pile."
+  },
+  {
+    "name": "With 5 cards in hand at most 3 may be played",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "hand_count": 5
+        }
+      },
+      "game": {
+        "pile": [
+          2
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "pile_count": 4
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 3
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 4
+        }
+      ]
+    },
+    "rule_text": "When an unfinished player is active, they must play at least 1 and at most min(3, hand_count) cards from their hand onto the pile."
+  },
+  {
+    "name": "The claim is of the required rank 3: two real 3s beat a challenge",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "hand_count": 4
+        }
+      },
+      "game": {
+        "required_rank": 3,
+        "pile": [
+          5
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2,
+          "taken": 0
+        },
+        "2": {
+          "hand_count": 11,
+          "taken": 3
+        },
+        "3": {
+          "hand_count": 8,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 0
+      }
+    },
+    "rule_text": "When the active player plays N cards, the announced claim is exactly N cards of the current required rank R."
+  },
+  {
+    "name": "Playing 3 cards lowers hand_count by 3 and raises pile_count by 3",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "hand_count": 5
+        }
+      },
+      "game": {
+        "pile": [
+          2
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 4
+      }
+    },
+    "rule_text": "When cards are played, the active player's hand_count decreases by N and pile_count increases by N."
+  },
+  {
+    "name": "Talk changes no state; a finished seat is left out",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1,
+            1
+          ],
+          "hand_count": 3
+        },
+        "3": {
+          "hand": [],
+          "hand_count": 0,
+          "finished": true
+        }
+      },
+      "game": {
+        "pile": [
+          4
+        ],
+        "pile_count": 1,
+        "end_marked": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2,
+          "taken": 0
+        },
+        "2": {
+          "hand_count": 8,
+          "taken": 0
+        },
+        "3": {
+          "hand_count": 0,
+          "finished": true,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 2
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "CHALLENGE"
+        },
+        {
+          "seat": 3,
+          "option": "PASS"
+        }
+      ]
+    },
+    "rule_text": "When cards have been played, every player with hand_count > 0, including the active player, writes one message simultaneously, and all messages are shown to everyone."
+  },
+  {
+    "name": "Only non-active unfinished seats are polled for a challenge",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1,
+            1
+          ],
+          "hand_count": 3
+        },
+        "3": {
+          "hand": [],
+          "hand_count": 0,
+          "finished": true
+        }
+      },
+      "game": {
+        "pile": [
+          4
+        ],
+        "pile_count": 1,
+        "end_marked": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "CHALLENGE"
+        },
+        {
+          "seat": 2,
+          "option": "PASS"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "CHALLENGE"
+        },
+        {
+          "seat": 3,
+          "option": "CHALLENGE"
+        }
+      ],
+      "players": {
+        "3": {
+          "hand_count": 0,
+          "taken": 0
+        }
+      }
+    },
+    "rule_text": "When the challenge poll runs, only non-active players with hand_count > 0 are asked, choosing CHALLENGE or PASS simultaneously; finished players count as PASS."
+  },
+  {
+    "name": "An unchallenged bluff stays in the pile",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2,
+            2,
+            2
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "pile": [
+          5
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2,
+          "taken": 0
+        },
+        "2": {
+          "hand_count": 8,
+          "taken": 0
+        },
+        "3": {
+          "hand_count": 8,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 2
+      }
+    },
+    "rule_text": "When nobody challenges, the played cards stay in the pile and no one's hand or taken changes."
+  },
+  {
+    "name": "4 players, active seat 3, challengers 1 and 2: seat 1 resolves and takes the pile on a true claim",
+    "rule": "R11",
+    "players": 4,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "hand": [
+            3,
+            3,
+            3
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "active_seat": 3,
+        "turn": 3,
+        "required_rank": 3,
+        "pile": [
+          4,
+          4
+        ],
+        "pile_count": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "CHALLENGE"
+      },
+      {
+        "seat": 2,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 9,
+          "taken": 3
+        },
+        "2": {
+          "hand_count": 6,
+          "taken": 0
+        },
+        "3": {
+          "hand_count": 2,
+          "taken": 0
+        },
+        "4": {
+          "hand_count": 6,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 0
+      }
+    },
+    "rule_text": "When one or more players challenge, the resolving challenger is the challenger soonest clockwise after the active seat (e.g. with 4 players, active seat 3 and challengers 1 and 2, seat 1 resolves)."
+  },
+  {
+    "name": "True claim challenged: the challenger takes the whole pile",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1,
+            1
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "pile": [
+          5,
+          5,
+          5
+        ],
+        "pile_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 1,
+          "taken": 0
+        },
+        "2": {
+          "hand_count": 13,
+          "taken": 5
+        },
+        "3": {
+          "hand_count": 8,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 0
+      }
+    },
+    "rule_text": "When challenged and every card just played is rank R, the resolving challenger takes the whole pile: their hand_count and taken each increase by pile_count."
+  },
+  {
+    "name": "Bluff challenged: the active player takes the whole pile",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4,
+            4,
+            4
+          ],
+          "hand_count": 3
+        }
+      },
+      "game": {
+        "pile": [
+          2
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 4,
+          "taken": 3
+        },
+        "2": {
+          "hand_count": 8,
+          "taken": 0
+        },
+        "3": {
+          "hand_count": 8,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 0
+      }
+    },
+    "rule_text": "When challenged and any card just played is not rank R, the active player takes the whole pile: their hand_count and taken each increase by pile_count."
+  },
+  {
+    "name": "Two challengers on a true claim: seat 2 resolves, seat 3 loses nothing, pile empties",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "pile": [
+          3
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "CHALLENGE"
+      },
+      {
+        "seat": 3,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 1,
+          "taken": 0
+        },
+        "2": {
+          "hand_count": 10,
+          "taken": 2
+        },
+        "3": {
+          "hand_count": 8,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 0
+      }
+    },
+    "rule_text": "When the pile is taken, pile_count becomes 0, and challengers other than the resolver lose nothing."
+  },
+  {
+    "name": "Only the cards just played decide the challenge: older off-rank pile cards do not make it a bluff",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "pile": [
+          5,
+          4,
+          3
+        ],
+        "pile_count": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 1,
+          "taken": 0
+        },
+        "2": {
+          "hand_count": 12,
+          "taken": 4
+        }
+      },
+      "game": {
+        "pile_count": 0
+      }
+    },
+    "rule_text": "When a challenge is resolved, only the cards just played are revealed, and the result (true or bluff), the taker and the number of cards are announced."
+  },
+  {
+    "name": "A caught bluffer playing their last card is not finished",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ],
+          "hand_count": 1
+        }
+      },
+      "game": {
+        "pile": [
+          2
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 2,
+          "taken": 2,
+          "finished": false
+        }
+      },
+      "game": {
+        "pile_count": 0,
+        "end_marked": false
+      }
+    },
+    "rule_text": "When a player's hand_count is 0 after resolution, they are finished; a caught bluffer is never finished that turn, because they took the pile."
+  },
+  {
+    "name": "Playing the last card unchallenged makes the player finished",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "hand_count": 1
+        }
+      },
+      "game": {
+        "pile": [
+          2
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 0,
+          "finished": true,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 2
+      }
+    },
+    "rule_text": "When a player's hand_count is 0 after resolution, they are finished; a caught bluffer is never finished that turn, because they took the pile."
+  },
+  {
+    "name": "A finished seat's turn plays nothing and rank and seat advance; next seat then plays",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "hand": [],
+          "hand_count": 0,
+          "finished": true
+        },
+        "3": {
+          "hand": [
+            3,
+            3
+          ],
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 2,
+        "turn": 2,
+        "required_rank": 2,
+        "pile": [
+          1,
+          2
+        ],
+        "pile_count": 2,
+        "end_marked": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_count": 8,
+          "taken": 0
+        },
+        "2": {
+          "hand_count": 0,
+          "finished": true,
+          "taken": 0
+        },
+        "3": {
+          "hand_count": 1,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile_count": 3,
+        "active_seat": 3,
+        "required_rank": 3,
+        "turn": 3
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "CHALLENGE"
+        },
+        {
+          "seat": 3,
+          "option": "CHALLENGE"
+        }
+      ]
+    },
+    "rule_text": "When a finished player's turn comes, no cards are played, no talk or challenge occurs, and the rank and active seat still advance."
+  },
+  {
+    "name": "The first finished player sets end_marked; the game continues until the last seat",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1
+          ],
+          "hand_count": 1
+        }
+      },
+      "game": {
+        "pile": [
+          2
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "finished": true,
+          "hand_count": 0
+        }
+      },
+      "game": {
+        "end_marked": true,
+        "active_seat": 2,
+        "turn": 2,
+        "required_rank": 2
+      }
+    },
+    "rule_text": "When any player first becomes finished, end_marked becomes true."
+  },
+  {
+    "name": "Last seat finishes on its turn: the game ends and that seat wins",
+    "rule": "R19",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "hand": [
+            3
+          ],
+          "hand_count": 1
+        }
+      },
+      "game": {
+        "active_seat": 3,
+        "turn": 3,
+        "required_rank": 3,
+        "pile": [
+          2
+        ],
+        "pile_count": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": -8000,
+        "2": -8000,
+        "3": 0
+      },
+      "players": {
+        "3": {
+          "hand_count": 0,
+          "finished": true
+        }
+      },
+      "game": {
+        "end_marked": true
+      }
+    },
+    "rule_text": "When the last seat's turn ends and end_marked is true, the game ends."
+  },
+  {
+    "name": "Turn 36 on the last seat ends the game; fewest cards wins",
+    "rule": "R20",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "hand_count": 5,
+          "taken": 0
+        },
+        "2": {
+          "hand": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "hand_count": 4,
+          "taken": 0
+        },
+        "3": {
+          "hand": [
+            1,
+            1,
+            1
+          ],
+          "hand_count": 3,
+          "taken": 0
+        }
+      },
+      "game": {
+        "active_seat": 3,
+        "turn": 36,
+        "required_rank": 1,
+        "pile": [
+          4
+        ],
+        "pile_count": 1,
+        "end_marked": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": -5000,
+        "2": -4000,
+        "3": -2000
+      },
+      "players": {
+        "3": {
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "pile_count": 2
+      }
+    },
+    "rule_text": "When the last seat's turn ends and the turn number is 36, the game ends."
+  },
+  {
+    "name": "After the last seat's turn the rank wraps 5 to 1, the seat wraps to 1 and turn increases",
+    "rule": "R21",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "hand": [
+            5,
+            5
+          ],
+          "hand_count": 2
+        }
+      },
+      "game": {
+        "active_seat": 3,
+        "turn": 10,
+        "required_rank": 5,
+        "pile": [
+          1
+        ],
+        "pile_count": 1,
+        "end_marked": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "active_seat": 1,
+        "required_rank": 1,
+        "turn": 11,
+        "pile_count": 2
+      },
+      "players": {
+        "3": {
+          "hand_count": 1
+        }
+      }
+    },
+    "rule_text": "When a turn ends without ending the game, required_rank advances by 1 (5 wraps to 1), active_seat advances by 1 (the last seat wraps to 1), and turn increases by 1."
+  },
+  {
+    "name": "Level on fewest cards, the lower taken wins",
+    "rule": "R22",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2,
+            2
+          ],
+          "hand_count": 2,
+          "taken": 3
+        },
+        "2": {
+          "hand": [
+            3,
+            3
+          ],
+          "hand_count": 2,
+          "taken": 5
+        },
+        "3": {
+          "hand": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "hand_count": 5,
+          "taken": 0
+        }
+      },
+      "game": {
+        "active_seat": 3,
+        "turn": 36,
+        "required_rank": 1,
+        "pile": [
+          4
+        ],
+        "pile_count": 1,
+        "end_marked": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": -2003,
+        "2": -2005,
+        "3": -4000
+      }
+    },
+    "rule_text": "When the game ends, the player with the fewest cards in hand wins; among those level on fewest cards, the lowest taken wins; players level on both share the result (a draw)."
+  },
+  {
+    "name": "Level on cards and taken: the win is shared",
+    "rule": "R22",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2,
+            2
+          ],
+          "hand_count": 2,
+          "taken": 3
+        },
+        "2": {
+          "hand": [
+            3,
+            3
+          ],
+          "hand_count": 2,
+          "taken": 3
+        },
+        "3": {
+          "hand": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "hand_count": 5,
+          "taken": 0
+        }
+      },
+      "game": {
+        "active_seat": 3,
+        "turn": 36,
+        "required_rank": 1,
+        "pile": [
+          4
+        ],
+        "pile_count": 1,
+        "end_marked": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": -2003,
+        "2": -2003,
+        "3": -4000
+      }
+    },
+    "rule_text": "When the game ends, the player with the fewest cards in hand wins; among those level on fewest cards, the lowest taken wins; players level on both share the result (a draw)."
+  },
+  {
+    "name": "A finished seat never receives the pile when a challenge resolves",
+    "rule": "R23",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_count": 2
+        },
+        "3": {
+          "hand": [],
+          "hand_count": 0,
+          "finished": true,
+          "taken": 0
+        }
+      },
+      "game": {
+        "pile": [
+          4
+        ],
+        "pile_count": 1,
+        "end_marked": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "CHALLENGE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "hand_count": 10,
+          "taken": 2
+        },
+        "3": {
+          "hand_count": 0,
+          "taken": 0,
+          "finished": true
+        }
+      },
+      "game": {
+        "pile_count": 0
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "CHALLENGE"
+        }
+      ]
+    },
+    "rule_text": "A finished player can never receive the pile, since they never challenge and never play."
+  }
+]

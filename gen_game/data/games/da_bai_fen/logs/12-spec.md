@@ -1,0 +1,176 @@
+# 12 spec
+
+- time: 2026-10-28T03:13:13+00:00 (64.8s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 0635fc67b9ec932f, reply sha256 f2002d7c57091da5
+
+## Sent
+
+````
+Game: Da Bai Fen Duplicate
+Players in the source: 4 to 4
+Suggested table size, chosen by the designer of these rules (keep it): 4
+
+Rules, as filed in the inventory:
+SEATS AND TEAMS: Seats are numbered 1, 2, 3, 4 in anticlockwise order. Team A is seats 1 and 3; Team B is seats 2 and 4. Play always proceeds anticlockwise: after seat 1 comes 2, then 3, then 4, then 1.
+
+CARDS: The deck has 26 cards: the Big Joker, the Small Joker, and four suits (Spades, Hearts, Clubs, Diamonds) each containing A, K, Q, J, 10, 5. Point values are 5 = 5 points, 10 = 10 points, K = 10 points, and all other cards 0. Each suit holds 25 points, so the deck holds 100.
+
+TRUMPS: Hands 1 and 3 have Spades as trump; hands 2 and 4 have Hearts as trump. The trumps are, from high to low: Big Joker, Small Joker, then A, K, Q, J, 10, 5 of the trump suit. Both jokers belong to the trump suit for following purposes. In every non-trump suit the order is A, K, Q, J, 10, 5.
+
+THE MATCH has 4 hands of 6 tricks each, 24 rounds in total. Each round is one trick.
+
+DEALING: At the start of hand 1 the 26 cards are shuffled at random. Each seat receives 6 cards, which are private to that seat, and the remaining 2 cards form the kitty, face down and seen by no one. Hand 2 is a new random shuffle, dealt the same way. Hand 3 replays hand 1: every seat receives the exact 6 cards held in hand 1 by the seat before it in seat order (seat 2 gets seat 1's hand 1 cards, seat 3 gets seat 2's, seat 4 gets seat 3's, seat 1 gets seat 4's), and the kitty is the same 2 cards. Hand 4 replays hand 2 in the same rotated way. Players are told when a hand is a replay.
+
+FIRST LEADER of each hand: seat 1 in hand 1, seat 2 in hand 2, seat 2 in hand 3, seat 3 in hand 4. In each replay, the first leader holds the same cards as the first leader of the original hand.
+
+A TRICK (one round): The leader plays any one card from their hand face up. Then the other three seats, in anticlockwise order, each play one card. Each player sees all cards already played to the trick.
+- Following: If the led card is a trump (a joker or a trump-suit card), each player must play a trump if they hold one. Otherwise each player must play a card of the led suit if they hold one. A player with no card of the required suit may play any card.
+- The engine lists only the legal cards as options.
+- Winning: If any trump was played, the highest trump wins the trick. Otherwise the highest card of the led suit wins. Off-suit non-trump cards never win.
+
+AFTER EACH TRICK: All four cards are announced along with the winner. The winner's team adds the point value of the four cards to its match total. The winner leads the next trick of the same hand.
+
+END OF HAND: After the 6th trick the kitty is revealed. Its point value multiplied by 2 is added to the match total of the team that won the 6th trick. The next hand begins with its own deal and first leader.
+
+INFORMATION: Each player always sees their own cards, all cards played so far in the hand, both teams' match totals, the trump suit, the trick number and the hand number. Other players' hands and the kitty stay hidden until the kitty is revealed at the end of the hand. There is no table talk.
+
+How the winner is decided: After hand 4, the team with the higher match total (captured card points plus doubled kitty points) wins. If the totals are equal, the match is a draw.
+````
+
+## Reply
+
+````
+{
+  "name": "Da Bai Fen Duplicate",
+  "summary": "Four players in two fixed partnerships play 4 hands of 6 trick-taking rounds with a 26-card deck. Hands 3 and 4 replay the deals of hands 1 and 2, rotated one seat, and the team that captures more card points wins.",
+  "players": {"min": 4, "max": 4, "suggested": 4},
+  "parameters": {
+    "deck_size": 26,
+    "cards_per_seat": 6,
+    "kitty_size": 2,
+    "hands": 4,
+    "tricks_per_hand": 6,
+    "total_rounds": 24,
+    "points_five": 5,
+    "points_ten": 10,
+    "points_king": 10,
+    "points_other": 0,
+    "points_per_suit": 25,
+    "points_in_deck": 100,
+    "kitty_multiplier": 2,
+    "first_leader_hand_1": 1,
+    "first_leader_hand_2": 2,
+    "first_leader_hand_3": 2,
+    "first_leader_hand_4": 3,
+    "rank_big_joker": 8,
+    "rank_small_joker": 7,
+    "rank_ace": 6,
+    "rank_king": 5,
+    "rank_queen": 4,
+    "rank_jack": 3,
+    "rank_ten": 2,
+    "rank_five": 1,
+    "trump_strength_base": 200,
+    "led_suit_strength_base": 100
+  },
+  "attributes": {
+    "player": [
+      {"key": "team", "type": "text", "visible": "public", "initial": "A for seats 1 and 3, B for seats 2 and 4", "meaning": "The seat's partnership.", "observable": true},
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "The cards the seat currently holds. Each card is a code: suit letter S, H, C or D plus rank A, K, Q, 10, J or 5, or JOKER_BIG or JOKER_SMALL.", "observable": false},
+      {"key": "hand1_cards", "type": "list", "visible": "ally", "initial": [], "meaning": "The 6 cards this seat was dealt in hand 1, kept for the replay in hand 3.", "observable": false},
+      {"key": "hand2_cards", "type": "list", "visible": "ally", "initial": [], "meaning": "The 6 cards this seat was dealt in hand 2, kept for the replay in hand 4.", "observable": false},
+      {"key": "played_card", "type": "text", "visible": "public", "initial": "", "meaning": "The card this seat played to the current trick.", "observable": false},
+      {"key": "card_strength", "type": "number", "visible": "public", "initial": 0, "meaning": "Strength of the played card in this trick: 200 + rank if it is a trump, 100 + rank if it is of the led non-trump suit, otherwise 0.", "observable": false},
+      {"key": "score", "type": "number", "visible": "public", "initial": 0, "meaning": "The match total of this seat's team, mirrored onto both partners.", "observable": true}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": "all 26 cards", "meaning": "Undealt cards for a fresh shuffle.", "observable": false},
+      {"key": "kitty", "type": "list", "visible": "none", "initial": [], "meaning": "The 2 face-down cards of the current hand.", "observable": false},
+      {"key": "kitty_hand1", "type": "list", "visible": "none", "initial": [], "meaning": "The kitty of hand 1, kept for hand 3.", "observable": false},
+      {"key": "kitty_hand2", "type": "list", "visible": "none", "initial": [], "meaning": "The kitty of hand 2, kept for hand 4.", "observable": false},
+      {"key": "kitty_revealed", "type": "list", "visible": "public", "initial": [], "meaning": "The kitty, shown after the 6th trick of a hand.", "observable": true},
+      {"key": "hand_number", "type": "number", "visible": "public", "initial": 1, "meaning": "The current hand, from 1 to 4.", "observable": true},
+      {"key": "trick_number", "type": "number", "visible": "public", "initial": 1, "meaning": "The current trick within the hand, from 1 to 6.", "observable": true},
+      {"key": "trump_suit", "type": "text", "visible": "public", "initial": "S", "meaning": "The trump suit: S in hands 1 and 3, H in hands 2 and 4.", "observable": true},
+      {"key": "is_replay", "type": "bool", "visible": "public", "initial": false, "meaning": "True in hands 3 and 4.", "observable": false},
+      {"key": "leader", "type": "number", "visible": "public", "initial": 1, "meaning": "The seat that leads the current trick.", "observable": false},
+      {"key": "led_card", "type": "text", "visible": "public", "initial": "", "meaning": "The first card played to the current trick.", "observable": false},
+      {"key": "led_is_trump", "type": "bool", "visible": "public", "initial": false, "meaning": "Whether the led card is a joker or a trump-suit card.", "observable": false},
+      {"key": "led_suit", "type": "text", "visible": "public", "initial": "", "meaning": "The suit of the led card. TRUMP if the led card is trump.", "observable": false},
+      {"key": "trick_cards", "type": "list", "visible": "public", "initial": [], "meaning": "The cards played to the current trick, in order.", "observable": false},
+      {"key": "played_this_hand", "type": "list", "visible": "public", "initial": [], "meaning": "All cards played so far in the current hand.", "observable": false},
+      {"key": "trick_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "The seat that won the last trick.", "observable": true},
+      {"key": "trick_points", "type": "number", "visible": "public", "initial": 0, "meaning": "The point value of the 4 cards in the last trick.", "observable": false},
+      {"key": "team_a_total", "type": "number", "visible": "public", "initial": 0, "meaning": "Match total of Team A (seats 1 and 3).", "observable": true},
+      {"key": "team_b_total", "type": "number", "visible": "public", "initial": 0, "meaning": "Match total of Team B (seats 2 and 4).", "observable": true}
+    ]
+  },
+  "setup": [
+    "Seats 1 and 3 are given team A, and seats 2 and 4 are given team B.",
+    "The table deck is filled with the 26 cards: JOKER_BIG, JOKER_SMALL, and A, K, Q, J, 10, 5 of each of S, H, C, D.",
+    "hand_number = 1, trick_number = 1, trump_suit = S, leader = 1, and team_a_total = team_b_total = 0. Every score is 0."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "effect": "Runs only when trick_number == 1. Clears played_this_hand and kitty_revealed. If hand_number is 1 or 2, the deck is refilled with all 26 cards; each seat then draws 6 cards at random from the deck into its hand, and the 2 cards left move to the kitty. When hand_number == 1, each hand is copied to hand1_cards and the kitty to kitty_hand1. When hand_number == 2, each hand is copied to hand2_cards and the kitty to kitty_hand2. If hand_number == 3, each seat s gets hand = hand1_cards of seat s-1 (seat 1 gets seat 4's), and kitty = kitty_hand1. If hand_number == 4, each seat s gets hand = hand2_cards of seat s-1, and kitty = kitty_hand2. trump_suit is S if hand_number is 1 or 3, otherwise H. leader is 1, 2, 2 or 3 for hands 1 to 4. is_replay = (hand_number >= 3)."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Runs only when trick_number == 1. Announces 'Hand {hand_number} begins. Trump is {trump_suit}. Seat {leader} leads.' When is_replay is true, it adds 'This hand is a replay: each seat holds the cards the previous seat held in hand {hand_number - 2}.'"},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "Each seat is sent its own hand, plus played_this_hand, team_a_total, team_b_total, trump_suit, trick_number and hand_number."},
+    {"action": "ask", "who": "each player in turn, starting with the seat in leader and going anticlockwise (leader, leader+1, ... wrapping 4 to 1)", "answer": "One card from the seat's own hand, chosen from the legal options only (see offers).", "effect": "The card is removed from the player's hand and appended to trick_cards and played_this_hand, and played_card is set. For the first player, led_card is set to the card. led_is_trump = (the card is a joker or of trump_suit). led_suit = TRUMP if led_is_trump, otherwise the card's suit."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Each seat gets card_strength = 200 + rank if played_card is a joker or of trump_suit; otherwise 100 + rank if led_is_trump is false and played_card's suit == led_suit; otherwise 0. Ranks are Big Joker 8, Small Joker 7, A 6, K 5, Q 4, J 3, 10 2, 5 1. trick_winner = the seat with the highest card_strength. trick_points = the sum of the points of the 4 trick_cards, where 5 = 5, 10 = 10, K = 10 and all others = 0. If trick_winner is 1 or 3, team_a_total += trick_points; otherwise team_b_total += trick_points. Seats 1 and 3 get score = team_a_total, and seats 2 and 4 get score = team_b_total. leader = trick_winner."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announces 'Trick {trick_number} of hand {hand_number}: cards {trick_cards}. Seat {trick_winner} wins {trick_points} points. Team A {team_a_total}, Team B {team_b_total}.'"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Runs only when trick_number == 6. kitty_revealed = kitty. If trick_winner is 1 or 3, team_a_total += 2 * (points of kitty); otherwise team_b_total += 2 * (points of kitty). Both teams' scores are mirrored to the seats again."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Runs only when trick_number == 6. Announces 'End of hand {hand_number}. Kitty: {kitty_revealed}, doubled for the team of seat {trick_winner}. Team A {team_a_total}, Team B {team_b_total}.'"},
+    {"action": "update", "who": "all players", "answer": null, "effect": "trick_cards is cleared, led_card is set to empty, and each played_card is set to empty. trick_number += 1. If trick_number > 6, then trick_number = 1 and hand_number += 1."},
+    {"action": "check", "who": "all players", "answer": null, "effect": "The game ends if hand_number > 4. Otherwise it continues with the next round."}
+  ],
+  "ending": {
+    "condition": "hand_number > 4 (after 24 tricks)",
+    "rank_by": "you.score",
+    "decided_by": "Each seat's standing is its team's match total: captured card points plus doubled kitty points. Both partners of the team with the higher total win. If the totals are equal, all four seats tie at the top, which is the draw."
+  },
+  "rules": [
+    {"id": "R1", "text": "Team A is seats 1 and 3, and Team B is seats 2 and 4. Play goes 1, 2, 3, 4, 1."},
+    {"id": "R2", "text": "The deck has 26 cards: Big Joker, Small Joker, and A, K, Q, J, 10, 5 of Spades, Hearts, Clubs and Diamonds."},
+    {"id": "R3", "text": "A 5 is worth 5 points, a 10 is worth 10, a K is worth 10, and every other card is worth 0, so the deck holds 100 points."},
+    {"id": "R4", "text": "In hands 1 and 3 the trump suit is Spades, and in hands 2 and 4 it is Hearts."},
+    {"id": "R5", "text": "Trumps rank from high to low as Big Joker, Small Joker, A, K, Q, J, 10, 5 of the trump suit, and both jokers count as trump for following."},
+    {"id": "R6", "text": "In a non-trump suit the cards rank A, K, Q, J, 10, 5."},
+    {"id": "R7", "text": "At the start of hands 1 and 2, the 26 cards are shuffled, each seat gets 6 private cards, and the remaining 2 cards form a hidden kitty."},
+    {"id": "R8", "text": "In hand 3, seat s holds exactly the 6 cards seat s-1 held in hand 1 (seat 1 gets seat 4's), and the kitty equals hand 1's kitty."},
+    {"id": "R9", "text": "In hand 4, seat s holds exactly the 6 cards seat s-1 held in hand 2 (seat 1 gets seat 4's), and the kitty equals hand 2's kitty."},
+    {"id": "R10", "text": "Players are told at the start of hands 3 and 4 that the hand is a replay."},
+    {"id": "R11", "text": "The first leader is seat 1 in hand 1, seat 2 in hand 2, seat 2 in hand 3 and seat 3 in hand 4."},
+    {"id": "R12", "text": "The leader may play any card in their hand."},
+    {"id": "R13", "text": "When the led card is a trump, a player holding a trump is offered only their trumps."},
+    {"id": "R14", "text": "When the led card is a non-trump suit, a player holding that suit is offered only cards of that suit."},
+    {"id": "R15", "text": "A player with no card of the required suit is offered every card in their hand."},
+    {"id": "R16", "text": "When any trump is played to a trick, the highest trump wins the trick."},
+    {"id": "R17", "text": "When no trump is played, the highest card of the led suit wins, and off-suit non-trump cards never win."},
+    {"id": "R18", "text": "After each trick, the winner's team adds the point value of the 4 cards to its match total."},
+    {"id": "R19", "text": "The winner of a trick leads the next trick of the same hand."},
+    {"id": "R20", "text": "After the 6th trick of a hand, the kitty is revealed and 2 times its point value is added to the team that won the 6th trick."},
+    {"id": "R21", "text": "Other players' hands and the kitty stay hidden until the kitty is revealed at the end of the hand."},
+    {"id": "R22", "text": "The match ends after hand 4 (24 tricks), and the team with the higher match total wins."},
+    {"id": "R23", "text": "When the two match totals are equal, the match is a draw."},
+    {"id": "R24", "text": "There is no table talk."}
+  ],
+  "offers": [
+    {"question": "Play a card to the trick", "who": "the leader (first to play)", "options": "Every card in the leader's hand."},
+    {"question": "Play a card to the trick", "who": "a following seat, when led_is_trump is true", "options": "If the seat holds any joker or trump_suit card, only those cards. Otherwise every card in its hand."},
+    {"question": "Play a card to the trick", "who": "a following seat, when led_is_trump is false", "options": "If the seat holds any card of led_suit, counting only non-joker cards when led_suit is not the trump suit, only those cards. Otherwise every card in its hand."}
+  ],
+  "choices": [
+    {"what": "4 players, suggested 4", "why": "The designer fixed two partnerships of two. The duplicate replay structure depends on exactly 4 seats rotating, so neither fewer nor more seats work."},
+    {"what": "No talk step", "why": "The source forbids table talk. Partnership play here rests on inferring a partner's cards from what they play."},
+    {"what": "Rank numbers 1 to 8 and strength bases of 100 (led suit) and 200 (trump)", "why": "These let the trick winner be found by arithmetic as the seat with the highest card_strength."},
+    {"what": "The play order starts at the leader", "why": "The source says the leader plays first and the others follow anticlockwise. The ask step runs from the seat in leader."},
+    {"what": "Saved hand1_cards and hand2_cards are visible to their owner (ally)", "why": "A player attribute cannot be hidden from its owner, and the owner already saw those cards when they were dealt."},
+    {"what": "Strategy at the table", "why": "A thoughtful player counts the trumps and points already played, keeps high trumps to capture the 6th trick (worth the doubled kitty), and feeds point cards to tricks the partner is winning."}
+  ],
+  "simplifications": [
+    {"what": "Each team's match total is mirrored onto both partners as score", "why": "The ranking is a per-player expression, so both partners carry their team's total."},
+    {"what": "A draw is represented as all four seats sharing the top rank", "why": "The engine has no separate draw outcome. Tied totals give every seat the same rank_by value."}
+  ],
+  "unsupported": []
+}
+````

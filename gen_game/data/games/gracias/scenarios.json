@@ -1,0 +1,1273 @@
+[
+  {
+    "name": "R1: a match starts from a full 48-card deck and 12 cards are dealt in round 1, leaving 36",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "default": "first",
+    "rounds": 1,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 36
+        }
+      },
+      "game": {
+        "round": 2,
+        "session": 1
+      }
+    },
+    "rule_text": "The deck has 48 cards: 12 each of Red, Blue, Green and Yellow."
+  },
+  {
+    "name": "R1: four rounds from setup complete session 1 and the match moves on to session 2",
+    "rule": "R1",
+    "players": 4,
+    "seed": 2,
+    "default": "first",
+    "rounds": 4,
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 5,
+        "session": 2
+      }
+    },
+    "rule_text": "The deck has 48 cards: 12 each of Red, Blue, Green and Yellow."
+  },
+  {
+    "name": "R2: in round 5 an empty deck is refilled to 48 before the deal, leaving 36",
+    "rule": "R2",
+    "players": 4,
+    "seed": 3,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 5,
+        "session": 2,
+        "deck": []
+      }
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 36
+        }
+      },
+      "game": {
+        "round": 6,
+        "session": 2
+      }
+    },
+    "rule_text": "When the round is 1, 5 or 9, the deck is reset to all 48 cards and shuffled; in no other round is it shuffled or refilled."
+  },
+  {
+    "name": "R2: round 2 does not refill the deck (24 cards become 12)",
+    "rule": "R2",
+    "players": 4,
+    "seed": 4,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 2,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue",
+          "Blue"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 12
+        }
+      },
+      "game": {
+        "round": 3,
+        "session": 1
+      }
+    },
+    "rule_text": "When the round is 1, 5 or 9, the deck is reset to all 48 cards and shuffled; in no other round is it shuffled or refilled."
+  },
+  {
+    "name": "R3: after the 4th round of a session the deck is empty",
+    "rule": "R3",
+    "players": 4,
+    "seed": 5,
+    "default": "first",
+    "rounds": 4,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 0
+        }
+      },
+      "game": {
+        "round": 5,
+        "session": 2
+      }
+    },
+    "rule_text": "Each round, 12 cards leave the deck and form triplets T1-T4, each with face-up A and B and face-down H, so after the 4th round of a session the deck is empty."
+  },
+  {
+    "name": "R4: with an all-Red deck every face-up card offered is Red",
+    "rule": "R4",
+    "players": 4,
+    "seed": 6,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 2,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "T1: keep A (Red), give B (Red) to seat 3"
+        },
+        {
+          "seat": 2,
+          "option": "T4: keep B (Red), give A (Red) to seat 1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "T1: keep A (Blue), give B (Blue) to seat 3"
+        },
+        {
+          "seat": 2,
+          "option": "T1: keep A (Green), give B (Green) to seat 3"
+        },
+        {
+          "seat": 2,
+          "option": "T1: keep A (Yellow), give B (Yellow) to seat 3"
+        }
+      ],
+      "game": {
+        "round": 3,
+        "session": 1
+      }
+    },
+    "rule_text": "When the triplets are laid out, the A and B colours of all four triplets are announced to everyone, and no H colour is announced."
+  },
+  {
+    "name": "R5: round 3 pick order is seats 3, 4, 1, 2, so seat 2 picks last and only T4 is left",
+    "rule": "R5",
+    "players": 4,
+    "seed": 7,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 3,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 4"
+      },
+      {
+        "seat": 4,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 3"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "T1: keep A (Red), give B (Red) to seat 1"
+        },
+        {
+          "seat": 2,
+          "option": "T2: keep A (Red), give B (Red) to seat 1"
+        },
+        {
+          "seat": 2,
+          "option": "T3: keep A (Red), give B (Red) to seat 1"
+        },
+        {
+          "seat": 1,
+          "option": "T1: keep A (Red), give B (Red) to seat 2"
+        }
+      ],
+      "game": {
+        "round": 4,
+        "session": 1
+      }
+    },
+    "rule_text": "In round r, seat ((r-1) mod 4)+1 picks first, then the others in increasing seat order, wrapping from 4 to 1 (round 2: seats 2, 3, 4, 1)."
+  },
+  {
+    "name": "R6: a picker may gift to any opponent but never to itself",
+    "rule": "R6",
+    "players": 4,
+    "seed": 8,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 2,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "T1: keep A (Red), give B (Red) to seat 1"
+        },
+        {
+          "seat": 2,
+          "option": "T1: keep A (Red), give B (Red) to seat 3"
+        },
+        {
+          "seat": 2,
+          "option": "T1: keep B (Red), give A (Red) to seat 4"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "T1: keep A (Red), give B (Red) to seat 2"
+        },
+        {
+          "seat": 2,
+          "option": "T1: keep B (Red), give A (Red) to seat 2"
+        }
+      ]
+    },
+    "rule_text": "When a player picks, they choose one triplet still open, keep exactly one of its face-up cards, and gift the other face-up card to one opponent; gifting to oneself or not gifting is not offered."
+  },
+  {
+    "name": "R7: kept, gifted and hidden Red cards count, so seat 1 with 1 Red before round 4 ends on 4 Red (one stack, 3 points) and the others discard 3 loose",
+    "rule": "R7",
+    "players": 4,
+    "seed": 9,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "pub_red": 1
+        }
+      },
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 3,
+          "game_total": 3
+        },
+        "2": {
+          "session_score": 0
+        },
+        "3": {
+          "session_score": 0
+        },
+        "4": {
+          "session_score": 0
+        }
+      },
+      "game": {
+        "round": 5,
+        "session": 2
+      }
+    },
+    "rule_text": "When a player keeps a card of colour c, their pub_c rises by 1."
+  },
+  {
+    "name": "R8: three gifts to seat 1 give it 5 Red (3+1); seat 2 discards 3 loose; seats 3 and 4 keep 2",
+    "rule": "R8",
+    "players": 4,
+    "seed": 10,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 4
+        },
+        "2": {
+          "session_score": 0
+        },
+        "3": {
+          "session_score": 2
+        },
+        "4": {
+          "session_score": 2
+        }
+      }
+    },
+    "rule_text": "When a player is gifted a card of colour c, their pub_c rises by 1."
+  },
+  {
+    "name": "R9: the hidden card counts for the picker, so seat 1 with no gifts still totals 2 Red",
+    "rule": "R9",
+    "players": 4,
+    "seed": 11,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 2"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 2
+        },
+        "2": {
+          "session_score": 4
+        },
+        "3": {
+          "session_score": 0
+        },
+        "4": {
+          "session_score": 2
+        }
+      }
+    },
+    "rule_text": "When a player takes a triplet, its H colour is told only to that player and their hid_<H colour> rises by 1."
+  },
+  {
+    "name": "R10: the last picker in round 2 (seat 1) sees only T4 but still chooses which card to keep and whom to gift",
+    "rule": "R10",
+    "players": 4,
+    "seed": 12,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 2,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 4"
+      },
+      {
+        "seat": 4,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "T4: keep A (Red), give B (Red) to seat 2"
+        },
+        {
+          "seat": 1,
+          "option": "T4: keep B (Red), give A (Red) to seat 4"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "T1: keep A (Red), give B (Red) to seat 2"
+        },
+        {
+          "seat": 1,
+          "option": "T2: keep A (Red), give B (Red) to seat 2"
+        },
+        {
+          "seat": 1,
+          "option": "T3: keep A (Red), give B (Red) to seat 2"
+        }
+      ]
+    },
+    "rule_text": "When a triplet is taken, it is removed from open_triplets, and the 4th picker has exactly one triplet left but still chooses which card to keep and whom to gift."
+  },
+  {
+    "name": "R11: a mid-session round only advances the round, with no session score",
+    "rule": "R11",
+    "players": 4,
+    "seed": 13,
+    "default": "first",
+    "rounds": 1,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 0,
+          "game_total": 0
+        },
+        "2": {
+          "session_score": 0
+        },
+        "3": {
+          "session_score": 0
+        },
+        "4": {
+          "session_score": 0
+        }
+      },
+      "game": {
+        "round": 2,
+        "session": 1
+      }
+    },
+    "rule_text": "After each round, every player's four public counts are announced."
+  },
+  {
+    "name": "R12: at the session end, public and hidden counts add up to totals before scoring",
+    "rule": "R12",
+    "players": 4,
+    "seed": 14,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "pub_blue": 5,
+          "hid_blue": 3,
+          "pub_green": 1
+        },
+        "2": {
+          "pub_blue": 4,
+          "pub_green": 2,
+          "hid_green": 1,
+          "pub_yellow": 2
+        },
+        "3": {
+          "pub_green": 5,
+          "hid_green": 1,
+          "pub_yellow": 1,
+          "hid_yellow": 2
+        },
+        "4": {
+          "pub_green": 2,
+          "pub_yellow": 6,
+          "hid_yellow": 1
+        }
+      },
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 7,
+          "game_total": 7,
+          "best_session_score": 7
+        },
+        "2": {
+          "session_score": 5,
+          "game_total": 5
+        },
+        "3": {
+          "session_score": 5,
+          "game_total": 5
+        },
+        "4": {
+          "session_score": 5,
+          "game_total": 5
+        }
+      },
+      "game": {
+        "round": 5,
+        "session": 2
+      }
+    },
+    "rule_text": "After rounds 4, 8 and 12, every player's hidden counts are revealed and total = public + hidden per colour, and each colour's totals over the 4 players sum to 12."
+  },
+  {
+    "name": "R13: a total of 7 gives 1 stack and 3 loose (seat 1 scores 3); a total of 6 gives 1 stack and 2 loose kept (seat 2 scores 5)",
+    "rule": "R13",
+    "players": 4,
+    "seed": 15,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "pub_red": 2,
+          "hid_red": 2
+        },
+        "2": {
+          "pub_red": 3
+        },
+        "3": {
+          "hid_red": 1
+        }
+      },
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 3
+        },
+        "2": {
+          "session_score": 5
+        },
+        "3": {
+          "session_score": 3
+        },
+        "4": {
+          "session_score": 0
+        }
+      }
+    },
+    "rule_text": "At session end, stacks = floor(total/4) and loose = total - 4*stacks per colour (for example total 7 gives 1 stack and 3 loose)."
+  },
+  {
+    "name": "R14: players tied on the highest loose value all discard (Red 3,3,3,3; Blue loose 2,2,1,0)",
+    "rule": "R14",
+    "players": 4,
+    "seed": 16,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "pub_blue": 2
+        },
+        "2": {
+          "hid_blue": 2
+        },
+        "3": {
+          "pub_blue": 1
+        }
+      },
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 0
+        },
+        "2": {
+          "session_score": 0
+        },
+        "3": {
+          "session_score": 1
+        },
+        "4": {
+          "session_score": 0
+        }
+      }
+    },
+    "rule_text": "For each colour, if the highest loose value among the players is at least 1, every player whose loose equals it scores 0 for those loose cards, and ties all discard."
+  },
+  {
+    "name": "R15: Red total 5 with a Red max loose of 2 scores 3+1 = 4",
+    "rule": "R15",
+    "players": 4,
+    "seed": 17,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "pub_red": 2
+        },
+        "2": {
+          "pub_red": 1
+        },
+        "3": {
+          "pub_red": 3
+        },
+        "4": {
+          "pub_red": 3
+        }
+      },
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 4
+        },
+        "2": {
+          "session_score": 3
+        },
+        "3": {
+          "session_score": 3
+        },
+        "4": {
+          "session_score": 3
+        }
+      }
+    },
+    "rule_text": "Session score = 3 points per stack + 1 point per loose card not discarded, summed over the 4 colours (for example Red total 5 with Red max loose 2 gives 3+1 = 4 points)."
+  },
+  {
+    "name": "R16: the session score adds to game_total, and best_session_score changes only when beaten",
+    "rule": "R16",
+    "players": 4,
+    "seed": 18,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "pub_red": 2,
+          "hid_red": 2,
+          "game_total": 10,
+          "best_session_score": 6
+        },
+        "2": {
+          "pub_red": 3,
+          "game_total": 4,
+          "best_session_score": 4
+        },
+        "3": {
+          "hid_red": 1,
+          "game_total": 2,
+          "best_session_score": 2
+        },
+        "4": {
+          "game_total": 7,
+          "best_session_score": 7
+        }
+      },
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "session_score": 3,
+          "game_total": 13,
+          "best_session_score": 6
+        },
+        "2": {
+          "session_score": 5,
+          "game_total": 9,
+          "best_session_score": 5
+        },
+        "3": {
+          "session_score": 3,
+          "game_total": 5,
+          "best_session_score": 3
+        },
+        "4": {
+          "session_score": 0,
+          "game_total": 7,
+          "best_session_score": 7
+        }
+      }
+    },
+    "rule_text": "When the session score is added, game_total rises by it, and best_session_score becomes it if it is greater than the old best."
+  },
+  {
+    "name": "R17: after the session-end reset the next session starts and round 5 adds no score",
+    "rule": "R17",
+    "players": 4,
+    "seed": 19,
+    "default": "first",
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "pub_red": 1
+        }
+      },
+      "game": {
+        "round": 4,
+        "session": 1,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "game_total": 3,
+          "best_session_score": 3
+        },
+        "2": {
+          "game_total": 0
+        },
+        "3": {
+          "game_total": 0
+        },
+        "4": {
+          "game_total": 0
+        }
+      },
+      "game": {
+        "round": 6,
+        "session": 2
+      }
+    },
+    "rule_text": "After the session score, all public and hidden counts return to 0."
+  },
+  {
+    "name": "R18: the game ends after round 12; seat 1 wins on game_total plus tie-break",
+    "rule": "R18",
+    "players": 4,
+    "seed": 20,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "game_total": 20,
+          "best_session_score": 9
+        },
+        "2": {
+          "game_total": 18,
+          "best_session_score": 10
+        },
+        "3": {
+          "game_total": 20,
+          "best_session_score": 8
+        },
+        "4": {
+          "game_total": 15,
+          "best_session_score": 7
+        }
+      },
+      "game": {
+        "round": 12,
+        "session": 3,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 20009,
+        "2": 18010,
+        "3": 20008,
+        "4": 15007
+      },
+      "players": {
+        "1": {
+          "session_score": 0,
+          "game_total": 20
+        },
+        "3": {
+          "game_total": 20
+        }
+      }
+    },
+    "rule_text": "The game ends after round 12 (3 sessions of 4 rounds)."
+  },
+  {
+    "name": "R19: seats tied on game_total and best_session_score share the win; a lower best loses the tie",
+    "rule": "R19",
+    "players": 4,
+    "seed": 21,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "game_total": 20,
+          "best_session_score": 9
+        },
+        "2": {
+          "game_total": 20,
+          "best_session_score": 8
+        },
+        "3": {
+          "game_total": 20,
+          "best_session_score": 9
+        },
+        "4": {
+          "game_total": 12,
+          "best_session_score": 6
+        }
+      },
+      "game": {
+        "round": 12,
+        "session": 3,
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": "T1: keep A (Red), give B (Red) to seat 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "T2: keep A (Red), give B (Red) to seat 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "T3: keep A (Red), give B (Red) to seat 3"
+      },
+      {
+        "seat": 3,
+        "options_include": "T4: keep A (Red), give B (Red) to seat 4"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        3
+      ],
+      "standings": {
+        "1": 20009,
+        "2": 20008,
+        "3": 20009,
+        "4": 12006
+      }
+    },
+    "rule_text": "The highest game_total wins; a tie is broken by the highest best_session_score; players still tied share the win."
+  }
+]

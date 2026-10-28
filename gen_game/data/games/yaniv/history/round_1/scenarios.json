@@ -1,0 +1,1687 @@
+[
+  {
+    "name": "R1: setup deals 5 cards to each seat (values random, only the counts are asserted)",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 5
+          },
+          "3": {
+            "hand": 5
+          },
+          "4": {
+            "hand": 5
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "hand_size": 5
+        },
+        "2": {
+          "hand_size": 5
+        },
+        "3": {
+          "hand_size": 5
+        },
+        "4": {
+          "hand_size": 5
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "Card values: Ace = 1, 2 to 10 = face value, J/Q/K = 10, Joker = 0. Every draw is a random value from a 54-card shoe (two 0s, four each of 1 to 9, sixteen 10s), reshuffled before each draw."
+  },
+  {
+    "name": "R2: before round 1 every total is 0 and each seat holds 5 cards",
+    "rule": "R2",
+    "players": 3,
+    "seed": 2,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "total": 0,
+          "hand_size": 5
+        },
+        "2": {
+          "total": 0,
+          "hand_size": 5
+        },
+        "3": {
+          "total": 0,
+          "hand_size": 5
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "Before round 1, each player is dealt 5 cards and every total is 0."
+  },
+  {
+    "name": "R3: CALL is offered at sum 7 and not at sum 8",
+    "rule": "R3",
+    "players": 3,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            4
+          ],
+          "hand_sum": 7,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            4,
+            4
+          ],
+          "hand_sum": 8,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "CALL"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "CALL"
+        },
+        {
+          "seat": 3,
+          "option": "CALL"
+        }
+      ],
+      "players": {
+        "1": {
+          "round_score": 0,
+          "total": 0
+        },
+        "2": {
+          "round_score": 8,
+          "total": 8
+        },
+        "3": {
+          "round_score": 20,
+          "total": 20
+        }
+      }
+    },
+    "rule_text": "When a player's hand_sum is 7 or less, then CALL is a legal first choice; when it is 8 or more, CALL is illegal."
+  },
+  {
+    "name": "R4: a pair whose full discard would empty the hand discards exactly one card",
+    "rule": "R4",
+    "players": 3,
+    "seed": 4,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            7,
+            7
+          ],
+          "hand_sum": 14,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            6,
+            6
+          ],
+          "hand_sum": 12,
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 3: value 6"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 1: value 7"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 2: value 10"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -17,
+        "3": -16
+      },
+      "players": {
+        "1": {
+          "total": 0,
+          "hand_size": 2
+        },
+        "2": {
+          "total": 17,
+          "hand_size": 2
+        },
+        "3": {
+          "total": 16,
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When a player discards, then the discard is exactly one card, two or more cards of equal value, or a run of 3 or more consecutive values."
+  },
+  {
+    "name": "R5: a 9-10-10 hand never discards an illegal run; the fallback discards one 10",
+    "rule": "R5",
+    "players": 3,
+    "seed": 5,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            9,
+            10,
+            10
+          ],
+          "hand_sum": 29,
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            8,
+            1
+          ],
+          "hand_sum": 9,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            7,
+            2
+          ],
+          "hand_sum": 9,
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 3: value 7"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 1: value 10"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 2: value 8"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": -26,
+        "2": -11,
+        "3": 0
+      },
+      "players": {
+        "1": {
+          "total": 26,
+          "hand_size": 3
+        },
+        "2": {
+          "total": 11,
+          "hand_size": 2
+        },
+        "3": {
+          "total": 0,
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When a run contains a 0 or more than one 10, then it is illegal; 8-9-10 is legal and 9-10-10 is not."
+  },
+  {
+    "name": "R6: a discard may not empty the hand; pairs keep one card",
+    "rule": "R6",
+    "players": 3,
+    "seed": 6,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            9,
+            9
+          ],
+          "hand_sum": 18,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            8,
+            8
+          ],
+          "hand_sum": 16,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 2: value 8"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 3: value 10"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 1: value 9"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -18,
+        "3": -19
+      },
+      "players": {
+        "1": {
+          "total": 0,
+          "hand_size": 2
+        },
+        "2": {
+          "total": 18,
+          "hand_size": 2
+        },
+        "3": {
+          "total": 19,
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When a discard would leave 0 cards in hand, then it is illegal."
+  },
+  {
+    "name": "R7: a 1-card player with sum 3 must CALL and wins the showdown",
+    "rule": "R7",
+    "players": 3,
+    "seed": 7,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ],
+          "hand_sum": 3,
+          "hand_size": 1
+        },
+        "2": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            9,
+            9
+          ],
+          "hand_sum": 18,
+          "hand_size": 2
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "CALL"
+        }
+      ],
+      "players": {
+        "1": {
+          "round_score": 0,
+          "total": 0,
+          "hand_size": 5
+        },
+        "2": {
+          "round_score": 20,
+          "total": 20,
+          "hand_size": 5
+        },
+        "3": {
+          "round_score": 18,
+          "total": 18,
+          "hand_size": 5
+        }
+      }
+    },
+    "rule_text": "When a player holds 1 card and hand_sum <= 7, then that player must CALL; when they hold 1 card and hand_sum > 7, then they discard nothing and still make the second choice."
+  },
+  {
+    "name": "R7: a 1-card player with sum 9 discards nothing and still takes a card (hand sizes only, blind value is random)",
+    "rule": "R7",
+    "players": 3,
+    "seed": 8,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            9
+          ],
+          "hand_sum": 9,
+          "hand_size": 1
+        },
+        "2": {
+          "hand": [
+            10,
+            5
+          ],
+          "hand_sum": 15,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            10,
+            6
+          ],
+          "hand_sum": 16,
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "NONE"
+      },
+      {
+        "seat": 1,
+        "options_include": "BLIND"
+      },
+      {
+        "seat": 2,
+        "options_include": "BLIND"
+      },
+      {
+        "seat": 3,
+        "options_include": "BLIND"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "NONE"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "CALL"
+        }
+      ],
+      "players": {
+        "1": {
+          "hand_size": 2,
+          "total": 0
+        },
+        "2": {
+          "hand_size": 2,
+          "total": 0
+        },
+        "3": {
+          "hand_size": 2,
+          "total": 0
+        }
+      }
+    },
+    "rule_text": "When a player holds 1 card and hand_sum <= 7, then that player must CALL; when they hold 1 card and hand_sum > 7, then they discard nothing and still make the second choice."
+  },
+  {
+    "name": "R8: an illegal first choice becomes discarding the single highest card",
+    "rule": "R8",
+    "players": 3,
+    "seed": 9,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            3,
+            2
+          ],
+          "hand_sum": 15,
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            6,
+            5
+          ],
+          "hand_sum": 11,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            9,
+            4
+          ],
+          "hand_sum": 13,
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 2: value 6"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 3: value 9"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 1: value 10"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -14,
+        "3": -14
+      },
+      "players": {
+        "1": {
+          "total": 0,
+          "hand_size": 3
+        },
+        "2": {
+          "total": 14,
+          "hand_size": 2
+        },
+        "3": {
+          "total": 14,
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When a first choice is illegal, then it is replaced by discarding the single highest card, or by discarding nothing for a player with 1 card."
+  },
+  {
+    "name": "R9: a call cancels discards and the showdown scores the hands as they stood",
+    "rule": "R9",
+    "players": 3,
+    "seed": 10,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2,
+            3
+          ],
+          "hand_sum": 5,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            9,
+            10
+          ],
+          "hand_sum": 19,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            10,
+            10,
+            8
+          ],
+          "hand_sum": 28,
+          "hand_size": 3
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "round_score": 0,
+          "total": 0
+        },
+        "2": {
+          "round_score": 19,
+          "total": 19
+        },
+        "3": {
+          "round_score": 28,
+          "total": 28
+        }
+      }
+    },
+    "rule_text": "When at least one player calls, then all discards are cancelled and a showdown is held on the hands as they stood."
+  },
+  {
+    "name": "R10: a caller strictly lowest scores 0",
+    "rule": "R10",
+    "players": 3,
+    "seed": 11,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2
+          ],
+          "hand_sum": 3,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            5,
+            5
+          ],
+          "hand_sum": 10,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "round_score": 0,
+          "total": 0
+        },
+        "2": {
+          "round_score": 10,
+          "total": 10
+        },
+        "3": {
+          "round_score": 20,
+          "total": 20
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "At a showdown, when a caller's hand_sum is strictly lower than every other player's, then that caller scores 0."
+  },
+  {
+    "name": "R11: two callers tied at 6 are both caught and score 36",
+    "rule": "R11",
+    "players": 3,
+    "seed": 12,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            3
+          ],
+          "hand_sum": 6,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            6
+          ],
+          "hand_sum": 6,
+          "hand_size": 1
+        },
+        "3": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      },
+      {
+        "seat": 2,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "round_score": 36,
+          "total": 36
+        },
+        "2": {
+          "round_score": 36,
+          "total": 36
+        },
+        "3": {
+          "round_score": 20,
+          "total": 20
+        }
+      }
+    },
+    "rule_text": "At a showdown, when a caller is not strictly lowest, then the caller is caught (Asaf) and scores hand_sum + 30 (a caller with sum 6 tied at 6 scores 36)."
+  },
+  {
+    "name": "R12: non-callers above the lowest sum score their hand_sum",
+    "rule": "R12",
+    "players": 3,
+    "seed": 13,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_sum": 2,
+          "hand_size": 2,
+          "total": 10
+        },
+        "2": {
+          "hand": [
+            10,
+            6
+          ],
+          "hand_sum": 16,
+          "hand_size": 2,
+          "total": 10
+        },
+        "3": {
+          "hand": [
+            8,
+            8
+          ],
+          "hand_sum": 16,
+          "hand_size": 2,
+          "total": 10
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "round_score": 0,
+          "total": 10
+        },
+        "2": {
+          "round_score": 16,
+          "total": 26
+        },
+        "3": {
+          "round_score": 16,
+          "total": 26
+        }
+      }
+    },
+    "rule_text": "At a showdown, when a non-caller's hand_sum equals the lowest sum L, then they score 0; otherwise they score their hand_sum."
+  },
+  {
+    "name": "R13: after a showdown below 150 everyone gets a fresh 5-card hand",
+    "rule": "R13",
+    "players": 3,
+    "seed": 14,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2
+          ],
+          "hand_sum": 3,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            10,
+            10,
+            10
+          ],
+          "hand_sum": 30,
+          "hand_size": 3
+        },
+        "3": {
+          "hand": [
+            9
+          ],
+          "hand_sum": 9,
+          "hand_size": 1
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "round_score": 0,
+          "total": 0,
+          "hand_size": 5
+        },
+        "2": {
+          "round_score": 30,
+          "total": 30,
+          "hand_size": 5
+        },
+        "3": {
+          "round_score": 9,
+          "total": 9,
+          "hand_size": 5
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "After a showdown, when no total is 150 or more and the round is not 40, then every player is dealt a fresh hand of 5 cards, and steps 5 to 10 are skipped."
+  },
+  {
+    "name": "R14: discarded cards leave play and do not count at the final showdown",
+    "rule": "R14",
+    "players": 3,
+    "seed": 15,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            2
+          ],
+          "hand_sum": 12,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            10,
+            3
+          ],
+          "hand_sum": 13,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            10,
+            4
+          ],
+          "hand_sum": 14,
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 2: value 10"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 3: value 10"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 1: value 10"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -13,
+        "3": -14
+      },
+      "players": {
+        "1": {
+          "total": 0,
+          "hand_size": 2
+        },
+        "2": {
+          "total": 13,
+          "hand_size": 2
+        },
+        "3": {
+          "total": 14,
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When no one calls, then every discard is announced publicly and leaves play."
+  },
+  {
+    "name": "R15: a single-card discard makes one offer that another seat can claim",
+    "rule": "R15",
+    "players": 3,
+    "seed": 16,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            4
+          ],
+          "hand_sum": 14,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            9,
+            3
+          ],
+          "hand_sum": 12,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            8,
+            2
+          ],
+          "hand_sum": 10,
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 2: value 9"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 1: value 10"
+      },
+      {
+        "seat": 3,
+        "options_include": "BLIND"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "seat 1: value 10"
+        },
+        {
+          "seat": 3,
+          "option": "seat 2: value 9"
+        }
+      ],
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 2
+        },
+        "3": {
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When a single card or an equal-value set is discarded, then it makes one offer of that value; when a run is discarded, then it makes two offers, its lowest and its highest value."
+  },
+  {
+    "name": "R16: a seat is not offered its own discard (hand sizes only, blind value is random)",
+    "rule": "R16",
+    "players": 3,
+    "seed": 17,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            10,
+            5
+          ],
+          "hand_sum": 25,
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9,
+            2
+          ],
+          "hand_sum": 11,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            8,
+            1
+          ],
+          "hand_sum": 9,
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "BLIND"
+      },
+      {
+        "seat": 2,
+        "options_include": "BLIND"
+      },
+      {
+        "seat": 3,
+        "options_include": "BLIND"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "BLIND"
+        },
+        {
+          "seat": 2,
+          "option": "seat 1: value 10"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "seat 1: value 10"
+        },
+        {
+          "seat": 2,
+          "option": "seat 2: value 9"
+        },
+        {
+          "seat": 3,
+          "option": "seat 3: value 8"
+        }
+      ],
+      "players": {
+        "1": {
+          "hand_size": 3
+        },
+        "2": {
+          "hand_size": 2
+        },
+        "3": {
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When no one calls, then each player chooses BLIND or a claim on one offered card of another player; claiming one's own offer is illegal and becomes BLIND."
+  },
+  {
+    "name": "R17: two seats claiming the same card both go BLIND (only chance-proof values asserted)",
+    "rule": "R17",
+    "players": 3,
+    "seed": 18,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            1
+          ],
+          "hand_sum": 11,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            9,
+            9,
+            9
+          ],
+          "hand_sum": 27,
+          "hand_size": 3
+        },
+        "3": {
+          "hand": [
+            8,
+            8,
+            8
+          ],
+          "hand_sum": 24,
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 2: value 9"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 1: value 10"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 1: value 10"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "total": 0,
+          "round_score": 0,
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 3
+        },
+        "3": {
+          "hand_size": 3
+        }
+      }
+    },
+    "rule_text": "When two or more players claim the same offered card, then none of them receives it and each is treated as BLIND."
+  },
+  {
+    "name": "R18: a sole claimant adds the offered card to their hand",
+    "rule": "R18",
+    "players": 3,
+    "seed": 19,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            0
+          ],
+          "hand_sum": 10,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            5,
+            5
+          ],
+          "hand_sum": 10,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            9,
+            3
+          ],
+          "hand_sum": 12,
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 2: value 5"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 3: value 9"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 1: value 10"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -14,
+        "3": -13
+      },
+      "players": {
+        "1": {
+          "total": 0,
+          "hand_size": 2
+        },
+        "2": {
+          "total": 14,
+          "hand_size": 2
+        },
+        "3": {
+          "total": 13,
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When exactly one player claims an offered card, then that card is added to that player's hand."
+  },
+  {
+    "name": "R19: each BLIND seat adds one card (blind value is random, sizes only)",
+    "rule": "R19",
+    "players": 3,
+    "seed": 20,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            4
+          ],
+          "hand_sum": 14,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            9
+          ],
+          "hand_sum": 9,
+          "hand_size": 1
+        },
+        "3": {
+          "hand": [
+            10,
+            10,
+            10
+          ],
+          "hand_sum": 30,
+          "hand_size": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "BLIND"
+      },
+      {
+        "seat": 2,
+        "options_include": "BLIND"
+      },
+      {
+        "seat": 3,
+        "options_include": "BLIND"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "BLIND"
+        },
+        {
+          "seat": 2,
+          "option": "BLIND"
+        },
+        {
+          "seat": 3,
+          "option": "BLIND"
+        }
+      ],
+      "players": {
+        "1": {
+          "hand_size": 2,
+          "total": 0
+        },
+        "2": {
+          "hand_size": 2,
+          "total": 0
+        },
+        "3": {
+          "hand_size": 3,
+          "total": 0
+        }
+      }
+    },
+    "rule_text": "When no one calls, then one blind card is drawn, and each BLIND player adds a copy of it to their hand and is privately told its value."
+  },
+  {
+    "name": "R20: a claim round completes with the round advanced and no score change",
+    "rule": "R20",
+    "players": 3,
+    "seed": 21,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            4
+          ],
+          "hand_sum": 14,
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            9,
+            3
+          ],
+          "hand_sum": 12,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            8,
+            2
+          ],
+          "hand_sum": 10,
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 3: value 8"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 1: value 10"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 2: value 9"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 2,
+          "total": 0
+        },
+        "2": {
+          "hand_size": 2,
+          "total": 0
+        },
+        "3": {
+          "hand_size": 2,
+          "total": 0
+        }
+      },
+      "game": {
+        "round": 6
+      }
+    },
+    "rule_text": "When the public result is announced, then it names who claimed which card, which claims failed through contest, and who took BLIND, but not the blind card's value."
+  },
+  {
+    "name": "R21: round 40 without a call ends with a final showdown, lowest scores 0",
+    "rule": "R21",
+    "players": 3,
+    "seed": 22,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            10,
+            1,
+            1
+          ],
+          "hand_sum": 12,
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9,
+            2
+          ],
+          "hand_sum": 11,
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            8,
+            8,
+            8
+          ],
+          "hand_sum": 24,
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "seat 3: value 8"
+      },
+      {
+        "seat": 2,
+        "options_include": "seat 1: value 10"
+      },
+      {
+        "seat": 3,
+        "options_include": "seat 2: value 9"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -12,
+        "3": -25
+      },
+      "players": {
+        "1": {
+          "round_score": 0,
+          "total": 0,
+          "hand_size": 3
+        },
+        "2": {
+          "round_score": 12,
+          "total": 12,
+          "hand_size": 2
+        },
+        "3": {
+          "round_score": 25,
+          "total": 25,
+          "hand_size": 3
+        }
+      }
+    },
+    "rule_text": "When round 40 ends with no showdown that round, then all hands are revealed, each player at the lowest sum scores 0 and every other player scores their hand_sum."
+  },
+  {
+    "name": "R22: a showdown pushing a total to 150 or more ends the game",
+    "rule": "R22",
+    "players": 3,
+    "seed": 23,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_sum": 2,
+          "hand_size": 2,
+          "total": 0
+        },
+        "2": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2,
+          "total": 140
+        },
+        "3": {
+          "hand": [
+            9,
+            9
+          ],
+          "hand_sum": 18,
+          "hand_size": 2,
+          "total": 50
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -160,
+        "3": -68
+      },
+      "players": {
+        "1": {
+          "total": 0
+        },
+        "2": {
+          "total": 160
+        },
+        "3": {
+          "total": 68
+        }
+      }
+    },
+    "rule_text": "When any total is 150 or more after a showdown, or round 40 is over, then the game ends."
+  },
+  {
+    "name": "R23: seats tied at the lowest total share the win",
+    "rule": "R23",
+    "players": 3,
+    "seed": 24,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_sum": 2,
+          "hand_size": 2,
+          "total": 10
+        },
+        "2": {
+          "hand": [
+            10,
+            10
+          ],
+          "hand_sum": 20,
+          "hand_size": 2,
+          "total": 145
+        },
+        "3": {
+          "hand": [
+            5,
+            5
+          ],
+          "hand_sum": 10,
+          "hand_size": 2,
+          "total": 0
+        }
+      }
+    },
+    "judge": {
+      "This player's first choice is legal": true
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "CALL"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        3
+      ],
+      "standings": {
+        "1": -10,
+        "2": -165,
+        "3": -10
+      },
+      "players": {
+        "1": {
+          "total": 10
+        },
+        "2": {
+          "total": 165
+        },
+        "3": {
+          "total": 10
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the player with the strictly lowest total wins; when two or more tie for lowest, then the game is a draw (shared result)."
+  }
+]

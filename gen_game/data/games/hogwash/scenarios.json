@@ -1,0 +1,1474 @@
+[
+  {
+    "name": "R1: at setup each seat holds 8 cards and the deck is empty",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 8
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 8
+        }
+      },
+      "lens": {
+        "game": {
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 8
+          },
+          "2": {
+            "hand": 8
+          },
+          "3": {
+            "hand": 8
+          }
+        }
+      }
+    },
+    "rule_text": "When the game starts, the deck holds 24 cards (ranks 1-6, four of each) and each of seats 1, 2 and 3 is dealt 8 cards into hand, leaving deck empty."
+  },
+  {
+    "name": "R2: at setup pile_size is 0 and all catches and caught are 0",
+    "rule": "R2",
+    "players": 3,
+    "seed": 2,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "pile_size": 0,
+        "round": 0
+      },
+      "players": {
+        "1": {
+          "catches": 0,
+          "caught": 0
+        },
+        "2": {
+          "catches": 0,
+          "caught": 0
+        },
+        "3": {
+          "catches": 0,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When the game starts, pile_size is 0 and every player's catches and caught are 0."
+  },
+  {
+    "name": "R3: round 4 has seat 1 active with rank 4 (true play of 4,4 trusted)",
+    "rule": "R3",
+    "players": 3,
+    "seed": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4,
+            4,
+            1,
+            2
+          ],
+          "hand_size": 4
+        }
+      },
+      "game": {
+        "round": 3,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 4,
+        "pile_size": 2
+      },
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 8
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        },
+        {
+          "seat": 2,
+          "option": "Trust"
+        },
+        {
+          "seat": 3,
+          "option": "Trust"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Trust"
+        },
+        {
+          "seat": 1,
+          "option": "Challenge"
+        },
+        {
+          "seat": 2,
+          "option": 2
+        },
+        {
+          "seat": 3,
+          "option": 2
+        }
+      ]
+    },
+    "rule_text": "When round r begins, then active_seat = ((r-1) mod 3)+1 and required_rank = ((r-1) mod 6)+1; e.g. round 4 has seat 1 and rank 4, round 6 has seat 3 and rank 6."
+  },
+  {
+    "name": "R3: round 6 has seat 3 active with rank 6",
+    "rule": "R3",
+    "players": 3,
+    "seed": 4,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "hand": [
+            6,
+            6,
+            6
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round": 5,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 6,
+        "pile_size": 3
+      },
+      "players": {
+        "3": {
+          "hand_size": 0
+        },
+        "1": {
+          "hand_size": 8
+        },
+        "2": {
+          "hand_size": 8
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "Trust"
+        },
+        {
+          "seat": 3,
+          "option": "Challenge"
+        },
+        {
+          "seat": 1,
+          "option": 3
+        },
+        {
+          "seat": 2,
+          "option": 3
+        }
+      ]
+    },
+    "rule_text": "When round r begins, then active_seat = ((r-1) mod 3)+1 and required_rank = ((r-1) mod 6)+1; e.g. round 4 has seat 1 and rank 4, round 6 has seat 3 and rank 6."
+  },
+  {
+    "name": "R4: active seat with 0 cards is skipped, no k asked, no poll, nothing moves",
+    "rule": "R4",
+    "players": 3,
+    "seed": 5,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [],
+          "hand_size": 0
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [
+          3,
+          3
+        ],
+        "pile_size": 2
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 1,
+        "pile_size": 2
+      },
+      "players": {
+        "1": {
+          "hand_size": 0,
+          "catches": 0,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 8,
+          "catches": 0,
+          "caught": 0
+        },
+        "3": {
+          "hand_size": 8,
+          "catches": 0,
+          "caught": 0
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 1
+        },
+        {
+          "seat": 2,
+          "option": "Trust"
+        },
+        {
+          "seat": 2,
+          "option": "Challenge"
+        },
+        {
+          "seat": 3,
+          "option": "Trust"
+        },
+        {
+          "seat": 3,
+          "option": "Challenge"
+        }
+      ]
+    },
+    "rule_text": "When the active player holds 0 cards, then they are not asked for k, no cards move, no poll is held, and the round goes straight to the announcement."
+  },
+  {
+    "name": "R5: choosing k=4 with 2 cards plays only 2",
+    "rule": "R5",
+    "players": 3,
+    "seed": 6,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 2
+      },
+      "players": {
+        "1": {
+          "hand_size": 0
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 8
+        }
+      }
+    },
+    "rule_text": "When the active player chooses k greater than their hand size, then k becomes their hand size (e.g. choosing 4 with 2 cards plays 2)."
+  },
+  {
+    "name": "R6: required-rank cards are played first, so 5,5 from {1,6,5,5} is true and the lone challenger takes the pile",
+    "rule": "R6",
+    "players": 3,
+    "seed": 7,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "hand": [
+            1,
+            6,
+            5,
+            5
+          ],
+          "hand_size": 4
+        }
+      },
+      "game": {
+        "round": 4,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": "Challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5,
+        "pile_size": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 10,
+          "catches": 0,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 2,
+          "catches": 0,
+          "caught": 0
+        },
+        "3": {
+          "hand_size": 8,
+          "catches": 0,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When k cards are played, then cards of the required rank are taken first, then the next rank up, wrapping 6 to 1; e.g. required rank 5, k=3, hand {5,6,1,2} plays 5,6,1."
+  },
+  {
+    "name": "R7: playing 1,2 when rank 1 is required is a bluff, so the challenged player picks up the pile",
+    "rule": "R7",
+    "players": 3,
+    "seed": 8,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2,
+            3
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [
+          4,
+          4,
+          4
+        ],
+        "pile_size": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 6,
+          "caught": 1,
+          "catches": 0
+        },
+        "2": {
+          "hand_size": 8,
+          "catches": 1,
+          "caught": 0
+        },
+        "3": {
+          "hand_size": 8,
+          "catches": 0,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When all k played cards equal the required rank, then the play is TRUE; otherwise it is a BLUFF."
+  },
+  {
+    "name": "R7: playing 1,1 when rank 1 is required is true, so the challenger takes the pile",
+    "rule": "R7",
+    "players": 3,
+    "seed": 9,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1,
+            3
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 1,
+          "caught": 0,
+          "catches": 0
+        },
+        "2": {
+          "hand_size": 10,
+          "catches": 0,
+          "caught": 0
+        },
+        "3": {
+          "hand_size": 8
+        }
+      }
+    },
+    "rule_text": "When all k played cards equal the required rank, then the play is TRUE; otherwise it is a BLUFF."
+  },
+  {
+    "name": "R8: playing k=3 lowers hand_size by 3 and raises pile_size by 3",
+    "rule": "R8",
+    "players": 3,
+    "seed": 10,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1,
+            1,
+            2,
+            3
+          ],
+          "hand_size": 5
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [
+          5,
+          6
+        ],
+        "pile_size": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 5
+      },
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 8
+        }
+      }
+    },
+    "rule_text": "When cards are played, then the active player's hand_size falls by k and pile_size rises by k."
+  },
+  {
+    "name": "R9: the active seat makes a claim of k cards (only the play is checked; the text is not observable)",
+    "rule": "R9",
+    "players": 3,
+    "seed": 11,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            4
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 1,
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "hand_size": 1
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 1
+        }
+      ]
+    },
+    "rule_text": "When the claim is announced, then it reads 'Seat X claims k cards of rank R' plus the active player's statement."
+  },
+  {
+    "name": "R10: both non-active seats are polled, including a seat holding 0 cards; the active seat is not polled",
+    "rule": "R10",
+    "players": 3,
+    "seed": 12,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [],
+          "hand_size": 0
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 2
+      },
+      "players": {
+        "1": {
+          "hand_size": 0
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Trust"
+        },
+        {
+          "seat": 2,
+          "option": "Challenge"
+        },
+        {
+          "seat": 3,
+          "option": "Trust"
+        },
+        {
+          "seat": 3,
+          "option": "Challenge"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Trust"
+        },
+        {
+          "seat": 1,
+          "option": "Challenge"
+        }
+      ]
+    },
+    "rule_text": "When the claim is made, then exactly the two non-active seats are polled simultaneously with options Trust and Challenge, including a player holding 0 cards."
+  },
+  {
+    "name": "R11: a single challenge resolves the play (the reveal itself is not observable)",
+    "rule": "R11",
+    "players": 3,
+    "seed": 13,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            2
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Challenge"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 9,
+          "catches": 0
+        }
+      }
+    },
+    "rule_text": "When at least one player challenges, then the k played cards are revealed to all players."
+  },
+  {
+    "name": "R12: a bluff challenged by both makes the bluffer take the pile; caught +1 and each challenger's catches +1",
+    "rule": "R12",
+    "players": 3,
+    "seed": 14,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "hand": [
+            3,
+            4
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 1,
+        "pile": [
+          1
+        ],
+        "pile_size": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": "Challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "Challenge"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 0,
+        "round": 2
+      },
+      "players": {
+        "1": {
+          "hand_size": 8,
+          "catches": 1,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 3,
+          "catches": 0,
+          "caught": 1
+        },
+        "3": {
+          "hand_size": 8,
+          "catches": 1,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When a BLUFF is challenged, then the active player adds the whole pile to their hand, pile_size becomes 0, the active player's caught rises by 1, and each challenger's catches rises by 1."
+  },
+  {
+    "name": "R13: a true play challenged by one player gives that challenger the whole pile, with no counters changed",
+    "rule": "R13",
+    "players": 3,
+    "seed": 15,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "hand": [
+            3,
+            3,
+            3,
+            1
+          ],
+          "hand_size": 4
+        }
+      },
+      "game": {
+        "round": 2,
+        "pile": [
+          2,
+          2
+        ],
+        "pile_size": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": "Challenge"
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 13,
+          "catches": 0,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 8,
+          "catches": 0,
+          "caught": 0
+        },
+        "3": {
+          "hand_size": 1,
+          "catches": 0,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When a TRUE play is challenged by exactly one player, then that challenger adds the whole pile to their hand and pile_size becomes 0; no catches or caught change."
+  },
+  {
+    "name": "R14: a true play challenged by both on a pile of 7 gives each challenger 3 cards and removes 1",
+    "rule": "R14",
+    "players": 3,
+    "seed": 16,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1,
+            1,
+            2
+          ],
+          "hand_size": 4
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [
+          4,
+          5,
+          6,
+          2
+        ],
+        "pile_size": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": "Challenge"
+      },
+      {
+        "seat": 3,
+        "options_include": "Challenge"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 1,
+          "catches": 0,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 11,
+          "catches": 0,
+          "caught": 0
+        },
+        "3": {
+          "hand_size": 11,
+          "catches": 0,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When a TRUE play is challenged by both players, then each challenger gets floor(pile_size/2) random pile cards, any 1 leftover card is removed from the game, and pile_size becomes 0 (e.g. pile 7: each gets 3 and 1 is removed)."
+  },
+  {
+    "name": "R15: when both players Trust, even a bluff stays in the pile and no hands change",
+    "rule": "R15",
+    "players": 3,
+    "seed": 17,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2,
+            3
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 2
+      },
+      "players": {
+        "1": {
+          "hand_size": 0,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 8,
+          "catches": 0
+        },
+        "3": {
+          "hand_size": 8,
+          "catches": 0
+        }
+      }
+    },
+    "rule_text": "When both players choose Trust, then no hand changes and the played cards stay in the pile face down."
+  },
+  {
+    "name": "R16: the trusting player gains no cards when the other player challenges a true play",
+    "rule": "R16",
+    "players": 3,
+    "seed": 18,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            1
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Challenge"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 0
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 10
+        }
+      }
+    },
+    "rule_text": "When a player chooses Trust, then that choice never adds cards to their hand."
+  },
+  {
+    "name": "R17: after a round the public counters reflect the round's outcome",
+    "rule": "R17",
+    "players": 3,
+    "seed": 19,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            1,
+            5,
+            6
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round": 0,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 3,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pile_size": 1,
+        "round": 1
+      },
+      "players": {
+        "1": {
+          "hand_size": 2,
+          "catches": 0,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 8,
+          "catches": 0,
+          "caught": 0
+        },
+        "3": {
+          "hand_size": 8,
+          "catches": 0,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When a round ends, then every hand_size, pile_size, and all catches and caught are announced."
+  },
+  {
+    "name": "R18: the game ends after round 24 (seat 3 empties its hand and wins)",
+    "rule": "R18",
+    "players": 3,
+    "seed": 20,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "hand": [
+            6
+          ],
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "round": 23,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": -80000,
+        "2": -80000,
+        "3": 0
+      },
+      "game": {
+        "round": 24,
+        "pile_size": 1
+      },
+      "players": {
+        "1": {
+          "hand_size": 8
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 0
+        }
+      }
+    },
+    "rule_text": "When round 24 has been played, then the game ends."
+  },
+  {
+    "name": "R19: with equal hand_size and equal catches, fewer caught wins",
+    "rule": "R19",
+    "players": 3,
+    "seed": 21,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ],
+          "hand_size": 1,
+          "catches": 2,
+          "caught": 0
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "hand_size": 1,
+          "catches": 2,
+          "caught": 1
+        },
+        "3": {
+          "hand": [
+            6,
+            6,
+            6,
+            6,
+            1
+          ],
+          "hand_size": 5,
+          "catches": 0,
+          "caught": 0
+        }
+      },
+      "game": {
+        "round": 23,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": -9800,
+        "2": -9801,
+        "3": -10000
+      },
+      "players": {
+        "1": {
+          "hand_size": 1,
+          "catches": 2,
+          "caught": 0
+        },
+        "2": {
+          "hand_size": 1,
+          "catches": 2,
+          "caught": 1
+        },
+        "3": {
+          "hand_size": 1,
+          "catches": 0,
+          "caught": 0
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the player with the fewest cards wins; ties go to most catches, then fewest caught, and players still tied share the win."
+  },
+  {
+    "name": "R19: seats level on cards, catches and caught share the win",
+    "rule": "R19",
+    "players": 3,
+    "seed": 22,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2
+          ],
+          "hand_size": 1,
+          "catches": 2,
+          "caught": 0
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "hand_size": 1,
+          "catches": 2,
+          "caught": 0
+        },
+        "3": {
+          "hand": [
+            6,
+            6,
+            6,
+            6,
+            1
+          ],
+          "hand_size": 5,
+          "catches": 0,
+          "caught": 0
+        }
+      },
+      "game": {
+        "round": 23,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": -9800,
+        "2": -9800,
+        "3": -10000
+      }
+    },
+    "rule_text": "When the game ends, then the player with the fewest cards wins; ties go to most catches, then fewest caught, and players still tied share the win."
+  },
+  {
+    "name": "R19: fewest cards wins outright over more catches",
+    "rule": "R19",
+    "players": 3,
+    "seed": 23,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            2,
+            2
+          ],
+          "hand_size": 2,
+          "catches": 5,
+          "caught": 0
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "hand_size": 1,
+          "catches": 0,
+          "caught": 3
+        },
+        "3": {
+          "hand": [
+            6,
+            6,
+            6,
+            6,
+            1,
+            2
+          ],
+          "hand_size": 6,
+          "catches": 0,
+          "caught": 0
+        }
+      },
+      "game": {
+        "round": 23,
+        "pile": [],
+        "pile_size": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": "Trust"
+      },
+      {
+        "seat": 2,
+        "options_include": "Trust"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -19500,
+        "2": -10003,
+        "3": -20000
+      },
+      "players": {
+        "3": {
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the player with the fewest cards wins; ties go to most catches, then fewest caught, and players still tied share the win."
+  }
+]

@@ -1,0 +1,182 @@
+# 03 spec
+
+- time: 2026-10-28T02:25:48+00:00 (61.8s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 4f070cc9957a8e5c, reply sha256 7c25a3fad79100cd
+
+## Sent
+
+````
+Game: Trischettn Duel
+Players in the source: 2 to 2
+Suggested table size, chosen by the designer of these rules (keep it): 2
+
+Rules, as filed in the inventory:
+DECK. 24 cards in four suits (Hearts, Bells, Leaves, Acorns), each with Ten, Nine, Ace, King, Ober and Unter. Within a suit the trick-taking order from high to low is Ten, Nine, Ace, King, Ober, Unter. There are no trumps.
+
+CARD VALUES, in thirds of a point. Ace = 3. Ten, Nine, King, Ober and Unter = 1 each. Winning the last (12th) trick of a deal = 3. Each deal therefore has 35 card-and-last-trick thirds.
+
+MATCH. Exactly three deals of 12 tricks each, 36 tricks in all. Each trick is one round.
+
+DEALING. At the start of each deal, shuffle the 24 cards. Deal 6 cards to each player, face down; each player sees only their own hand. The remaining 12 cards form the talon in a fixed shuffled order. The top card of the talon is turned face up and shown to both players. Each player's 'declared this deal' mark is cleared.
+
+FIRST LEAD. Player 1 leads the first trick of deal 1, and player 2 leads the first trick of deal 2. In deal 3, the player with the lower match total leads first; if the totals are tied, player 2 leads.
+
+EACH TRICK.
+(1) Both players are shown: their own hand, the face-up talon card (if any), the number of cards left in the talon, the current scores, and every card played so far this deal.
+(2) Declaration option. The leader may declare if all three hold: the leader won the previous trick of this deal (so never on the first trick of a deal), the leader has not yet declared this deal, and the leader holds at least one qualifying set. The qualifying sets are:
+- three Tens, three Nines or three Aces = 9 thirds;
+- all four Tens, Nines or Aces = 12 thirds, instead of the 9 for three of that rank;
+- a Napoli, meaning the Ten, Nine and Ace of one suit = 9 thirds per suit.
+One card may count in several sets. If the leader declares, every qualifying set in the hand at that moment is scored to the leader's deal points, and the cards forming those sets are shown to the opponent. A player can declare at most once per deal.
+(3) The leader plays any card from hand face up.
+(4) The follower plays a card. If the follower holds a card of the led suit they must play one; otherwise they may play any card. Only legal cards are offered.
+(5) The higher card of the led suit wins the trick. The winner adds the values of both cards to their deal points. If this is the 12th trick, the winner also adds 3.
+(6) If the talon is not empty, the trick winner takes the face-up talon card into hand. The loser then takes the next talon card into hand; only the loser sees it. If cards remain, the new top card is turned face up. Talon draws happen after each of the first 6 tricks of a deal. After that the hands are played out.
+(7) The trick winner leads the next trick.
+
+END OF DEAL. After the 12th trick, each player's deal points (cards, last trick and any declaration) are added to their match total, and both totals are announced.
+
+How the winner is decided: After the third deal, the player with the higher match total in thirds wins. Equal totals are a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Trischettn Duel",
+  "summary": "A two-player, no-trump trick-taking duel with a 24-card deck. It runs three deals of 12 tricks, with talon draws, declarations of sets, and scoring in thirds of a point.",
+  "players": {"min": 2, "max": 2, "suggested": 2},
+  "parameters": {
+    "deck_size": 24,
+    "suits": 4,
+    "ranks_per_suit": 6,
+    "hand_size": 6,
+    "talon_size": 12,
+    "tricks_per_deal": 12,
+    "deals": 3,
+    "total_tricks": 36,
+    "talon_draw_tricks": 6,
+    "ace_value": 3,
+    "ten_value": 1,
+    "nine_value": 1,
+    "king_value": 1,
+    "ober_value": 1,
+    "unter_value": 1,
+    "last_trick_bonus": 3,
+    "thirds_per_deal": 35,
+    "three_of_rank_points": 9,
+    "four_of_rank_points": 12,
+    "napoli_points": 9,
+    "napoli_cards": 3,
+    "rank_strength_ten": 6,
+    "rank_strength_nine": 5,
+    "rank_strength_ace": 4,
+    "rank_strength_king": 3,
+    "rank_strength_ober": 2,
+    "rank_strength_unter": 1,
+    "deal1_first_leader_seat": 1,
+    "deal2_first_leader_seat": 2,
+    "deal3_tie_first_leader_seat": 2
+  },
+  "attributes": {
+    "player": [
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Cards held, each written as text such as 'Ten of Hearts'.", "observable": false},
+      {"key": "deal_points", "type": "number", "visible": "public", "initial": 0, "meaning": "Thirds scored this deal from cards, the last trick and any declaration.", "observable": true},
+      {"key": "match_total", "type": "number", "visible": "public", "initial": 0, "meaning": "Thirds scored over all finished deals. This is the score.", "observable": true},
+      {"key": "declared_this_deal", "type": "bool", "visible": "public", "initial": false, "meaning": "Whether this player has already declared in the current deal.", "observable": false},
+      {"key": "drawn_hidden_card", "type": "text", "visible": "ally", "initial": "", "meaning": "The face-down talon card the trick loser just drew, which only that player sees.", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": [], "meaning": "Cards not yet dealt during dealing. It holds all 24 cards at the start of each deal.", "observable": false},
+      {"key": "talon", "type": "list", "visible": "none", "initial": [], "meaning": "Face-down talon cards in shuffled order. Drawing picks one at random.", "observable": false},
+      {"key": "talon_up", "type": "text", "visible": "public", "initial": "", "meaning": "The face-up top card of the talon, or empty if there is none.", "observable": true},
+      {"key": "talon_count", "type": "number", "visible": "public", "initial": 0, "meaning": "Talon cards left, counting the face-up one.", "observable": false},
+      {"key": "played_this_deal", "type": "list", "visible": "public", "initial": [], "meaning": "Every card played so far this deal.", "observable": true},
+      {"key": "declared_cards_shown", "type": "list", "visible": "public", "initial": [], "meaning": "Cards shown by declarations this deal.", "observable": true},
+      {"key": "deal_no", "type": "number", "visible": "public", "initial": 0, "meaning": "The current deal, from 1 to 3.", "observable": false},
+      {"key": "trick_in_deal", "type": "number", "visible": "public", "initial": 0, "meaning": "Tricks completed in the current deal, from 0 to 12.", "observable": false},
+      {"key": "tricks_played", "type": "number", "visible": "public", "initial": 0, "meaning": "Tricks completed in the match, from 0 to 36.", "observable": false},
+      {"key": "leader", "type": "number", "visible": "public", "initial": 1, "meaning": "The seat that leads the current trick.", "observable": false},
+      {"key": "last_trick_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "The seat that won the previous trick of this deal, or 0 at the start of a deal.", "observable": false},
+      {"key": "led_card", "type": "text", "visible": "public", "initial": "", "meaning": "The card the leader played this trick.", "observable": false},
+      {"key": "follow_card", "type": "text", "visible": "public", "initial": "", "meaning": "The card the follower played this trick.", "observable": false},
+      {"key": "trick_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "The seat that won the current trick.", "observable": false}
+    ]
+  },
+  "setup": [
+    "Seat 1 and seat 2 start with match_total 0.",
+    "deal_no is 0, trick_in_deal is 0 and tricks_played is 0, so the first round begins by starting deal 1."
+  ],
+  "round": [
+    {"action": "update", "who": "table", "answer": null,
+     "effect": "Only when trick_in_deal == 0 (start of a deal):\n- deal_no += 1.\n- deck = all 24 cards (Ten, Nine, Ace, King, Ober and Unter of Hearts, Bells, Leaves and Acorns).\n- Each hand = []. Then 6 times for each seat, move a random card from deck to that seat's hand.\n- talon = the remaining 12 cards. Move one random talon card to talon_up. talon_count = 12.\n- Each deal_points = 0 and each declared_this_deal = false.\n- played_this_deal = [], declared_cards_shown = [], last_trick_winner = 0.\n- leader = 1 if deal_no == 1. leader = 2 if deal_no == 2. If deal_no == 3: leader = 1 if seat 1 match_total < seat 2 match_total, otherwise 2.\n- Announce: 'Deal {deal_no} begins; the face-up talon card is {talon_up}; seat {leader} leads.'"},
+    {"action": "sync", "who": "all players", "answer": null,
+     "effect": "Each player sees their own hand, talon_up, talon_count, every deal_points and match_total, played_this_deal and declared_cards_shown."},
+    {"action": "ask", "who": "the leader (seat given by leader)", "answer": "declare or pass",
+     "effect": "Asked only when all of these hold: trick_in_deal >= 1, last_trick_winner == leader, the leader's declared_this_deal is false, and the leader's declaration value is > 0.\n\nThe declaration value is the sum of these, over the hand:\n- For each rank of Ten, Nine and Ace: 12 if the hand holds 4 of that rank, 9 if it holds exactly 3, otherwise 0.\n- 9 for each suit whose Ten, Nine and Ace are all in hand."},
+    {"action": "update", "who": "table", "answer": null,
+     "effect": "When the leader answered declare:\n- The leader's deal_points += declaration value.\n- The leader's declared_this_deal = true.\n- Append every card forming a qualifying set to declared_cards_shown.\n- Announce: 'Seat {leader} declares {value} thirds, showing {cards}.'"},
+    {"action": "ask", "who": "the leader (seat given by leader)", "answer": "one card from the leader's hand",
+     "effect": "led_card = chosen card. Remove it from the leader's hand and append it to played_this_deal. Announce: 'Seat {leader} leads {led_card}.'"},
+    {"action": "ask", "who": "the follower (the seat that is not leader)", "answer": "one legal card from the follower's hand: a card of led_card's suit if any is held, otherwise any card",
+     "effect": "follow_card = chosen card. Remove it from the follower's hand and append it to played_this_deal. Announce: 'Seat {follower} plays {follow_card}.'"},
+    {"action": "update", "who": "table", "answer": null,
+     "effect": "Decide and score the trick:\n- trick_winner = follower if follow_card has led_card's suit and a higher rank strength (Ten 6, Nine 5, Ace 4, King 3, Ober 2, Unter 1). Otherwise trick_winner = leader.\n- trick_in_deal += 1 and tricks_played += 1.\n- trick_winner's deal_points += value(led_card) + value(follow_card), where Ace = 3 and every other card = 1.\n- If trick_in_deal == 12, trick_winner's deal_points += 3.\n- last_trick_winner = trick_winner.\n- Announce: 'Seat {trick_winner} wins the trick.'"},
+    {"action": "update", "who": "table", "answer": null,
+     "effect": "Only when talon_count > 0:\n- Append talon_up to trick_winner's hand. talon_count -= 1.\n- Move one random talon card to the loser's hand and set the loser's drawn_hidden_card to it, seen only by the loser. talon_count -= 1.\n- If talon is not empty, move one random talon card to talon_up. Otherwise talon_up = ''.\n- Announce: 'Seat {trick_winner} takes the face-up card; the new face-up card is {talon_up}.'"},
+    {"action": "update", "who": "table", "answer": null,
+     "effect": "leader = trick_winner."},
+    {"action": "update", "who": "table", "answer": null,
+     "effect": "Only when trick_in_deal == 12:\n- Each player's match_total += deal_points.\n- trick_in_deal = 0.\n- Announce: 'Deal {deal_no} over. Seat 1 has {match_total}, seat 2 has {match_total}.'"},
+    {"action": "check", "who": "table", "answer": null,
+     "effect": "End the game if tricks_played == 36, otherwise continue to the next round."}
+  ],
+  "ending": {
+    "condition": "tricks_played == 36",
+    "rank_by": "you.match_total",
+    "decided_by": "After three deals, the player with the higher match total in thirds wins; equal totals share the win, which is a draw."
+  },
+  "rules": [
+    {"id": "R1", "text": "When a deal starts, then the 24 cards are shuffled, each player receives 6 cards in hand, the other 12 form the talon, and one talon card is turned face up as talon_up."},
+    {"id": "R2", "text": "When a deal starts, then each player's deal_points is 0, declared_this_deal is false, and played_this_deal is empty."},
+    {"id": "R3", "text": "When deal 1 starts, then seat 1 leads; when deal 2 starts, then seat 2 leads."},
+    {"id": "R4", "text": "When deal 3 starts, then the seat with the lower match_total leads, and if the totals are equal, seat 2 leads."},
+    {"id": "R5", "text": "When it is the first trick of a deal, then the leader is not offered a declaration."},
+    {"id": "R6", "text": "When the leader won the previous trick of this deal, has not declared this deal, and holds a qualifying set, then the leader is offered declare or pass; otherwise the leader is not offered a declaration."},
+    {"id": "R7", "text": "When a leader declares holding exactly three Tens, three Nines or three Aces, then 9 thirds per such rank are added to the leader's deal_points."},
+    {"id": "R8", "text": "When a leader declares holding all four Tens, Nines or Aces, then 12 thirds per such rank are added instead of 9."},
+    {"id": "R9", "text": "When a leader declares holding the Ten, Nine and Ace of one suit (a Napoli), then 9 thirds per such suit are added, and a card may count in several sets."},
+    {"id": "R10", "text": "When a leader declares, then every qualifying set in hand is scored at once, its cards are added to declared_cards_shown, declared_this_deal becomes true, and no further declaration is offered that deal."},
+    {"id": "R11", "text": "When the leader plays, then any card in hand may be played and it is added to played_this_deal."},
+    {"id": "R12", "text": "When the follower holds a card of the led suit, then only cards of the led suit are offered; otherwise every card in hand is offered."},
+    {"id": "R13", "text": "When the follower plays a higher card of the led suit (Ten > Nine > Ace > King > Ober > Unter), then the follower wins the trick; otherwise the leader wins, as there are no trumps."},
+    {"id": "R14", "text": "When a trick is won, then the winner adds the values of both cards to deal_points, with Ace = 3 thirds and Ten, Nine, King, Ober, Unter = 1 third each."},
+    {"id": "R15", "text": "When the 12th trick of a deal is won, then the winner adds a further 3 thirds."},
+    {"id": "R16", "text": "When a trick ends and the talon is not empty, then the winner takes talon_up into hand, the loser takes a hidden talon card that only the loser sees, and a new card is turned face up if any remain."},
+    {"id": "R17", "text": "When 6 tricks of a deal are done, then the talon is empty and no more draws happen that deal."},
+    {"id": "R18", "text": "When a trick ends, then its winner leads the next trick."},
+    {"id": "R19", "text": "When the 12th trick of a deal ends, then each player's deal_points is added to match_total and both totals are announced."},
+    {"id": "R20", "text": "When 36 tricks (3 deals) have been played, then the game ends and the higher match_total wins; equal totals are a draw."}
+  ],
+  "offers": [
+    {"question": "Declaration", "who": "the leader", "options": "When eligible (won the previous trick this deal, not yet declared this deal, holds a qualifying set): declare, pass. Otherwise the question is not asked."},
+    {"question": "Lead a card", "who": "the leader", "options": "Every card in the leader's hand."},
+    {"question": "Follow a card", "who": "the follower", "options": "If holding any card of the led suit: only those cards. Otherwise: every card in hand."}
+  ],
+  "choices": [
+    {"what": "Exactly 2 players", "why": "The designer fixed the game as a duel. The trick and draw rules (winner takes the face-up card, loser the hidden one) only work with two."},
+    {"what": "No talk step", "why": "This is a zero-sum duel with no source rule for talk, so messages would add words without anything to disagree about or agree on."},
+    {"what": "Talon draws pick a random remaining talon card", "why": "Drawing at random from a hidden shuffled list is equivalent to taking the next card of a fixed shuffled order."},
+    {"what": "Declaring is optional when eligible", "why": "The source says the leader 'may' declare, so pass is offered."},
+    {"what": "Rank strengths Ten 6 down to Unter 1", "why": "These are numeric codes so the trick winner can be computed by comparison."}
+  ],
+  "simplifications": [
+    {"what": "Deal-start actions run as conditional single steps at the top of the round (when trick_in_deal == 0)", "why": "The step list is flat. Each deal-start operation carries its own arithmetic condition, so no block of steps has to be chosen instead of another."},
+    {"what": "The declaration value is computed arithmetically by counting ranks and suits in the hand", "why": "Outcomes must be calculated, and the set rules reduce to counts."}
+  ],
+  "unsupported": []
+}
+```
+````

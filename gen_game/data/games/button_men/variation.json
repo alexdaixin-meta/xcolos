@@ -1,0 +1,164 @@
+{
+  "original_summary": "Button Men is a two-player dice duel. Both players roll public dice, then take turns capturing opposing dice with power attacks (one die whose value is at least the target's) or skill attacks (several dice summing exactly to the target). Rounds are scored by the total sides of the dice each player captured, and the match is best of five.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "Original: rolls are public and a capture is compulsory whenever one is possible, so many turns are forced or nearly forced. The Button chosen gives a large built-in edge, and the first mover gains tempo. Previous variation: no simple policy dominated. Always-guard scores only 3 when the guarded die is hit and loses to attacks on the other dice. Always d12-attacks-d12 loses to a guarded d12. Testing found a systematic seat-B edge: at every leg start B could guard its d8, and B's reroll used digit D1, the same digit that set A's d8. B therefore learned A's d8 for free at least 3 times a match. Revised variation: reroll digits D6 and D7 are used only for rerolls and never for leg-start dice. Each digit is uniform on 0 to 23, and 24 is divisible by 4, 8 and 12, so every die value is uniform and independent of the other player's dice. The two seats are now symmetric."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Original: with public rolls and forced captures, the dice largely decide the round, and best of five is a small sample. Revised variation: 30 simultaneous exchanges average out individual rolls. The expected value of an attack is known: d12 on d4 is +3.25, d12 on d8 is +5.08 and d12 on d12 is +5.58, while hitting a guard gives the defender 3. A player who mixes guarding and attacking well and tracks revealed values should reliably beat a predictable or random player."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Revised variation: guarding breaks even against a d12-on-d12 attack at a guard probability of about 0.65. Several factors interact: memory of revealed values, which die to expose, leg timing (survival bonuses against 10-exchange legs) and score-state risk. That leaves room to keep improving, while simple sensible play (attack with the big die, guard occasionally) still scores."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Original: perfect information, so there is little to infer. Revised variation: die values are hidden and are revealed only by failed attacks. A value persists until its die rerolls, so each player must remember what was revealed and whether that die has since rerolled. Choices are simultaneous, so each player must predict the opponent's guards and attacks."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Every outcome is a comparison of numbers plus fixed point awards. The higher total wins, computed by arithmetic, with no judge."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "Revised variation: one simultaneous poll per exchange, one random draw per exchange, no board, 30 exchanges and about 14 steps per exchange, all within the limits. The original's sequential multi-die skill attacks and special die powers would have needed long rule chains."
+    }
+  ],
+  "problems": [
+    "Original: rolls are public, so there is nothing hidden to infer and many turns are forced captures.",
+    "Original: Button choice and turn order create seat and setup edges.",
+    "Original: multi-die skill attacks and special dice need long rule chains, beyond the build limits.",
+    "Original: best of five rounds is a small sample, so luck weighs heavily.",
+    "Previous variation: seat B's leg-start guard reroll used digit D1, which also set A's d8, so B learned A's d8 for free at least 3 times per match and A had no equivalent. This is a systematic seat edge."
+  ],
+  "changes": [
+    {
+      "what": "Enlarge the random draw to R uniform on 0 to 110,075,314,175 (24^8 - 1), giving eight base-24 digits D0 to D7. Leg-start dice still use D0 to D5. Player A's reroll uses D6 and player B's reroll uses D7.",
+      "why": "No digit ever sets both a reroll and a leg-start die, so no reroll can reveal an opponent value. A and B are treated identically.",
+      "fixes": "Previous variation: seat B's leg-start guard reroll used digit D1, which also set A's d8, so B learned A's d8 for free at least 3 times per match and A had no equivalent. This is a systematic seat edge."
+    },
+    {
+      "what": "Keep hidden die values, revealed only by failed attacks.",
+      "why": "This gives players something to infer and remember.",
+      "fixes": "Original: rolls are public, so there is nothing hidden to infer and many turns are forced captures."
+    },
+    {
+      "what": "Keep identical fixed dice (d4, d8, d12) for both players and simultaneous choices.",
+      "why": "This removes the setup and turn-order edges.",
+      "fixes": "Original: Button choice and turn order create seat and setup edges."
+    },
+    {
+      "what": "Keep single-die power attacks plus a guard action, and keep the 12-action menu.",
+      "why": "This preserves the capture-by-value core within the build limits.",
+      "fixes": "Original: multi-die skill attacks and special dice need long rule chains, beyond the build limits."
+    },
+    {
+      "what": "Keep 30 exchanges in legs of at most 10, with survival bonuses.",
+      "why": "The larger sample lets skill dominate, and the legs keep the original's round structure.",
+      "fixes": "Original: best of five rounds is a small sample, so luck weighs heavily."
+    }
+  ],
+  "keeps": [
+    "Dice of different sizes capture each other by comparing rolled values (the power attack).",
+    "A capture is worth the captured die's size, not its rolled value.",
+    "The attacking die rerolls after a successful capture.",
+    "Play is in rounds (legs) that end when a player has lost all dice, and both players get all dice back each leg.",
+    "It is a two-player duel."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The previous variation worked except for a seat-B information leak from a shared random digit. Separating the reroll digits fixes the leak without changing play."
+  },
+  "variation": {
+    "name": "Button Men: Guard and Strike",
+    "summary": "Two players each hold a d4, d8 and d12 with hidden values. Over 30 simultaneous exchanges, grouped into legs, each player either guards one die or attacks an opposing die with one of their own. A capture scores the target's size. Hitting a guard or failing an attack rewards the defender. Surviving dice score a bonus at the end of each leg.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "DICE. Each player (A and B) owns three dice: a d4 (size 4), a d8 (size 8) and a d12 (size 12). A die's value is a whole number from 1 to its size. Each player sees their own values. Neither sees the opponent's values unless a rule below reveals them. Both players always see which dice each player still has. Both scores start at 0.\n\nRANDOMNESS. Once per exchange, at its start, the engine draws one random integer R, uniform from 0 to 110,075,314,175. Write R in base 24 as digits D0 to D7, where Dk = floor(R / 24^k) mod 24. A die of size s set from digit D takes the value (D mod s) + 1.\n\nLEGS. The match is exactly 30 exchanges, grouped into legs. A leg starts at exchange 1, and again at the exchange after any leg ends. At the start of a leg, both players get all three dice back. Player A's d4, d8 and d12 are set from D0, D1 and D2. Player B's d4, d8 and d12 are set from D3, D4 and D5. The leg counter is set to 1 and goes up by 1 each further exchange of the leg.\n\nEACH EXCHANGE:\n1. Draw and leg start. Draw R. If this exchange starts a leg, set all six dice as described above.\n2. Announcement. Both players are told the exchange number (1-30), the exchange number within the leg (1-10), both scores, and which dice each player still has. Each player is privately told the current values of their own dice.\n3. Choice. Both players choose at the same moment, without seeing the other's choice, exactly one of these 12 actions: (1) Guard my d4; (2) Guard my d8; (3) Guard my d12; (4) My d4 attacks their d4; (5) My d4 attacks their d8; (6) My d4 attacks their d12; (7) My d8 attacks their d4; (8) My d8 attacks their d8; (9) My d8 attacks their d12; (10) My d12 attacks their d4; (11) My d12 attacks their d8; (12) My d12 attacks their d12. An action that names a die that is already captured (yours or theirs) does nothing.\n4. Resolution. Both actions are resolved at the same time, using the values the dice showed at the start of the exchange.\n- If the target die is guarded by its owner this exchange, the attack fails. The defender scores 3, and the attacking die's value is announced to both players.\n- Otherwise, if the attacking value is greater than or equal to the target's value, the attack succeeds. The attacker scores points equal to the target's size, and the target is captured and removed for the rest of the leg.\n- Otherwise the attack fails. The defender scores 2, and both dice's values are announced to both players.\n- A die may capture and be captured in the same exchange; both effects happen.\n5. Rerolls. Each player rerolls at most one die. A die is rerolled if it attacked successfully and was not captured this exchange, or if it was guarded this exchange (whether or not it was attacked). Player A's rerolled die is set from digit D6. Player B's rerolled die is set from digit D7. New values are shown only to their owner.\n6. Results. Both actions, the success or failure of each attack, any announced values, any captures, and the new scores are announced to both players. Rerolled values are not announced. A die that was not rerolled keeps its value, including any value that has been announced.\n7. Leg end. If either player has no dice left, or this was exchange 10 of the leg, the leg ends. Each player scores a bonus for each of their surviving dice: d4 +2, d8 +4, d12 +6. The next exchange starts a new leg.\n8. Match end. After exchange 30, if the leg in progress has not already ended, it ends now and the surviving-dice bonuses are scored. The match is then over.",
+    "objective": "After exchange 30 and the final surviving-dice bonuses, the player with the higher total score wins. Equal totals are a draw.",
+    "expected_effect": "Play is the same as in the previous variation, but the seats are now symmetric. Neither player can learn an opponent value through their own reroll. Information comes only from failed attacks, which reveal values to both players equally. Players must balance aggressive d12 attacks (+3.25 to +5.58 expected per exchange against an unguarded target) against guarding, which breaks even near a 0.65 guard rate on the d12. They must remember revealed values until those dice reroll, and must time the end of each leg for survival bonuses. No simple policy wins against sensible play: always-guard loses to attacks on the other dice, and a fixed attack pattern loses to a matching guard."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 1,
+    "attributes": 18,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 30
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "THE CORE PROBLEM: the opponent's choice never affects the outcome of your own choice that exchange. Resolution uses values from the start of the exchange. A die that is captured still delivers its own attack. Neither player has any defensive action. So your result depends only on your own die value and the target's hidden value.\n\nEXPECTED VALUE OF AN ATTACK. Your attacking die shows v and the target has size s with an unknown uniform value. Success chance p = min(v,s)/s. EV = p*s - (1-p)*2 = min(v,s) - 2(1-p).\n\nTable of my EV (rows: my d12 value; columns: target):\n- v=12: their d12 +12.0 (certain); their d8 +8.0 (certain); their d4 +4.0 (certain)\n- v=9: their d12 9 - 0.5 = +8.5; their d8 +8.0 (certain); their d4 +4.0\n- v=6: their d12 6 - 1.0 = +5.0; their d8 6 - 0.5 = +5.5; their d4 +4.0\n- v=2: their d12 2 - 1.67 = +0.33; their d8 2 - 1.5 = +0.5; their d4 2 - 1.0 = +1.0\nAgainst these, a reroll is worth 0 now.\nEvery one of these numbers is the same in every column of the opponent's 12 possible actions. In each state, the EV-maximising action is therefore best whatever the opponent does. A certain capture, such as a d12 showing 12 against their d12, strictly dominates every alternative. The game is two parallel solitaire EV problems, so the opponent has nothing to answer with.\n\nTHOUGHTLESS POLICIES (winner rule):\n- Always (1), reroll my d4: never scores from attacks, only collects +2 when the opponent fails. It loses to sensible play almost always. Against random play it often loses too, because random play captures it about half the time.\n- Always (12), d12 attacks d12: succeeds on the first exchange with chance 78/144 = 54% for +12. On a failure its value is revealed and is not rerolled, so it fails forever while their d12 keeps its value, giving +2 per exchange. Against sensible play it loses or draws often, and against random play it usually wins.\n- Always (10), d12 attacks d4: succeeds with chance 42/48 = 87.5% for +4, then does nothing for the rest of the match. It loses to sensible play.\nSo no fixed index never loses. However, a simple 'take the best EV attack' rule is optimal no matter what the opponent does.\n\nSEATS: the game is symmetric and simultaneous, so there is no seat edge. Both players can win. The failure is the dominant per-state option and the absence of any interaction."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "The rules are otherwise complete:\n- dead-die actions are null;\n- simultaneous capture is defined;\n- reveals and the reroll set are specified;\n- the match is finite (at most 12 exchanges, or earlier when a player runs out of dice);\n- the end is scored arithmetically and ties are a draw.\nTwo players need no talk phase. The game does not rely on cooperation.\n\nLIMIT VIOLATION: random_draws_per_round is declared as 1, but the rules need more than that.\n- Setup rolls 6 dice.\n- Each exchange can reroll up to 2 independent dice: one per player, from a successful attacker or a chosen reroll.\n- So the design needs up to 2 random draws per round, which is over the limit of 1, and the setup roll comes on top of that.\n\nDECLARED COUNTS ARE UNDERSTATED:\n- Attributes: 6 die values + 6 alive flags + 2 scores = 14, not 10. This is still at most 20, but it is misstated.\n- Steps: resolving 9 attack options per player needs an index-to-value mapping without a lookup operation (the payoff_matrix workaround). 14 steps is optimistic, though it is probably under 20."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "WHAT DECIDES THE WINNER:\n- Your attacks do not depend on the opponent's simultaneous choice, so there is no opponent modelling within an exchange.\n- You cannot defend, so whether your own dice get captured is pure luck: it depends on their values against the opponent's.\n- Inference is mechanical. You know exactly which opposing dice are fresh uniform values (rerolled or successful attackers) and which are revealed. The only soft signal is that an unrerolled die is probably not low.\n\nHOW LONG A MATCH LASTS: a typical match ends within 3-5 exchanges, because high-EV attacks capture roughly one die per player per exchange. If both players play the intended greedy-EV strategy, the result is fixed by the dice rolls: the initial 6 values and the few rerolls.\n\nCHANCE SHARE: a careful reasoner beats a simple greedy player only slightly, mainly by not repeating revealed failing attacks and by rerolling low dice. I estimate chance decides 65-75% of results. A reasoning player is not clearly favoured."
+        },
+        "required_changes": [
+          "Make each player's outcome depend on the opponent's simultaneous choice. Example: replace 'Reroll my dX' with 'Guard my dX'. A guarded die cannot be captured this exchange. Any attack on it fails, the defender scores 3, and the attacker's value is revealed. The guarded die is then rerolled. Attacks and guards now form a guessing game: a sure capture can be blocked if predicted, and guarding the wrong die wastes the turn.",
+          "Alternatively, or as well, resolve captures before counterattacks: a die captured this exchange does not deliver its attack. Removing the opponent's most dangerous die then matters, and choosing a target becomes a prediction about what they will attack with.",
+          "Reduce the role of luck. Use a smaller value range or fewer rerolls, or add a scoring element tied to correct inference, so that greedy-EV play is clearly beaten by play that models the opponent's guard and attack tendencies.",
+          "Stay within one random draw per round. Draw a single random integer R per exchange, for example 0..9999, and derive each rerolled die's value arithmetically: player A's die = (R mod size) + 1, player B's die = (floor(R/100) mod size) + 1. Do the initial 6-die roll in setup.",
+          "Correct the declared complexity: attributes = 14. Recount steps_per_round, including the index-to-value mapping for both players' attacks, and confirm it stays at 20 or fewer."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "Single-attack values, assuming the target is unguarded and the attacker does not know the target's value. A success scores the target's size. A failure gives the defender 2. Attacking a guarded die gives the defender 3. P(d12 >= d4) = (12+11+10+9)/48 = .875, so EV = .875*4 - .125*2 = +3.25. P(d12 >= d8) = 68/96 = .708, so EV = .708*8 - .292*2 = +5.08. P(d12 >= d12) = 78/144 = .542, so EV = .542*12 - .458*2 = +5.58. P(d8 >= d4) = (8+7+6+5)/32 = .8125, so EV = 3.25 - .375 = +2.875. P(d4 >= d4) = .625, so EV = 2.5 - .75 = +1.75. If the target is guarded with probability g, a d12 attack on the d12 is worth (1-g)*5.58 - 3g, which breaks even at g = .65. A player can guard only one die per exchange and earns nothing from the guard unless attacked, so neither guarding nor attacking dominates. Thoughtless policies under the winner rule: (a) Always option 1 or 3 (always guard one die). It scores only 3 when that die is attacked. The opponent attacks the other dice for +2.9 to +5.1 per exchange and also collects their survival bonuses, so the policy loses to sensible play. (b) Always option 12 (d12 attacks d12). An opponent who guards the d12 scores +3 per exchange while this player scores 0. Once the d12 is captured, the action does nothing for the rest of the leg. The policy loses to sensible play; it beats random play, which is acceptable. (c) Always attack with your highest die against their highest die. This is predictable and is countered the same way. No option is strictly better, and both players can realistically win. FAIL: a seat edge from information. Reroll step 5 sets B's rerolled die from D1. At a leg-start exchange, D1 is also the digit that set A's d8, since A's d8 = (D1 mod 8)+1. If B guards its d8 on exchange 1 of a leg, B's d8 rerolls to (D1 mod 8)+1, which is exactly A's hidden d8 value. Rerolling B's d4 or d12 reveals A's d8 mod 4 instead. A's reroll uses D0, which only repeats A's own d4, so A learns nothing about B. B can therefore guard its d8 at the start of every leg (at least 3 times a match) and learn an opponent value for free. A never gets this. The leak is systematic and favours seat B."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules cover every case: 144 action pairs; guarded, successful and failed attacks; mutual capture; actions naming captured dice (no effect); at most one reroll per player; legs ending on 10 exchanges or on no dice left (including both players emptied at once, when neither gets a bonus); and the end at exchange 30, with no double bonus when a leg ends at exchange 30. Base-24 digits are valid: 24^6 - 1 = 191,102,975, and 4, 8 and 12 all divide 24, so die values are uniform. The game is finite at 30 exchanges and the winner is decided by arithmetic on the scores. Stated complexity is within limits: 18 steps (at most 20), 1 choice step (at most 4), 16 attributes (at most 20), 1 hidden element (at most 3), 1 draw per round (at most 1), 30 rounds (at most 40). The choice is a simultaneous poll. There is no board, judge or clock. With 2 players and zero-sum scoring, leaving out talk is correct. This is not a cooperation game, so the late-round betrayal test does not apply; the last exchange is still a guard-or-attack guess."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance sets die values and therefore whether an attack succeeds. Skill decides when to guard and what to attack. The guard-or-attack mixing is a real prediction problem: a d12 attack on the d12 breaks even only if the opponent guards it less than 65% of the time. Information builds up through play. A failed attack announces both values, and a guarded hit announces the attacker's value. Announced values persist until that die is rerolled, and both players can see which die was rerolled. So a player who tracks this knows when an opposing die's value is known, for example that a revealed d4 showing 1 is easy to capture, and when it is fresh and uncertain. A predictable or forgetful player is punished by +3 guard income or by exploitable attacks. Over 30 exchanges, with about 30 to 60 attack decisions in at least 3 legs, single dice swings average out, and the scores (+2.9 to +5.6 per good attack against -2 or -3 per bad one) reward reading the opponent. A rough estimate: chance decides about 30-40% of games between equal players, while a reasoning player clearly beats a careless one. Between two equilibrium players the dice settle close games, but good play can overcome a bad deal. This check is about structure, so it passes; the B information leak is a balance defect, not a luck defect."
+        },
+        "required_changes": [
+          "Remove the reroll/leg-start digit overlap that lets B learn A's d8. For example, enlarge R to uniform 0 to 110,075,314,175 (24^8 - 1), keep D0-D5 for the six leg-start dice, and set A's rerolled die from D6 and B's from D7. Alternatively, state that at a leg-start exchange no die is rerolled at step 5 (guarded and successful dice keep their values)."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SYMMETRY: both players own identical dice (d4, d8, d12), choose at the same moment, and draw from independent uniform digits. Neither seat has an edge from move order or information.\n\nRANDOMNESS CHECK: 24^8 = 110,075,314,176, so R in [0, 24^8 - 1] gives eight independent uniform base-24 digits. 4, 8 and 12 all divide 24, so D mod s + 1 is exactly uniform on 1..s.\n\nPAYOFFS for one attack, my die X on their die Y:\n| their response | result | points |\n|---|---|---|\n| guards Y | attack fails | they +3, my value revealed |\n| no guard, X >= Y | capture | me +size(Y); Y also loses its end-of-leg bonus |\n| no guard, X < Y | attack fails | they +2, both values revealed |\n\nUnconditional success chances: d12 on d4 = 42/48 = 0.875; d12 on d12 = 156/288 = 0.54; d4 on d12 = 0.18. Players know their own values, so the real decision is conditional on them.\n\nGUARD VS ATTACK: guarding one die scores 3 only if that die is attacked. It leaves your other dice open and scores nothing on offence. Attacking can earn up to 12 but feeds the opponent 3 or 2 if it fails, and leaves your own dice unguarded. Neither option is better whatever the opponent does. It is a guessing game, sharpened by revealed values.\n\nTHOUGHTLESS POLICIES, judged by the winner rule over 30 exchanges (each leg is 10 exchanges when one side never loses all dice):\n- Always (1), guard my d4, vs sensible play: the sensible player attacks the d8 and d12 with its d12 at about +12 per leg and keeps all its own dice (+12 bonus per leg), about 24 per leg. The guarder gets only failure points (2 each) plus a +2 bonus. The guarder LOSES.\n- Always (1) vs random play: random keeps all dice (+12 per leg) and captures d8/d12 at times. The guarder gets about 0.75 per exchange from attacks on its d4, plus some 2s, plus +2, roughly 15 per leg against roughly 25 to 30. The guarder LOSES.\n- Always (3), guard my d12: the same logic applies. Its d4 and d8 fall (+12 to the opponent), the opponent keeps +12 in bonuses, and the guarder gets about 6 plus scraps. It LOSES.\n- Always (12), d12 attacks their d12, vs sensible play: the sensible player guards d12 every exchange for +3 each, 30 exchanges = +90. Bonuses are equal. Always-12 LOSES. Against random it may win, which is expected of any non-trivial policy.\n- Always (4), d4 attacks their d4: it never defends and its d4 is weak, so it loses to sensible play.\n\nNo policy wins or draws regardless of the opponent.\n\nOTHER CHECKS: this is not a cooperation game, so there is no labelled payoff ordering to verify. Draws need equal integer totals and will be uncommon. Both players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS: the rules cover every case.\n- All 144 action pairs resolve through three ordered conditions (guarded / value comparison / fail).\n- A simultaneous capture by both sides is explicitly allowed.\n- Actions naming captured dice do nothing, which also acts as a pass.\n- Rerolls are well defined: a player takes exactly one action, so at most one of their dice can qualify.\n- Legs end on 10 exchanges or on a wiped hand, then reset. Exchange 30 forces a final leg end and bonus.\n\nARITHMETIC: the winner is the higher total, a calculation on kept numbers. No judge, board or clock is needed. The choice is a single simultaneous poll, as required.\n\nLIMITS: steps 14 <= 20; choice steps 1 <= 4; attributes 18 <= 20 (6 values, 6 alive flags, 2 scores, leg counter, exchange counter, R and spare); hidden elements 1 <= 3; random draws 1 per round <= 1; rounds 30 <= 40. Resolving the 12x12 matrix needs conditional `when`/`if` steps, which are supported, and the 14 steps look sufficient.\n\nTALK: with 2 players and no cooperation, omitting talk is fine.\n\nLATE ROUNDS: on late exchanges, guarding is not safe. An unguarded opponent die still yields its size if captured, and guarding one die leaves the others open. So no safe option wins every late round."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHERE LUCK ENTERS: chance sets the die values at each leg start and on rerolls.\n\nWHERE SKILL ENTERS: each exchange is a simultaneous guess about which die the opponent will attack or guard. Several things feed that guess:\n- Your own values are known to you.\n- Failed attacks reveal values that persist until a reroll.\n- An opponent's past guarding and attacking pattern can be modelled.\n- The leg-end bonus timing rewards planning.\n\nOver 30 exchanges and at least 3 legs, a strong deal in one leg (for example a 12 on the d12) is worth about +12. Repeated correct guesses or exploitation are worth about +3 to +12 each, many times over. So good play dominates a bad deal.\n\nEQUAL GOOD PLAY: if both play well, the result depends on mixed-strategy guess outcomes together with the dice. No single hidden type or deal fixes the winner.\n\nCHANCE SHARE: I estimate chance at roughly 30-40% of outcomes between equal players, and much lower between unequal ones. Those who reason well are favoured: a predictable opponent can be exploited for +3 per exchange or with free captures."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}
