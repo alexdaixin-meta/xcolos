@@ -902,3 +902,18 @@ def test_a_seat_does_not_retry_a_refusal():
     else:
         raise AssertionError("a refusal must reach the caller")
     assert inner.calls == 1 and waits == []
+
+
+def test_a_seat_waits_out_a_network_blip_long_enough_for_the_connection_to_come_back():
+    waits: list[float] = []
+    blip = "the model call failed: folly::AsyncSocketException: AsyncSocketException: connect failed (immediately), type = Socket not open, errno = 65 (No route to host)"
+    inner = Flaky(*[blip] * 4)
+    assert _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None) == "Pass"
+    assert inner.calls == 5 and sum(waits) >= 120  # a Turn the Tide match died one move from the end on 15 seconds of retries
+
+
+def test_a_connection_refused_is_retried_and_not_taken_for_a_model_refusal():
+    waits: list[float] = []
+    inner = Flaky("the model call failed: [Errno 61] Connection refused")
+    assert _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None) == "Pass"
+    assert inner.calls == 2 and waits

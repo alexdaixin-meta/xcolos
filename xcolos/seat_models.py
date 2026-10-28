@@ -35,10 +35,12 @@ SEAT_SYSTEM = (
 )
 
 
-#: A provider shedding load (rate limit, overload): waited out, at length, so a burst of traffic does not end a match.
-THROTTLED = re.compile(r"\b(429|529|503)\b|rate.?limit|overloaded", re.I)
+#: A provider shedding load (rate limit, overload), or a connection that dropped for a moment: waited out, at length,
+#: so a burst of traffic or a network blip does not end a match.
+THROTTLED = re.compile(r"\b(429|529|503)\b|rate.?limit|overloaded"
+                       r"|connect failed|no route to host|connection (refused|reset|aborted)|network is unreachable|timed out", re.I)
 THROTTLE_RETRIES = 6
-REFUSED = re.compile(r"\brefused\b", re.I)
+REFUSED = re.compile(r"\bmodel refused\b", re.I)
 
 
 def _seat_model(spec: str, timeout_s: int):
