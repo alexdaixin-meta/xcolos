@@ -24,6 +24,7 @@ Record shape, consistent across every line:
 from __future__ import annotations
 
 import json
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -99,6 +100,7 @@ class MatchLog:
         self.match_id = match_id
         self.path = path
         self.records: list[dict[str, Any]] = []
+        self._lock = threading.Lock()
         self._handle = None
         self._context: Callable[[], dict[str, Any]] = lambda: {}
 
@@ -120,6 +122,12 @@ class MatchLog:
     # ------------------------------------------------------------------
 
     def record(self, category: str, type: str, **fields: Any) -> dict[str, Any]:
+        # log_seq is read from the list's length, so numbering and appending
+        # must be one step: judge calls log from several threads.
+        with self._lock:
+            return self._record(category, type, **fields)
+
+    def _record(self, category: str, type: str, **fields: Any) -> dict[str, Any]:
         if category not in CATEGORIES:
             raise ValueError(f"unknown log category {category!r}")
         rec: dict[str, Any] = {

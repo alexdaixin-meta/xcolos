@@ -1,0 +1,379 @@
+{
+  "game": "bidder_s_choice",
+  "attempts": [
+    "playing it with random seats failed: seed 1, 3 players: the match crashed: FlowError: 'you.coins >= price' reads `you` where there is no player",
+    "it plays, but part of it does nothing: game attribute `object_names` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup: 20 coins each, no objects, full pool, round 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Dealt values total 44: seat 1 takes all six objects for 1 coin each and scores 14+44 (chance-free)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Values stay private mid-game: no final score is set after round 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A round with the talk poll then the bid resolves normally",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Bids range from 0 to the seat's current coins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Strictly highest bid wins the round",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tie on top bid goes to the tied seat with fewer objects",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Full tie broken at random: only chance-free facts (one object taken, price 5, the third seat untouched)",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When tied players also hold equally few objects, then the winner is chosen at random among them with equal chance.",
+        "Ada: the rule for 'A' was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "Winner pays its bid; losing bidders pay nothing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Winner picks only from the pool; the object moves to its holdings",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Same seat can win consecutive rounds",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "All bids, winner, price and object are announced",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 6 ends the game with the pool empty and final scores set",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Final score is coins + object_points; level top scores share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        5
+      ],
+      "results": {
+        "seat 1": 13,
+        "seat 2": 9,
+        "seat 3": 10,
+        "seats 3 and 5": 1,
+        "seats 1 and 2": 1,
+        "seats 2 and 5": 1,
+        "seat 5": 2,
+        "seat 4": 2,
+        "seats 2 and 3": 1
+      },
+      "turns_min": 41,
+      "turns_max": 65
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 1": 20,
+      "seat 2": 19,
+      "seat 3": 20,
+      "seats 1 and 2": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 29,
+        "loss": 31,
+        "draw": 0,
+        "win_rate": 0.48
+      },
+      "first@seat2": {
+        "win": 21,
+        "loss": 34,
+        "draw": 5,
+        "win_rate": 0.38
+      },
+      "last@seat1": {
+        "win": 3,
+        "loss": 56,
+        "draw": 1,
+        "win_rate": 0.05
+      },
+      "last@seat2": {
+        "win": 3,
+        "loss": 56,
+        "draw": 1,
+        "win_rate": 0.05
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 54.0,
+      "prompt_chars_avg": 202,
+      "prompt_chars_max": 236
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "The designer chose 4, so it is kept as suggested. Fewer than 3 leaves only one rival, so there is no real auction or tie-breaking pressure. More than 5 makes six objects too scarce for one bid to matter and makes the talk long."
+    },
+    {
+      "what": "Keep the simultaneous talk poll before each bid",
+      "why": "The source specifies it. Players' values differ, so they disagree about which objects are worth fighting for. Talk lets them bluff about their values or about intentions to stay out, which can steer rivals' bids."
+    },
+    {
+      "what": "Store private values as a 6-entry list ordered A to F",
+      "why": "This lets the pick add the value by position arithmetically."
+    },
+    {
+      "what": "Keep a public last_bid beside the hidden bid",
+      "why": "Bids are sealed during the poll but must all be announced afterwards."
+    },
+    {
+      "what": "Players can see their own strategy points",
+      "why": "The source says the player sees their own assignment. Showing them their running sum of held values is just derived from that."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A draw is represented as a shared win among the players tied at the top",
+      "why": "The engine has no separate draw; tied top players share the win, which matches a draw between them."
+    },
+    {
+      "what": "The final value reveal is done by an update step conditioned on round == 6, inside the round",
+      "why": "The step list repeats each round; a condition on a single step avoids needing a separate end block."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 3,
+    "attributes": 28,
+    "hidden_elements": 4
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Bidder's Choice is a sequential sealed-bid auction for the right to choose. Each round the highest bidder pays his bid and picks one object from a shrinking pool. Payoff is the value of the objects taken minus the bids paid, and each bidder has private valuations for every object.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "weak",
+        "evidence": "There is no budget, so a player can overbid without limit and only loses payoff. Bidding 0 always guarantees a score of 0, which beats any player who ends negative. Tie handling is unspecified, and how a tie is resolved can give one seat an edge. Choices do matter, though: bid size, timing and which object to pick all change the outcome."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "Valuations are independent and private with no stated distribution. One bidder can be dealt far higher values than the others and win under a highest-total rule whatever anyone does. Skill in bid shading and timing exists but can be swamped by the deal."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Deciding when to fight for a round and when to wait for a cheaper one, and reading what rivals want from their picks, is open-ended. A weak player still collects some objects."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Valuations are hidden. Players must infer rivals' preferences from bids and picks, and plan across rounds because the pool shrinks."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Payoff is the sum of values minus the sum of bids, which is pure arithmetic."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "It is turn-based and text-only with no board, and it uses sealed bids and a sequential pick. However, the valuation distribution, the tie rule and any bid limit are missing, so it cannot be built as written."
+      }
+    ],
+    "problems": [
+      "Independent private valuations with no stated distribution create a lottery: whoever is dealt bigger values wins under a highest-total rule.",
+      "There is no budget, so nothing links rounds through a scarce resource, and overbidding has no cap beyond a negative score.",
+      "Tie-breaking for the high bid is unspecified, and a seat-order tie-break would give a built-in edge.",
+      "The valuation range, number of objects and bid limits are unstated, so the game cannot be built or balanced.",
+      "No winner rule is stated, and with a payoff that can go negative, always bidding 0 can be hard to beat against reckless rivals."
+    ],
+    "changes": [
+      {
+        "what": "Every player's private valuations are a random shuffle of the same six values {2, 4, 6, 8, 10, 14} across the six objects.",
+        "why": "Everyone holds the same total worth, so the deal changes only what each player wants, not who is richer. Rivals' preferences stay hidden and worth inferring.",
+        "fixes": "Independent private valuations with no stated distribution create a lottery: whoever is dealt bigger values wins under a highest-total rule."
+      },
+      {
+        "what": "Each player starts with 20 coins. Bids are whole numbers from 0 up to the coins still held. Unspent coins count toward the final score.",
+        "why": "Coins become a scarce resource across rounds, so spending heavily early limits later rounds and every coin bid is a real cost. Overbidding is capped.",
+        "fixes": "There is no budget, so nothing links rounds through a scarce resource, and overbidding has no cap beyond a negative score."
+      },
+      {
+        "what": "Tied high bids go to the tied player holding the fewest objects. If they are still tied, a random draw among them decides.",
+        "why": "No seat order is used, and the tie-break slightly favours players who are behind in objects.",
+        "fixes": "Tie-breaking for the high bid is unspecified, and a seat-order tie-break would give a built-in edge."
+      },
+      {
+        "what": "The game is fixed at 3 to 5 players (4 suggested), 6 objects and 6 rounds, with all numbers stated.",
+        "why": "This makes the game buildable and keeps it short.",
+        "fixes": "The valuation range, number of objects and bid limits are unstated, so the game cannot be built or balanced."
+      },
+      {
+        "what": "Final score is coins left plus the values of objects taken. The highest score wins, and a tie for highest is a draw.",
+        "why": "Bidding 0 always keeps 20 coins, but a rival who pays 5 for an object worth 14 to them reaches 29, so passivity loses. Bidding everything for one object leaves at most about 14. Every simple policy can lose.",
+        "fixes": "No winner rule is stated, and with a payoff that can go negative, always bidding 0 can be hard to beat against reckless rivals."
+      },
+      {
+        "what": "Each round opens with one simultaneous short public message from every player, before bidding.",
+        "why": "Players can claim or bluff which objects they want, to steer rivals away or provoke them into overpaying. This gives a further layer of inference.",
+        "fixes": "Independent private valuations with no stated distribution create a lottery: whoever is dealt bigger values wins under a highest-total rule."
+      }
+    ],
+    "keeps": [
+      "Sealed first-price bids each round for the right to pick, not for a fixed object.",
+      "The round winner chooses one object from a shrinking pool, and the others pay nothing.",
+      "Private valuations per object.",
+      "A player may win several rounds.",
+      "One round per object."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The core auction-for-choice mechanic rewards inference and planning. It needs only equal-worth valuations, a budget, a tie rule and a winner rule to be balanced and buildable."
+    },
+    "variation": {
+      "name": "Bidder's Choice: Shared Worth",
+      "summary": "Players bid sealed coins from a fixed budget for the right to pick one of six objects. Each player privately values the objects with a shuffled copy of the same six values. Coins kept and object values both count.",
+      "players": {
+        "min": 3,
+        "max": 5,
+        "suggested": 4
+      },
+      "rules": "SETUP\n1. There are six objects, named A, B, C, D, E and F.\n2. Each player starts with 20 coins.\n3. Each player is privately dealt a random assignment of the values 2, 4, 6, 8, 10 and 14 to the six objects, one value per object, independently of the other players. Each player sees only their own assignment. Every player's values therefore total 44.\n\nROUNDS\nThe game lasts exactly 6 rounds. Each round:\n1. TALK. Every player writes one short public message at the same time, without seeing the others' messages. All messages are then shown to everyone. Messages are not binding and may be false.\n2. BID. Every player at the same moment submits a sealed bid. A bid is a whole number from 0 up to the coins that player currently holds.\n3. RESOLVE. The highest bid wins the round. If several players tie for highest, the tied player holding the fewest objects wins. If they are still tied, one of them is chosen at random with equal chance.\n4. PAY. The round winner pays their bid: it is subtracted from their coins and leaves the game. All other players pay nothing.\n5. PICK. The round winner chooses one object still in the pool. That object is removed from the pool and added to the winner's holdings, and they gain their own private value for it. A player may win any number of rounds.\n6. ANNOUNCE. Everyone is told all bids, who won, the price paid and which object was taken. Private values are never revealed.\n\nEND\nAfter round 6 all six objects have been taken. Each player's final score is their remaining coins plus the sum of their own private values for the objects they hold. All values are then revealed.",
+      "objective": "The player with the highest final score (remaining coins plus their own values for the objects they hold) wins. If two or more players tie for the highest score, the game is a draw.",
+      "expected_effect": "Because every player holds the same total worth, the winner is whoever converts coins to value most efficiently. That means paying little for objects they value highly, and waiting when an object they want is not wanted by others. Players must infer rivals' hidden preferences from picks, bid sizes and talk, and plan their 20-coin budget across six rounds. Talk passes both tests. Players disagree about who gets the right to pick and at what price, and only one player can win. A player who believes a rival's claim ('I only want C, leave the bidding to me') and stops bidding may watch that rival take the object they themselves valued at 14 cheaply, and lose. Bluffs and tests of claims against later picks give the talk real content. Always bidding 0 ends with 20 points against rivals near 30. Always bidding everything ends near 14. Matching rivals' bids invites overpayment. No simple policy is safe."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 3,
+      "attributes": 9,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 6
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "WHAT A ROUND IS WORTH: if you win at bid b and pick an object you value v, your score changes by v-b and nobody else's changes. Your best remaining object is always worth at least 2, and early on usually 10 or 14. Each player holds 44 in values against 20 coins, so items are underpriced relative to the budget. Buying cheaply is profitable, and the coin limit stops bidding wars from wiping out all surplus.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (3 players):\n\n(a) Always bid 0.\n- Score: exactly 20, plus a few points from end-game ties when everyone else is broke.\n- Vs one sensible opponent and one random opponent: the sensible player bids 1-6 for 14/10/8 items. Example: buys 14 for 8 and 10 for 6, ending at 20-14+24=30. The 0-bidder loses.\n- Vs two always-0 players: a sensible player bids 1 every round, wins all 6 rounds, and ends near 20-6+40=54. The 0-bidder loses.\n- Vs random bidders (uniform 0..coins): the random players overpay often, so the 0-bidder can beat them. Against any sensible player it loses or at best draws.\n- Verdict: not a never-lose policy.\n\n(b) Always the highest bid (all-in, 20 in round 1).\n- Gets 14 for 20, giving net -6. It then holds 0 coins and so bids 0.\n- It also holds 1 object, so it loses fewest-objects ties to empty-handed players.\n- Typical final score: 14 plus perhaps one cheap item, about 16-22. A sensible player ends at 25-30.\n- Loses almost always.\n\n(c) Always bid your value of your best remaining item ('first option', full value).\n- Net 0 on every win, so it ends near 20.\n- Any opponent who wins even one item below value beats it.\n- Loses to sensible play.\n\n(d) Always bid 1.\n- Beats zero-bidders.\n- Against anyone bidding 2 or more for 14/10 items, it only collects leftovers worth 2-6, ending around 20-25.\n- Loses to sensible bidders, who end around 25-30.\n\nNo option is strictly better whatever the opponents do. The right bid depends on others' bids (first-price shading) and on remaining coins.\n\nSEATS: bids are simultaneous, the deal is symmetric (the same value multiset for everyone) and all information is symmetric, so no seat has an edge. The tie-break (fewest objects) favours whoever is behind on items, not any seat.\n\nCAN EVERYONE WIN: yes. Value totals are identical, coins are identical, and outcomes turn on shading and timing.\n\nLABELS: there is no labelled payoff ordering to check. The stated score arithmetic (coins plus own values) is consistent."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "COMPLETENESS:\n- Every situation is covered: bid range 0..coins, resolution of ties, the winner must pick a remaining object, the announce step, scoring and a draw on a tied top score.\n- A 0 bid can win if it is the highest.\n- A broke player bids 0.\n- The game is finite: exactly 6 rounds and 6 objects.\n- The winner is decided by arithmetic on stored numbers: coins and private value tables.\n\nLIMITS:\n- steps_per_round 10 (<=20); choice steps 3 (talk, bid, pick; <=4).\n- Attributes 9 per player (6 object values, coins, objects held, score; <=20).\n- Hidden elements 1 (the value tables; <=3).\n- Random draws per round 1 (the tie lottery; the deal is a setup draw; <=1).\n- Rounds 6 (<=40).\n- Uses only supported features: private_values, numeric_bids, simultaneous_choice, free_text_talk, fixed_rounds.\n- No board, judge or clock is needed.\n\nTALK: it is justified with 3-5 players.\n- Players genuinely disagree: every item one wins is a point another does not get, relative to the top score.\n- Talk enables bluffing about values ('I don't care about C') and anti-leader proposals ('everyone bid low this round, the leader is ahead').\n- Following such proposals can cost you: a defector bids 1 and takes the item.\n- Talk is simultaneous, as required.\n\nREPEATED-GAME CHECK: this is not a cooperate/defect game. Late rounds are not decided by a safe option. In round 6 each player's bid depends on their own value for the last object and the coin standings."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "CHANCE SOURCES:\n(1) Whether your high values coincide with others' high values. If your 10 is everyone else's 2, you can buy it late and cheaply. P(all three players' 14s on distinct objects) = 120/216 \u2248 0.56.\n(2) The random tie lottery. It mostly matters in late rounds when several players are broke and bid 0 for 2-6 point leftovers.\n\nEQUAL GOOD PLAY: when every player follows the intended strategy (shade bids, save coins, read others), margins are a few points. Overlap luck plus tie lotteries plausibly decide about 25-35% of games. This does not reduce the result to the deal alone, because all players hold the same value multiset.\n\nWHAT REASONING ACTS ON:\n- Winners' picks reveal their top remaining values.\n- Bids reveal how much a player wants the next item.\n- Talk can be read or bluffed.\n- Inferring that an object is low for everyone lets you wait and buy it for 0-1.\n- Inferring an opponent's 14 lets you deny it when your own value is close.\n- Coin management across 6 rounds (spend now or hold for later contests) is real planning.\n\nA reasoner who shades correctly and times purchases beats the all-in, value-bid and zero policies, as computed in the balance check. The deal adds variety that good play can overcome."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_tests",
+      "reason": "Each failure says a scripted pick ('A' or 'F') was never offered to a particular seat. That happens when the test assumes that seat wins a round whose winner is really decided by chance (an equal-count tie broken at random) or by other seats' default bids. The single-round test where seat 1 clearly outbids and picks 'A' passes, so bidding, paying and picking are implemented.",
+      "guidance": "Don't attach pick rules to a seat unless that seat is guaranteed to win. Make the winner deterministic: give it a strictly highest bid, or rely on the fewest-objects tiebreak.\n\nFor the random-tie scenario:\n- Give every tied seat a pick rule, or have them all list the same acceptable objects.\n- Assert only chance-free facts: exactly one seat gained an object, the pool shrank by one, and only that seat's coins fell by the price.\n- Do not name which seat won.\n\nFor the round-6 and final-score scenarios:\n- Script six rounds in which each winner is forced by a unique top bid.\n- Make each forced winner pick an object still in the pool at that point, so 'F' is not already gone before the seat meant to take it gets its turn.\n- Check that the pool is empty and that final_score equals coins plus that seat's own values. Since values are dealt at random, compute the expected score from the dealt values rather than fixed numbers.\n- Check that the game result follows the highest coins + object_points, with level top scores sharing the win.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The game file is broken. It stops after round 1, leaving the pool at B\u2013F, the round at 1 and final scores unset, and it changes coins outside the payment step. Seats 1 and 2 lost coins (20\u21925 and 20\u21920) without winning or paying anything. The tests are correct and simply never got the later rounds or bids they expected.",
+      "guidance": "1) Make the round sequence (talk, simultaneous bid, resolve, pay, pick, announce) repeat for exactly `rounds` = 6 rounds using counted repetition. Increment the table `round` each time. Do not end the game until round 6 has resolved and the pool is empty.\n2) Change coins only in the PAY step, and only for the round winner, by subtracting their bid. Check whatever deal or setup step is overwriting seat 1's and seat 2's coins and remove that write. Store the private values only in your own `values` attribute.\n3) Make the BID a simultaneous poll for every player each round. Offer every whole number from `min_bid` (0) up to that player's current coins, inclusive. A player with 0 coins must still be offered 0, and seat 2 was never offered a bid at all.\n4) In RESOLVE, find the highest bid. Among the players tied at that bid, keep those with the lowest `object_count`. If more than one remains, pick one at random. Set `winner_seat`, `price` and each player's `last_bid`.\n5) Give the PICK choice only to the round winner, with the remaining `pool` entries as options. Then:\n   - remove the chosen object from `pool`\n   - append it to that player's `holdings`\n   - increment their `object_count`\n   - add their private value for that object, matched by its index A\u2013F, to `object_points`\n   - set `last_object`\n6) After round 6, set each player's `final_score` = coins + object_points. Use the single ending with rank_by `you.coins + you.object_points`.\n7) Keep every number (20, 6, the values, 44 and so on) in parameter attributes rather than inside steps.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_tests",
+      "reason": "In a full tie the round winner is chosen at random, so seat 1 may not win and may never be offered a pick. The test still scripts seat 1 to pick 'A' and fails when that pick never happens. The test is depending on the outcome of the random tie-break, which the rules leave to chance.",
+      "guidance": "In the random tie-break scenario, give every tied seat a pick rule, or use a default pick such as 'first' for all seats, so that whichever seat wins can choose without a seat-specific rule having to match. Assert only chance-free facts: exactly one object leaves the pool, the price is 5, one of the tied seats has 15 coins and object_count 1 while the other tied seat keeps 20 coins, and the untied third seat keeps 20 coins and holds nothing. Do not assert which tied seat won or which object a particular seat took."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 3,
+      "attributes": 9,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 6
+    },
+    "measured": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 3,
+      "attributes": 28,
+      "hidden_elements": 4
+    }
+  },
+  "verdict": "needs_review"
+}

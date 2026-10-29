@@ -1,0 +1,37 @@
+# Reasoning and planning: Lowest Unique Number
+
+**Verdict: adequate.** Winning needs real opponent modelling: tracking who camps where, reading which claims are bluffs, and judging the final-round score thresholds. Simultaneous blind picks still let herding accidents decide many rounds. More rounds, a wider number range, or scoring that rewards breaking deadlocks would make longer plans and deeper second-order reasoning count for more.
+
+From 3 play(s): 288 choices, 193 with a reason given (about 28.8 words each); results {'seats 1, 3 and 4': 1, 'seat 4': 1, 'seat 2': 1}.
+
+## Reasoning: 2 of 3
+
+Most picks rest on reading the revealed history: who keeps camping on 1 or 2, whose claims are false, and what each outcome does to the standings. Some final-round picks rest on sharp inference about what rivals must do. But players repeatedly reached the same 'everyone else will avoid X' conclusion and herded together onto it (four-way crashes on 2 and on 1), so the inference often stopped at one level.
+
+- match 2, turn 95, seat 3: "Seats 2 and 4 both expect me on 1. Their best play is to let 1 collide and take a low unique number elsewhere. For seat 2, that number is 2, which would beat me. Picking 2 blocks seat 2's most likely winning number." (Correctly models the closest rival's best reply and blocks it, rather than the obvious 1.)
+- match 3, turn 94, seat 2: "If Seat 1 stays on 2, I lose whatever I pick. If Seat 1 moves up to 4 or 5, a unique 3 gives me 4 points and the outright win. Picking 2 could at best tie" (Infers that seat 1 must go high to have any chance, and picks the number that wins outright in that case. It won the game.)
+- match 1, turn 45, seat 1: "If Seat 2 does pick 1, I can't win this round whatever I choose. Picking 1 at least blocks them and keeps us tied. If Seat 2 picks anything else, picking 1 wins me the round. So 1 is never worse for me." (A dominance argument built from the opponent's announced and observed behaviour.)
+- match 2, turn 96, seat 4: "Seat 1 has been picking high lately (5, 5, 4). If seat 1 takes 5 or also joins 1, and nobody else picks 4, then 4 is the lowest unique number. 4 is more likely to be free than 5, and it's enough to reach 8." (Uses each opponent's history and the exact score needed to choose the minimum winning grab.)
+
+## Planning: 2 of 3
+
+Players built credibility for later rounds, negotiated and briefly honoured an alternation deal on 1, and aimed late picks at what the final standings required. Plans over several turns mostly collapsed within a round or two, ending in mutual blocking standoffs.
+
+- match 1, turn 61, seat 1: "I'll keep the alternation deal this round so Seat 2 keeps cooperating with me in later rounds." (Gives up a round now to keep a cooperation plan alive for later rounds.)
+- match 2, turn 8, seat 4: "I announced 1, and following through builds credibility for later rounds." (Invests in the reputation of its talk for future use.)
+- match 1, turn 70, seat 2: "If I let Seat 1 take 1 now and we keep alternating, Seat 1 still ends ahead of me. So I'll block 1 this round." (Projects the deal to the end of the game and abandons it on that basis.)
+- match 2, turn 88, seat 4: "If 1 and 2 both end up with no single picker, 3 wins and puts me at 7, ahead of both leaders. Picking 2 would at best tie me at 6" (Chooses with the end-game standings in mind, not just this round's odds.)
+
+## Luck: 2 of 3
+
+With simultaneous blind picks from five numbers, many round wins came from which way the crowd happened to herd. Match 2's final round turned on seats 2 and 3 colliding on 2. Reads of each opponent mattered, but the results swung on coordination accidents, and match 1 ended in a three-way tie at 2 points.
+
+- match 2, turn 96, seat 4: "If seat 1 takes 5 or also joins 1, and nobody else picks 4, then 4 is the lowest unique number." (The game-winning pick depended on others' blind picks: seats 2 and 3 colliding on 2, and seat 3 leaving 1 empty.)
+- match 1, turn 96, seat 4: "Seats 1 and 2 have collided on 1 most rounds, so blocking 2 most likely ends in a tie for the lead." (The outcome came down to a stable deadlock rather than to skill differences.)
+
+## Weak spots
+
+- match 2, turn 48, seat 4: Reasoned that 'the others will likely avoid 1, so I'll take it'. All four players made the same first-level contrarian guess and collided. It ignored that the others were reasoning identically, after a round 5 where three of them had already piled onto 1. A higher or less obvious pick was better reasoned.
+- match 1, turn 70, seat 2: Broke the alternation deal by taking 1 on seat 1's turn. This locked seats 1 and 2 into a deadlock on 1 for the rest of the game, and seat 2 finished last with 1 point. Keeping the deal or taking 3 while 2 kept colliding were better options than an endless mutual block.
+- match 1, turn 47, seat 3: Moved to 3 against seat 4, who had stated it would block 2 every round, while 1 was expected to collide. This handed seat 4 a lone 2. Seat 3's own later reasoning shows staying on 2 was the correct read.
+- match 1, turn 16, seat 4: Picked 2 with the same reasoning seat 3 used ('others will likely steer away from it'), producing yet another collision on 2. It did not anticipate that seat 3 was modelling the table the same way.

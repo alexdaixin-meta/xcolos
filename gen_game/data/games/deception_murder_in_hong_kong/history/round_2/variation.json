@@ -1,0 +1,137 @@
+{
+  "original_summary": "Deception: Murder in Hong Kong is a hidden-role deduction game. A Forensic Scientist who knows the murderer's secret Clue and Means may only hint through Scene tile markers, and Investigators must name the exact Clue and Means pair before time runs out, while the Murderer and Accomplice mislead them and a Witness tries to help without being unmasked.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Always passing hands the win to the Murderer side. Always accusing at random wastes every badge on long odds. A Murderer who names a random seat in the Witness Hunt hits only about 1 in 4. Every simple policy can lose, and the outcome turns on what is marked, said and accused."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Reading the Scientist's markers against the cards on the table, spotting misleading talk and timing badges decide the result. The random deal only fixes who knows what."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Weak investigators can still get lucky with a badge. Strong play involves Scientist marker choice, Witness camouflage, decoy accusations by the Murderer side and Hunt inference, so it does not saturate."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "The solution and the roles are hidden. Players infer them from indirect hints, from what others say and from who accuses what."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "weak",
+      "evidence": "The original's win is mechanical, but its timed presentations and free placement of markers are not. The previous build also mis-scored: `solved` toggled during setup, a correct accusation left `solved` false, and given roles were overwritten."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "Timed 30-second talks, eyes-closed signalling, six tiles per round and tile replacement do not fit. The previous build also offered deck words such as 'Mask' as accusation options, asked a non-badge seat, and failed to drop the badge after an accusation."
+    }
+  ],
+  "problems": [
+    "P1: The accusation step offered words that were still in the deck (e.g. 'Mask') instead of only the Clue and Means cards actually held by players.",
+    "P2: The accusation was not a clean two-part simultaneous poll. Some accusing seats were never asked for the Means, so `acc_means` stayed empty.",
+    "P3: An accuser's badge did not drop to 0, so the same seat could be asked again.",
+    "P4: Resolution did not compare `acc_clue` and `acc_means` with the stored Key Evidence and Means of Murder. `solved` and `hunt_target` were set and reset during setup, so a correct accusation ended with `solved` false.",
+    "P5: The random deal overwrote roles and cards given in a scenario, leaving `intel` inconsistent with `role`.",
+    "P6: The original's real-time elements (timed presentations, six tiles per round, tile replacement, eyes-closed pointing) cannot run on a turn-based text engine within the step limits.",
+    "P7: Talk in turn order would let later speakers copy earlier ones."
+  ],
+  "changes": [
+    {
+      "what": "The accusation poll offers PASS plus exactly the Clue words in the `clues` lists of seats 2..N. It never offers words from the clue deck or the full word list. The Means poll likewise offers exactly the words in the `means` lists of seats 2..N.",
+      "why": "Accusers can only name cards that are on the table.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Accusation is two simultaneous polls each round. Poll A asks only seats with badge 1 to choose PASS or a table Clue, stored in `acc_clue`. Poll B asks only the seats that named a Clue in Poll A this round to choose a table Means, stored in `acc_means`.",
+      "why": "Every accuser is really asked for both parts, and both parts are recorded.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Right after Poll B, every seat with a non-empty `acc_clue` has `badge` set to 0.",
+      "why": "Each seat gets one accusation for the whole game.",
+      "fixes": "P3"
+    },
+    {
+      "what": "`solved` (false) and `hunt_target` (0) are set exactly once, before the deal, and are never written again during setup. In Resolution, `solved` becomes true if any accuser's `acc_clue` equals `key_evidence` and their `acc_means` equals `means_of_murder`. Once true it is never reset. The Witness Hunt then writes `hunt_target`, and `won` is scored from it.",
+      "why": "A correct accusation reliably solves the case, and the Hunt result is scored from stored values.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The deal only fills empty slots. A role, card list, Key Evidence or Means of Murder already present is kept, its cards are removed from the decks, and roles are drawn only from what remains. Intel is written after the deal, from the final roles.",
+      "why": "Scenario givens survive, and intel always matches roles.",
+      "fixes": "P5"
+    },
+    {
+      "what": "Four rounds, each revealing one Scene tile (Cause of Death first, then one random draw per round). The Scientist marks one item on each tile. Each non-Scientist holds 2 Clues and 2 Means. There are no timers and no tile replacement.",
+      "why": "The game fits a turn-based engine and the step limits, while keeping the hint-deduction core.",
+      "fixes": "P6"
+    },
+    {
+      "what": "Talk is simultaneous: every non-Scientist writes one message without seeing the others, then all messages are shown, then the accusation polls run.",
+      "why": "Nobody can copy an earlier speaker, and bluffs must be committed blind.",
+      "fixes": "P7"
+    }
+  ],
+  "keeps": [
+    "Secret roles: a public Forensic Scientist, a Murderer, an Accomplice, a Witness and Investigators",
+    "The Murderer secretly chooses one of their own Clues and one of their own Means as the solution",
+    "The Scientist can only hint through markers on Scene tiles and may not talk",
+    "One badge per player, a single exact Clue + Means accusation each",
+    "The Witness Hunt: an unmasked Murderer can still steal the win by naming the Witness",
+    "The Murderer side wins if the case is never solved"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The deduction core works on the platform. Only the accusation and resolution mechanics and the scenario handling needed exact, buildable wording."
+  },
+  "variation": {
+    "name": "Deception: Four Tiles",
+    "summary": "A hidden-role deduction game over 4 rounds. A mute Scientist marks one item on a new Scene tile each round, players talk simultaneously, and badge holders may make one two-part accusation in a simultaneous poll. An unmasked Murderer can still win by naming the Witness.",
+    "players": {
+      "min": 6,
+      "max": 8,
+      "suggested": 7
+    },
+    "rules": "COMPONENTS.\n- Clue words (16): Glove, Key, Diary, Ring, Cigarette, Phone, Wallet, Mask, Train Ticket, Lipstick, Receipt, Hair, Button, Watch, Letter, Coin.\n- Means words (16): Rope, Poison, Knife, Pillow, Insulin, Pistol, Electric Wire, Scarf, Bottle, Axe, Hammer, Candlestick, Brick, Razor, Bag, Ice.\n- Scene tiles (8), each with a name and 6 items:\n  - Cause of Death: Suffocation, Severe Injury, Loss of Blood, Illness, Poisoning, Accident\n  - Location: Living Room, Bedroom, Bathroom, Kitchen, Street, Office\n  - Time of Death: Dawn, Morning, Noon, Afternoon, Evening, Night\n  - Weather: Sunny, Stormy, Dry, Humid, Cold, Hot\n  - Victim's Build: Large, Thin, Tall, Short, Disfigured, Fit\n  - Trace at Scene: Fingerprint, Footprint, Bruise, Blood Stain, Body Fluid, Scar\n  - Corpse Condition: Still Warm, Stiff, Decayed, Incomplete, Intact, Twisted\n  - Duration of Crime: Instant, Brief, Gradual, Prolonged, Days, Unclear\n\nGAME STATE, set once before setup and never reset by setup:\n- solved = false\n- hunt_target = 0\n- key_evidence and means_of_murder are empty unless given\n- Every player starts with badge 0, won 0, acc_clue empty and acc_means empty.\n\nSETUP.\n1. Seat 1 is always the Forensic Scientist. This is public. The Scientist gets no cards and badge 0.\n2. Seats 2..N receive exactly 1 Murderer, 1 Accomplice, 1 Witness and N-4 Investigators.\n   - A role already given to a seat is kept.\n   - Remaining roles are dealt at random to seats without a role.\n   - Sides: Murderer and Accomplice are on the Murderer side. Scientist, Witness and Investigators are on the Investigator side.\n3. Each of seats 2..N holds exactly 2 Clue cards and 2 Means cards, face up for everyone to see.\n   - Cards already given are kept and removed from the decks first.\n   - Missing cards are dealt at random from the remaining decks.\n   - Undealt words stay in the clue deck and means deck. They are not 'on the table'.\n   - Seats 2..N get badge 1.\n4. Unless already given, the Murderer secretly chooses one of their own 2 Clues as key_evidence, then one of their own 2 Means as means_of_murder.\n5. Private intel, written from the final roles:\n   - The Scientist learns every role, key_evidence and means_of_murder.\n   - The Accomplice learns the Murderer's seat.\n   - The Witness learns the two Murderer-side seats, but not which is which.\n   - The Murderer learns the Accomplice's seat.\n   - Investigators learn nothing.\n\nEACH ROUND (rounds 1 to 4):\n1. Tile. Round 1 reveals Cause of Death. Rounds 2-4 each reveal one tile drawn at random from the tiles not yet revealed. This is the only random draw in a round.\n2. Marker. The Scientist privately chooses one of the 6 items on the new tile, and the marked item is announced to all. The Scientist never speaks.\n3. Talk. Every seat 2..N writes one short message at the same time, without seeing the others. All messages are then shown to everyone.\n4. Accusation, Poll A. All seats with badge 1 are asked at the same time to choose PASS or one Clue word. The only Clue words offered are those currently in the clues lists of seats 2..N. The answer is stored in acc_clue (PASS leaves it empty).\n5. Accusation, Poll B. All seats that named a Clue in Poll A this round are asked at the same time to choose one Means word. The only Means words offered are those currently in the means lists of seats 2..N. The answer is stored in acc_means.\n6. Every seat with a non-empty acc_clue has badge set to 0. It will never be asked to accuse again.\n7. Resolution. Each accusation (acc_clue, acc_means) is announced with its seat.\n   - If acc_clue equals key_evidence and acc_means equals means_of_murder, it is announced as correct and solved becomes true.\n   - Otherwise it is announced as wrong.\n   - solved, once true, stays true.\n8. acc_clue and acc_means are cleared for all players.\n9. Witness Hunt. This happens only if solved became true this round. The Murderer chooses one seat from seats 2..N other than their own, stored as hunt_target.\n10. End check. The game ends if solved is true or round 4 has finished. Otherwise the next round begins.\n\nSCORING at the end:\n- If solved is true and hunt_target is the Witness's seat, every Murderer-side player gets won = 1.\n- If solved is true and hunt_target is not the Witness's seat, every Investigator-side player (including the Scientist) gets won = 1.\n- If solved is false after round 4, every Murderer-side player gets won = 1.",
+    "objective": "Team win, decided by arithmetic on the stored values.\n- Investigator side wins if some accusation exactly matched key_evidence and means_of_murder and the Murderer's hunt_target is not the Witness's seat.\n- Murderer side wins if the case is never solved in 4 rounds, or if it is solved and hunt_target equals the Witness's seat.\n- The winners are the players with won = 1. There are no draws.",
+    "expected_effect": "Accusations now behave exactly as written: one shot per badge, only table words, both parts recorded and correctly resolved, and scenario roles preserved.\n\nTalk passes both tests. The sides genuinely disagree: the Murderer and Accomplice want accusations spread onto wrong pairs or badges wasted early. The Witness wants the Murderer's seat targeted while hiding their own knowledge from the Hunt. An Investigator who just follows the most confident proposal can burn their only badge on a decoy pushed by the Accomplice, and a Witness who argues too pointedly gets named in the Hunt and loses the game even after the case is solved.\n\nThe Scientist must pick markers that separate one seat's 4 possible pairs from the others. Badge timing is a real trade-off: accusing early wastes information, while waiting risks running out of rounds. Always passing, always accusing the first option and random Hunt targets all lose regularly."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 20,
+    "choice_steps_per_round": 4,
+    "attributes": 19,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 4
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SIZES. Seats 2..N each show 2 Clue and 2 Means cards. A correct answer must be one seat's Clue plus the same seat's Means. Candidate answers are therefore 4\u00d7(N-1): 20 at N=6 and 28 at N=8. Investigator-side badges number N-3 (Witness plus Investigators): 3 at N=6, 5 at N=8. Hunt candidates: the Murderer excludes their own seat and the known Accomplice, leaving N-3 seats, so a blind hunt hits the Witness 1/3 of the time at N=6 and 1/5 at N=8.\n\nINFORMATION. A plain Investigator excludes their own seat, leaving 16 candidates at N=6. The Witness knows 2 seats, leaving 8. Each marker cuts this further. For example, a Cause of Death mark of 'Poisoning' points to roughly Poison, Insulin or Bottle among the 10 Means on the table, leaving about 6 candidates after round 1. Each wrong accusation is announced and removes one more candidate.\n\nROUGH ESTIMATE (N=6). With good play, P(solve in 4 rounds) is about 0.8\u20130.9. P(hunt misses the Witness) is about 0.55\u20130.67, depending on how well the Witness hides. Investigator side wins about 0.45\u20130.6. At N=8 it is about 0.6. Both sides can realistically win.\n\nTHOUGHTLESS POLICIES, by the winner rule:\n| Policy | Result |\n|---|---|\n| Investigator side always PASS | Never solved; Murderer side wins 100%. Loses. |\n| Investigators always accuse in round 1 with the first offered Clue and first Means | Usually not even a same-seat pair, so roughly 0\u20135% solve. Loses almost always. |\n| Investigators accuse at random among consistent pairs | About 3/20 \u2248 15% at N=6. Loses about 90%. |\n| Murderer always hunts the first eligible seat | Wins only about 1/(N-3) of solved games, so loses about 0.5 overall against sensible Investigators. |\n| Murderer-side always PASS | This is ordinary, not a lock. They still lose whenever Investigators deduce the answer and the hunt misses. |\n\nNo policy never loses, and no option is strictly better whatever the opponent does.\n\nREAL TRADE-OFFS. Early accusation spends a scarce badge on less information. Late accusation risks running out of rounds. The Witness accusing or hinting speeds the solve but makes the Witness easy to hunt. Accusing in round 4 does dominate passing in round 4, but that is a final-round tidy-up, not a game-deciding lock.\n\nSEATS AND LABELS. Roles are dealt at random over seats 2..N. Seat 1 is a public, informed helper on a team, so it gives no individual edge. There is no labelled payoff ordering to contradict."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS. State is initialised once. Setup fully specifies roles, cards, the secret key_evidence and means_of_murder, and the private intel.\n\nThe round order is explicit:\n1. Tile.\n2. Marker.\n3. Simultaneous talk.\n4. Poll A: Clue or PASS.\n5. Poll B: Means, for those who named a Clue.\n6. Badge burn.\n7. Arithmetic match on the exact Clue and Means.\n8. Clear accusations.\n9. Conditional hunt, as a single step with a `when` condition.\n10. End check.\n\nThe winner is computed from solved, hunt_target and the Witness seat. Multiple simultaneous accusations are handled: any exact match sets solved. Interpreting markers is up to the players and needs no judge, because scoring depends only on exact word equality.\n\nFINITE AND WITHIN LIMITS. The game lasts at most 4 rounds. Choice steps per round are marker, Poll A, Poll B and hunt: 4, at the limit. Talk is a free_text_talk step. Steps per round: 20, at the limit. Attributes: 19 (tight). Hidden elements: 2. Random draws per round: 1 (the tile). It needs no board, clock, trading or binding agreements. The conditional hunt is a single `when` step, not a branched block.\n\nTALK. Talk is correctly present and simultaneous. Players disagree about the solution and about the hidden roles. The Murderer side wants to mislead. Following a proposal can cost a badge. The Witness must weigh hinting against exposure.\n\nThis is not a fixed-length repeated game decided by totals, so the betrayal check does not apply.\n\nRISKS. Steps and choice steps are exactly at their caps, and attributes are one under. Any added step would break the limits."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHERE CHANCE ENTERS. The role and card deal, and the random order of tiles 2\u20134 (7 then 6 then 5 remaining). Tile usefulness varies with the cards dealt, but the Scientist chooses the marker adaptively, so a weak tile is partly offset by strong marking.\n\nWHAT GOOD PLAY CONTROLS:\n- The Scientist encodes the answer through markers.\n- Investigators intersect the marker meanings with the same-seat constraint, the announced wrong accusations and the talk.\n- Investigators time badge use.\n- The Witness hides while steering.\n- The Murderer side misleads in talk.\n- The Murderer reads who knew too much for the hunt, or may even solve deliberately when the Witness is exposed.\n\nCOMPARISON. Random accusers solve about 15% of the time; reasoning accusers solve about 85%. A blind hunt hits 1/(N-3); a reasoning hunt does better against a careless Witness. Skill clearly dominates.\n\nWHEN ALL PLAY WELL. The result hinges on the hunt: the Murderer's inference against the Witness's concealment. That is opponent modelling, not a random draw. I estimate chance at about 25\u201335% of outcome variance."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

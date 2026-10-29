@@ -215,7 +215,7 @@
       }
     ]
   },
-  "rules": "Agram Match, for 3 to 4 players. The deck has {deck_size} cards: hearts A,10,9,8,7,6,5,4,3; diamonds the same; clubs the same; spades 10,9,8,7,6,5,4,3. There are no kings, queens, jacks, deuces, and no ace of spades. Rank high to low in hearts, diamonds and clubs is A then 10-9-8-7-6-5-4-3; in spades 10 then 9-8-7-6-5-4-3. Suits are unranked; only the led suit matters. Cards are written suit then rank: HA is the ace of hearts, S10 the ten of spades.\n\nThe match is {num_hands} hands. Every seat starts with 0 match points. The dealer for hand 1 is chosen uniformly at random; the dealer rotates one seat clockwise each later hand.\n\nEach hand: 1) Shuffle the {deck_size} cards. 2) Deal {cards_per_player} cards to each player face-down, in two batches: clockwise from left of dealer, {deal_batch_size} cards to each, then {deal_batch_size} cards to each again. The remaining stub ({stub_3p} cards at 3 players, {stub_4p} at 4 players) is left face-down, never viewed, and takes no part in the hand. 3) Play {tricks_per_hand} tricks. Trick 1 leader is the player left of the dealer. For each trick: a) the leader is offered all cards remaining in their hand and must play exactly one face-up; that suit becomes the led suit. b) Clockwise, each follower in turn: if they hold at least one card of the led suit they are offered only those led-suit cards and must play one of them (an off-suit card is never offered); if they hold none of the led suit they are offered all cards remaining in their hand and must play one (any discard). c) The highest rank of the led suit among the cards played wins the trick; off-suit cards cannot win even if higher in their own rank. There are no ties. The trick cards are removed and hands shrink by one. The trick winner is announced and leads any one card to the next trick. Tricks 1-5 score nothing except determining who leads next. 4) The winner of trick {tricks_per_hand} wins the hand outright and gains {points_per_hand_win} match point; every other player gains 0 for the hand. 5) Every seat's match points are announced, then the next dealer redeals.\n\nAll card plays are shown to all players as played, with seat and card; hands are otherwise hidden and never shown. There is no discussion.\n\nAfter {num_hands} hands, the player with the most match points (hand wins, 0-6) wins the match. If two or more players tie for most, the result is a draw.",
+  "rules": "Agram Match, for 3 to 4 players. The deck has {deck_size} cards: hearts A,10,9,8,7,6,5,4,3; diamonds the same; clubs the same; spades 10,9,8,7,6,5,4,3. There are no kings, queens, jacks, deuces, and no ace of spades. Rank high to low in hearts, diamonds and clubs is A then 10-9-8-7-6-5-4-3; in spades 10 then 9-8-7-6-5-4-3. Suits are unranked; only the led suit matters. Cards are written suit then rank: HA is the ace of hearts, S10 the ten of spades.\n\nThe match is {num_hands} hands. Every seat starts with 0 match points. The dealer for hand 1 is chosen uniformly at random; the dealer rotates one seat clockwise each later hand.\n\nEach hand: 1) Shuffle the {deck_size} cards. 2) Deal {cards_per_player} cards to each player face-down, in two batches: clockwise from left of dealer, {deal_batch_size} cards to each, then {deal_batch_size} cards to each again. The remaining stub ({stub_3p} cards at 3 players, {stub_4p} at 4 players) is left face-down, never viewed, and takes no part in the hand. 3) Play {tricks_per_hand} tricks. Trick 1 leader is the player left of the dealer. For each trick: a) the leader is offered all cards remaining in their hand and must play exactly one face-up; that suit becomes the led suit. b) Clockwise, each follower in turn: if they hold at least one card of the led suit they are offered only those led-suit cards and must play one of them (an off-suit card is never offered); if they hold none of the led suit they are offered all cards remaining in their hand and must play one (any discard). c) The highest rank of the led suit among the cards played wins the trick; off-suit cards cannot win even if higher in their own rank. There are no ties. The trick cards are removed and hands shrink by one. The trick winner is announced and leads any one card to the next trick. Tricks 1-5 score nothing except determining who leads next. 4) The winner of trick {tricks_per_hand} wins the hand outright and gains {points_per_hand_win} match point; every other player gains 0 for the hand. 5) Every seat's match points are announced, then the next dealer redeals.\n\nAll card plays are shown to all players as played, with seat and card; hands are otherwise hidden and never shown. There is no discussion.\n\nWhen you may play only one card (a single card of the led suit, or your last card), the game plays it for you without asking, and it shows among the plays as your seat's card. So you are never asked at trick 6: the card you keep to the end is the one played there.\n\nAfter {num_hands} hands, the player with the most match points (hand wins, 0-6) wins the match. If two or more players tie for most, they share the win.",
   "setup": [
     {
       "use": "update",
@@ -928,49 +928,17 @@
         "calc": "hand_number >= num_hands and trick_number == tricks_per_hand"
       },
       "against": [
-        "seat_1_wins",
-        "seat_2_wins",
-        "seat_3_wins",
-        "seat_4_wins",
-        "draw"
+        "over"
       ]
     }
   ],
   "end": {
-    "seat_1_wins": {
+    "over": {
       "when": {
-        "calc": "players[0].match_points > max([p.match_points for p in players if p.seat != 1])"
+        "calc": "hand_number >= num_hands and trick_number == tricks_per_hand"
       },
-      "result": "seat 1",
-      "text": "Final points: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}{', seat 4 ' if len(players) > 3 else ''}{players[3].match_points if len(players) > 3 else ''}. Winner seat 1."
-    },
-    "seat_2_wins": {
-      "when": {
-        "calc": "players[1].match_points > max([p.match_points for p in players if p.seat != 2])"
-      },
-      "result": "seat 2",
-      "text": "Final points: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}{', seat 4 ' if len(players) > 3 else ''}{players[3].match_points if len(players) > 3 else ''}. Winner seat 2."
-    },
-    "seat_3_wins": {
-      "when": {
-        "calc": "players[2].match_points > max([p.match_points for p in players if p.seat != 3])"
-      },
-      "result": "seat 3",
-      "text": "Final points: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}{', seat 4 ' if len(players) > 3 else ''}{players[3].match_points if len(players) > 3 else ''}. Winner seat 3."
-    },
-    "seat_4_wins": {
-      "when": {
-        "calc": "len(players) > 3 and players[3].match_points > max([p.match_points for p in players if p.seat != 4])"
-      },
-      "result": "seat 4",
-      "text": "Final points: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}{', seat 4 ' if len(players) > 3 else ''}{players[3].match_points if len(players) > 3 else ''}. Winner seat 4."
-    },
-    "draw": {
-      "when": {
-        "calc": "count(p.match_points == max([q.match_points for q in players]) for p in players) >= 2"
-      },
-      "result": "draw",
-      "text": "Final points: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}{', seat 4 ' if len(players) > 3 else ''}{players[3].match_points if len(players) > 3 else ''}. Draw among seats {[p.seat for p in players if p.match_points == max([q.match_points for q in players])]}."
+      "rank_by": "you.match_points",
+      "text": "Final points: seat 1 {players[0].match_points}, seat 2 {players[1].match_points}, seat 3 {players[2].match_points}{', seat 4 ' if len(players) > 3 else ''}{players[3].match_points if len(players) > 3 else ''}. Winner: {result}."
     }
   },
   "limits": {

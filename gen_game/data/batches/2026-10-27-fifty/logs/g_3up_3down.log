@@ -1,0 +1,54 @@
+
+$ gen_game convert g_3up_3down --judge   (code 11c5b831f9, 20:51:18)
+step A: designing the rules
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: After the deal each seat's hand holds 10 cards, but hand_count, up_count and cards_left all stay at 0. The game never updates the public counts. It also never moves 3 cards into up_pile when the Up-pile choice is declined or missing, so no seat ends setup with 3 up and 7 in hand. The rules are clear and the platform can express this, so the fault is in the file.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The game crashes with a CalcError: `you.hand[0]` is read on an empty hand, a fault in the file and not in the rules. The setup also never finishes the simultaneous Up-pile choice: after setup every seat still holds 10 cards in hand and an empty up_pile, although the rules make that choice part of setup.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules put choosing the Up pile in SETUP (step 5), so after setup every seat must hold 7 Hand cards and 3 public Up cards. The game dealt the cards and built the Up-pile offers, but it never moved any cards: hands stayed at 10 and Up piles at 0. The tests check results the rules clearly require (counts and pile sizes), not internal bookkeeping.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: Under rule S6, setup must end with hand_count = 7, up_count = 3 and cards_left = 10. With rounds = 0 the game dealt the hands and listed up_offer, but it never applied the up-set choice and never set the counts (hand_count stayed 0). The later scenarios also show wrong up_pile and hand_count values, which suggests setup work is spilling into round 1 or the counts are not recomputed after each play.
+step C: building the game file
+step D: evaluating
+triage: fix_game: After setup every seat still holds 10 cards in hand and 0 up. The engine built up_offer, but the simultaneous up-set pick (S4) and the move into up_pile (S5) were never applied, and hand_count, up_count and cards_left were not set to 7/3/10 (S6). Setup is part of the rules before round 1, so the tests are right to expect it to finish even with rounds: 0, and the later play-source and legal-play failures follow from the same broken bookkeeping.
+step C: building the game file
+step D: evaluating
+triage: fix_game: Two scenarios crash with "FlowError: 'out' is not a declared status". The game file treats the interface attribute `out` as an engine status, which is a coder error. The setup scenarios also end with each hand still at 10 cards and an empty up_pile, so the up-set choice (S4–S5) never moved any cards before play.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules put the three simultaneous face-up picks (S3) and the count reset (S4) in setup, before round 1, but the game file finished setup with 10 cards in hand, 0 in up_pile and no picks made. Separately, the up_pile choice crashes by indexing an empty offer list, so the file is wrong, not the tests.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The deal works, but the three face-up picks (S3) never run during setup: hands stay at 10 with up_pile empty. The pick step instead fires later, inside the rounds. That is why scenarios that start from a given mid-game state crash on `you.offer[0]` with an empty offer list. The rules are clear and the platform can express them, so this is an implementation error.
+step C: building the game file
+step D: evaluating
+triage: fix_game: Rules S3 and S4 say three simultaneous face-up picks happen during setup, before round 1, leaving 7 in hand and 3 in up_pile. The game finished setup with every hand at 10 cards, an empty up_pile and pick_choice still empty, so the pick polls never ran or were never applied. The tests correctly assert the counts after setup.
+
+g_3up_3down: dropped
+  too complex: it could not be built to behave as designed: scenario `R1: after setup each seat holds 7 in hand and 3 face-up, and the stacks are empty` failed: rule R1 is broken: When setup ends, each seat has 7 cards in hand and 3 in up_pile, every hand began as 3 low (1-3), 3 mid (4-6), 3 high (7-9) and 1 'C', and all three stacks are empty.; seat 1 hand_count: expected 7, got 10; seat 1 up_count: expected 3, got 0; seat 2 hand_count: expected 7, got 10; (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/11c5b831f9/gen_game/data/games/g_3up_3down
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/11c5b831f9/gen_game/data/games/g_3up_3down/VERIFIED.md

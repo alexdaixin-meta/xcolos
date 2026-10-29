@@ -15,6 +15,7 @@ from typing import Any
 
 from xcolos.agents import BaseAgent, RandomAgent
 from xcolos.flow import FlowOrchestrator
+from xcolos.flow.judge import NO_REPLY, ScriptedJudge
 from xcolos.game import Game
 from xcolos.games.definition import GameDefinition
 from xcolos.host import LocalAgentHost, Registry
@@ -67,6 +68,8 @@ class RuleAgent(BaseAgent):
         {"seat": 1, "options_include": "Steal"}                       answer Steal the first time it is on offer
         {"seat": 2, "options_include": "Block", "times": "all"}       answer Block every time
         {"seat": 1, "options_include": 2, "answer": 2}                pick seat 2 from a list of seats
+        {"seat": 1, "options_include": 300}                           bid 300 when asked for a number that may be 300
+        {"seat": 2, "options_include": "pass", "times": "all"}        a word a number question accepts instead, every time
 
     The first rule with uses left whose option is on offer to this seat wins. A question no rule
     matches gets the scenario's default: `decline` (No, Pass, None...), `first` or `last`.
@@ -82,6 +85,59 @@ class RuleAgent(BaseAgent):
         self.default = default
         self.unmatched: list[str] = []
         self.asked = 0
+        #: Each number question put to this seat, as (lowest, highest, words accepted instead). A range
+        #: is not a list of options, so this is what a scenario's `offered` checks a number against.
+        self.ranges: list[tuple[int | None, int | None, tuple]] = []
+        #: The match log this seat follows (see `watch`), and how much of it has been read.
+        self.log = None
+        self.seat = 0
+        self.seen = 0
+
+    @staticmethod
+    def number(value) -> int | None:
+        """`value` as a whole number (300, 300.0, "300", "-5"), or None when it is not one."""
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        if isinstance(value, str) and re.fullmatch(r"\s*-?\d+\s*", value):
+            return int(value)
+        return None
+
+    @staticmethod
+    def within(n: int, low: int | None, high: int | None) -> bool:
+        return (low is None or n >= low) and (high is None or n <= high)
+
+    def _numeric(self, schema) -> Action:
+        """A number question: the first rule with uses left that names a number in the range, or a
+        word the question accepts instead (`pass`), answers it; the older `{"number": true, "answer": n}`
+        form still does. Otherwise the default: `decline` takes a word that says no (pass) when the
+        question accepts one, and else, like `first` and `last`, the lowest number allowed."""
+        low, high, words = schema.minimum, schema.maximum, tuple(schema.choices)
+        self.ranges.append((low, high, words))
+        for r in self.rules:
+            if r["left"] == 0:
+                continue
+            if r.get("number"):
+                target = r["answer"]
+            else:
+                want = r.get("options_include")
+                n = self.number(want)
+                if not ((n is not None and self.within(n, low, high)) or (n is None and self._pick(want, words) is not None)):
+                    continue
+                answer = r.get("answer", want)
+                target = self.number(answer)
+                if target is None:
+                    target = self._pick(answer, words) or answer
+            r["left"] = r["left"] - 1 if r["left"] else None
+            return Action(type=schema.id, target=target)
+        if self.default == "decline":
+            for w in words:
+                if self.DECLINE.search(str(w)):
+                    return Action(type=schema.id, target=w)
+        return Action(type=schema.id, target=low if low is not None else 0)
 
     @staticmethod
     def _pick(want, legal):
@@ -91,7 +147,23 @@ class RuleAgent(BaseAgent):
         near = [o for o in legal if str(want).strip().lower() in str(o).lower()]
         return near[0] if len(near) == 1 else None
 
+    def watch(self, log, seat: int) -> None:
+        """Follow the match's log as `seat`. The engine answers a question with one option without asking, and
+        the rule naming that option is used up then, not after the match, so it cannot answer a later question
+        meant for the next rule."""
+        self.log, self.seat, self.seen = log, seat, 0
+
+    def _catch_up(self) -> None:
+        if self.log is None:
+            return
+        records = self.log.records
+        for r in records[self.seen:]:
+            if r.get("type") == "auto_answer" and r.get("seat") == self.seat:
+                self.forced(r.get("value"))
+        self.seen = len(records)
+
     def decide(self, env) -> Action:
+        self._catch_up()
         schema = self._schema(env)
         if schema.target == "text":
             return Action(type=schema.id, text=SAY)
@@ -100,11 +172,7 @@ class RuleAgent(BaseAgent):
         self.asked += 1
         legal = list(env.legal_targets)
         if schema.target == "number":
-            for r in self.rules:
-                if r.get("number") and r["left"] != 0:
-                    r["left"] = r["left"] - 1 if r["left"] else None
-                    return Action(type=schema.id, target=r["answer"])
-            return Action(type=schema.id, target=schema.minimum if schema.minimum is not None else 0)
+            return self._numeric(schema)
         for r in self.rules:
             if r["left"] == 0 or "options_include" not in r:
                 continue
@@ -124,9 +192,18 @@ class RuleAgent(BaseAgent):
                     return Action(type=schema.id, target=o)
         return Action(type=schema.id, target=legal[-1] if self.default == "last" else legal[0])
 
+    def forced(self, value) -> None:
+        """The engine answered a question with one legal option for this seat, without asking: a rule naming that option was met."""
+        for r in self.rules:
+            if r["left"] != 0 and "options_include" in r and self._pick(r["options_include"], [value]) is not None:
+                if r["left"]:
+                    r["left"] -= 1
+                return
+
     def unused(self) -> list[str]:
         """Rules that still had uses left: `times: "all"` rules are never required to fire."""
-        return [f"{self.name}: the rule for {r['options_include']!r} was never matched {'' if r['left'] == r.get('times', 1) else 'enough '}"
+        self._catch_up()
+        return [f"{self.name}: the rule for {r.get('options_include', r.get('answer'))!r} was never matched {'' if r['left'] == r.get('times', 1) else 'enough '}"
                 "(the game never put that option to this seat)"
                 for r in self.rules if r["left"] not in (None, 0)]
 
@@ -176,6 +253,41 @@ class Played:
     def comparable_log(self) -> list[dict]:
         return [{k: v for k, v in r.items() if k not in VOLATILE_FIELDS} for r in self.game.log.records]
 
+    @property
+    def standings(self) -> dict[str, Any] | None:
+        """Each seat's `rank_by` value as the game-over record logged it ({"1": 20, "2": 9}), or None when no ranked ending fired."""
+        for r in reversed(self.game.log.records):
+            if r.get("category") == "process" and r.get("type") == "end_game":
+                return r.get("standings")
+        return None
+
+    @property
+    def ending(self) -> Any:
+        """The ending that finished the match (its EndRule), from the game-over fact; None if none fired."""
+        for r in reversed(self.game.log.records):
+            if r.get("category") == "fact" and r.get("type") == "game_over":
+                name = (r.get("payload") or {}).get("ending")
+                return next((e for e in self.orchestrator.definition.end if e.name == name), None)
+        return None
+
+    def end_problems(self) -> list[str]:
+        """What is wrong with how the match finished: it must end, name a winner, and log the standings that decided it.
+
+        A match may end with no winner only through an ending with `min_to_win`, when no seat reached the bar.
+        """
+        r = self.result
+        if r.status != "ended":
+            slow = ("; a match by scripted seats takes well under a second, so a step does more work every turn: an option list "
+                    "or a calc built from every combination of cards grows as the game goes on") if "time cap" in (r.reason or "") else ""
+            return [f"the match did not end ({r.status}: {r.reason}){slow}"]
+        if not r.winner:
+            return ["the match ended with no result"]
+        if self.standings is None:
+            return ["the match ended with no standings: its ending has no `rank_by`"]
+        if not winning_seats(r.winner) and not (self.ending is not None and self.ending.min_to_win):
+            return [f"the match ended with no winner ({r.winner!r}), and only an ending with `min_to_win` may"]
+        return []
+
 
 class ListenAgent(RandomAgent):
     """A random seat that keeps every message the server sent it: the text a player is actually shown, state dump and all."""
@@ -195,6 +307,25 @@ def listening_agents(n: int, seed: int) -> list[ListenAgent]:
 
 def random_agents(n: int, seed: int) -> list[BaseAgent]:
     return [RandomAgent(name=NAMES[i], seed=seed * 10 + i) for i in range(n)]
+
+
+def winning_seats(result: str | None) -> list[int]:
+    """The seats a result names, worded as the engine words a ranked ending: "seat 2" -> [2], "seats 1, 3 and 4" -> [1, 3, 4]; else []."""
+    m = re.fullmatch(r"seats? ((?:\d+, )*\d+(?: and \d+)?)", result or "")
+    return [int(x) for x in re.findall(r"\d+", m.group(1))] if m else []
+
+
+def no_winner(result: str | None) -> bool:
+    """Whether a result is the engine's "no winner" (no seat reached `min_to_win`, or nobody could say who won)."""
+    return bool(result) and result.startswith(FlowOrchestrator.NO_WINNER)
+
+
+def name_seats(seats: list[int]) -> str:
+    """The engine's words for the winning seats: [2] -> "seat 2", [1, 3, 4] -> "seats 1, 3 and 4"."""
+    seats = sorted(seats)
+    if len(seats) == 1:
+        return f"seat {seats[0]}"
+    return "seats " + ", ".join(map(str, seats[:-1])) + f" and {seats[-1]}"
 
 
 class _GivenOrchestrator(FlowOrchestrator):
@@ -221,12 +352,36 @@ class _GivenOrchestrator(FlowOrchestrator):
                 game.eliminate(int(seat))
 
 
+def offline_judge(answers: dict[str, bool] | None = None, default: bool = False) -> ScriptedJudge:
+    """The referee for a match played with no model: a judged step is `default` (false) unless `answers` says otherwise.
+
+    A key answers every prose condition whose sentence contains it, ignoring case; when several do, the longest wins, so a
+    specific key overrides a general one. Anything that is not a true-or-false question (wording, a choice) gets no reply,
+    so a step's `text` is used, as it is when no model is reachable.
+    """
+    keys = sorted(((k.lower(), v) for k, v in (answers or {}).items()), key=lambda kv: -len(kv[0]))
+
+    def answer(call):
+        if call.output.kind != "boolean":
+            return NO_REPLY
+        task = call.task.lower()
+        return next((v for k, v in keys if k in task), default)
+
+    return ScriptedJudge(answer)
+
+
+#: How long one check match may run. Every library game plays a random match in under 0.1 s, so a match past this is a
+#: build whose steps do more work every turn (an option list or a calc over every combination of the table's cards).
+CHECK_SECONDS = 30
+
+
 def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: dict | None = None, rounds: int | None = None, judge=None) -> Played:
     """One match to the end. Seat `i + 1` is `agents[i]`.
 
     `given` starts it from a stated situation, and `rounds` stops it after that many rounds (the match is then abandoned, which is
-    the point: the state at the stop is what a single-rule test looks at).
+    the point: the state at the stop is what a single-rule test looks at). With no `judge`, judged steps are answered false.
     """
+    judge = judge if judge is not None else offline_judge()
     if rounds is not None:
         import dataclasses
 
@@ -238,8 +393,11 @@ def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: 
     for bound in host.register():
         index = game.register_seat(bound.name, host.host_id, bound.profile)
         registry.attach(index, host, bound)
+    for seat, agent in enumerate(agents, 1):
+        if isinstance(agent, RuleAgent):
+            agent.watch(game.log, seat)
     orchestrator = _GivenOrchestrator(definition, given, judge) if given else FlowOrchestrator(definition, judge)
-    result = Runner(game, orchestrator, registry).run()
+    result = Runner(game, orchestrator, registry, max_seconds=CHECK_SECONDS).run()
     return Played(result, game, orchestrator, agents)
 
 
@@ -247,8 +405,8 @@ def smoke(definition: GameDefinition, players: int | None = None, seeds: range =
     """What is wrong, if anything, with a game played by random seats.
 
     Each of these is something a repair prompt can quote back to a model: the
-    game crashed, did not end, ended with no result, wrote a malformed log, or
-    left a seat unable to answer validly.
+    game crashed, did not end, ended with no result or no standings, wrote a
+    malformed log, or left a seat unable to answer validly.
     """
     n = players or definition.min_players
     problems: list[str] = []
@@ -258,10 +416,7 @@ def smoke(definition: GameDefinition, players: int | None = None, seeds: range =
         except Exception as exc:  # noqa: BLE001 - whatever the game did, a model must be told
             return [f"seed {seed}, {n} players: the match crashed: {type(exc).__name__}: {exc}"]
         r = p.result
-        if r.status != "ended":
-            problems.append(f"seed {seed}, {n} players: the match did not end ({r.status}: {r.reason})")
-        elif not r.winner:
-            problems.append(f"seed {seed}, {n} players: the match ended with no result")
+        problems += [f"seed {seed}, {n} players: {m}" for m in p.end_problems()]
         if r.degraded_turns:
             problems.append(f"seed {seed}, {n} players: {r.degraded_turns} turn(s) a seat could not answer validly")
         problems += [f"seed {seed}: log: {m}" for m in p.log_problems()[:3]]

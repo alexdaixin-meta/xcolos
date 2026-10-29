@@ -1,0 +1,1215 @@
+[
+  {
+    "name": "Setup: 40 florins, empty ship and zero good counts for every seat",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "florins": 40,
+          "ship_value": 0,
+          "ship_count": 0,
+          "grain_count": 0,
+          "cloth_count": 0,
+          "spice_count": 0,
+          "dye_count": 0
+        },
+        "2": {
+          "florins": 40,
+          "ship_value": 0,
+          "ship_count": 0,
+          "grain_count": 0,
+          "cloth_count": 0,
+          "spice_count": 0,
+          "dye_count": 0
+        },
+        "3": {
+          "florins": 40,
+          "ship_value": 0,
+          "ship_count": 0,
+          "grain_count": 0,
+          "cloth_count": 0,
+          "spice_count": 0,
+          "dye_count": 0
+        },
+        "4": {
+          "florins": 40,
+          "ship_value": 0,
+          "ship_count": 0,
+          "grain_count": 0,
+          "cloth_count": 0,
+          "spice_count": 0,
+          "dye_count": 0
+        }
+      }
+    },
+    "rule_text": "When the game starts, then each player has 40 florins visible only to themselves, an empty ship (ship_value 0, ship_count 0) and 0 of each cumulative good count."
+  },
+  {
+    "name": "Favour pool with 4 players is 4 tiles, all dealt (0 left)",
+    "rule": "R2",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "favour_pool": 0
+        }
+      }
+    },
+    "rule_text": "When N is 3 or 4, then the favour pool is Grain, Cloth, Spice and Dye once each; when N is 5 or 6, then it is each good twice (8 tiles). Each player is dealt one tile at random as a secret favoured_good."
+  },
+  {
+    "name": "Favour pool with 5 players is 8 tiles, 5 dealt (3 left)",
+    "rule": "R2",
+    "players": 5,
+    "seed": 2,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "favour_pool": 3
+        }
+      }
+    },
+    "rule_text": "When N is 3 or 4, then the favour pool is Grain, Cloth, Spice and Dye once each; when N is 5 or 6, then it is each good twice (8 tiles). Each player is dealt one tile at random as a secret favoured_good."
+  },
+  {
+    "name": "Deck built with 48 cards in round 1: 45 remain after 3 are revealed",
+    "rule": "R3",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3,
+        "times": 1
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 45
+        }
+      },
+      "game": {
+        "round": 1,
+        "active_seat": 1
+      }
+    },
+    "rule_text": "When the deck is built, then it has 48 cards: 12 per good with values 0,1,1,2,2,3,3,3,4,4,5,5 (sum 33 per good)."
+  },
+  {
+    "name": "Round 5 with 3 players has active seat 2",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 4,
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ],
+        "discard": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5,
+        "active_seat": 2
+      }
+    },
+    "rule_text": "When round is r, then the active seat is ((r-1) mod N)+1."
+  },
+  {
+    "name": "Day start (round 7 of 3 players) empties ships and rebuilds the deck, keeping florins and counts",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 6,
+        "deck": [],
+        "discard": [
+          "Grain-1"
+        ]
+      },
+      "players": {
+        "1": {
+          "florins": 30,
+          "ship_value": 9,
+          "ship_count": 3,
+          "grain_count": 2
+        },
+        "2": {
+          "florins": 25,
+          "ship_value": 4,
+          "ship_count": 2,
+          "cloth_count": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 7
+      },
+      "lens": {
+        "game": {
+          "deck": 45
+        }
+      },
+      "players": {
+        "1": {
+          "florins": 30,
+          "ship_value": 0,
+          "ship_count": 0,
+          "grain_count": 2
+        },
+        "2": {
+          "florins": 25,
+          "ship_value": 0,
+          "ship_count": 0,
+          "cloth_count": 1
+        }
+      }
+    },
+    "rule_text": "When round mod 2N = 1, then the deck is rebuilt as all 48 cards and shuffled, and every ship_value, ship_count and ship_favoured is set to 0, while florins and cumulative counts are kept."
+  },
+  {
+    "name": "Each round reveals 3 cards from the deck",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 7
+        }
+      }
+    },
+    "rule_text": "When a round begins, then 3 cards are drawn from the deck and revealed to everyone in order as revealed cards 1, 2 and 3."
+  },
+  {
+    "name": "Lot size 2 takes two revealed cards and discards the third",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Spice-3",
+          "Spice-3",
+          "Spice-3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "game": {
+        "lot_size": 2,
+        "winner_seat": 1
+      },
+      "lens": {
+        "game": {
+          "discard": 1
+        }
+      },
+      "players": {
+        "1": {
+          "ship_count": 2,
+          "spice_count": 2,
+          "ship_value": 6,
+          "florins": 35
+        }
+      }
+    },
+    "rule_text": "When the active seat chooses lot size k (1, 2 or 3), then the lot is the first k revealed cards and the other 3-k revealed cards are discarded for the day."
+  },
+  {
+    "name": "Active seat bids too; bids range up to own florins only",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Dye-2",
+          "Dye-2",
+          "Dye-2"
+        ]
+      },
+      "players": {
+        "3": {
+          "florins": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 7
+      }
+    ],
+    "expect": {
+      "game": {
+        "winner_seat": 2,
+        "high_bid": 7
+      },
+      "players": {
+        "2": {
+          "florins": 33,
+          "ship_count": 1,
+          "ship_value": 2,
+          "dye_count": 1
+        },
+        "1": {
+          "florins": 40
+        },
+        "3": {
+          "florins": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": 7
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": 1
+        },
+        {
+          "seat": 1,
+          "option": 41
+        }
+      ]
+    },
+    "rule_text": "When bids are made, then every player, the active seat included, bids at the same time a whole number from 0 to their current florins, and 0 is a pass."
+  },
+  {
+    "name": "A bid from a seat whose ship cannot hold the lot is voided",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Cloth-4",
+          "Cloth-4",
+          "Cloth-4"
+        ]
+      },
+      "players": {
+        "1": {
+          "ship_count": 4,
+          "ship_value": 8
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 20
+      },
+      {
+        "seat": 3,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "game": {
+        "winner_seat": 3,
+        "high_bid": 5
+      },
+      "players": {
+        "1": {
+          "florins": 40,
+          "ship_count": 4,
+          "ship_value": 8
+        },
+        "3": {
+          "florins": 35,
+          "ship_count": 2,
+          "ship_value": 8,
+          "cloth_count": 2
+        }
+      }
+    },
+    "rule_text": "When a player's ship_count plus lot_size exceeds 5 (for example ship_count 4 and lot_size 2), then that player's bid becomes 0."
+  },
+  {
+    "name": "Unique highest bidder pays the bid and wins the lot",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Dye-4",
+          "Dye-4",
+          "Dye-4"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 12
+      },
+      {
+        "seat": 3,
+        "options_include": 8
+      }
+    ],
+    "expect": {
+      "game": {
+        "winner_seat": 1,
+        "high_bid": 12
+      },
+      "players": {
+        "1": {
+          "florins": 28,
+          "ship_count": 1,
+          "ship_value": 4
+        },
+        "2": {
+          "florins": 40
+        },
+        "3": {
+          "florins": 40,
+          "ship_count": 0
+        }
+      }
+    },
+    "rule_text": "When the highest bid is above 0 and exactly one player made it, then that player pays their bid to the bank, the florins leave the game, and that player wins the lot."
+  },
+  {
+    "name": "Tied highest bids: no sale, nobody pays",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Dye-4",
+          "Dye-4",
+          "Dye-4"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 10
+      },
+      {
+        "seat": 3,
+        "options_include": 10
+      }
+    ],
+    "expect": {
+      "game": {
+        "winner_seat": 0
+      },
+      "players": {
+        "1": {
+          "florins": 40,
+          "ship_count": 0
+        },
+        "2": {
+          "florins": 40,
+          "ship_count": 0
+        },
+        "3": {
+          "florins": 40,
+          "ship_count": 0
+        }
+      }
+    },
+    "rule_text": "When all bids are 0, or two or more players tie for the highest bid, then the lot is discarded, nobody pays and there is no sale."
+  },
+  {
+    "name": "All bids 0: no sale, nobody pays",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Grain-5",
+          "Grain-5",
+          "Grain-5"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "winner_seat": 0,
+        "high_bid": 0
+      },
+      "players": {
+        "1": {
+          "florins": 40,
+          "ship_count": 0
+        },
+        "2": {
+          "florins": 40,
+          "ship_count": 0
+        },
+        "3": {
+          "florins": 40,
+          "ship_count": 0
+        }
+      }
+    },
+    "rule_text": "When all bids are 0, or two or more players tie for the highest bid, then the lot is discarded, nobody pays and there is no sale."
+  },
+  {
+    "name": "Winning a mixed 3-card lot adds values, count and per-good counts",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Grain-2",
+          "Cloth-5",
+          "Grain-0"
+        ]
+      },
+      "players": {
+        "1": {
+          "ship_value": 4,
+          "ship_count": 1,
+          "grain_count": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 3,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 9
+      }
+    ],
+    "expect": {
+      "game": {
+        "winner_seat": 1,
+        "lot_size": 3
+      },
+      "players": {
+        "1": {
+          "florins": 31,
+          "ship_value": 11,
+          "ship_count": 4,
+          "grain_count": 3,
+          "cloth_count": 1,
+          "spice_count": 0,
+          "dye_count": 0
+        }
+      }
+    },
+    "rule_text": "When a player wins a lot, then their ship_value increases by the sum of the lot values, their ship_count by the lot size, their ship_favoured by the number of lot cards of their favoured good, and each cumulative good count by the number of lot cards of that good."
+  },
+  {
+    "name": "After the auction the winner and price are public",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1,
+        "discard": [],
+        "deck": [
+          "Spice-1",
+          "Spice-1",
+          "Spice-1"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 6
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "winner_seat": 3,
+        "high_bid": 6
+      },
+      "players": {
+        "3": {
+          "florins": 34
+        },
+        "1": {
+          "florins": 40
+        }
+      }
+    },
+    "rule_text": "When a round's auction ends, then the lot, every bid, and the winner and price (or 'no sale') are announced to everyone."
+  },
+  {
+    "name": "Day end: seats tied for top ship value each gain 10, next value gains 5",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 5,
+        "discard": [],
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ]
+      },
+      "players": {
+        "1": {
+          "ship_value": 12,
+          "ship_count": 3,
+          "ship_favoured": 0
+        },
+        "2": {
+          "ship_value": 12,
+          "ship_count": 3,
+          "ship_favoured": 0
+        },
+        "3": {
+          "ship_value": 7,
+          "ship_count": 2,
+          "ship_favoured": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 6
+      },
+      "players": {
+        "1": {
+          "florins": 50
+        },
+        "2": {
+          "florins": 50
+        },
+        "3": {
+          "florins": 45
+        }
+      }
+    },
+    "rule_text": "When round mod 2N = 0, then every player whose ship_value equals the highest ship_value gains 10 florins, if that value is above 0."
+  },
+  {
+    "name": "Day end: seats tied for second ship value each gain 5",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 5,
+        "discard": [],
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ]
+      },
+      "players": {
+        "1": {
+          "ship_value": 15,
+          "ship_count": 4,
+          "ship_favoured": 0
+        },
+        "2": {
+          "ship_value": 9,
+          "ship_count": 3,
+          "ship_favoured": 0
+        },
+        "3": {
+          "ship_value": 9,
+          "ship_count": 3,
+          "ship_favoured": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "florins": 50
+        },
+        "2": {
+          "florins": 45
+        },
+        "3": {
+          "florins": 45
+        }
+      }
+    },
+    "rule_text": "When round mod 2N = 0, then every player whose ship_value equals the highest ship_value strictly below the top gains 5 florins, if that value is above 0."
+  },
+  {
+    "name": "Day end: majority in each good pays 4 to every seat tied at the max, none for a good nobody holds",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 5,
+        "discard": [],
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ]
+      },
+      "players": {
+        "1": {
+          "grain_count": 3,
+          "spice_count": 2,
+          "ship_favoured": 0
+        },
+        "2": {
+          "grain_count": 3,
+          "ship_favoured": 0
+        },
+        "3": {
+          "cloth_count": 1,
+          "spice_count": 1,
+          "ship_favoured": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "florins": 48
+        },
+        "2": {
+          "florins": 44
+        },
+        "3": {
+          "florins": 44
+        }
+      }
+    },
+    "rule_text": "When round mod 2N = 0, then for each of the four goods, every player whose cumulative count equals the highest count of that good gains 4 florins, if that count is at least 1."
+  },
+  {
+    "name": "Day end: 3 florins per favoured-good card on the ship (equal ships all take the top bonus)",
+    "rule": "R17",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 5,
+        "discard": [],
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ]
+      },
+      "players": {
+        "1": {
+          "favoured_good": "Grain",
+          "ship_cards": [
+            "Grain-2",
+            "Grain-2"
+          ],
+          "ship_value": 4,
+          "ship_count": 2,
+          "ship_favoured": 2
+        },
+        "2": {
+          "favoured_good": "Cloth",
+          "ship_cards": [
+            "Spice-4"
+          ],
+          "ship_value": 4,
+          "ship_count": 1,
+          "ship_favoured": 0
+        },
+        "3": {
+          "favoured_good": "Dye",
+          "ship_cards": [
+            "Dye-4"
+          ],
+          "ship_value": 4,
+          "ship_count": 1,
+          "ship_favoured": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "florins": 56
+        },
+        "2": {
+          "florins": 50
+        },
+        "3": {
+          "florins": 53
+        }
+      }
+    },
+    "rule_text": "When round mod 2N = 0, then each player gains 3 florins per card of their favoured good on their ship (3 * ship_favoured)."
+  },
+  {
+    "name": "Game ends after round 18 with 3 players, after day-end payouts",
+    "rule": "R18",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 17,
+        "discard": [],
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ]
+      },
+      "players": {
+        "1": {
+          "ship_value": 10,
+          "ship_count": 3,
+          "ship_favoured": 0
+        },
+        "2": {
+          "ship_value": 5,
+          "ship_count": 2,
+          "ship_favoured": 0
+        },
+        "3": {
+          "ship_value": 0,
+          "ship_count": 0,
+          "ship_favoured": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 50,
+        "2": 45,
+        "3": 40
+      },
+      "game": {
+        "round": 18
+      }
+    },
+    "rule_text": "When round = 6N (18 with 3 players, 24 with 4, 30 with 5, 36 with 6), then the game ends after that round's day-end payouts."
+  },
+  {
+    "name": "Seats tied for most florins at the end share the win",
+    "rule": "R19",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 17,
+        "discard": [],
+        "deck": [
+          "Grain-1",
+          "Grain-1",
+          "Grain-1"
+        ]
+      },
+      "players": {
+        "1": {
+          "florins": 60,
+          "ship_value": 0,
+          "ship_count": 0,
+          "ship_favoured": 0
+        },
+        "2": {
+          "florins": 50,
+          "ship_value": 5,
+          "ship_count": 2,
+          "ship_favoured": 0
+        },
+        "3": {
+          "florins": 40,
+          "ship_value": 0,
+          "ship_count": 0,
+          "ship_favoured": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 1,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 60,
+        "2": 60,
+        "3": 40
+      }
+    },
+    "rule_text": "When the game ends, then the player with the most florins wins, and players tied for the most share the win."
+  }
+]

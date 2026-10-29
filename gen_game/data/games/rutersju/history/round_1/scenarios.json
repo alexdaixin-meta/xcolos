@@ -1,0 +1,850 @@
+[
+  {
+    "name": "Every score starts at 0 and no deal has been played",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        },
+        "4": {
+          "score": 0
+        }
+      },
+      "game": {
+        "deal_number": 0
+      }
+    },
+    "rule_text": "When a game starts, then every player's score is 0."
+  },
+  {
+    "name": "3 cards each are dealt and all of them are played, so hands end empty and the deck keeps 36-12 (cards are random, only counts asserted)",
+    "rule": "R2",
+    "players": 4,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 24
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          },
+          "4": {
+            "hand": 0
+          }
+        }
+      },
+      "game": {
+        "deal_number": 1
+      }
+    },
+    "rule_text": "When a deal starts, then all 36 cards are shuffled into deck and each player receives exactly 3 cards in hand, seen only by that player."
+  },
+  {
+    "name": "With 3 players, 36-9 = 27 undealt cards stay in the deck for the whole deal (random deal, only counts asserted)",
+    "rule": "R3",
+    "players": 3,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 27
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When cards are dealt, then the 36 - 3N undealt cards stay in deck, unseen by every player for the whole deal."
+  },
+  {
+    "name": "Deal 1: seat 1 bids first, so when all bid 2 the last bidder, seat 4, is declarer",
+    "rule": "R4",
+    "players": 4,
+    "seed": 4,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 4,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "deal_number": 1,
+        "declarer_seat": 4,
+        "contract": 2
+      },
+      "players": {
+        "4": {
+          "is_declarer": true
+        },
+        "1": {
+          "is_declarer": false
+        }
+      }
+    },
+    "rule_text": "When deal 1 starts, then seat 1 bids first; when deal k > 1 starts, then the first bidder is the seat clockwise from the previous first bidder, so first_bidder = ((k - 1) mod N) + 1."
+  },
+  {
+    "name": "Deal 2: seat 2 bids first, so when all bid 2 the last bidder, seat 1, is declarer",
+    "rule": "R4",
+    "players": 4,
+    "seed": 5,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "deal_number": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 4,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "deal_number": 2,
+        "declarer_seat": 1,
+        "contract": 2
+      },
+      "players": {
+        "1": {
+          "is_declarer": true
+        },
+        "4": {
+          "is_declarer": false
+        }
+      }
+    },
+    "rule_text": "When deal 1 starts, then seat 1 bids first; when deal k > 1 starts, then the first bidder is the seat clockwise from the previous first bidder, so first_bidder = ((k - 1) mod N) + 1."
+  },
+  {
+    "name": "Deal 3 with 3 players: seat 3 bids first, so when all bid 1 the last bidder, seat 2, is declarer",
+    "rule": "R4",
+    "players": 3,
+    "seed": 6,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "deal_number": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "deal_number": 3,
+        "declarer_seat": 2,
+        "contract": 1
+      },
+      "players": {
+        "2": {
+          "is_declarer": true
+        },
+        "3": {
+          "is_declarer": false
+        }
+      }
+    },
+    "rule_text": "When deal 1 starts, then seat 1 bids first; when deal k > 1 starts, then the first bidder is the seat clockwise from the previous first bidder, so first_bidder = ((k - 1) mod N) + 1."
+  },
+  {
+    "name": "Each seat bids once from 0 to 3, and no pass is offered",
+    "rule": "R5",
+    "players": 4,
+    "seed": 7,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 4,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 0
+        },
+        "2": {
+          "bid": 1
+        },
+        "3": {
+          "bid": 2
+        },
+        "4": {
+          "bid": 3
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 3
+        },
+        {
+          "seat": 2,
+          "option": 0
+        },
+        {
+          "seat": 3,
+          "option": 3
+        },
+        {
+          "seat": 4,
+          "option": 0
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        },
+        {
+          "seat": 2,
+          "option": "pass"
+        },
+        {
+          "seat": 3,
+          "option": "pass"
+        },
+        {
+          "seat": 4,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "When bidding, then every player bids exactly once, in clockwise order from first_bidder, with a whole number from 0 to 3, and there is no pass."
+  },
+  {
+    "name": "Every bid is public: all bids are visible after bidding",
+    "rule": "R6",
+    "players": 3,
+    "seed": 8,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "bid": 3
+        },
+        "2": {
+          "bid": 0
+        },
+        "3": {
+          "bid": 1
+        }
+      }
+    },
+    "rule_text": "When a bid is made, then it is shown to every player at once."
+  },
+  {
+    "name": "Highest bid of 3 makes seat 2 declarer with contract 3",
+    "rule": "R7",
+    "players": 4,
+    "seed": 9,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 4,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 2,
+        "contract": 3
+      },
+      "players": {
+        "1": {
+          "is_declarer": false
+        },
+        "2": {
+          "is_declarer": true
+        },
+        "3": {
+          "is_declarer": false
+        },
+        "4": {
+          "is_declarer": false
+        }
+      }
+    },
+    "rule_text": "When bidding ends, then the player with the highest bid is declarer and contract equals that bid."
+  },
+  {
+    "name": "Bids 2,2,1,0 make the second bidder, seat 2, declarer",
+    "rule": "R8",
+    "players": 4,
+    "seed": 10,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 4,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 2,
+        "contract": 2
+      },
+      "players": {
+        "1": {
+          "is_declarer": false
+        },
+        "2": {
+          "is_declarer": true
+        }
+      }
+    },
+    "rule_text": "When two or more players tie for the highest bid, then the one of them who bid last is declarer (for example, bids 2, 2, 1, 0 in bidding order make the second bidder declarer)."
+  },
+  {
+    "name": "Declarer seat 3 is set before play and the deal is played out (who leads cannot be observed; random cards)",
+    "rule": "R9",
+    "players": 4,
+    "seed": 11,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 3,
+        "contract": 3
+      },
+      "players": {
+        "3": {
+          "is_declarer": true
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          },
+          "4": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When the first trick of a deal begins, then the declarer leads it."
+  },
+  {
+    "name": "Following suit when possible still lets every card be played (random cards, only counts asserted)",
+    "rule": "R10",
+    "players": 4,
+    "seed": 12,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          },
+          "4": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a player holds a card of the led suit, then that player must play a card of the led suit."
+  },
+  {
+    "name": "Playing any card when void still empties every hand over 3 tricks (random cards, only counts asserted)",
+    "rule": "R11",
+    "players": 3,
+    "seed": 13,
+    "rounds": 1,
+    "default": "last",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a player holds no card of the led suit, then that player may play any card in hand."
+  },
+  {
+    "name": "A deal with the diamond 7 possibly in play resolves all 3 tricks (random cards, only what chance cannot change asserted)",
+    "rule": "R12",
+    "players": 4,
+    "seed": 14,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "game": {
+        "deal_number": 1
+      },
+      "lens": {
+        "game": {
+          "deck": 24
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          },
+          "4": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When the diamond 7 is in a trick, then its player wins the trick, whatever suit was led."
+  },
+  {
+    "name": "Tricks are resolved by the led suit and the deal finishes (random cards, only counts asserted)",
+    "rule": "R13",
+    "players": 3,
+    "seed": 15,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "game": {
+        "deal_number": 1
+      },
+      "lens": {
+        "game": {
+          "deck": 27
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When the diamond 7 is not in a trick, then the highest card of the led suit wins, ranking A>K>Q>J>10>9>8>7>6, and cards of other suits never win."
+  },
+  {
+    "name": "Trick winners lead on until all 3 tricks are played (random cards, only counts asserted)",
+    "rule": "R14",
+    "players": 4,
+    "seed": 16,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 2,
+        "contract": 1
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          },
+          "4": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a trick is won, then the winner's tricks increases by 1 and the winner leads the next trick."
+  },
+  {
+    "name": "Exactly 3 tricks per deal: each 3-card hand is emptied and the deck is untouched (random cards)",
+    "rule": "R15",
+    "players": 4,
+    "seed": 17,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 24
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "hand": 0
+          },
+          "3": {
+            "hand": 0
+          },
+          "4": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a deal is played, then exactly 3 tricks are played, and every played card stays visible to all players."
+  },
+  {
+    "name": "Contract 3 is set for the declarer before scoring (made or missed depends on random cards, so score is not asserted)",
+    "rule": "R16",
+    "players": 4,
+    "seed": 18,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 1,
+        "contract": 3
+      },
+      "players": {
+        "1": {
+          "is_declarer": true,
+          "bid": 3
+        }
+      }
+    },
+    "rule_text": "When the declarer's tricks equal the contract, then the declarer scores contract + 1 (a contract of 0 made scores 1, a contract of 3 made scores 4) and the opponents score 0."
+  },
+  {
+    "name": "Declarer seat 3 with contract 2 is scored (outcome random, so only the contract is asserted)",
+    "rule": "R17",
+    "players": 3,
+    "seed": 19,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 3,
+        "contract": 2
+      },
+      "players": {
+        "3": {
+          "is_declarer": true
+        },
+        "1": {
+          "is_declarer": false
+        },
+        "2": {
+          "is_declarer": false
+        }
+      }
+    },
+    "rule_text": "When the declarer's tricks differ from the contract, then each opponent scores |contract - declarer tricks| and the declarer scores 0 (for example, contract 3 with 1 trick gives each opponent 2)."
+  },
+  {
+    "name": "Scoring keeps the declarer recorded (opponents' tricks are random, so only the declarer is asserted)",
+    "rule": "R18",
+    "players": 4,
+    "seed": 20,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 4,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer_seat": 4,
+        "contract": 1
+      },
+      "players": {
+        "4": {
+          "is_declarer": true
+        }
+      }
+    },
+    "rule_text": "When scoring, then opponents' own tricks add nothing."
+  },
+  {
+    "name": "After a deal is scored the game moves on to deal 2 (scores random, not asserted)",
+    "rule": "R19",
+    "players": 4,
+    "seed": 21,
+    "rounds": 2,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "game": {
+        "deal_number": 2
+      }
+    },
+    "rule_text": "When a deal is scored, then every player's total is announced."
+  },
+  {
+    "name": "Deal 12 ends the game: seat 1 at 50 cannot be caught by at most 4 more points",
+    "rule": "R20",
+    "players": 4,
+    "seed": 22,
+    "default": "first",
+    "given": {
+      "game": {
+        "deal_number": 11
+      },
+      "players": {
+        "1": {
+          "score": 50
+        },
+        "2": {
+          "score": 10
+        },
+        "3": {
+          "score": 10
+        },
+        "4": {
+          "score": 10
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1,
+      "game": {
+        "deal_number": 12
+      }
+    },
+    "rule_text": "When the 12th deal is scored, then the game ends and the highest total score wins; if several players tie for the highest total, the game is a draw."
+  },
+  {
+    "name": "Deal 12 ends the 3-player game: seat 3 at 40 wins",
+    "rule": "R20",
+    "players": 3,
+    "seed": 23,
+    "default": "first",
+    "given": {
+      "game": {
+        "deal_number": 11
+      },
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": 5
+        },
+        "3": {
+          "score": 40
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 3,
+      "game": {
+        "deal_number": 12
+      }
+    },
+    "rule_text": "When the 12th deal is scored, then the game ends and the highest total score wins; if several players tie for the highest total, the game is a draw."
+  },
+  {
+    "name": "Play runs on bids and cards only: no option other than a bid or a card is needed to finish a deal",
+    "rule": "R21",
+    "players": 3,
+    "seed": 24,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "game": {
+        "deal_number": 1
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        },
+        {
+          "seat": 2,
+          "option": "pass"
+        },
+        {
+          "seat": 3,
+          "option": "pass"
+        }
+      ]
+    },
+    "rule_text": "When playing, then no player may send a message; players communicate only through bids and cards."
+  }
+]

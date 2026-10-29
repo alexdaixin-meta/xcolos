@@ -1,0 +1,1683 @@
+[
+  {
+    "name": "R1: start state is 12 gold each and all worths 3; a 0-0 first round keeps that (lot depends on chance)",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 12
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 1,
+        "worth_red": 3,
+        "worth_blue": 3,
+        "worth_green": 3
+      }
+    },
+    "rule_text": "At the start, each player has 12 gold and 0 Red, 0 Blue and 0 Green, and each colour's worth is 3."
+  },
+  {
+    "name": "R2: gold changes from a sale are public (seat 3 buys B3 for 6)",
+    "rule": "R2",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3",
+          "G2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "G2"
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 6
+      },
+      {
+        "seat": 3,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 18
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 6
+        }
+      },
+      "game": {
+        "auction_recipient": 3,
+        "worth_red": 3,
+        "worth_blue": 3,
+        "worth_green": 3
+      }
+    },
+    "rule_text": "Gold and worths are public; each player's holdings are visible only to that player until the end of the game."
+  },
+  {
+    "name": "R3: shuffled lots, round 1 with a 0-0 tie leaves gold at 12 and gives the card to seat 1 (lot itself depends on chance)",
+    "rule": "R3",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 12
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 1,
+        "worth_red": 3,
+        "worth_blue": 3,
+        "worth_green": 3
+      }
+    },
+    "rule_text": "The 12 lots (R1+B4, R2+B3, B1+R4, B2+R3, R1+G4, R2+G3, G1+R4, G2+R3, B1+G4, B2+G3, G1+B4, G2+B3) are put in a hidden random order, and round k uses the k-th lot, so each lot is used exactly once."
+  },
+  {
+    "name": "R4: in round 2 seat 2 is the seller; seats 1 and 3 bid and seat 2 is not asked to bid",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 2,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 8
+        },
+        "2": {
+          "gold": 16
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 1
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "In round k, the active seat is ((k-1) mod 3) + 1, so seats 1, 2 and 3 are each active 4 times in 12 rounds."
+  },
+  {
+    "name": "R4: three tied rounds rotate the seller 1,2,3, so the last recipient is seat 3",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "rounds": 3,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": "R2"
+      },
+      {
+        "seat": 3,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 12
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 3
+      }
+    },
+    "rule_text": "In round k, the active seat is ((k-1) mod 3) + 1, so seats 1, 2 and 3 are each active 4 times in 12 rounds."
+  },
+  {
+    "name": "R5: only the active seat is offered the lot's cards",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "auction_recipient": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "R2"
+        },
+        {
+          "seat": 1,
+          "option": "B3"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "R2"
+        },
+        {
+          "seat": 2,
+          "option": "B3"
+        },
+        {
+          "seat": 3,
+          "option": "R2"
+        },
+        {
+          "seat": 3,
+          "option": "B3"
+        }
+      ]
+    },
+    "rule_text": "When a round begins, only the active seat is shown the lot; no other player ever sees it."
+  },
+  {
+    "name": "R6: kept R2 gives the seller the red majority at the end",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 12,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 5009,
+        "2": 3012,
+        "3": 6015
+      },
+      "players": {
+        "1": {
+          "gold": 9,
+          "vp": 5
+        },
+        "2": {
+          "gold": 12,
+          "vp": 3
+        },
+        "3": {
+          "gold": 15,
+          "vp": 6
+        }
+      },
+      "game": {
+        "auction_recipient": 1
+      }
+    },
+    "rule_text": "When the active seat keeps a card, that card's value is added to the active seat's holding in its colour, e.g. keeping G3 adds 3 to green."
+  },
+  {
+    "name": "R7: keeping B3 puts R2 up for auction, and seat 2 buys it",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 12,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "B3"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 3012,
+        "2": 5010,
+        "3": 6014
+      },
+      "players": {
+        "1": {
+          "gold": 12,
+          "vp": 3
+        },
+        "2": {
+          "gold": 10,
+          "vp": 5
+        },
+        "3": {
+          "gold": 14,
+          "vp": 6
+        }
+      },
+      "game": {
+        "auction_recipient": 2
+      }
+    },
+    "rule_text": "When a card is kept, the other card's colour and value are announced to everyone as the auction card."
+  },
+  {
+    "name": "R8: a round with the talk poll completes normally (0-0 tie)",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 12
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 1
+      }
+    },
+    "rule_text": "Each round, all three players submit one short text message simultaneously, and all messages are then shown to everyone."
+  },
+  {
+    "name": "R9: bids range from 0 to the bidder's own gold; the seller is not asked to bid",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "gold": 5
+        }
+      },
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 3,
+        "options_include": 12
+      },
+      {
+        "seat": 3,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 24
+        },
+        "2": {
+          "gold": 5
+        },
+        "3": {
+          "gold": 0
+        }
+      },
+      "game": {
+        "auction_recipient": 3
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": 5
+        },
+        {
+          "seat": 2,
+          "option": 0
+        },
+        {
+          "seat": 3,
+          "option": 12
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 6
+        },
+        {
+          "seat": 3,
+          "option": 13
+        },
+        {
+          "seat": 1,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "The two non-active seats bid simultaneously, each a whole number from 0 up to their current gold."
+  },
+  {
+    "name": "R10: bids 5 and 3 for B4 move 5 gold from the winner to the seller",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4",
+          "R1+B4"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R1"
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 17
+        },
+        "2": {
+          "gold": 7
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 2
+      }
+    },
+    "rule_text": "When one bid is strictly higher, that bidder pays the bid to the active seat and adds the auction card's value to their holding in its colour; e.g. bids 5 and 3 for B4 move 5 gold from the winner to the active seat and add 4 to the winner's blue."
+  },
+  {
+    "name": "R11: equal bids of 3 move no gold and the seller takes the auction card",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 12
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 1
+      }
+    },
+    "rule_text": "When the bids are equal (including 0 and 0), no gold moves, and the active seat adds the auction card's value to their own holding in its colour."
+  },
+  {
+    "name": "R12: auction_recipient records the buyer of the latest round (seat 3 in round 2)",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "no change"
+      },
+      {
+        "seat": 2,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 13
+        },
+        "2": {
+          "gold": 13
+        },
+        "3": {
+          "gold": 10
+        }
+      },
+      "game": {
+        "auction_recipient": 3
+      }
+    },
+    "rule_text": "Each round, auction_recipient records the seat that received the auction card."
+  },
+  {
+    "name": "R13: the winning bidder raises Red by 1",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "Red +1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 14
+        },
+        "2": {
+          "gold": 10
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 2,
+        "worth_red": 4,
+        "worth_blue": 3,
+        "worth_green": 3
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "no change"
+        },
+        {
+          "seat": 2,
+          "option": "Blue -1"
+        },
+        {
+          "seat": 2,
+          "option": "Green +1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "Red +1"
+        },
+        {
+          "seat": 1,
+          "option": "Red +1"
+        }
+      ]
+    },
+    "rule_text": "When a bidder wins, that bidder may raise or lower one colour's worth by 1, or change nothing."
+  },
+  {
+    "name": "R14: Red +1 with Red already at 5 leaves it at 5",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "worth_red": 5,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "Red +1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "worth_red": 5,
+        "worth_blue": 3,
+        "worth_green": 3,
+        "auction_recipient": 2
+      }
+    },
+    "rule_text": "A worth change that would take a worth below 1 or above 5 has no effect; e.g. Red at 5 with Red +1 stays 5."
+  },
+  {
+    "name": "R14: Green -1 with Green already at 1 leaves it at 1",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "worth_green": 1,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": "Green -1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 16
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 8
+        }
+      },
+      "game": {
+        "worth_green": 1,
+        "worth_red": 3,
+        "worth_blue": 3,
+        "auction_recipient": 3
+      }
+    },
+    "rule_text": "A worth change that would take a worth below 1 or above 5 has no effect; e.g. Red at 5 with Red +1 stays 5."
+  },
+  {
+    "name": "R15: after a 2-2 tie nobody is asked to shift a worth",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "gold": 12
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 12
+        }
+      },
+      "game": {
+        "auction_recipient": 1,
+        "worth_red": 3,
+        "worth_blue": 3,
+        "worth_green": 3
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "no change"
+        },
+        {
+          "seat": 2,
+          "option": "no change"
+        },
+        {
+          "seat": 3,
+          "option": "no change"
+        }
+      ]
+    },
+    "rule_text": "When the bids tie, no worth shift happens."
+  },
+  {
+    "name": "R16: worths after the round reflect a Blue -1 shift",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "R2"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "Blue -1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "worth_red": 3,
+        "worth_blue": 2,
+        "worth_green": 3,
+        "auction_recipient": 2
+      }
+    },
+    "rule_text": "After each round's resolution, the three worths are announced."
+  },
+  {
+    "name": "R17: the game ends after round 12 (tie, seat 3 keeps both cards)",
+    "rule": "R17",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 12,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 3012,
+        "2": 3012,
+        "3": 9012
+      },
+      "players": {
+        "1": {
+          "gold": 12,
+          "vp": 3
+        },
+        "2": {
+          "gold": 12,
+          "vp": 3
+        },
+        "3": {
+          "gold": 12,
+          "vp": 9
+        }
+      },
+      "game": {
+        "auction_recipient": 3
+      }
+    },
+    "rule_text": "The game ends after round 12."
+  },
+  {
+    "name": "R18: the sole Red leader with Red worth 4 gains 4 VP",
+    "rule": "R18",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "red": 5
+        },
+        "2": {
+          "red": 3
+        }
+      },
+      "game": {
+        "round": 12,
+        "worth_red": 4,
+        "lots": [
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "G1"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 7012,
+        "2": 3012,
+        "3": 9012
+      },
+      "players": {
+        "1": {
+          "vp": 7
+        },
+        "2": {
+          "vp": 3
+        },
+        "3": {
+          "vp": 9
+        }
+      }
+    },
+    "rule_text": "At the end, the single highest holder of a colour scores VP equal to that colour's worth; e.g. a sole Red leader with Red worth 4 gains 4 VP."
+  },
+  {
+    "name": "R19: two players tied on Red at worth 5 score 2 VP each",
+    "rule": "R19",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "red": 4
+        },
+        "2": {
+          "red": 4
+        }
+      },
+      "game": {
+        "round": 12,
+        "worth_red": 5,
+        "lots": [
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4",
+          "G1+B4"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "G1"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 5012,
+        "2": 5012,
+        "3": 9012
+      },
+      "players": {
+        "1": {
+          "vp": 5
+        },
+        "2": {
+          "vp": 5
+        },
+        "3": {
+          "vp": 9
+        }
+      }
+    },
+    "rule_text": "At the end, when two or three players tie for highest in a colour, each scores floor(worth / 2); e.g. worth 5 gives each tied player 2 VP."
+  },
+  {
+    "name": "R20: nobody holds Green, so its worth of 4 scores nothing",
+    "rule": "R20",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 12,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "Green +1"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 5008,
+        "2": 3012,
+        "3": 7016
+      },
+      "players": {
+        "1": {
+          "gold": 8,
+          "vp": 5
+        },
+        "2": {
+          "gold": 12,
+          "vp": 3
+        },
+        "3": {
+          "gold": 16,
+          "vp": 7
+        }
+      },
+      "game": {
+        "worth_green": 4,
+        "auction_recipient": 1
+      }
+    },
+    "rule_text": "At the end, when all players hold 0 in a colour, nobody scores that colour."
+  },
+  {
+    "name": "R21: gold scores 1 VP per full 4 (15 gives 3, 7 gives 1)",
+    "rule": "R21",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "gold": 15
+        },
+        "2": {
+          "gold": 7
+        }
+      },
+      "game": {
+        "round": 12,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 3015,
+        "2": 1007,
+        "3": 9012
+      },
+      "players": {
+        "1": {
+          "gold": 15,
+          "vp": 3
+        },
+        "2": {
+          "gold": 7,
+          "vp": 1
+        },
+        "3": {
+          "gold": 12,
+          "vp": 9
+        }
+      }
+    },
+    "rule_text": "At the end, each player scores floor(gold / 4) VP; e.g. 15 gold gives 3 VP."
+  },
+  {
+    "name": "R22: a VP tie is broken by more gold",
+    "rule": "R22",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "gold": 14
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 11
+        }
+      },
+      "game": {
+        "round": 12,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 6013,
+        "2": 3012,
+        "3": 6012
+      },
+      "players": {
+        "1": {
+          "gold": 13,
+          "vp": 6
+        },
+        "2": {
+          "gold": 12,
+          "vp": 3
+        },
+        "3": {
+          "gold": 12,
+          "vp": 6
+        }
+      }
+    },
+    "rule_text": "The player with the most VP wins; a VP tie is broken by more gold; players still tied share the result as a draw."
+  },
+  {
+    "name": "R22: level on VP and gold, two seats share the win",
+    "rule": "R22",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "gold": 13
+        },
+        "2": {
+          "gold": 12
+        },
+        "3": {
+          "gold": 11
+        }
+      },
+      "game": {
+        "round": 12,
+        "lots": [
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3",
+          "R2+B3"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "R2"
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "no change"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        3
+      ],
+      "standings": {
+        "1": 6012,
+        "2": 3012,
+        "3": 6012
+      },
+      "players": {
+        "1": {
+          "gold": 12,
+          "vp": 6
+        },
+        "2": {
+          "gold": 12,
+          "vp": 3
+        },
+        "3": {
+          "gold": 12,
+          "vp": 6
+        }
+      }
+    },
+    "rule_text": "The player with the most VP wins; a VP tie is broken by more gold; players still tied share the result as a draw."
+  }
+]

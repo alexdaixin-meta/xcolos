@@ -1,0 +1,795 @@
+[
+  {
+    "name": "Setup: every player starts with 100 coins and zeros, and the table starts at zero with no winner",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 100,
+          "committed": 0,
+          "final_score": 0
+        },
+        "2": {
+          "coins": 100,
+          "committed": 0,
+          "final_score": 0
+        },
+        "3": {
+          "coins": 100,
+          "committed": 0,
+          "final_score": 0
+        }
+      },
+      "game": {
+        "auction": 0,
+        "top_bid": 0,
+        "top_count": 0,
+        "auction_winner": "none"
+      }
+    },
+    "rule_text": "At setup every player has coins = 100, prize_points = 0, committed = 0, final_score = 0, and the table has auction = 0, top_bid = 0, top_count = 0, auction_winner = 'none'."
+  },
+  {
+    "name": "Setup: each player holds a values list of 6 entries (the order is random, so only the length is checked)",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "values": 6
+          },
+          "2": {
+            "values": 6
+          },
+          "3": {
+            "values": 6
+          }
+        },
+        "game": {
+          "prize_deck": 6
+        }
+      }
+    },
+    "rule_text": "At setup each player is dealt a values list that is a random order of [10, 15, 20, 25, 30, 40] (sum 140), visible only to its owner. Lists are dealt independently, so two players may hold the same value for the same auction."
+  },
+  {
+    "name": "A round start raises auction by 1 (from 2 to 3) and committed is 0 afterwards",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "auction": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "auction": 3
+      },
+      "players": {
+        "1": {
+          "committed": 0
+        },
+        "2": {
+          "committed": 0
+        },
+        "3": {
+          "committed": 0
+        }
+      }
+    },
+    "rule_text": "When a round starts, auction increases by 1, every player's committed becomes 0, and each player's current_value becomes entry number 'auction' of their values list."
+  },
+  {
+    "name": "The first auction is numbered 1 and announcing coins changes no coins",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "auction": 1
+      },
+      "players": {
+        "1": {
+          "coins": 100
+        },
+        "2": {
+          "coins": 100
+        },
+        "3": {
+          "coins": 100
+        }
+      }
+    },
+    "rule_text": "At the start of each auction, each player is told only their own current_value, and everyone is told the auction number and every player's coins."
+  },
+  {
+    "name": "The talk poll changes no numbers when everyone raises 0",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 100
+        },
+        "2": {
+          "coins": 100
+        },
+        "3": {
+          "coins": 100
+        }
+      },
+      "game": {
+        "top_bid": 0
+      }
+    },
+    "rule_text": "Each auction, every player sends one short message simultaneously, all messages are shown to everyone, and no number changes."
+  },
+  {
+    "name": "Three raise stages of 5 each add up to a committed total of 15",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5,
+        "times": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 85
+        },
+        "2": {
+          "coins": 100
+        },
+        "3": {
+          "coins": 100
+        }
+      },
+      "game": {
+        "top_bid": 15,
+        "top_count": 1
+      }
+    },
+    "rule_text": "Each auction has exactly 3 simultaneous raise stages, and after each one every player's committed increases by the raise they chose."
+  },
+  {
+    "name": "With 100 coins the raise options go up to 100 and no higher",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 100
+        },
+        {
+          "seat": 1,
+          "option": 0
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 101
+        }
+      ]
+    },
+    "rule_text": "In a raise stage a player's options are exactly the whole numbers 0 to (coins - committed): 0..100 with coins 100 and committed 0, 0..55 with coins 85 and committed 30, 0..10 with coins 40 and committed 30."
+  },
+  {
+    "name": "With 40 coins and 30 committed, a raise of 20 is not offered in later stages",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 40
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 30,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 20,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 10
+        }
+      },
+      "game": {
+        "top_bid": 30
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 41
+        }
+      ]
+    },
+    "rule_text": "In a raise stage a player's options are exactly the whole numbers 0 to (coins - committed): 0..100 with coins 100 and committed 0, 0..55 with coins 85 and committed 30, 0..10 with coins 40 and committed 30."
+  },
+  {
+    "name": "Committed cannot exceed coins: after going all in with 40, a later raise of 10 is not possible",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 40
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 40,
+        "times": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 10,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 0
+        }
+      },
+      "game": {
+        "top_bid": 40,
+        "top_count": 1
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 41
+        }
+      ]
+    },
+    "rule_text": "A player's committed can never exceed their coins within one auction."
+  },
+  {
+    "name": "Raises spread over the stages are all counted in the committed totals",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 10,
+        "times": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 7,
+        "times": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 90
+        },
+        "2": {
+          "coins": 86
+        },
+        "3": {
+          "coins": 100
+        }
+      },
+      "game": {
+        "top_bid": 14,
+        "top_count": 1
+      }
+    },
+    "rule_text": "After each of the 3 raise stages, every player's committed total is announced to all."
+  },
+  {
+    "name": "top_bid is the highest committed total and top_count counts the seats tied on it (20, 20, 5)",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 20
+      },
+      {
+        "seat": 2,
+        "options_include": 20
+      },
+      {
+        "seat": 3,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "game": {
+        "top_bid": 20,
+        "top_count": 2
+      }
+    },
+    "rule_text": "After the third stage, top_bid = the highest committed and top_count = the number of players whose committed equals top_bid."
+  },
+  {
+    "name": "Everyone pays their bid, win or lose: 20, 15 and 0 leave 80, 85 and 100",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 20
+      },
+      {
+        "seat": 2,
+        "options_include": 15
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 80
+        },
+        "2": {
+          "coins": 85
+        },
+        "3": {
+          "coins": 100
+        }
+      },
+      "game": {
+        "top_bid": 20,
+        "top_count": 1
+      }
+    },
+    "rule_text": "After the third stage every player's coins decrease by their committed, win or lose: bids of 20, 15 and 0 from 100 coins each leave 80, 85 and 100."
+  },
+  {
+    "name": "The sole top bidder in auction 6 gains their value of 40 for that auction",
+    "rule": "R12",
+    "players": 3,
+    "given": {
+      "game": {
+        "auction": 5
+      },
+      "players": {
+        "1": {
+          "values": [
+            10,
+            15,
+            20,
+            25,
+            30,
+            40
+          ],
+          "prize_points": 0
+        },
+        "2": {
+          "prize_points": 0
+        },
+        "3": {
+          "prize_points": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 10
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 130,
+        "2": 100,
+        "3": 100
+      },
+      "players": {
+        "1": {
+          "coins": 90,
+          "final_score": 130
+        },
+        "2": {
+          "final_score": 100
+        },
+        "3": {
+          "final_score": 100
+        }
+      },
+      "game": {
+        "top_bid": 10,
+        "top_count": 1
+      }
+    },
+    "rule_text": "When top_count = 1 and top_bid >= 1, the player with committed = top_bid becomes auction_winner and adds their current_value to prize_points."
+  },
+  {
+    "name": "A tie for the top bid gives no winner and no prize, but both tied seats still pay",
+    "rule": "R13",
+    "players": 3,
+    "given": {
+      "game": {
+        "auction": 5
+      },
+      "players": {
+        "1": {
+          "prize_points": 0
+        },
+        "2": {
+          "prize_points": 0
+        },
+        "3": {
+          "prize_points": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 10
+      },
+      {
+        "seat": 2,
+        "options_include": 10
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 90,
+        "2": 90,
+        "3": 100
+      },
+      "players": {
+        "1": {
+          "coins": 90,
+          "final_score": 90
+        },
+        "2": {
+          "coins": 90,
+          "final_score": 90
+        },
+        "3": {
+          "coins": 100,
+          "final_score": 100
+        }
+      },
+      "game": {
+        "top_bid": 10,
+        "top_count": 2,
+        "auction_winner": "none"
+      }
+    },
+    "rule_text": "When top_count >= 2 (a tie for the highest bid), auction_winner = 'none' and nobody's prize_points change, although all players still pay their committed."
+  },
+  {
+    "name": "When everyone bids 0 there is no winner",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "top_bid": 0,
+        "top_count": 3,
+        "auction_winner": "none"
+      },
+      "players": {
+        "1": {
+          "coins": 100
+        },
+        "2": {
+          "coins": 100
+        },
+        "3": {
+          "coins": 100
+        }
+      }
+    },
+    "rule_text": "When top_bid = 0 (everyone bid 0), auction_winner = 'none' and nobody's prize_points change."
+  },
+  {
+    "name": "After resolution every committed is reset to 0 and the coins reflect the payments",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 12
+      },
+      {
+        "seat": 2,
+        "options_include": 8
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "committed": 0,
+          "coins": 88
+        },
+        "2": {
+          "committed": 0,
+          "coins": 92
+        },
+        "3": {
+          "committed": 0,
+          "coins": 100
+        }
+      }
+    },
+    "rule_text": "After resolution the auction_winner and every player's coins are announced, and every player's committed is reset to 0."
+  },
+  {
+    "name": "After the 6th auction final_score is coins + prize_points and the game ends",
+    "rule": "R16",
+    "players": 3,
+    "given": {
+      "game": {
+        "auction": 5
+      },
+      "players": {
+        "1": {
+          "coins": 50,
+          "prize_points": 25
+        },
+        "2": {
+          "coins": 60,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 70,
+          "prize_points": 10
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 75,
+        "2": 60,
+        "3": 80
+      },
+      "players": {
+        "1": {
+          "final_score": 75
+        },
+        "2": {
+          "final_score": 60
+        },
+        "3": {
+          "final_score": 80
+        }
+      },
+      "game": {
+        "auction": 6
+      }
+    },
+    "rule_text": "After the 6th auction, each player's final_score = coins + prize_points, and the game ends."
+  },
+  {
+    "name": "Seats tied on the highest final_score share the win",
+    "rule": "R17",
+    "players": 3,
+    "given": {
+      "game": {
+        "auction": 5
+      },
+      "players": {
+        "1": {
+          "coins": 60,
+          "prize_points": 20
+        },
+        "2": {
+          "coins": 80,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 70,
+          "prize_points": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 80,
+        "2": 80,
+        "3": 70
+      },
+      "players": {
+        "1": {
+          "final_score": 80
+        },
+        "2": {
+          "final_score": 80
+        },
+        "3": {
+          "final_score": 70
+        }
+      }
+    },
+    "rule_text": "The player with the highest final_score wins, and players tied for the highest final_score share the win as a draw."
+  }
+]

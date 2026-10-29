@@ -1,0 +1,126 @@
+{
+  "original_summary": "Diamonds is a trick-taking card game for 2 to 6 players. Winning a trick, or failing to follow suit, triggers a suit action that moves crystals between a public showroom (1 point each) and a hidden vault (2 points each). Suit majorities pay out at the end of each hand, and the highest score after 4 to 6 hands wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "In the original, choices clearly matter, because ducking a trick to trigger an off-suit action is a real alternative to winning it. But the previous build had seat imbalance: against random seats, seat 3 won 26 games, seat 1 won 19 and seat 2 won 14. This came from a fixed robbing order and uneven dealer/lead rotation. Thoughtless 'first' and 'last' policies did lose most games (13-46, 19-41, 20-39, 24-33), so no simple policy dominates."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Choosing when to win a trick and when to void a suit to trigger off-suit actions, tracking suit majorities, and timing Spades conversions against Clubs theft all reward card counting and planning. The deal adds variance, but it is averaged over several hands."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Strong play involves counting cards, voiding suits on purpose through the pass, and denying majorities. A weak player still collects crystals from incidental tricks, and a player who wins no tricks gets a consolation of two Diamond actions."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden, so players must infer who is void in which suit from the plays, and must predict whether an opponent will win or duck a trick. Hidden vaults add score uncertainty."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Every action and every score is crystal arithmetic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "bad",
+      "evidence": "The original is long: up to 6 hands of 10 tricks with up to 6 players. Its Clubs action requires naming a target, and passes of up to 3 cards each take a choice. The previous build reached 8 choice steps per round, against a limit of 4."
+    }
+  ],
+  "problems": [
+    "Too many choice steps per round (8 against a limit of 4): the Clubs target choice and the multi-card pass each add choice steps.",
+    "Seat imbalance: seat 3 won most often among random seats, from a fixed-seat Clubs tie-break and a dealer/lead rotation that did not give each seat equal leads.",
+    "The game is too long for the platform (up to 60 tricks), which risks the 40-round limit and adds attribute and step load.",
+    "Hidden vaults are not really hidden in a text engine, because every vault action is announced; this is not a flaw for play, but the hidden element is effectively the hands."
+  ],
+  "changes": [
+    {
+      "what": "Clubs robs automatically: it takes 1 crystal from the opponent with the largest showroom. Ties go to the tied opponent who comes first clockwise from the actor.",
+      "why": "This removes a choice step, and the tie-break depends only on the robbed player's position relative to the actor, not on fixed seats.",
+      "fixes": "Too many choice steps per round (8 against a limit of 4): the Clubs target choice and the multi-card pass each add choice steps."
+    },
+    {
+      "what": "The pass becomes exactly 1 card to the left, chosen by all players in one simultaneous poll, and only on the first trick of each hand.",
+      "why": "It keeps the original's voiding and pass tactic while costing one choice step on one round in seven. The maximum per round is 3 plays plus 1 pass, which is 4.",
+      "fixes": "Too many choice steps per round (8 against a limit of 4): the Clubs target choice and the multi-card pass each add choice steps."
+    },
+    {
+      "what": "The game is fixed at 3 players, 3 hands and 7 tricks per hand (21 rounds), using a 32-card deck (4 suits, ranks 1-8). 21 cards are dealt and 11 stay unseen.",
+      "why": "This keeps the game short and under 40 rounds. The unseen cards keep void-inference non-trivial.",
+      "fixes": "The game is too long for the platform (up to 60 tricks), which risks the 40-round limit and adds attribute and step load."
+    },
+    {
+      "what": "The dealer rotates clockwise each hand, so each seat deals exactly once and the player left of the dealer leads trick 1, giving each seat exactly one opening lead. All end-of-hand actions resolve starting from the player left of the dealer.",
+      "why": "Every seat gets identical structural treatment across the game.",
+      "fixes": "Seat imbalance: seat 3 won most often among random seats, from a fixed-seat Clubs tie-break and a dealer/lead rotation that did not give each seat equal leads."
+    },
+    {
+      "what": "Vault totals are not displayed in the score summary, but every action is announced. Ties on score are broken by vault size.",
+      "why": "This honestly accepts that vault totals can be worked out from the announcements, and turns the hiddenness into a memory and tracking skill rather than a fake secret. The vault tie-break rewards Spades and Diamond play.",
+      "fixes": "Hidden vaults are not really hidden in a text engine, because every vault action is announced; this is not a flaw for play, but the hidden element is effectively the hands."
+    }
+  ],
+  "keeps": [
+    "Trick-taking with must-follow-suit and highest card of the led suit winning.",
+    "Four suit actions: Diamonds (supply to vault), Hearts (supply to showroom), Spades (own showroom to vault) and Clubs (steal into own showroom).",
+    "Off-suit plays immediately trigger the played suit's action.",
+    "The trick winner takes the led suit's action and leads the next trick.",
+    "End-of-hand suit majorities earn suit actions, and ties earn nothing.",
+    "A player who wins no tricks in a hand gets two Diamond actions.",
+    "Vault crystals are worth 2 points and showroom crystals 1 point; the highest score wins.",
+    "A card pass to the left before each hand."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core trick-and-action engine is rich and fits the limits once the Clubs target and the multi-card pass become automatic or single-poll, and the game is shortened and rotated evenly."
+  },
+  "variation": {
+    "name": "Diamonds: Three-Hand Vault",
+    "summary": "A 3-player trick-taking game over 3 hands of 7 tricks. Winning tricks, or deliberately failing to follow suit, triggers suit actions that bank crystals in a showroom (1 point) or a vault (2 points). Clubs automatically robs the richest showroom.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "COMPONENTS: A deck of 32 cards with 4 suits (Diamonds, Hearts, Spades, Clubs) and ranks 1 to 8 in each suit. Each player has a showroom and a vault, each holding crystals and each starting at 0. The supply of crystals is unlimited. Seats are numbered 1, 2 and 3 clockwise; 'left' means the next seat clockwise.\n\nSTRUCTURE: The game is 3 hands of 7 tricks, which is 21 rounds; one round is one trick. In hand 1 the dealer is seat 1, in hand 2 seat 2, and in hand 3 seat 3.\n\nSTART OF EACH HAND (on trick 1 of the hand): Shuffle all 32 cards and deal 7 to each player face down; the remaining 11 cards are set aside unseen for the hand. Each player privately sees only their own hand. Shown to each player, a hand is listed sorted by suit (Diamonds, Hearts, Spades, Clubs) and then by ascending rank. Then all players at the same moment secretly choose exactly 1 card from their hand to pass to the player on their left. All passes are exchanged at once, and passed cards are not revealed to the third player. Every player's per-hand count of won cards in each suit is reset to 0, and so is their tricks-won count.\n\nPLAYING A TRICK: On trick 1 of a hand, the player left of the dealer leads; on later tricks, the winner of the previous trick leads. The leader plays any card from their hand, and its suit is the led suit. The other two players then play one card each, in clockwise order. A player who holds a card of the led suit must play one. A player who holds no card of the led suit may play any card, and immediately takes the action of the suit of the card they played (see SUIT ACTIONS), resolved before the next player plays. All played cards are shown to everyone.\n\nWINNING A TRICK: The highest-ranked card of the led suit wins the trick, and off-suit cards never win. The winner takes all 3 cards face down, adds 1 to their tricks-won count, and adds the number of cards of each suit in the trick to their won-card count for that suit. The winner then takes the action of the led suit once, and leads the next trick.\n\nSUIT ACTIONS:\n- Diamonds: move 1 crystal from the supply to your vault.\n- Hearts: move 1 crystal from the supply to your showroom.\n- Spades: move 1 crystal from your own showroom to your own vault. If your showroom is empty, nothing happens.\n- Clubs: move 1 crystal from the showroom of the opponent whose showroom is largest into your own showroom. If both opponents tie for largest, take it from the tied opponent who sits first clockwise after you. If both opponents' showrooms are empty, nothing happens.\nEvery action and its result is announced to all players.\n\nEND OF HAND (after trick 7): For each suit in the order Diamonds, Hearts, Spades, Clubs, the player with strictly the most won cards of that suit takes that suit's action once; if the top count is tied, no one takes it. Then every player whose tricks-won count for the hand is 0 takes the Diamonds action twice. The dealer passes to the left for the next hand. Resolve all end-of-hand actions in the order given.\n\nVISIBILITY: Showroom counts are always displayed. Vault counts are not displayed in score summaries, but every action that changes a vault is announced, so they can be tracked. Hands, passed cards and the 11 set-aside cards are hidden.\n\nSCORING: At the end of hand 3, each player's score is 2 times their vault crystals plus their showroom crystals.",
+    "objective": "The player with the highest score after 3 hands wins. If two or more players tie for highest score, the tied player with more vault crystals wins. If they are still tied, the game is a draw between them.",
+    "expected_effect": "The previous problems should be gone. Each round has at most 4 choice steps: the 3 sequential card plays, plus the single simultaneous pass poll on trick 1 of a hand. Seat balance should improve, because each seat deals once and leads trick 1 once, and the Clubs tie-break depends on position relative to the actor rather than on fixed seats. Thoughtless policies should keep losing. 'First card' always dumps the lowest Diamond-side card and 'last card' always throws the highest Club-side card, ignoring voids, majorities and showroom exposure, so both concede suit majorities and get robbed. Skilled play rewards several things: passing to void a suit, choosing between winning a trick for its led action and ducking it for an off-suit action, inferring opponents' voids from discards and the 11 unseen cards, timing Spades conversions before Clubs theft, and not becoming the largest showroom. Talk is deliberately left out. The three players' interests do conflict, but simultaneous messages would mostly produce empty 'let's all rob the leader' proposals that cannot be enforced and that the automatic Clubs targeting already implements. Card play itself carries the signalling."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 4,
+    "attributes": 14,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 21
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Action values in points (vault = 2, showroom = 1): Diamonds +2; Hearts +1; Spades +1 only if your showroom is non-empty, else 0; Clubs +1 to you and -1 to the opponent with the largest showroom (a swing of 2 against them, 1 against the third player). Average value of a led-suit trick action is about (2+1+1+1)/4 = 1.25. A hand gives about 7 x 1.25 = 8.75 points from tricks, plus up to 4 end-of-hand suit majorities (ties void some, about 3-4 x 1.25), plus off-suit dumps. That is roughly 13 points per hand, about 4.5 per player on average.\n\nThoughtless policies (winner rule applied):\n(a) Always play the highest legal card. You win many tricks, but you lead into opponents who dump Diamonds off-suit for +2 each. You burn high cards early and cannot duck when ducking pays. Against sensible play it loses whenever dealt a mediocre hand. Not a never-lose policy.\n(b) Always play the lowest legal card, aiming for the zero-tricks bonus of 2 Diamonds = +4. You are forced to win any trick where you hold only high cards of the led suit; with 7 cards over ranks 1-8, an exposed 7 or 8 is common. Opponents can then lead that suit. A single trick won forfeits the +4. Expected value is about 4 + off-suit dumps when it succeeds, against about 4.5-6 for an active player. It wins sometimes and loses often against sensible play, and it is beatable by random play when the duck fails.\n(c) Always dump Diamonds when void. This is a good local choice, not a whole-game dominant policy. It costs majority counts, and voiding requires the right pass.\n\nNo option is strictly better whatever opponents do. Ducking versus winning is a real tension: about +4 flat against about 2.3 expected tricks x 1.25 + majorities, roughly 4.5.\n\nSeat edge: the dealer and the first leader rotate once through each seat over 3 hands. Passing is a fixed clockwise cycle, so the seats are symmetric. Ties break on vault, then a draw. All three players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Deal arithmetic: 3 x 7 = 21 cards dealt, 11 set aside, total 32. A hand is 7 tricks, so 21 rounds; at most 40 allowed.\n\nChoices per round: on trick 1, 1 simultaneous pass poll + 3 sequential plays = 4 (limit 4). Later tricks have 3.\n\nRandom draws: one shuffle per hand, on trick 1 only, so at most 1 per round.\n\nSteps estimate: deal, pass poll, exchange, reset counts, lead, play 2, off-suit action 2, play 3, off-suit action 3, find winner, credit suit counts, winner action, 4 end-of-hand majorities (with `when` on trick 7), zero-trick bonus, next leader. That is about 17-19 steps, within 20, using conditional `when`/`if` per step and not conditional blocks. Claimed 16 is plausible.\n\nAttributes: 14, within 20.\nHidden elements: hands, plus set-aside and passed cards, within 3.\n\nRule coverage:\n- Every edge case is specified: empty-showroom Spades, both opponents' showrooms empty for Clubs, the Clubs tie-break by clockwise order, and off-suit cards never winning.\n- Follow-suit legality is an arithmetic or referee check.\n- Scoring is arithmetic: 2 x vault + showroom.\n- No board, clock or trading is needed.\n\nTalk: a 3-player game without talk is acceptable. Information flows through visible plays and announced actions. There is no agreement to negotiate, since there is no trading and no binding deals, so talk would only add words.\n\nThe repeated-game betrayal test does not apply; this is not a cooperation dilemma.\n\nMinor redundancy: 'the dealer passes to the left' repeats the fixed dealer schedule. It is consistent and not ambiguous."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance: three random deals of 7 from 32, with high cards driving trick wins. Rough estimate: chance accounts for about 35-45% of the result.\n\nSkill levers:\n- The pass, which can create a void that enables +2 Diamond dumps, or shed a dangerous high card to keep the +4 zero-trick option alive.\n- Counting cards: 21 visible plays, with 11 unseen cards to infer.\n- Tracking hidden vaults from announced actions.\n- Choosing to duck or win, and timing leads to force or avoid opponents' voids.\n- Steering Clubs against the leader, since showrooms are visible.\n\nWhen all three play well, a weak deal is not fatal. A low hand can pursue zero tricks (+4) plus off-suit Diamond dumps (+2 each), roughly matching a strong hand's trick income of about 4.5-6. So the winner is not set by the deal alone. A reasoning player who tracks voids, vaults and remaining high cards is clearly favoured over one playing high or low by rote."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

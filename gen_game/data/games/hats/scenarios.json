@@ -1,0 +1,682 @@
+[
+  {
+    "name": "Game starts with all colour values at 2, scores at 0, round 1",
+    "rule": "R1",
+    "players": 4,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        },
+        "4": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 1,
+        "value_red": 2,
+        "value_blue": 2,
+        "value_green": 2,
+        "value_yellow": 2,
+        "value_purple": 2
+      }
+    },
+    "rule_text": "When the game starts, then all five colour values are 2 and every player's score is 0."
+  },
+  {
+    "name": "Dealing favourites to 4 players removes 4 colours from the pool (which colours is random)",
+    "rule": "R2",
+    "players": 4,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "colour_pool": 1
+        }
+      }
+    },
+    "rule_text": "When favourites are dealt, then each player gets one of Red, Blue, Green, Yellow or Purple at random, no two players get the same colour, and only the owner can see it."
+  },
+  {
+    "name": "Dealing favourites to 3 players leaves 2 colours in the pool",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "colour_pool": 2
+        }
+      }
+    },
+    "rule_text": "When favourites are dealt, then each player gets one of Red, Blue, Green, Yellow or Purple at random, no two players get the same colour, and only the owner can see it."
+  },
+  {
+    "name": "After round 1 the round number advances and untouched values ripen to 3",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Black"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2,
+        "value_red": 3,
+        "value_blue": 3,
+        "value_green": 3,
+        "value_yellow": 3,
+        "value_purple": 3
+      }
+    },
+    "rule_text": "When a round begins, then everyone is told the round number and the current value of each of the 5 colours."
+  },
+  {
+    "name": "Talk binds no one: after talk every seat still makes its own choice",
+    "rule": "R4",
+    "players": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Black"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      },
+      {
+        "seat": 4,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "game": {
+        "black_count": 4
+      },
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 1
+        },
+        "3": {
+          "score": 1
+        },
+        "4": {
+          "score": 1
+        }
+      }
+    },
+    "rule_text": "When the talk step runs, then every player writes one short message at the same time, and all messages are shown to everyone only after all are in."
+  },
+  {
+    "name": "Every seat is offered all five colours and Black",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Black"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Red"
+        },
+        {
+          "seat": 1,
+          "option": "Blue"
+        },
+        {
+          "seat": 1,
+          "option": "Green"
+        },
+        {
+          "seat": 1,
+          "option": "Yellow"
+        },
+        {
+          "seat": 1,
+          "option": "Purple"
+        },
+        {
+          "seat": 1,
+          "option": "Black"
+        },
+        {
+          "seat": 2,
+          "option": "Red"
+        },
+        {
+          "seat": 2,
+          "option": "Purple"
+        },
+        {
+          "seat": 2,
+          "option": "Black"
+        },
+        {
+          "seat": 3,
+          "option": "Green"
+        },
+        {
+          "seat": 3,
+          "option": "Yellow"
+        },
+        {
+          "seat": 3,
+          "option": "Black"
+        }
+      ]
+    },
+    "rule_text": "When the choice step runs, then every player secretly and simultaneously picks exactly one of Red, Blue, Green, Yellow, Purple or Black."
+  },
+  {
+    "name": "Choosing Black gives 1 point",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Black"
+      },
+      {
+        "seat": 2,
+        "options_include": "Red"
+      },
+      {
+        "seat": 3,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 0
+        }
+      },
+      "game": {
+        "black_count": 1
+      }
+    },
+    "rule_text": "When a player chooses Black, then that player's score increases by 1."
+  },
+  {
+    "name": "Sole chooser of a non-favourite colour gains its value",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red"
+        },
+        "2": {
+          "favourite": "Blue"
+        },
+        "3": {
+          "favourite": "Green"
+        }
+      },
+      "game": {
+        "value_yellow": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Yellow"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 1
+        },
+        "3": {
+          "score": 1
+        }
+      },
+      "game": {
+        "status_yellow": "COLLECTED"
+      }
+    },
+    "rule_text": "When a player is the only one to choose colour C and C is not their favourite, then their score increases by value_C (for example, by 4 if value_C is 4)."
+  },
+  {
+    "name": "Sole chooser of their favourite gains value plus 3",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red"
+        },
+        "2": {
+          "favourite": "Blue"
+        },
+        "3": {
+          "favourite": "Green"
+        }
+      },
+      "game": {
+        "value_red": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 5
+        },
+        "2": {
+          "score": 1
+        },
+        "3": {
+          "score": 1
+        }
+      }
+    },
+    "rule_text": "When a player is the only one to choose colour C and C is their favourite, then their score increases by value_C + 3 (for example, by 5 if value_C is 2)."
+  },
+  {
+    "name": "Two players on the same colour gain nothing, even if it is a favourite",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Blue"
+        },
+        "2": {
+          "favourite": "Red"
+        },
+        "3": {
+          "favourite": "Green"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 2,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 1
+        }
+      },
+      "game": {
+        "status_blue": "CONTESTED"
+      }
+    },
+    "rule_text": "When two or more players choose the same colour, then none of them gains any points that round."
+  },
+  {
+    "name": "Statuses are COLLECTED, CONTESTED or UNTOUCHED, with the Black count",
+    "rule": "R10",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Green"
+        },
+        "2": {
+          "favourite": "Yellow"
+        },
+        "3": {
+          "favourite": "Purple"
+        },
+        "4": {
+          "favourite": "Red"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 3,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 4,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "game": {
+        "status_red": "COLLECTED",
+        "status_blue": "CONTESTED",
+        "status_green": "UNTOUCHED",
+        "status_yellow": "UNTOUCHED",
+        "status_purple": "UNTOUCHED",
+        "black_count": 1
+      }
+    },
+    "rule_text": "When choices are resolved, then each colour's status is announced as COLLECTED (exactly 1 chooser), CONTESTED (2 or more) or UNTOUCHED (0), along with the number of Black choosers, without naming any player."
+  },
+  {
+    "name": "A collected colour resets to value 1",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red"
+        },
+        "2": {
+          "favourite": "Blue"
+        },
+        "3": {
+          "favourite": "Yellow"
+        }
+      },
+      "game": {
+        "value_green": 6
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "game": {
+        "value_green": 1
+      },
+      "players": {
+        "1": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When a colour was collected this round, then its value becomes 1 for the next round."
+  },
+  {
+    "name": "Contested and untouched colours rise by 1, capped at 7",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "value_red": 5,
+        "value_blue": 2,
+        "value_purple": 7,
+        "value_green": 6,
+        "value_yellow": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Red"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "game": {
+        "value_red": 6,
+        "value_blue": 3,
+        "value_purple": 7,
+        "value_green": 7,
+        "value_yellow": 4
+      }
+    },
+    "rule_text": "When a colour was contested or untouched this round, then its value rises by 1, but never above 7 (a colour at 7 stays at 7)."
+  },
+  {
+    "name": "Scores accumulate privately across a round without affecting public values",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "score": 3
+        },
+        "2": {
+          "score": 2
+        },
+        "3": {
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Black"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Purple"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 3
+        }
+      },
+      "game": {
+        "black_count": 2,
+        "status_purple": "COLLECTED",
+        "value_purple": 1
+      }
+    },
+    "rule_text": "When the game is running, then individual choices and scores are never announced."
+  },
+  {
+    "name": "Game ends after round 12 is resolved; highest score wins",
+    "rule": "R14",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 8
+        },
+        "3": {
+          "score": 5
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Black"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 11,
+        "2": 9,
+        "3": 6
+      },
+      "game": {
+        "round": 13
+      }
+    },
+    "rule_text": "When round 12 has been resolved, then the game ends and all favourites and scores are revealed."
+  },
+  {
+    "name": "Tie for highest score is shared",
+    "rule": "R15",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 9
+        },
+        "3": {
+          "score": 10
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Black"
+      },
+      {
+        "seat": 2,
+        "options_include": "Black"
+      },
+      {
+        "seat": 3,
+        "options_include": "Black"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        3
+      ],
+      "standings": {
+        "1": 11,
+        "2": 10,
+        "3": 11
+      }
+    },
+    "rule_text": "When the game ends, then the player with the highest score wins, and if two or more players tie for the highest score, the result is a draw among them."
+  }
+]

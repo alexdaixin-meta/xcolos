@@ -1,0 +1,365 @@
+{
+  "game": "cockroach_poker",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state shown to players has empty fields (claim, last_revealed, response) in `your_hand`; hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state shown to players has empty fields (claim, last_revealed) in `your_hand`; hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "4 players: each seat is dealt 6 cards and the whole deck is dealt",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "3 players: each seat is dealt 8 cards and the whole deck is dealt",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "At start every face-up count is 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Seat 1 sends first: only seat 1's hand shrinks in round 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sent card leaves the hand and hand_size drops by 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sender may claim a creature it does not hold and cannot choose itself as receiver",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Only the chosen receiver is asked to respond to the claim",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "TRUE on a true claim resolves against the sender's claim: sender takes",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Passer makes a new claim to a seat that is neither sender nor itself",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After a pass the final receiver may not pass again; a wrong FALSE makes it take",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Correct FALSE on a bluff: claimer takes the card",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Wrong FALSE on a true claim: judge takes the card",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Taker becomes the next sender and its counts rise",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Third face-up Roach makes the taker lose and ends the game",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Next sender with an empty hand loses",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Among non-losers the fewest face-up cards wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The game ends after round 24",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        4
+      ],
+      "results": {
+        "seats 1 and 2": 5,
+        "seat 3": 7,
+        "seat 1": 8,
+        "seat 2": 12,
+        "seat 4": 3,
+        "seats 2 and 4": 2,
+        "seats 3 and 4": 2,
+        "seats 2, 3 and 4": 1
+      },
+      "turns_min": 22,
+      "turns_max": 99
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seats 1 and 2": 15,
+      "seat 3": 11,
+      "seat 1": 11,
+      "seat 2": 20,
+      "seats 1 and 3": 2,
+      "seats 2 and 3": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 4,
+        "loss": 53,
+        "draw": 3,
+        "win_rate": 0.07
+      },
+      "first@seat2": {
+        "win": 2,
+        "loss": 55,
+        "draw": 3,
+        "win_rate": 0.04
+      },
+      "last@seat1": {
+        "win": 20,
+        "loss": 31,
+        "draw": 9,
+        "win_rate": 0.39
+      },
+      "last@seat2": {
+        "win": 21,
+        "loss": 36,
+        "draw": 3,
+        "win_rate": 0.37
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 58.7,
+      "prompt_chars_avg": 117,
+      "prompt_chars_max": 209
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 4 players, suggested 4",
+      "why": "The designer set 4 as the suggested size. At least 3 players are needed so that a pass can reach someone who is neither the sender nor the passer. The deck of 24 only deals evenly to 3 or 4 players, so the maximum is 4."
+    },
+    {
+      "what": "No talk step",
+      "why": "The rules forbid table talk; the claims are the only communication. Players reason by reading the face-up piles and by bluffing with claims that target a near-loser."
+    },
+    {
+      "what": "Rank expression 0 - faceup_total - 1000*lost",
+      "why": "This makes the loser rank below everyone, and among the rest the fewest face-up cards ranks highest."
+    },
+    {
+      "what": "Pass steps run as individual steps with a 'when passed' condition",
+      "why": "Each pass step is a single step with an arithmetic condition, not a chosen block, so the engine supports it directly."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for fewest face-up cards is a shared win rather than a draw",
+      "why": "The engine has no separate draw outcome; players level at the top share the win."
+    },
+    {
+      "what": "Sending is split into three questions: the card, then the claim, then the receiver",
+      "why": "Each engine question takes a single answer. The card choice is kept private to the sender."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 7,
+    "attributes": 32,
+    "hidden_elements": 12
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Cockroach Poker is a bluffing card game. Players slide face-down cards to each other with a claimed creature. The receiver either calls the claim true or false or, after peeking, passes the card on with a new claim. Whoever judges wrongly, or whose claim is caught out, takes the card face-up. Collecting four of one creature, or running out of cards to send, loses.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "No simple policy is safe. If a receiver always says 'true', senders bluff every time and the receiver collects cards. If a sender always tells the truth, receivers always say 'true' and the sender collects them. If a player always passes, they give away information and still end up holding cards. Always picking the same target lets that target predict and exploit you. The only built-in edge is that the first sender has a forced move, which matters little."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "The deal decides only which cards you can send. The outcome comes from reading bluffs, choosing claims, and steering cards toward players who are close to losing. Card counting from the face-up piles also gives better players a real edge."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Mixing truth and lies, reasoning about which creatures are still in hand, and targeting the player nearest a losing set all reward deeper play. A weak player still gets about half their calls right by chance."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Hands are hidden and the card in play is hidden. Every call means modelling the sender's incentive to lie and using the public face-up counts to judge how likely the claim is. Passing creates second-order bluffs."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Card identities are tracked, and whether a call was right is a direct comparison. The loss conditions are counts."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "The game is turn-based and text-only. However, the open-ended pass chain (up to five passes with 6 players) needs a variable-length subsequence. 64 cards across 6 players is long. Only one loser is named, with no single winner. The 2-player mode with no passing loses the second-order bluffing."
+      }
+    ],
+    "problems": [
+      "The unbounded pass chain needs a variable number of choice steps per round. The engine cannot branch into repeating blocks.",
+      "64 cards with 8 creatures and four-of-a-kind to lose makes games too long, with too much state for the step and attribute budgets.",
+      "The game names only one loser. The engine must declare a winner or a draw, so the outcome among the survivors is undefined.",
+      "The 2-player variant removes passing and plays almost like a pure guessing game. Wide player counts (2\u20136) make balancing hard."
+    ],
+    "changes": [
+      {
+        "what": "At most one pass per card. A receiver who passes peeks, then sends the card with a new claim to a player who is neither the original sender nor themselves. That final receiver must call true or false.",
+        "why": "This keeps the peek-and-pass double bluff but fits into a flat list of 4 choice steps, using `when` conditions on the pass steps.",
+        "fixes": "The unbounded pass chain needs a variable number of choice steps per round. The engine cannot branch into repeating blocks."
+      },
+      {
+        "what": "Use 24 cards: 4 creatures (Roach, Rat, Fly, Toad), 6 copies each. Collecting three of one creature face-up loses.",
+        "why": "Games last about 8\u201320 rounds and the state stays small. Card counting stays tractable but non-trivial.",
+        "fixes": "64 cards with 8 creatures and four-of-a-kind to lose makes games too long, with too much state for the step and attribute budgets."
+      },
+      {
+        "what": "When a player loses, the game ends immediately. Among the other players, the one with the fewest face-up cards wins. If several tie for fewest, the game is a draw.",
+        "why": "The winner is decided by arithmetic. Players must avoid cards all game, not just avoid the losing set, which rewards consistent good calls throughout.",
+        "fixes": "The game names only one loser. The engine must declare a winner or a draw, so the outcome among the survivors is undefined."
+      },
+      {
+        "what": "Restrict play to 3\u20134 players and drop the 2-player mode.",
+        "why": "With at least 3 players, passing is always possible and targeting has meaning. Fewer counts are easier to balance.",
+        "fixes": "The 2-player variant removes passing and plays almost like a pure guessing game. Wide player counts (2\u20136) make balancing hard."
+      }
+    ],
+    "keeps": [
+      "Sliding a face-down card with a declared creature that may be a lie.",
+      "The receiver's choice to call true or false, or to peek and pass with a new claim.",
+      "The loser of the judgement takes the card face-up and becomes the next sender.",
+      "Losing by collecting a set of one creature or by having no card to send."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The core bluff-and-call loop is strong strategic material. It needs only a bounded pass, a smaller deck and an arithmetic winner rule to fit the engine."
+    },
+    "variation": {
+      "name": "Roach Bluff",
+      "summary": "This is a compact Cockroach Poker for 3\u20134 players. Players send face-down creature cards with claims that may be lies. Receivers call the claim or peek and pass it once. Wrong judges and exposed liars collect cards face-up. Three of one creature loses, and the cleanest survivor wins.",
+      "players": {
+        "min": 3,
+        "max": 4,
+        "suggested": 4
+      },
+      "rules": "SETUP: The deck has 24 cards: 6 Roach, 6 Rat, 6 Fly and 6 Toad. Shuffle it once and deal it all face-down. With 4 players each gets 6 cards; with 3 players each gets 8. Each player's hand is private. Every player has a face-up pile, which starts empty; all face-up piles are public. Seat 1 is the first sender.\n\nEACH ROUND:\n1. The engine announces every player's face-up counts per creature and every player's hand size.\n2. SEND: The sender privately picks one card from their hand. They declare a creature (Roach, Rat, Fly or Toad), which may be true or false. They also pick one other player as receiver. The card leaves the sender's hand and becomes the card in play. The claim and the receiver are announced to all; the card's identity is not.\n3. RESPOND: The receiver chooses TRUE, FALSE or PASS.\n   - TRUE or FALSE: Go to step 5.\n   - PASS: Go to step 4.\n4. PASS (only when the receiver chose PASS):\n   - The receiver privately sees the card and becomes the passer.\n   - The passer declares a creature, which may be true or false. They pick a new receiver who is neither the original sender nor the passer.\n   - The new claim and new receiver are announced.\n   - The final receiver must choose TRUE or FALSE; passing again is not allowed.\n5. RESOLVE: The claim being judged is the latest one; the claimer is whoever made it (the sender, or the passer if there was a pass).\n   - If the judge's call is correct (TRUE and the card matches the claim, or FALSE and it does not), the claimer takes the card face-up.\n   - Otherwise the judge takes the card face-up.\n   - The card's identity is revealed to everyone, and the player who took the card becomes the next sender.\n6. CHECK:\n   - If any player now has 3 face-up cards of one creature, that player loses and the game ends.\n   - Otherwise, if the next sender has no cards in hand, that player loses and the game ends.\n\nThe game cannot last more than 24 rounds. There is no table talk: the claims are the only communication.",
+      "objective": "When the game ends, the player who triggered the end (three of one creature face-up, or no card to send) loses. Among all other players, the one with the fewest total face-up cards wins. If two or more of them tie for fewest, the game is a draw.",
+      "expected_effect": "Players must mix truthful and false claims unpredictably. They count the public face-up piles and their own hand to judge how likely a claim is. They steer cards at whoever is nearest a losing set while watching their own total, because the winner is the cleanest survivor. The single pass adds a second layer: the passer knows the truth and can relay or twist it. A separate talk phase is left out because the claims already are the communication and adding messages would only lengthen rounds. Every simple policy loses to a player who exploits it: always-TRUE is bluffed, always-truthful is called, always-PASS hands opponents information and still has to make a claim that can be caught."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 17,
+      "choice_steps_per_round": 4,
+      "attributes": 14,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 24
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "PAYOFF OF ONE CALL. Here q is the chance that the latest claim is true. From the judge's side:\n- TRUE: correct with probability q, so the claimer takes the card; wrong with probability 1-q, so the judge takes it.\n- FALSE: correct with probability 1-q, so the claimer takes it; wrong with probability q, so the judge takes it.\nA sender who mixes truth at q=0.5 leaves the judge indifferent, so neither call dominates.\n\nTHOUGHTLESS POLICIES, using the winner rule (fewest face-up wins; whoever reaches 3 of a creature, or must send with an empty hand, loses):\n(a) Always TRUE. A sensible sender always lies, so the policy takes 100% of cards sent to it. It holds 3 of a kind by its 5th to 9th card, or is forced to send from an empty hand, and it loses. Against random senders (claim true 1/4) it takes 75% of its cards. It loses.\n(b) Always FALSE. A sensible sender always tells the truth, and the policy takes 100% of cards. Against random senders it takes only 25%, so it beats random play, which is expected, but sensible play exploits it. It loses.\n(c) Always PASS. The passer's chance of taking the card equals the final receiver's chance of being correct. Against a random final receiver that is 0.5. Answering a random sender with FALSE costs only 0.25, so PASS is worse there. Against a sensible receiver PASS is about 0.5, the same as answering. So PASS is not dominant; it only buys a peek for card counting at the price of becoming the claimer. Against an exploiter, someone who knows you always pass can always send to you, and then you carry the claimer's risk on every card. Not never-losing.\n(d) Always the first option (TRUE): same as (a). Always the last (PASS): same as (c).\n(e) Sender always truthful, or always lying: answered by always TRUE or always FALSE respectively. The sender takes every card.\nNo policy is strictly better whatever the opponent does, and none avoids losing against an adaptive opponent.\n\nSEATS. Seat 1 sends first. The sender is the informed party, which is a slight edge. After that the taker becomes the sender, a catch-up rule, so the seat edge washes out within a round or two. Hands are 6 each (4 players) or 8 each (3 players), so the decks are equal.\n\nCAN EVERYONE WIN? Yes. Any non-loser with the fewest face-up cards wins. The game does not claim a payoff ordering such as a Prisoner's Dilemma, so there are no labels to check against the numbers.\n\nNOTE. Ties for fewest face-up end in a draw. In 4 players, a loss around round 8 to 12 leaves 4 to 7 cards among 3 survivors, so outcomes like 2-2-2 or 1-1-x happen. The draw rate is noticeable but not dominant."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "COMPLETENESS:\n- Every branch is defined: TRUE/FALSE/PASS, a single pass, and a forced final call.\n- Who judges is defined: the latest claimer is judged.\n- Who takes the card and who sends next are defined.\n- End checks: 3 of a kind, or a taker with an empty hand.\n- In 3 players, the post-pass receiver is forced: the only player who is neither the sender nor the passer. This is unambiguous.\n- An empty-handed player may still be a receiver. Taking a card then makes them lose, which the rules cover.\n\nFINITENESS. Each round moves exactly one card from a hand to a face-up pile, and there are 24 cards. After at most 24 rounds every hand is empty, so the next sender must lose. The 24-round bound is real.\n\nARITHMETIC. The winner is decided by comparing integer face-up counts.\n\nLIMITS:\n- 17 steps (limit 20).\n- 4 choice steps (limit 4): send as one compound choice, respond, pass declaration, final call.\n- 14 attributes (limit 20).\n- 2 hidden elements (limit 3): hands and the card in play.\n- 0 random draws per round (limit 1); the shuffle happens once at setup.\n- 24 rounds (limit 40).\n\nENGINE. Step 4 is not a block swap. Each step carries a `when response==PASS` condition, and resolution uses an `if` on which claim is latest. Both are supported. Hidden hands, sequential choice and private viewing are supported. There is no board, clock, trading or binding agreement.\n\nTALK. With 3 to 4 players and no talk: players disagree (each wants someone else to take the card), but the bluff is the point. The claims are the communication, and free talk would be cheap words on top of the claims. Omitting talk is a sensible decision; players reason from the claims, the revealed cards and the public piles rather than guessing blind.\n\nNOT A REPEATED COOPERATION GAME. There is no safe late-round option. A player with an empty hand is in maximum danger, not safe."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "WHAT TO INFER:\n- All 24 cards are dealt and the composition is public (6 of each creature). Your own hand of 6 or 8 cards plus the revealed face-up cards let you card-count. Example: holding 3 Roaches in 3 players leaves 3 of 6 Roaches among 16 unseen cards, so P(a given unseen card is a Roach) = 3/16 \u2248 0.19, not 0.25.\n- Senders reveal tendencies over up to 24 claims, which lets you model opponents.\n- Senders can aim claims at a creature where the receiver already holds 2 face-up. The receiver then knows the sender wants that creature to stick, which is a planning layer.\n- The pass lets the passer combine a peek with a second claim, and the final receiver must weigh two claims.\n\nCHANCE. The deal only changes counting information, not scores. Hand cards never count against you. No draws happen after setup. With all players at equilibrium (bluffing mixed at about 50/50 adjusted for counts), outcomes are driven by mixed-strategy guesses, not by a hidden type or deal. A better reader of tendencies and counts beats them.\n\nESTIMATE. Roughly 35-45% of the result comes from mixed-strategy coin-flip calls. A player who card-counts and exploits patterns beats an always-TRUE or random player most of the time. Per (a) and (b) above, a fixed bias gives away 75-100% of calls to an exploiter. Skill is clearly favoured."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [
+    "the built game has 7 choice steps per round, over the limit of 4"
+  ],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "revise_rules",
+      "reason": "The game is built correctly and behaves as specified, but the design needs 7 choice steps per round against a limit of 4. Those steps are the sender's card, claim and receiver, the receiver's response, then the passer's new claim, new receiver and the final judgment. That is a flaw in the rules, not in the file.",
+      "guidance": "Cut the per-round choices to at most 4. The simplest change is to drop the PASS mechanic entirely. The sender picks a card, declares a creature and picks a receiver, and the receiver calls TRUE or FALSE, which is exactly 4 choices. Resolve, reveal, check for three of one creature and check for an empty hand exactly as now. If you want to keep some passing, make the receiver fixed instead, for example always the next seat clockwise who still has cards. That frees one choice, so a single pass with a forced claim is possible, though dropping PASS is cleaner. Keep the 24-round cap, the face-up counters and the ending that ranks fewest face-up cards with a penalty for the loser. Also check that the change reduces the shared wins among non-losers; the random-play results show many split outcomes. A tie-break such as fewest face-up cards of the single most common creature would make outright winners more common."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 17,
+      "choice_steps_per_round": 4,
+      "attributes": 14,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 24
+    },
+    "measured": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 7,
+      "attributes": 32,
+      "hidden_elements": 12
+    }
+  },
+  "verdict": "needs_review"
+}

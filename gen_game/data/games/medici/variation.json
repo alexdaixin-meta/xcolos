@@ -1,0 +1,141 @@
+{
+  "original_summary": "Medici is a 2-6 player auction game played over 3 days. Players take turns drawing lots of 1-3 commodity cards and auctioning them with once-around bidding, the drawer bidding last. Each player loads purchases onto a ship of limited size, and florins are awarded each day for the most valuable ships and for majorities on commodity tracks. Most florins after day 3 wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "bad",
+      "evidence": "In the tested previous variation, always taking the first option won 48 of 60 matches from seat 1 and 51 of 60 from seat 2. Always taking the last option lost all 60 from both seats. Against random seats, seat 2 won 23 matches outright, against 15-16 for the other seats. So a fixed menu position and a seat both carried an edge. The causes were cheap bidding being unpunished, prizes too large relative to prices, payments vanishing into the bank, and a fixed clockwise bid order."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Valuing a lot against ship space and majorities is real skill in the original. In the tested build, though, a thoughtless low-bid policy beat random play 80% of the time, which shows the payoff structure rewarded passivity rather than judgement."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "Only the extremes were tested: minimum play almost always won and maximum play always lost. Little of the space between them rewarded refinement, because the best policy was a corner of the menu."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hidden deck order, rivals' remaining ship space and their likely valuations all have to be inferred. Bidding last as the drawer rewards reading what the others will pay."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Ship values, majorities and florin totals are all arithmetic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The original is turn-based and text-only. However, drawing 1-3 cards stop-at-will needs several random draws per turn, once-around sequential bidding creates seat order effects, and per-commodity majority tracks for many players exceed the attribute budget."
+    }
+  ],
+  "problems": [
+    "P1: Cheap play is unpunished. Bidding minimum or passing never costs anything, so 'first option' wins about 80% of matches.",
+    "P2: Maximum bidding is always ruinous. Prices go to the bank and prizes cannot recover them, so 'last option' loses 100% of matches.",
+    "P3: Seat edge. The fixed clockwise once-around bid order and the start-of-day rotation favoured seat 2 (23 outright wins against random seats, versus 15-16).",
+    "P4: Spending is not a trade-off. Payments disappear into the bank, so there is no tension between the seller's price and the buyer's cost.",
+    "P5: Prizes are out of scale with the starting florins, so the scoring does not reward a deliberate valuation over a fixed menu position.",
+    "P6: Platform limits. Stop-at-will multi-card draws need several random draws per round, and per-commodity majority tracks for every player exceed the attribute budget.",
+    "P7: Little to infer about rivals' preferences. Everyone values a card the same way, so opponent modelling reduces to counting ship space."
+  ],
+  "changes": [
+    {
+      "what": "The winning bid is paid in full to the selling (active) player. Only when the seller is forced to keep their own lot is the payment made to the bank.",
+      "why": "Overpaying now enriches a rival and underselling now costs the seller, so price matters on both sides.",
+      "fixes": "P4: Spending is not a trade-off"
+    },
+    {
+      "what": "The seller sets a reserve price of 1-6. If no bid reaches it, the seller must buy the lot at the reserve, paying the bank, if their ship has room.",
+      "why": "This keeps Medici's 'drawer bids last' tension. A low reserve gives the lot away cheaply, and a high reserve risks being stuck paying for it. Setting the reserve is a read of what the others will pay.",
+      "fixes": "P1: Cheap play is unpunished"
+    },
+    {
+      "what": "Each empty ship slot at the end of a day costs 2 florins.",
+      "why": "A player who never buys pays 6 florins a day and wins no ship prize, so pure passivity loses.",
+      "fixes": "P1: Cheap play is unpunished"
+    },
+    {
+      "what": "Bids are capped at 10. The money is rescaled to a 25-florin start, ship prizes of 12/6/0 per day, and a patron bonus of 3 per card.",
+      "why": "A card's worth to a buyer is roughly 3-6 florins. The cap limits the damage of random play, and paying 10 every time is clearly ruinous. Prizes are large enough that buying well beats not buying, but small enough that overpaying does not.",
+      "fixes": "P5: Prizes are out of scale with the starting florins"
+    },
+    {
+      "what": "Bids are sealed and simultaneous from the two non-sellers. Ties go to the tied bidder sitting first clockwise after the seller. The seller seat rotates every round, and day d starts with seat d.",
+      "why": "This removes the clockwise once-around order advantage. Across the 3 days every seat sells in every position exactly once and is 'first after the seller' equally often.",
+      "fixes": "P3: Seat edge"
+    },
+    {
+      "what": "Always-maximum play is checked against the new economy. A player paying 10 for 9 lots spends about 90 florins, and the rival sellers pocket it.",
+      "why": "This confirms that extreme bidding still loses but is no longer the only losing policy. Moderate overbidding for a needed card can now pay, through ship prizes and the patron bonus.",
+      "fixes": "P2: Maximum bidding is always ruinous"
+    },
+    {
+      "what": "Each lot is one drawn card (commodity and value 1-5). Each day the 20-card deck is reshuffled and 6 cards are auctioned. Ship capacity is 3. Majority tracks are replaced by a secret patron commodity per player.",
+      "why": "This uses one random draw per round and about 18 attributes, while keeping auctions, ship capacity, ship-value prizes and commodity-based scoring.",
+      "fixes": "P6: Platform limits"
+    },
+    {
+      "what": "Each player is secretly dealt a distinct patron commodity, and every patron card in their ship pays 3 florins at day end. A short simultaneous message phase is held before each auction.",
+      "why": "The same card is worth different amounts to different players, so bids and claims reveal or disguise types. Players must infer who will contest which card, and can bluff interest to drive up prices or feign disinterest to buy cheaply.",
+      "fixes": "P7: Little to infer about rivals' preferences"
+    }
+  ],
+  "keeps": [
+    "3 days, with ships of limited capacity filled through auctions",
+    "The active player draws and offers a lot, and effectively bids last through the reserve",
+    "Prizes each day for the highest and second-highest ship value",
+    "Commodity identity matters for scoring (now through the secret patron instead of tracks)",
+    "Most florins after day 3 wins"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Medici's core of valuing lots, reading rivals' bids and managing ship space survives in a compact, buildable form. The previous build's degeneracy came from the money flows and the bid order, both of which are fixable."
+  },
+  "variation": {
+    "name": "Medici: Sealed Harbour",
+    "summary": "Three merchants take turns selling single commodity cards over 3 days of 6 auctions each. The seller sets a reserve, the other two bid sealed, the money goes to the seller, and an unsold lot is forced back on the seller at the reserve. Ships hold 3 cards a day. Ship-value prizes, a secret patron commodity bonus and penalties for empty space decide who ends richest.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "SETUP\n- Players and money: 3 players in seats 1, 2 and 3. Each starts with 25 florins. Florin totals are public.\n- Deck: 20 cards, one of each combination of 4 commodities (Grain, Cloth, Spice, Dye) and values 1, 2, 3, 4 and 5.\n- Patron commodity: at the start of the game, 3 of the 4 commodities are dealt at random, one to each player, as that player's secret patron commodity. Each player sees only their own. The fourth commodity is nobody's patron.\n\nSTRUCTURE\n- Days and rounds: the game has 3 days of 6 rounds each, 18 rounds in all.\n- Start of day: the full 20-card deck is shuffled and every ship is empty. Each ship holds at most 3 cards per day.\n- Seller order: day 1 begins with seat 1 as seller, day 2 with seat 2, day 3 with seat 3. The seller then moves to the next seat each round (1, 2, 3, 1, ...). Each player sells exactly twice per day.\n\nEACH ROUND\n1. Draw: the top card of the deck is revealed to everyone. This card is the lot.\n2. Talk: all three players write one short message at the same time, without seeing the others. All messages are then shown to everyone. Talk is not binding.\n3. Reserve: the seller secretly chooses a reserve price, a whole number from 1 to 6.\n4. Bids: at the same moment, the two non-sellers each choose a sealed bid, a whole number from 0 to 10, no more than their current florins.\n   - A bid of 0 means pass.\n   - A player whose ship already holds 3 cards must bid 0.\n5. Resolve, case A (a bid reaches the reserve): the highest bid wins. If the two bids tie, the bidder sitting first clockwise after the seller wins. The winner pays their bid to the seller and loads the card.\n6. Resolve, case B (no bid reaches the reserve):\n   - If the seller's ship has room, the seller must load the card and pay the reserve to the bank.\n   - If the seller's ship is full, the card is discarded.\n   - If the seller has fewer florins than the reserve, they pay all they have.\n7. Reveal: the reserve, both bids, the buyer and the price are announced to everyone.\n\nEND OF EACH DAY (after round 6, 12 and 18)\n- Ship prize: each player's ship value is the sum of the card values in their ship. Highest ship value receives 12 florins and second highest receives 6.\n  - If two or more players tie, they add together the prizes for the places they occupy and split the sum equally, rounded down.\n  - A player with an empty ship never receives a prize.\n- Patron bonus: each player receives 3 florins for each card of their own patron commodity in their ship.\n- Empty-slot penalty: each player pays the bank 2 florins for each empty slot in their ship (0 to 3 slots). Florins cannot drop below 0.\n- Reset: ships are emptied and the next day begins.",
+    "objective": "After the end-of-day scoring of day 3, the player with the most florins wins. If two or three players tie for most, it is a draw between them.",
+    "expected_effect": "Simple policies now lose. A player who always sets reserve 1 and passes sells cheaply, never wins a prize and pays 18 in empty-slot penalties, falling behind any player who buys. A player who always reserves 6 and bids 10 hands about 90 florins to rivals and is forced to buy their own lots at 6. A random player overpays to the sellers. Seat order is neutralised by sealed simultaneous bids and the rotation of starting sellers.\n\nGood play means pricing each card from its value, its fit with your patron and the space left in all ships, and setting reserves that extract the most a rival will pay without leaving you stuck. Late-day lots matter, because full ships remove bidders and the empty-slot penalty pressures players with space.\n\nThe secret patron gives each card a different worth to each player. Bids and messages leak information, and bluffing interest raises a rival's price. Talk passes both tests because interests conflict: only one player wins and every payment goes to a rival. A player who follows a proposal like 'you take this Spice, I'll take the next card' can end with a weaker ship or pay a rival seller more than the card is worth to them. Likewise, believing 'I don't care about Dye' can let the speaker take their patron card cheaply."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 3,
+    "attributes": 19,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 18
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "VALUE OF ONE CARD to a buyer = 2 (fills a slot that would otherwise cost 2) + 3 if it is the buyer's patron + its effect on the ship prize (12/6/0). Each day has 6 lots and 9 slots, so at least 3 slots stay empty. Ship size and the 6 lots make cards scarce: a player can get a third card only by outbidding someone. Bids go to the seller, so overbidding pays an opponent.\n\nTHOUGHTLESS POLICIES. Two sensible players A and B face one thoughtless player T, over one day.\n\n(1) T always sets reserve 1 and always bids 0.\n- A and B bid about 3-5 on T's lots, so T usually ends the day with an empty ship.\n- T's day: about +8 from bids, -6 empty-slot penalty, no prize. Net about +2.\n- A and B fill 6 slots from 6 cards and share the 18 florins of prize money. They pay about 8 to T, pay reserves on their own unsold lots, and collect patron bonuses. Net about +6 to +9 each.\n- Against sensible play T loses.\n- Against random bidders (bids uniform 0-10, reserve uniform 1-6), T collects inflated bids and keeps some cheap cards. T can win sometimes but not almost always.\n\n(2) T always sets reserve 6 and always bids 0.\n- T pays 6 x 2 = 12 per day to the bank for 2 cards worth at most 4 + 3 patron + a share of the prize. Plus -2 for the empty slot.\n- T loses to sensible play.\n\n(3) T always bids the maximum, 10.\n- T wins every lot it bids on until its ship is full. That costs 30 per day, which T cannot even afford from 25 florins, against a gain of at most 12 + 9 + 6 slot value.\n- The money goes to the opponents. T loses badly.\n\n(4) T always bids 0 and sets a middle reserve.\n- This is worse than (1): T pays the reserve to keep its own cards and still has empty slots.\n\nWINNER RULE. No policy in (1)-(4) never loses. The outcome depends on the opponents' bids and on how the card values fall.\n\nNO DOMINANT OPTION.\n- A higher reserve raises the seller's income from bids but makes the seller pay more when nobody reaches it. That is a real trade-off.\n- A higher bid wins more often but pays more. The best bid depends on the guessed reserve and the rival's bid.\n\nSEATS.\n- Every player sells exactly 2 lots per day.\n- The starting seller rotates, so each seat is the last seller of a day exactly once (day 1 seat 3, day 2 seat 1, day 3 seat 2).\n- The tie-break favours the bidder clockwise after the seller. Each seat holds that position for exactly one seller, so it is symmetric.\n- No labelled payoff ordering is claimed. All three players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES COMPLETE.\n- Bid ranges, reserve range and the full-ship rule (must bid 0) are given.\n- Case A (a bid reaches the reserve) and its tie-break are given.\n- Case B is given, including a full ship (card discarded) and a broke seller (pays all).\n- Ship-prize ties with empty-ship exclusion are given. Examples: if two ships are empty, their share of the prize is not paid; a 1st/2nd tie splits 18 into 9/9; a three-way tie splits 18 into 6/6/6.\n- The penalty floor (florins cannot go below 0) and the end-of-day timing (rounds 6, 12, 18) are given.\n\nFINITE AND ARITHMETIC.\n- The game is finite: 18 rounds.\n- The winner is the highest florin total, with ties as draws.\n\nSIMULTANEOUS CHOICES. The reserve is secret and the two bids are a simultaneous poll.\n\nLIMITS.\n- Steps: about 10 per round plus about 5 end-of-day steps carried by `when` conditions on the round number, about 15 in total. Limit 20.\n- Choice steps: 3. Limit 4.\n- Hidden elements: 2 (patrons, reserve/bids). Limit 3.\n- Random draws: 1 per round, by drawing a random card from the remaining deck list. The day reset restores the list without a shuffle. The patron deal is setup.\n- Rounds: 18. Limit 40.\n- Attributes: 19 is tight. Florins x3, ship count x3, ship value x3, patron x3, patron-card count x3, deck, lot, reserve and 2 bids already make 20. It fits only if the bids or the per-day counters reuse slots, so the implementer must check this.\n- The ship-prize ranking needs calc, which the engine supports via a workaround.\n- No board, judge or clock is needed.\n\nTALK. Talk is simultaneous and placed where players disagree:\n- the seller wants high bids;\n- the bidders compete, or try a non-binding agreement to both bid low;\n- players may bluff about their patrons.\nFollowing a proposal can cost a player, so talk is warranted.\n\nLATE ROUNDS. There is no cooperation dilemma that collapses in late rounds. The last rounds are ordinary auctions."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT IS LUCK.\n- Which 6 of the 20 cards appear each day.\n- Which seller draws a high card.\n- The random patron deal.\n\nWHY SKILL STILL DECIDES.\n- Every card goes to a sealed auction, so a lucky draw is priced by competition. The seller of a 5-value card mostly profits through bids or a well-judged reserve, not automatically.\n- The patron deal is symmetric: everyone has one patron, worth 3 per card.\n\nWHAT TO INFER.\n- Each opponent's patron, from bids revealed after every round.\n- Each seller's reserve habits.\n- Each rival's ship need: count, value and empty slots are visible from loads.\n\nWHAT TO PLAN.\n- Whether to keep your own lot (high reserve) or sell it (low reserve).\n- When to chase the 12-florin first prize versus settling for second place.\n- Bidding just above the rival's likely bid.\n\nESTIMATE. Chance is about 25-35% of the result: 15-25 florins per player, mostly from priced card values, against about 18 x 3 = 54 florins of prize money plus auction transfers over the game. The rest is decided by reasoning.\n\nWITH ALL PLAYERS PLAYING WELL. Card luck is mostly bid away, and the winner is decided by the accuracy of reserve and bid inference, not by the deal alone. A reasoning player clearly beats the thoughtless policies in the balance check."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

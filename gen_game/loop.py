@@ -6,7 +6,9 @@ The rules are in `design/2026-10-12-evaluation-loop-policy.md`. In short:
   * a finding is acted on only when it is critical or major, belongs to the game (its file, its design, the prompt players see) and a verifier CONFIRMS it from the log;
   * the generator is run again for those, and the open MINOR findings go with them; minor findings alone never start a pass;
   * a finding about the platform, the harness or the tools (infra) stops the loop, is written to ESCALATIONS.md, and waits for a person, whatever its severity;
-  * a fixed finding that comes back stops the loop and is escalated; so does running out of passes.
+  * a fixed finding that comes back stops the loop and is escalated; so does running out of passes;
+  * after each iteration's plays, the plays are read for reasoning and planning (`reasoning.py`): a weak verdict is a major design finding that
+    needs no verifier (its quotes are checked against the players' own replies), an adequate one a minor finding, a strong one nothing.
 
 Everything the loop does to the world (play, review, confirm, revise, regenerate) is passed in, so the rules can be tested without a model.
 """
@@ -42,6 +44,8 @@ class Hooks:
     say: Callable[[str], None] = print
     #: (plays, reviews, findings) -> the model's overall call: {"decision": "iterate"|"good_enough", "fix": [finding ids], "result_reasonable", "aligned", "reason"}, or None when it could not answer
     judge: Callable[[list[str], list[dict], list[dict]], dict | None] | None = None
+    #: plays -> the reasoning-and-planning check of those plays ({"verdict": "strong"|"adequate"|"weak", "summary", "reasoning", "planning", "luck"}), or None when it could not be made
+    reasoning: Callable[[list[str]], dict | None] | None = None
 
 
 @dataclass
@@ -53,6 +57,7 @@ class Result:
     unconfirmed: list[dict] = field(default_factory=list)  # critical or major that nothing confirmed: for a person
     escalated: list[dict] = field(default_factory=list)
     judgement: dict | None = None                          # the last overall call by the judge
+    reasoning: dict | None = None                          # the last reasoning-and-planning check
     rules_never_seen: list[str] = field(default_factory=list)
 
 
@@ -69,6 +74,24 @@ def _merge(found: list[dict]) -> list[dict]:
         else:
             out.append(f)
     return out
+
+
+ASPECTS = ("reasoning", "planning", "luck")
+#: What every game is held to by the reasoning check; a weak or adequate verdict is measured against it.
+REASONING_EXPECTED = "winning takes reasoning and planning (each at least 2 of 3) and chance decides at most the margin (luck at most 1 of 3)"
+
+
+def _scores(check: dict) -> str:
+    return ", ".join(f"{a} {'-' if check[a]['score'] is None else check[a]['score']}" for a in ASPECTS)
+
+
+def _reasoning_finding(check: dict, plays: list[str]) -> dict:
+    """A weak verdict is a major design finding, already verified by its checked quotes; an adequate one is a minor finding."""
+    weak = check["verdict"] == "weak"
+    return {"where": "the plays as a whole (REASONING.md)", "observed": f"reasoning check {check['verdict']} ({_scores(check)}): {check.get('summary', '')}",
+            "expected": REASONING_EXPECTED, "category": "design", "severity": "major" if weak else "minor", "fix": check.get("summary", ""),
+            "plays": list(plays), "play": 0,
+            **({"confirmed": True, "why": "the reasoning check quotes the players' own replies, and every quote was checked against them"} if weak else {})}
 
 
 def _line(f: dict) -> str:
@@ -94,6 +117,10 @@ def run_loop(h: Hooks, max_iterations: int = 3) -> Result:
             not_seen = set(review.get("rules_not_seen") or [])
             never = not_seen if never is None else never & not_seen
         findings = _merge(found)
+        check = h.reasoning(plays) if h.reasoning else None  # after the plays: did winning take reasoning and planning?
+        res.reasoning = check
+        if check and check.get("verdict") in ("weak", "adequate"):
+            findings.append(_reasoning_finding(check, plays))
         for i, f in enumerate(findings, 1):
             f["id"] = f"I{it}.{i}"
         res.rules_never_seen = sorted(never or [])
@@ -103,7 +130,7 @@ def run_loop(h: Hooks, max_iterations: int = 3) -> Result:
         infra = [f for f in findings if f["category"] == "infra"]
         loopable = [f for f in findings if f["category"] in LOOPABLE]
         for f in loopable:
-            if f["severity"] in SEVERE:
+            if f["severity"] in SEVERE and "confirmed" not in f:
                 f["confirmed"], f["why"] = h.confirm(f["plays"][0], f)
         triggers = [f for f in loopable if f["severity"] in SEVERE and f.get("confirmed") is True]
         refuted = [f for f in loopable if f["severity"] in SEVERE and f.get("confirmed") is False]
@@ -127,8 +154,11 @@ def run_loop(h: Hooks, max_iterations: int = 3) -> Result:
             res.carried = minors
 
         verdict_text = ""
+        if h.reasoning:
+            verdict_text += (f"\n\n**Reasoning check:** {check['verdict']} ({_scores(check)}). {check.get('summary', '')}" if check
+                             else "\n\n**Reasoning check:** could not be made.")
         if judgement:
-            verdict_text = (f"\n\n**Judge:** {judgement.get('decision')}; result reasonable: {judgement.get('result_reasonable')}; aligned to the design: "
+            verdict_text += (f"\n\n**Judge:** {judgement.get('decision')}; result reasonable: {judgement.get('result_reasonable')}; aligned to the design: "
                             f"{judgement.get('aligned')}. {judgement.get('reason', '')}"
                             + (f" Asked for: {', '.join(sorted(set(judgement.get('fix') or [])))}." if judgement.get("fix") else ""))
         h.log(f"## Iteration {it}\n\nplays: {', '.join(plays)}\n\n"

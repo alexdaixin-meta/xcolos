@@ -76,12 +76,6 @@
         "visible": "none",
         "type": "number",
         "initial": 0
-      },
-      {
-        "key": "lead",
-        "visible": "none",
-        "type": "number",
-        "initial": 0
       }
     ]
   },
@@ -290,12 +284,6 @@
             "key": "score",
             "value": 2
           }
-        },
-        {
-          "adjust": {
-            "key": "lead",
-            "value": -2
-          }
         }
       ],
       "text": "Paper beats rock. Seat 2 scores 2."
@@ -314,12 +302,6 @@
             "key": "score",
             "value": 1
           }
-        },
-        {
-          "adjust": {
-            "key": "lead",
-            "value": 1
-          }
         }
       ],
       "text": "Rock beats scissors. Seat 1 scores 1."
@@ -336,12 +318,6 @@
           "adjust": {
             "player": 1,
             "key": "score",
-            "value": 2
-          }
-        },
-        {
-          "adjust": {
-            "key": "lead",
             "value": 2
           }
         }
@@ -372,12 +348,6 @@
             "key": "score",
             "value": 3
           }
-        },
-        {
-          "adjust": {
-            "key": "lead",
-            "value": -3
-          }
         }
       ],
       "text": "Scissors beats paper. Seat 2 scores 3."
@@ -396,12 +366,6 @@
             "key": "score",
             "value": 1
           }
-        },
-        {
-          "adjust": {
-            "key": "lead",
-            "value": -1
-          }
         }
       ],
       "text": "Rock beats scissors. Seat 2 scores 1."
@@ -418,12 +382,6 @@
           "adjust": {
             "player": 1,
             "key": "score",
-            "value": 3
-          }
-        },
-        {
-          "adjust": {
-            "key": "lead",
             "value": 3
           }
         }
@@ -469,45 +427,20 @@
         "calc": "rounds_left == 0"
       },
       "against": [
-        "seat_1_wins",
-        "seat_2_wins",
-        "draw"
+        "over"
       ]
     }
   ],
   "end": {
-    "seat_1_wins": {
+    "over": {
       "when": {
-        "calc": "lead > 0"
+        "calc": "rounds_left == 0"
       },
-      "result": "seat 1",
-      "reason": "seat 1 finished with more points",
+      "rank_by": "you.score",
       "reveal": [
         "hand"
       ],
-      "text": "Seat 1 wins. {reason}."
-    },
-    "seat_2_wins": {
-      "when": {
-        "calc": "lead < 0"
-      },
-      "result": "seat 2",
-      "reason": "seat 2 finished with more points",
-      "reveal": [
-        "hand"
-      ],
-      "text": "Seat 2 wins. {reason}."
-    },
-    "draw": {
-      "when": {
-        "calc": "lead == 0"
-      },
-      "result": "draw",
-      "reason": "both finished level",
-      "reveal": [
-        "hand"
-      ],
-      "text": "A draw. {reason}."
+      "text": "Winner: {result}. Final scores: seat 1 {players[0].score}, seat 2 {players[1].score}."
     }
   },
   "limits": {
@@ -516,5 +449,5 @@
     "actions_max": 100,
     "deadline_s": 120
   },
-  "rules": "Two players each hold the same twelve cards: four rock, four paper and four scissors. The game lasts ten rounds, so each player keeps two cards they never play. Both hands are public: you always know exactly which cards your opponent has left, and they know yours.\n\nEach round, the players talk in turn, twice each (seat 1, seat 2, seat 1, seat 2), then each plays one card face down. The cards are revealed together. Rock beats scissors, scissors beats paper, paper beats rock, and the winner scores by the card they won with:\n\n- a win with rock: 1 point\n- a win with paper: 2 points\n- a win with scissors: 3 points\n- the same card on both sides: nobody scores\n\nA played card is gone. After ten rounds the higher score wins; equal scores are a draw. Anything said while talking is not binding."
+  "rules": "Two players each hold the same twelve cards: four rock, four paper and four scissors. The game lasts ten rounds, so each player keeps two cards they never play. Both hands are public: you always know exactly which cards your opponent has left, and they know yours.\n\nEach round, the players talk in turn, twice each (seat 1, seat 2, seat 1, seat 2), then each plays one card face down. The cards are revealed together. Rock beats scissors, scissors beats paper, paper beats rock, and the winner scores by the card they won with:\n\n- a win with rock: 1 point\n- a win with paper: 2 points\n- a win with scissors: 3 points\n- the same card on both sides: nobody scores\n\nA played card is gone. After ten rounds the higher score wins; equal scores share the win. Anything said while talking is not binding."
 }

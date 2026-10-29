@@ -1,0 +1,762 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "break_the_code",
+    "name": "Break the Code: Coarse Clues",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "Hide a three-digit code of distinct digits, ask coarse clue cards about your opponent's code, and crack it early in each 4-round leg, over 3 legs."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "wrong_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "code",
+        "visible": "ally",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "revealed_code",
+        "visible": "public",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "guesses_left",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "solved",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card_asked",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "answer",
+        "visible": "ally",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "guess",
+        "visible": "ally",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "result",
+        "visible": "public",
+        "type": "text",
+        "initial": "pass",
+        "values": [
+          "pass",
+          "right",
+          "wrong"
+        ]
+      },
+      {
+        "key": "code_entry",
+        "visible": "ally",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "card_entry",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "guess_entry",
+        "visible": "ally",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "opp_code",
+        "visible": "ally",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "opp_a",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "opp_b",
+        "visible": "ally",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "opp_c",
+        "visible": "ally",
+        "type": "number",
+        "initial": 2
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leg_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "total_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "legs",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "rounds_per_leg",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "leg_start_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "leg_start_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "leg_start_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "guesses_per_leg",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "code_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "code_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 999
+      },
+      {
+        "key": "invalid_code_default",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "card_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "card_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "high_threshold",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "correct_score_base",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "wrong_guess_penalty",
+        "visible": "public",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "owner_bonus_on_wrong_guess",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "unsolved_leg_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "initial_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "initial_wrong_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "rank_score_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the players sit down",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "initial_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "wrong_count",
+            "value": {
+              "calc": "initial_wrong_count"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "code",
+            "value": {
+              "calc": "invalid_code_default"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_code",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "guesses_left",
+            "value": {
+              "calc": "guesses_per_leg"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "solved",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "start",
+      "label": "a new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "leg_round",
+            "value": {
+              "calc": "((round - 1) % rounds_per_leg) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card_asked",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "answer",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "guess",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "result",
+            "value": "pass"
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "code_entry",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card_entry",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "guess_entry",
+            "value": -1
+          }
+        }
+      ],
+      "text": "Round {round} of {total_rounds} begins (leg-round {leg_round} of {rounds_per_leg})."
+    },
+    {
+      "use": "update",
+      "phase": "start",
+      "label": "a new leg",
+      "when": {
+        "calc": "leg_round == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "guesses_left",
+            "value": {
+              "calc": "guesses_per_leg"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "solved",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_code",
+            "value": -1
+          }
+        }
+      ],
+      "text": "A new leg begins. Each player has {guesses_per_leg} wrong guesses allowed in this leg."
+    },
+    {
+      "use": "poll",
+      "phase": "code",
+      "label": "enter a code",
+      "when": {
+        "calc": "leg_round == 1"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "code_min"
+        },
+        "max": {
+          "calc": "code_max"
+        },
+        "or": [
+          "decline"
+        ]
+      },
+      "store": "code_entry",
+      "text": "Enter your secret code for this leg as a whole number from {code_min} to {code_max} with three different digits (for example 147, 852, or 12 meaning 0-1-2), or decline. It is stored with its digits sorted ascending. Repeated digits, any other entry, or declining stores code {invalid_code_default}. Your opponent does not see your entry."
+    },
+    {
+      "use": "update",
+      "phase": "code",
+      "label": "store the codes",
+      "when": {
+        "calc": "leg_round == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "code_entry",
+            "value": {
+              "calc": "you.code_entry if (you.code_entry != 'decline' and you.code_entry >= code_min and you.code_entry <= code_max and int(you.code_entry) == you.code_entry) else -1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "code",
+            "value": {
+              "calc": "(100 * sorted([int(you.code_entry / 100), int(you.code_entry / 10) % 10, int(you.code_entry) % 10])[0] + 10 * sorted([int(you.code_entry / 100), int(you.code_entry / 10) % 10, int(you.code_entry) % 10])[1] + sorted([int(you.code_entry / 100), int(you.code_entry / 10) % 10, int(you.code_entry) % 10])[2]) if (you.code_entry >= 0 and int(you.code_entry / 100) != int(you.code_entry / 10) % 10 and int(you.code_entry / 10) % 10 != int(you.code_entry) % 10 and int(you.code_entry / 100) != int(you.code_entry) % 10) else invalid_code_default"
+            }
+          }
+        }
+      ],
+      "text": "Both codes are set."
+    },
+    {
+      "use": "poll",
+      "phase": "ask",
+      "label": "ask a card",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "card_min"
+        },
+        "max": {
+          "calc": "card_max"
+        },
+        "or": [
+          "decline"
+        ]
+      },
+      "store": "card_entry",
+      "text": "Pick a card from {card_min} to {card_max} to ask about your opponent's code, or decline (no question this round). Cards: 1 High (digits {high_threshold} or higher), 2 Odd (odd digits), 3 Prime (digits 2, 3, 5 or 7), 4 Threes (digits 0, 3, 6 or 9), 5 Chain ((1 if b - a = 1 else 0) + (1 if c - b = 1 else 0), with sorted digits a < b < c), 6 Sum mod 4 ((a + b + c) mod 4). Only you see the answer."
+    },
+    {
+      "use": "update",
+      "phase": "ask",
+      "label": "answer the cards",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "card_asked",
+            "value": {
+              "calc": "int(you.card_entry) if (you.card_entry != 'decline' and you.card_entry >= card_min and you.card_entry <= card_max and int(you.card_entry) == you.card_entry) else 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "opp_code",
+            "value": {
+              "calc": "sum([p.code for p in players if p.seat != you.seat])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "opp_a",
+            "value": {
+              "calc": "int(you.opp_code / 100)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "opp_b",
+            "value": {
+              "calc": "int(you.opp_code / 10) % 10"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "opp_c",
+            "value": {
+              "calc": "int(you.opp_code) % 10"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "answer",
+            "value": {
+              "calc": "-1 if you.card_asked == 0 else (count(d >= high_threshold for d in [you.opp_a, you.opp_b, you.opp_c]) if you.card_asked == 1 else (count(d % 2 == 1 for d in [you.opp_a, you.opp_b, you.opp_c]) if you.card_asked == 2 else (count(d in [2, 3, 5, 7] for d in [you.opp_a, you.opp_b, you.opp_c]) if you.card_asked == 3 else (count(d in [0, 3, 6, 9] for d in [you.opp_a, you.opp_b, you.opp_c]) if you.card_asked == 4 else (((1 if you.opp_b - you.opp_a == 1 else 0) + (1 if you.opp_c - you.opp_b == 1 else 0)) if you.card_asked == 5 else (you.opp_a + you.opp_b + you.opp_c) % 4)))))"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "ask",
+      "label": "your answer",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "card_asked",
+        "answer"
+      ],
+      "text": "Your card this round (0 means none) and its answer about your opponent's code (-1 means no question):"
+    },
+    {
+      "use": "tell",
+      "phase": "ask",
+      "label": "the cards asked",
+      "to": "all",
+      "text": "Seat 1 asked card {players[0].card_asked}; Seat 2 asked card {players[1].card_asked} (0 means no question)."
+    },
+    {
+      "use": "poll",
+      "phase": "guess",
+      "label": "guess the code",
+      "to": {
+        "where": "you.guesses_left > 0 and you.solved == 0"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "code_min"
+        },
+        "max": {
+          "calc": "code_max"
+        },
+        "or": [
+          "pass"
+        ]
+      },
+      "store": "guess_entry",
+      "text": "Guess your opponent's code as a whole number from {code_min} to {code_max} with three different digits (digit order does not matter), or pass. Pass, or an entry without three different digits: nothing happens. Correct: you score {correct_score_base} minus the leg-round ({leg_round} now) and are done guessing this leg. Wrong: you score {wrong_guess_penalty}, your wrong count rises by 1, you lose one of your guesses left, and your opponent scores {owner_bonus_on_wrong_guess}."
+    },
+    {
+      "use": "update",
+      "phase": "guess",
+      "label": "score the guesses",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "guess_entry",
+            "value": {
+              "calc": "you.guess_entry if (you.guess_entry != 'pass' and you.guess_entry >= code_min and you.guess_entry <= code_max and int(you.guess_entry) == you.guess_entry) else -1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "guess",
+            "value": {
+              "calc": "(100 * sorted([int(you.guess_entry / 100), int(you.guess_entry / 10) % 10, int(you.guess_entry) % 10])[0] + 10 * sorted([int(you.guess_entry / 100), int(you.guess_entry / 10) % 10, int(you.guess_entry) % 10])[1] + sorted([int(you.guess_entry / 100), int(you.guess_entry / 10) % 10, int(you.guess_entry) % 10])[2]) if (you.guess_entry >= 0 and int(you.guess_entry / 100) != int(you.guess_entry / 10) % 10 and int(you.guess_entry / 10) % 10 != int(you.guess_entry) % 10 and int(you.guess_entry / 100) != int(you.guess_entry) % 10) else -1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "result",
+            "value": {
+              "calc": "'pass' if you.guess < 0 else ('right' if you.guess == you.opp_code else 'wrong')"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "(correct_score_base - leg_round if you.result == 'right' else 0) + (wrong_guess_penalty if you.result == 'wrong' else 0) + owner_bonus_on_wrong_guess * count(p.result == 'wrong' for p in players if p.seat != you.seat)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.result == 'right'"
+            },
+            "key": "solved",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.result == 'wrong'"
+            },
+            "key": "wrong_count",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.result == 'wrong' and you.guesses_left > 0"
+            },
+            "key": "guesses_left",
+            "value": -1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "guess",
+      "label": "the results",
+      "to": "all",
+      "text": "Seat 1: {players[0].result}; Seat 2: {players[1].result}. Scores: Seat 1 {players[0].score}, Seat 2 {players[1].score}."
+    },
+    {
+      "use": "update",
+      "phase": "leg end",
+      "label": "end of the leg",
+      "when": {
+        "calc": "leg_round == rounds_per_leg"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "count(p.solved == 0 for p in players if p.seat != you.seat) > 0"
+            },
+            "key": "score",
+            "value": {
+              "calc": "unsolved_leg_bonus"
+            },
+            "text": "Seat {player}'s code was not cracked this leg and scores {unsolved_leg_bonus}."
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_code",
+            "value": {
+              "calc": "you.code"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "leg end",
+      "label": "the codes revealed",
+      "when": {
+        "calc": "leg_round == rounds_per_leg"
+      },
+      "to": "all",
+      "text": "Codes this leg: Seat 1 {players[0].revealed_code}, Seat 2 {players[1].revealed_code}."
+    },
+    {
+      "use": "check",
+      "phase": "leg end",
+      "label": "after round 12",
+      "when": {
+        "calc": "round >= total_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= total_rounds"
+      },
+      "rank_by": "you.score * 100 - you.wrong_count",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score} ({players[0].wrong_count} wrong guesses), Seat 2 {players[1].score} ({players[1].wrong_count} wrong guesses)."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 12,
+    "actions_max": 500,
+    "deadline_s": 120
+  },
+  "rules": "Two players play {total_rounds} rounds, split into {legs} legs of {rounds_per_leg} rounds each; legs start at rounds {leg_start_1}, {leg_start_2} and {leg_start_3}. The round counter starts at 0 and increases by exactly 1 at the start of each round. Leg-round = ((round - 1) mod {rounds_per_leg}) + 1, so it runs 1 to {rounds_per_leg} within each leg.\n\nEach player has their own score, wrong count, code, guesses left, solved, card asked, answer and guess. Score and wrong count start at 0 and carry over between legs. One player's result never blocks or changes the other's, except where a rule says the code's owner scores.\n\nNew leg: when leg-round is 1, first each player's guesses left is reset to {guesses_per_leg} and solved to 0. Then both players secretly and at the same time enter a code as a number, for example 147, 852, or 12 (meaning 0-1-2). In other rounds there is no code prompt and codes stay unchanged.\n\nParsing a code: the entry x is read as digits A = floor(x / 100), B = floor(x / 10) mod 10 and C = x mod 10. If x is a whole number from {code_min} to {code_max} and A, B and C are all different, they are sorted ascending as a < b < c and stored as 100a + 10b + c (852 is stored as 258). Any other entry (repeated digits, out of range, non-numeric, missing or declined) is stored as code {invalid_code_default} (digits 0, 1, 2).\n\nAsking: every round, both players at the same time may pick one card from {card_min} to {card_max} to ask about the opponent's code. Declining or an invalid number means no question this round. A card may be asked again and gives the same answer. With the opponent's sorted digits a < b < c: Card 1, High: how many digits are {high_threshold} or higher. Card 2, Odd: how many digits are odd. Card 3, Prime: how many digits are 2, 3, 5 or 7. Card 4, Threes: how many digits are 0, 3, 6 or 9. Card 5, Chain: (1 if b - a = 1 else 0) + (1 if c - b = 1 else 0). Card 6, Sum mod 4: (a + b + c) mod 4. Each answer is shown privately to the player who asked. Then both players are told which card (or none) each player asked.\n\nGuessing: then both players at the same time may guess the opponent's code. A player is asked only if their guesses left is above 0 and their solved is 0; otherwise they are not asked. The guess is parsed as a code. Pass: declining, or an entry that does not give three different digits from {code_min} to {code_max}; a pass costs nothing. Correct: a valid guess equal to the opponent's stored code; the guesser scores {correct_score_base} minus leg-round (4, 3, 2 or 1) and their solved becomes 1 for the rest of the leg. Wrong: any other valid guess; the guesser scores {wrong_guess_penalty}, their wrong count increases by 1 and their guesses left decreases by 1, and the opponent, the code's owner, scores +{owner_bonus_on_wrong_guess}. If both players guess correctly in the same round, both score.\n\nResults: after guessing, both players are told whether each player passed, guessed right or guessed wrong. Codes are not shown.\n\nEnd of leg: when leg-round is {rounds_per_leg}, after the results, each player whose own code was not guessed correctly during this leg (the opponent's solved is still 0) scores +{unsolved_leg_bonus}; a player whose code was cracked scores nothing extra. Then both codes are revealed to both players.\n\nEnd: the game ends after round {total_rounds}. The higher total score wins. If the totals are equal, the player with fewer wrong guesses wins. If those are also equal, the game is a draw and the players share the win."
+}

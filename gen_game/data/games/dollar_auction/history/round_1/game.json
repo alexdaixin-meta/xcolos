@@ -1,0 +1,733 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "dollar_auction",
+    "name": "Collector's Dollar Auction",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "Four players with secret Red or Blue types bid for alternating prizes over 8 rounds; everyone pays their own bid, win or lose."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "prize_points",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "type",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "opening_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "raise1",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "raise2",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "total_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "contender",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "prize_colour",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "type_deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Red",
+          "Red",
+          "Blue",
+          "Blue"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "second_highest_opening",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "contender_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "raise2_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "highest_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "top_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "round_winner",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "player_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "starting_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "starting_prize_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "red_types",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "blue_types",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "match_prize_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "mismatch_prize_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "min_bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "min_contenders_for_raise",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "raise_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting purses",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "starting_coins"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "prize_points",
+            "value": {
+              "calc": "starting_prize_points"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal the types",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "type_deck[min(len(type_deck) - 1, int(uniform(0, len(type_deck))))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "type",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "type_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "type_deck[min(len(type_deck) - 1, int(uniform(0, len(type_deck))))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "type",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "type_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "type_deck[min(len(type_deck) - 1, int(uniform(0, len(type_deck))))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "type",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "type_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "type_deck[0]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 4,
+            "key": "type",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "type_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "set the round counter",
+      "do": [
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "coins",
+        "prize_points",
+        "type"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "start",
+      "label": "new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "prize_colour",
+            "value": {
+              "calc": "'Red' if round - 2 * int(round / 2) == 1 else 'Blue'"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "opening_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "raise1",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "raise2",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "total_bid",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "contender",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "round_winner",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "contender_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "raise2_count",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "start",
+      "label": "announce the prize",
+      "to": "all",
+      "text": "Round {round} of {rounds}: the prize is {prize_colour}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table. Everyone writes at the same time; all messages are then shown to everyone. Messages are not binding."
+    },
+    {
+      "use": "poll",
+      "phase": "bid",
+      "label": "opening bid",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_bid"
+        },
+        "max": {
+          "calc": "you.coins"
+        }
+      },
+      "store": "opening_bid",
+      "text": "Round {round}, {prize_colour} prize. Choose your secret opening bid: a whole number from 0 up to your coins. You pay your total bid whether you win or not."
+    },
+    {
+      "use": "update",
+      "phase": "bid",
+      "label": "reveal opening bids",
+      "do": [
+        {
+          "set": {
+            "key": "second_highest_opening",
+            "value": {
+              "calc": "sorted([p.opening_bid for p in players])[player_count - 2]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "contender",
+            "value": {
+              "calc": "you.opening_bid > 0 and you.opening_bid >= second_highest_opening"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "contender_count",
+            "value": {
+              "calc": "count(p.contender for p in players)"
+            }
+          }
+        }
+      ],
+      "text": "Opening bids: Seat 1 {players[0].opening_bid}, Seat 2 {players[1].opening_bid}, Seat 3 {players[2].opening_bid}, Seat 4 {players[3].opening_bid}. Second-highest opening bid: {second_highest_opening}. Contenders: {contender_count}."
+    },
+    {
+      "use": "poll",
+      "phase": "raise",
+      "label": "raise 1",
+      "when": {
+        "calc": "contender_count >= min_contenders_for_raise"
+      },
+      "to": {
+        "where": "you.contender"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_bid"
+        },
+        "max": {
+          "calc": "you.coins - you.opening_bid"
+        }
+      },
+      "store": "raise1",
+      "text": "Raise 1: you are a contender. Choose a secret raise from 0 up to your coins minus your opening bid. A raise of 0 means you drop out and cannot raise again this round."
+    },
+    {
+      "use": "update",
+      "phase": "raise",
+      "label": "reveal raise 1",
+      "when": {
+        "calc": "contender_count >= min_contenders_for_raise"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "raise2_count",
+            "value": {
+              "calc": "count(p.contender and p.raise1 > 0 for p in players)"
+            }
+          }
+        }
+      ],
+      "text": "Raise 1: Seat 1 {players[0].raise1} (total {players[0].opening_bid + players[0].raise1}), Seat 2 {players[1].raise1} (total {players[1].opening_bid + players[1].raise1}), Seat 3 {players[2].raise1} (total {players[2].opening_bid + players[2].raise1}), Seat 4 {players[3].raise1} (total {players[3].opening_bid + players[3].raise1})."
+    },
+    {
+      "use": "poll",
+      "phase": "raise",
+      "label": "raise 2",
+      "when": {
+        "calc": "raise2_count >= min_contenders_for_raise"
+      },
+      "to": {
+        "where": "you.contender and you.raise1 > 0"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_bid"
+        },
+        "max": {
+          "calc": "you.coins - you.opening_bid - you.raise1"
+        }
+      },
+      "store": "raise2",
+      "text": "Raise 2: choose a secret further raise from 0 up to your coins minus what you have already bid this round. This is the last raise."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "final bids",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "total_bid",
+            "value": {
+              "calc": "you.opening_bid + you.raise1 + you.raise2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "highest_total",
+            "value": {
+              "calc": "max([p.total_bid for p in players])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_count",
+            "value": {
+              "calc": "count(p.total_bid == highest_total for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round_winner",
+            "value": {
+              "calc": "min([p.seat for p in players if p.total_bid == highest_total]) if top_count == 1 and highest_total > 0 else 0"
+            }
+          }
+        }
+      ],
+      "text": "Raise 2: Seat 1 {players[0].raise2}, Seat 2 {players[1].raise2}, Seat 3 {players[2].raise2}, Seat 4 {players[3].raise2}. Total bids: Seat 1 {players[0].total_bid}, Seat 2 {players[1].total_bid}, Seat 3 {players[2].total_bid}, Seat 4 {players[3].total_bid}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "payment",
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "-min(you.total_bid, you.coins)"
+            }
+          }
+        }
+      ],
+      "text": "Every player pays their own total bid, winner or not."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the prize",
+      "when": {
+        "calc": "round_winner != 0"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == round_winner"
+            },
+            "key": "prize_points",
+            "value": {
+              "calc": "match_prize_points if you.type == prize_colour else mismatch_prize_points"
+            }
+          }
+        }
+      ],
+      "text": "Seat {round_winner} wins the {prize_colour} prize."
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "no winner",
+      "when": {
+        "calc": "round_winner == 0"
+      },
+      "to": "all",
+      "text": "Nobody wins the {prize_colour} prize this round."
+    },
+    {
+      "use": "sync",
+      "phase": "resolve",
+      "label": "your standing",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "coins",
+        "prize_points",
+        "type"
+      ],
+      "text": "Where you stand:"
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "final scores",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "you.coins + you.prize_points"
+            }
+          }
+        }
+      ],
+      "text": "Final: Seat 1 is {players[0].type} with {players[0].prize_points} prize points, score {players[0].score}; Seat 2 is {players[1].type} with {players[1].prize_points}, score {players[1].score}; Seat 3 is {players[2].type} with {players[2].prize_points}, score {players[2].score}; Seat 4 is {players[3].type} with {players[3].prize_points}, score {players[3].score}."
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.coins + you.prize_points",
+      "reveal": [
+        "type",
+        "prize_points",
+        "score"
+      ],
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score}, Seat 2 {players[1].score}, Seat 3 {players[2].score}, Seat 4 {players[3].score}."
+    }
+  },
+  "limits": {
+    "rounds": 8,
+    "rounds_max": 8,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "There are exactly {player_count} players. Each starts with {starting_coins} coins (public) and {starting_prize_points} prize points (private). At the start, {red_types} players are secretly dealt the type Red and {blue_types} the type Blue, uniformly at random. Each player knows only their own type. The game lasts {rounds} rounds. Odd rounds (1, 3, 5, 7) offer a Red prize and even rounds (2, 4, 6, 8) offer a Blue prize. A prize is worth {match_prize_points} prize points to a player whose type matches its colour and {mismatch_prize_points} prize points to a player whose type does not. Coins and all bids are public. Prize points are private until the end.\n\nEACH ROUND:\n1. The round number and the prize colour are announced.\n2. TALK: every player writes one short message at the same time, without seeing the others. All four messages are then shown to everyone. Messages are not binding.\n3. OPENING BID: every player at the same time secretly chooses a whole-number opening bid from 0 up to their current coins.\n4. All opening bids are revealed. The CONTENDERS are every player whose opening bid is greater than 0 and at least as large as the second-highest opening bid (ties included). For example, bids 5,5,5,2 give three contenders. If only one player bid more than 0, that player is the sole contender. If nobody bid more than 0, there are no contenders and nobody wins the prize.\n5. RAISE 1: if there are at least {min_contenders_for_raise} contenders, each contender at the same time chooses a whole-number raise from 0 up to (their current coins minus what they have already bid this round). Non-contenders are not asked. A contender who raises 0 has dropped out and may not raise again this round. If there are fewer than {min_contenders_for_raise} contenders, Raise 1 and Raise 2 are skipped.\n6. All Raise 1 amounts and each player's running total bid are revealed.\n7. RAISE 2: if at least {min_contenders_for_raise} contenders raised more than 0 in Raise 1, each of those contenders at the same time chooses a further whole-number raise from 0 up to (current coins minus what they have already bid this round). Contenders who dropped out in Raise 1 add nothing. Otherwise Raise 2 is skipped.\n8. Raise 2 amounts and final total bids are revealed. A player's total bid is their opening bid plus their raises.\n9. The round winner is the single player with the highest total bid. If two or more players tie for the highest total bid, nobody wins the prize this round.\n10. PAYMENT: every player, winner or not, loses coins equal to their total bid.\n11. The round winner, if any, privately gains {match_prize_points} prize points if the prize colour matches their type, otherwise {mismatch_prize_points}. Everyone is told who won, but not how many points they gained.\n12. Go to the next round. After round {rounds} the game ends.\n\nEND: Each player's final score is their coins plus their prize points. All scores and types are revealed. The player with the highest final score wins; if two or more players tie for the highest score, they share the result (a draw)."
+}

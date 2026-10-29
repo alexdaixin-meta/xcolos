@@ -33,7 +33,8 @@ class Completion(Protocol):
 def system_prompt(manifest: dict | None = None) -> str:
     return f"""You are a strict reviewer of game designs for XColos, a platform that trains and tests language models on
 strategic reasoning: inference from limited information, opponent modelling, and planning over rounds. It runs
-turn-based, text-only games between models and scores them by arithmetic. You did not design the game you are
+turn-based, text-only games between models and scores them by arithmetic. A step's complex rule check may be ruled
+true or false by a referee model; scores and the winner are always calculated. You did not design the game you are
 shown and you want it to fail review if it should.
 
 You are given the original game's rules and a proposed VARIATION. Check three things, each pass or fail, and

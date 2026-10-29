@@ -1,0 +1,397 @@
+{
+  "game": "hats",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state shown to players has empty fields (status_blue, status_green, status_purple, status_red) in `your_favourite`; hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Game starts with all colour values at 2, scores at 0, round 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Dealing favourites to 4 players removes 4 colours from the pool (which colours is random)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Dealing favourites to 3 players leaves 2 colours in the pool",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After round 1 the round number advances and untouched values ripen to 3",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Talk binds no one: after talk every seat still makes its own choice",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Every seat is offered all five colours and Black",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Choosing Black gives 1 point",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sole chooser of a non-favourite colour gains its value",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sole chooser of their favourite gains value plus 3",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Two players on the same colour gain nothing, even if it is a favourite",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Statuses are COLLECTED, CONTESTED or UNTOUCHED, with the Black count",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A collected colour resets to value 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Contested and untouched colours rise by 1, capped at 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Scores accumulate privately across a round without affecting public values",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 12 is resolved; highest score wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tie for highest score is shared",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        4
+      ],
+      "results": {
+        "seat 1": 9,
+        "seat 3": 15,
+        "seat 2": 9,
+        "seat 4": 6,
+        "seats 1 and 2": 1
+      },
+      "turns_min": 72,
+      "turns_max": 96
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 1": 16,
+      "seat 3": 25,
+      "seat 2": 17,
+      "seats 2 and 3": 2
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 10,
+        "loss": 49,
+        "draw": 1,
+        "win_rate": 0.17
+      },
+      "first@seat2": {
+        "win": 12,
+        "loss": 48,
+        "draw": 0,
+        "win_rate": 0.2
+      },
+      "last@seat1": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "last@seat2": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 84.0,
+      "prompt_chars_avg": 187,
+      "prompt_chars_max": 223
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 4 players, suggested 4",
+      "why": "The designer's suggested size is 4, so it is kept. The minimum is 3 because with 2 players the competition over colours is too thin to be interesting. The maximum is 4 because with 5 colours, 4 players still leave room to spread out, while a fifth player would let every favourite be in play and make collisions near-constant."
+    },
+    {
+      "what": "Talk is kept as a simultaneous poll with a broadcast",
+      "why": "The rules say messages are written at the same time without seeing the others, so a poll fits rather than ask. Talk earns its place because players have conflicting interests. Each wants a ripe colour to themselves, so claiming, warning or bluffing about a favourite gives others something to weigh. Following a claim can cost a player a collision."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player tracks which colours are ripening, reads the COLLECTED and CONTESTED history to infer others' favourites, and uses talk to steer rivals away from their own targets. They also judge when the safe 1 point from Black beats a likely collision."
+    },
+    {
+      "what": "Favourites are dealt from a hidden colour_pool list",
+      "why": "This makes 'all different' a matter of draw-and-remove, which the engine supports."
+    },
+    {
+      "what": "Score is marked observable",
+      "why": "The source reveals scores at the end, and tests need the score. It stays ally-visible during play."
+    },
+    {
+      "what": "Each player is synced their own score after collection",
+      "why": "The source says each player can see their own private score. The source does not say when updates are delivered, so the sync timing is my choice."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for the highest score is represented as a shared win",
+      "why": "The engine has no separate draw outcome: players level at the top share the win, which corresponds to the source's draw."
+    },
+    {
+      "what": "Per-colour counts and statuses are kept as separate table attributes (count_red, status_red and so on)",
+      "why": "The engine has no lookup by colour, so each colour gets its own counter and status."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 12,
+    "choice_steps_per_round": 2,
+    "attributes": 33,
+    "hidden_elements": 10
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Hats is a 2-4 player card game. Players swap numbered hat cards with a shared tea table to collect types. A type scores according to its position on the table. A secret favourite type, revealed from the last card in hand, adds a bonus, black hats score 1, and a cookie goes to the player with the most distinct types.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "bad",
+        "evidence": "In the previous variation favourites were all different, so 'always collect my favourite' was never contested unless a rival paid his own round to block it. Pushes needed 2 votes on one colour and never fired under sensible self-interested play. The thoughtless policy 'collect and push favourite' therefore scored 12*(start position+3) and won whenever its favourite started high. The random start gave a dealt edge of up to 48 points. Always Black (12) loses, and always Red loses unless Red is your favourite, but one fixed policy plus a lucky deal decides most games."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "bad",
+        "evidence": "With everyone playing the obvious strategy, the 4-player totals were 96/84/72/60, set purely by the random table order. Push coalitions shifted at most 1 point per hat and could be countered by any tying vote, so a better player could not reliably overcome a bad deal."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "weak",
+        "evidence": "A weak player scores easily, since any uncontested colour pays at least 4. A strong player has little to improve: collect favourite every round is near-optimal, and the remaining levers (coalitions, sacrificial blocks) rarely change the winner."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "bad",
+        "evidence": "Per-colour hat counts were announced every round, so every favourite was public after round 1. The one hidden element collapsed and nothing was left to infer. The original card game has more hidden hand information, but the variation threw it away."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "All scoring is arithmetic on positions, counts and bonuses. No judge is needed."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "The game is turn-based, text-only and 12 rounds long. However, 6 hat counters per player across 4 players plus positions, favourites and scores exceeds 33 attributes against a limit of 20. The push unique-max-and-swap, the 6-way collision check and the cookie unique-max over players push the step count beyond the honest estimate and need calc workarounds. The original card game (42-card deck, hands, tableaux, partner exchanges) is far beyond the limits."
+      }
+    ],
+    "problems": [
+      "P1: Start-order luck. The random table order gives a favourite up to 4 points per hat over another, which decides the winner when everyone plays well (lottery trap).",
+      "P2: Favourites become public after round 1 because per-colour collections are announced with attribution, so there is nothing to infer.",
+      "P3: Pushes never fire under sensible play (each player votes a different colour, the threshold is 2), so the scoring order is frozen and push-related reasoning is moot.",
+      "P4: Collecting your favourite is a free, uncontested default. No decision is made and the near-dominant thoughtless policy wins.",
+      "P5: The black hat is dominated and exists only as a cookie token. The cookie needs per-player per-kind flags that blow the attribute budget.",
+      "P6: The attribute count (more than 33) and steps (unique-max, swap, cookie) exceed platform limits, and the stated complexity was wrong.",
+      "P7: Because favourites were known and uncontested, talk had little to work on beyond fragile push coalitions."
+    ],
+    "changes": [
+      {
+        "what": "Replace the random positional order with a public VALUE for each colour. All colours start at 2. A colour gains +1 each round it is not successfully collected (capped at 7) and drops back to 1 when someone collects it.",
+        "why": "Every colour starts identical, so no favourite is dealt an advantage. The table is shaped entirely by what players do, like the original board, where taking a card changes what sits there.",
+        "fixes": "P1"
+      },
+      {
+        "what": "Replace pushing with the growth/reset rule above. Leaving a colour alone is now the way to 'push' it up, and taking it resets it.",
+        "why": "Value changes now fire every round from players' own choices. The question becomes timing: let your favourite ripen, or cash it now before someone else takes it?",
+        "fixes": "P3"
+      },
+      {
+        "what": "Keep choices and scores private. Each round announce only, per colour, whether it was collected, contested or untouched, plus how many players took Black. Never announce who took what. Each player sees only their own score until the end.",
+        "why": "Favourites stay genuinely hidden. Players must infer from aggregate patterns which colours someone is protecting and which are free to take, and whether a contest was a block or an accident.",
+        "fixes": "P2"
+      },
+      {
+        "what": "Make the favourite bonus position-independent (+3 per favourite hat, added privately). Let colour values grow so that ripe colours, including other players' favourites, are worth taking at up to 7.",
+        "why": "Your favourite is worth value+3 to you but only its value to rivals. If you let it ripen, an opportunist may take it at 7. If you take it every round, you earn only 1+3=4 per round while others harvest the ripening colours. 'Always favourite' becomes beatable and every pick is a timing and prediction decision.",
+        "fixes": "P4"
+      },
+      {
+        "what": "Contests give nothing and do not reset the colour, which keeps growing. The game uses 3-4 players, so 4 or 5 colours compete for a handful of pickers.",
+        "why": "This creates a chicken game over the ripest colours. Grabbing the top value collides with anyone else who reads the table the same way, so players must predict rivals rather than follow a fixed rule.",
+        "fixes": "P4"
+      },
+      {
+        "what": "Black is always available for a guaranteed 1 point. The cookie and per-kind tracking are dropped.",
+        "why": "Black becomes a real safe fallback when a collision is likely, especially in contested rounds, instead of a cookie token. Removing per-kind flags cuts about 24 attributes.",
+        "fixes": "P5"
+      },
+      {
+        "what": "Track only 5 colour values, 5 per-round chooser counts, and per player a private score and a private favourite. Step count is recounted honestly.",
+        "why": "This totals 19 attributes for 4 players and about 10 steps, inside the limits.",
+        "fixes": "P6"
+      },
+      {
+        "what": "Keep simultaneous one-message talk before each choice.",
+        "why": "Players now disagree about who gets the ripe colours. Claims such as 'I'm taking Blue' are cheap bluffs meant to scare others off. Promises to leave someone's favourite alone can be broken, and the aggregate outcome partly reveals who broke them.",
+        "fixes": "P7"
+      }
+    ],
+    "keeps": [
+      "Hat types of different colours collected from a shared tea table whose values change as hats are taken",
+      "A secret favourite type revealed at the end that boosts that type's hats",
+      "Black hats as a guaranteed 1-point fallback",
+      "Collision on the same hat: you cannot both take it",
+      "Highest total wins, with 3-4 players, as in the original's multiplayer modes"
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The core (hidden favourite, a shared table whose hat values shift, contested collection) supports real inference and timing once start luck is removed and choices are kept unattributed. It fits within the limits."
+    },
+    "variation": {
+      "name": "Ripening Hats",
+      "summary": "Players secretly pick hats from a tea table each round. Each colour's value grows while it is left alone and resets when taken, and two players reaching for the same colour both get nothing. Each player has a secret favourite colour worth +3 per hat. Nobody sees who took what, only which colours were taken or fought over.",
+      "players": {
+        "min": 3,
+        "max": 4,
+        "suggested": 4
+      },
+      "rules": "SETUP. There are 5 hat colours, listed in this fixed order: Red, Blue, Green, Yellow, Purple. Each colour has a public value, and all five start at 2. Each player is dealt a secret favourite colour at random, all different; only that player knows it. Every player has a private score starting at 0, which only that player can see.\n\nEACH ROUND (12 rounds):\n1. Announce to everyone: the round number and the current value of each of the 5 colours.\n2. Talk: everyone writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Talk binds no one.\n3. Choice: everyone simultaneously and secretly chooses one of Red, Blue, Green, Yellow, Purple or Black.\n4. Collection. A player who chose Black adds 1 to their score. A player who chose a colour that no other player chose this round collects it: they add that colour's current value to their score, plus 3 more if it is their favourite. A colour chosen by two or more players is contested, and none of them gains anything.\n5. Announce to everyone, without naming players: for each colour, whether it was COLLECTED (exactly one chooser), CONTESTED (two or more) or UNTOUCHED (no one), and how many players chose Black. Individual choices and scores are never announced.\n6. Value update. Each colour that was collected this round resets to 1. Each colour that was contested or untouched gains +1, to a maximum of 7.\n7. After round 12 the game ends.\n\nEND. All favourites and scores are revealed.",
+      "objective": "The player with the highest final score wins. If two or more players tie for the highest score, the game is a draw.",
+      "expected_effect": "No colour starts ahead, so the deal only decides what each player wants, not who leads. Each round is a timing and prediction problem.\n\nTaking your favourite every round yields only 4 per round. Letting it ripen risks an opportunist sniping it at up to 7. Grabbing the ripest colour collides with anyone else who reads the table the same way. Black is the safe 1.\n\nPlayers must infer from the unattributed COLLECTED/CONTESTED patterns which colours rivals are protecting, which are free, and whether a contest was a block or a coincidence.\n\nSimple policies all lose to some play:\n- Always Black scores 12 and loses to almost anyone.\n- Always one fixed colour collides with that colour's fan or gets 1 per round.\n- Always favourite scores about 49 and loses to a player who alternates between their favourite at 2-3 and an unclaimed colour at 6-7.\n- Always highest value is predictable. It collides with copycats and can be pre-empted, and it often cashes only 2-3 per round.\n\nTalk passes both tests. Players disagree over who gets each ripe colour, since only one can collect it and only one player wins. A player who just follows a rival's claim ('I'm taking Purple, stay off it') hands that rival 7 points. A player who honours a pact to leave someone's favourite alone may watch that player snipe theirs. Claims can be bluffs, and the anonymous outcome only partly exposes who lied.\n\nThe winner rule is a race, not a cooperation dilemma, so endgame unravelling does not apply. The last rounds become a sharp chicken game over the ripest colours."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 2,
+      "attributes": 19,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "critic": {
+      "rounds": 2,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "fail",
+            "evidence": "Per-round COLLECT value for a player whose favourite F ends at position p: F uncontested = p+3 (range 4 to 8). Another colour C ending at position q: q if uncontested, 0 if contested. Black = 1, guaranteed. Favourites are all different, so the default policy 'always collect my favourite' is never contested unless an opponent deliberately blocks. A block costs the blocker his own p'+3 for that round. Policy tests over 12 rounds: (1) Always Black scores 12, with 1 kind and no cookie. It loses to anyone collecting a colour (at least 12*4 = 48) and to random play (about 2.5 per round). It fails as a winning policy. (2) Always first option (Red, push Red) is good only if Red is your favourite or sits high. Otherwise it scores q per round and collides with Red's owner, getting 0. It usually loses. (3) Always 'collect favourite, push favourite' is the near-dominant thoughtless policy. Pushes alone never fire, because each player votes a different colour (1 vote each, below the threshold of 2), so the table stays at its random start. 4p example, favourites at positions 5, 4, 3, 2: totals 96, 84, 72, 60. Cookie +5 cannot close a 12-point gap, and gaining the cookie means spending rounds on other kinds worth at most 5 each, with collision risk. Against random opponents (about 1/6 chance each picks your colour) this policy wins almost every game when its favourite starts high. Against sensible play it loses only if two players form a pushing coalition or someone sacrifices rounds to block. Each push moves the leader down at most 1 per hat, and the leader can counter-vote with any one ally. So no single option is strictly dominant, but one fixed policy wins whenever the random start favours it. Seat order: choices are simultaneous, so there is no move-order edge. There is, however, a dealt edge of up to 4 points per hat (48 over 12 hats) from the random table order alone. Both players cannot realistically win from equal footing. The black hat (1) is dominated by any uncontested colour at position 1 or higher plus the favourite bonus, so it exists only as a cookie token."
+          },
+          "playable": {
+            "verdict": "fail",
+            "evidence": "The rules are mostly complete. Collection collisions, push tie and threshold handling, position 5 and the cookie tie are all specified. Talk is simultaneous and placed where players disagree (push coalitions, blocking threats), which is appropriate. The game is finite (12 rounds) and scored by arithmetic. No board or judge is needed: positions are 5 numbers. However, the stated complexity is wrong. The attribute count in a 4-player game is 6 hat counts * 4 players = 24, plus 5 table positions, plus 4 favourites, plus scores, which is more than 33. That exceeds the limit of 20, not the claimed 18. The push step also needs vote tallies for 5 colours, a unique-max test and a find-the-colour-above swap. Together with the collision check for 6 options and the cookie unique-max over players, this realistically exceeds 10 steps, and the swap and unique-max need calc workarounds. Hidden favourites are fine (1 hidden element). Setup randomness is outside the per-round draw limit, so that is fine. The late-round dilemma test (does cooperation pay after a betrayal) is not the core issue here."
+          },
+          "reasoning_over_luck": {
+            "verdict": "fail",
+            "evidence": "The hidden element collapses almost at once. Per-type collection counts are announced every round, so after round 1 every player's favourite is public: everyone collects their favourite because it is never contested and is worth 3 extra. Little remains to infer. When all players follow the intended good strategy (collect favourite, push own favourite), no push ever reaches 2 votes. Final scores are then 12*(start position+3) per player. The winner is the player dealt the highest-positioned favourite, decided purely by the random setup (in 4p, 96 vs 84 vs 72 vs 60). Push coalitions (two trailing players voting the same colour, one swap per round) and sacrificial blocking add some opponent modelling. But each swap only shifts 1 point per hat between two owners, can be countered by any two-player vote that ties it, and talk is non-binding. The random start remains the main factor in most games. Estimated share of the outcome decided by the deal: well over half."
+          },
+          "required_changes": [
+            "Remove the luck of the start order. Either set the table order by a public pre-round bidding or veto phase, or make the favourite bonus large and position-independent while making the position score rise from the current pushes, so that no favourite starts with a fixed 4-per-hat edge.",
+            "Keep favourites genuinely hidden. Announce only each player's total hats and black hats, not per-colour counts, or reveal collections only at the end. Inferring who owns which colour then becomes a real task.",
+            "Make pushing reachable and contestable. For example, let a single vote move a colour up when no other colour gets a vote, and let a vote target 'down' as well. Coalitions and counter-votes then decide the final order rather than the deal.",
+            "Give blocking or contesting a reason. For example, a collision gives the hat to the player who also pushed that colour. Collecting your favourite then becomes a decision that can be punished, not a free default.",
+            "Cut the attribute count to 20 or fewer. For example, track only per-player score, favourite-hat count, black count and distinct-kinds count instead of 6 counters per player, plus 5 positions. Restate steps_per_round honestly, including the push unique-max and swap logic, and keep it at 20 or fewer."
+          ],
+          "sound": false
+        },
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Each round is an anti-coordination game. If you are the only player on a colour you get its value v (1 to 7), plus 3 if it is your favourite. If two or more players pick the same colour, all of them get 0. Black always pays 1.\n\nPayoffs for me, given the others' choices:\n| My choice | Nobody else on it | Someone else on it |\n|---|---|---|\n| Colour, value v | v (+3 if favourite) | 0 |\n| Black | 1 | 1 |\n\nNo option is strictly better. Black beats a contested colour but loses to any uncontested colour worth 2 or more. Uncontested colours are worth at least 2, except one collected last round, which has reset to 1.\n\nRandom play, 3 players: you pick a colour with probability 5/6. That colour stays uncontested with probability (5/6)^2 = 0.69. Untouched and contested colours keep growing, so the average value is about 3. Expected points per round are 5/6 x 0.69 x 3 + 1/6 x 1, plus a favourite bonus of 3 x 1/6 x 0.69. That is about 2.2 per round, or about 27 over 12 rounds.\n\nThoughtless policies under the winner rule:\n(a) Always Black, the last option: exactly 12 points. A random player averages about 27 and a sensible spreader about 35-45. Always Black loses almost every game.\n(b) Always Red, the first option: once collected, Red resets to 1 and stays at 1 while collected every round. The total is 2 + 11 x 1 = 13. If Red is the favourite and is never contested, the total is 13 + 36 = 49. Sensible opponents can punish this. One of them sits on Red for a round, which costs them about 1 and costs the Red player 1-4, while the others harvest colours that have grown to 3-7. Against random opponents Red is contested 31% of the time, giving about 0.7-1.5 per round. The expected total is about 9-18, plus favourite luck. It loses to random and to sensible play in most games. Its only edge is the 1-in-5 favourite deal, and anyone who notices a colour COLLECTED every round can contest it.\n(c) Always the highest-value colour: every greedy player converges on the same colour, so it is often contested and scores 0. Sensible players who take the second-best colour beat it.\n\nNo policy never loses. Shadowing the leader to force a contest costs both players, and in a 3-4 player game the uninvolved players gain, so spoiling does not guarantee you are not behind.\n\nSeats: all choices are simultaneous and talk is simultaneous, so there is no seat edge. Favourites are dealt while all colours start at 2, so the +3 bonus is symmetric in expectation. Every player can realistically win."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules are complete.\n- Values start at 2 and are capped at 7.\n- Collection (step 4) uses the current value before the update (step 6).\n- Contested colours give 0. Untouched and contested colours gain 1; collected colours reset to 1.\n- The announcement is anonymous. Each player still knows their own choice, so they can deduce what the others took as a group.\n- Favourites are all different, which is possible with at most 4 players and 5 colours.\n- The game is finite at 12 rounds. Scores are pure arithmetic on stored numbers.\n\nComplexity:\n| Limit | Design | Maximum |\n|---|---|---|\n| Steps per round | about 10 | 20 |\n| Choice steps per round | 2 (talk and pick) | 4 |\n| Attributes | 5 values + 4 x (score, favourite, choice) = 17, plus contest counts, about 19 | 20 |\n| Hidden elements | 2 (favourite, score) | 3 |\n| Random draws per round | 0 (one setup deal) | 1 |\n| Rounds | 12 | 40 |\n\nAll features used are supported: private_values, simultaneous_choice and free_text_talk. The game needs no board, judge or clock.\n\nTalk is justified. Players disagree because everyone wants the same high-value colour uncontested. Following a proposal such as I take Purple, you take Yellow can cost you, and lying about intentions is a real option. The talk is simultaneous, as required.\n\nLate rounds: Black (1) does not dominate. Untouched colours have grown to 4-7 by then, and the expected value of spreading out beats 1. A past contest does not make the safe option win every late round."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Chance is limited to the setup favourite deal. Its effect is +3 on each collection of that colour, worth about 6-15 points over the game. The deal does not decide the game, because colour values are public and change every round.\n\nThere is plenty to reason about:\n- Which colours rivals will target, read from their talk and from the anonymous COLLECTED/CONTESTED history.\n- Rivals' favourites, inferred from colours that are repeatedly collected or claimed.\n- Timing: letting a colour ripen versus taking it now.\n- When to bluff in talk.\n- Who is leading late in the game: the anonymous record of what others collected bounds their scores.\n\nThe gaps are large. Sensible play reaches about 35-45, random play about 27, and thoughtless policies 12-18. Skill clearly dominates.\n\nWhen all players play well, the symmetric equilibrium is mixed, so results among equals vary. That variation comes from players' strategic choices and the favourite deal, not from a draw that fixes the winner. Good play can overcome a worse favourite by harvesting ripened colours. Chance decides roughly 15-25% of outcomes between skilled players."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 2,
+      "attributes": 19,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "measured": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 2,
+      "attributes": 33,
+      "hidden_elements": 10
+    }
+  },
+  "verdict": "ready_for_review"
+}

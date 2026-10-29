@@ -3,8 +3,9 @@
 Tiers. The pipeline checks two things: that the game runs, and that it plays the rules the design says.
 
   Tier 0, validity. Random seats play at the smallest and largest table; every
-  match must end with a result and a valid log, no seat may be left unable to
-  answer, and the same seed must replay to the same log.
+  match must end with a winner, the standings its `rank_by` ending logged, and a
+  valid log, no seat may be left unable to answer, and the same seed must replay
+  to the same log.
 
   Tier 1, rules (`scenarios.py`, not here): situations written from the design's own rules, each answered by naming
   the option on offer, with the result and scores each must give. A rule the game plays differently fails.
@@ -21,18 +22,41 @@ cannot say.
 
 from __future__ import annotations
 
+import ast
+import re
 from collections import Counter
 
 from gen_game import harness
+from xcolos.games.calc import SEEDED, Expr
 from xcolos.games.definition import GameDefinition
 
 DOMINANCE = 0.85
 MIN_DECIDED = 10
+#: A result saying nobody won. In a game with one shared outcome, that is the team missing its target.
+NOBODY_WINS = re.compile(r"\b(no|nobody|none|no one)\b.*\bwins?\b|\blos(?:e|es|t)\b", re.I)
 
 
 def not_run() -> dict:
     """The reasoning and balance checks, left out: the same shape, nothing flagged."""
-    return {"flags": [], "random_results": {}, "dominance": {}, "skipped": True}
+    return {"flags": [], "notes": [], "random_results": {}, "dominance": {}, "skipped": True}
+
+
+def shared_outcome(defn: GameDefinition) -> bool:
+    """Every ending gives the whole table one outcome, as a team target does.
+
+    Either a fixed result that names no seat, no draw and no winner, or a `rank_by` every seat scores level on
+    (it reads no `you` and draws nothing at random), so the table shares the win, or nobody wins under `min_to_win`.
+    """
+    return bool(defn.end) and all(_ranks_level(r.rank_by) if r.rank_by else
+                                  r.result and not r.winner and r.result != "draw" and not r.result.startswith("seat ")
+                                  for r in defn.end)
+
+
+def _ranks_level(rank_by: str) -> bool:
+    """A `rank_by` that gives every seat the same value: `you` is the only thing that differs from seat to seat."""
+    expr = Expr(rank_by)
+    called = {n.func.id for n in ast.walk(expr.tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    return "you" not in expr.names() and not called & set(SEEDED)
 
 
 def tier0(defn: GameDefinition, seeds: range = range(1, 21)) -> dict:
@@ -48,8 +72,7 @@ def tier0(defn: GameDefinition, seeds: range = range(1, 21)) -> dict:
                 problems.append(f"{n} players, seed {seed}: crashed: {type(exc).__name__}: {exc}")
                 break
             r = p.result
-            if r.status != "ended" or not r.winner:
-                problems.append(f"{n} players, seed {seed}: {r.status} ({r.reason}), result {r.winner!r}")
+            problems += [f"{n} players, seed {seed}: {m}, result {r.winner!r}" for m in p.end_problems()]
             if r.degraded_turns:
                 problems.append(f"{n} players, seed {seed}: {r.degraded_turns} degraded turn(s)")
             problems += [f"{n} players, seed {seed}: log: {m}" for m in p.log_problems()[:2]]
@@ -83,13 +106,18 @@ def tier1(defn: GameDefinition, seeds: range = range(1, 61)) -> dict:
     random_results: Counter = Counter()
     for seed in seeds:
         random_results[harness.play(defn, harness.random_agents(n, seed), seed).result.winner] += 1
-    seat_named = all(w is None or w == "draw" or w.startswith("seat ") for w in random_results)
+    seat_named = all(w is None or w == "draw" or harness.winning_seats(w) or harness.no_winner(w) for w in random_results)
 
-    if len(random_results) == 1:
-        flags.append(f"every random match ended {next(iter(random_results))!r}: choices do not change the result")
+    notes: list[str] = []
     top, count = random_results.most_common(1)[0]
-    if len(random_results) > 1 and count / sum(random_results.values()) > 0.9:
-        flags.append(f"random seats end {top!r} in {count / sum(random_results.values()):.0%} of matches")
+    share = count / sum(random_results.values())
+    if shared_outcome(defn) and (harness.no_winner(top) or NOBODY_WINS.search(str(top))):
+        # a team target random play misses is what a target is for; only thinking play can show it is reachable
+        notes.append(f"random teams end {top!r} in {share:.0%} of matches, as a shared target should; whether thinking play reaches it is for a model play-test")
+    elif len(random_results) == 1:
+        flags.append(f"every random match ended {top!r}: choices do not change the result")
+    elif share > 0.9:
+        flags.append(f"random seats end {top!r} in {share:.0%} of matches")
 
     dominance: dict[str, dict] = {}
     if not seat_named:
@@ -102,10 +130,12 @@ def tier1(defn: GameDefinition, seeds: range = range(1, 61)) -> dict:
                     agents = harness.random_agents(n, seed)
                     agents[seat - 1] = harness.FixedAgent(harness.NAMES[seat - 1], policy)
                     w = harness.play(defn, agents, seed).result.winner
-                    tally["win" if w == f"seat {seat}" else "draw" if w == "draw" else "loss"] += 1
+                    won = harness.winning_seats(w)
+                    # a win shared at the top, or a match nobody won, counts as a draw: the policy did not beat the table
+                    tally["win" if won == [seat] else "draw" if w == "draw" or seat in won or harness.no_winner(w) else "loss"] += 1
                 decided = tally["win"] + tally["loss"]
                 rate = tally["win"] / decided if decided else 0.0
                 dominance[f"{policy}@seat{seat}"] = {"win": tally["win"], "loss": tally["loss"], "draw": tally["draw"], "win_rate": round(rate, 2)}
                 if decided >= MIN_DECIDED and rate >= DOMINANCE:
                     flags.append(f"always taking the {policy} option as seat {seat} wins {rate:.0%} of decided matches against random seats")
-    return {"flags": flags, "random_results": dict(random_results), "dominance": dominance}
+    return {"flags": flags, "notes": notes, "random_results": dict(random_results), "dominance": dominance}

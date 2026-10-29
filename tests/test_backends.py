@@ -15,13 +15,16 @@ from xcolos.flow import ModelJudge, Output
 from xcolos.flow.backends import (
     DEFAULT_MODEL,
     AnthropicCompletion,
+    gateway_completion,
     CommandCompletion,
     MUSE_MODEL,
     CompletionError,
     EchoCompletion,
+    FallbackCompletion,
     MuseCompletion,
     from_spec,
     read_key,
+    split_alternatives,
 )
 from xcolos.flow.judge import Call
 
@@ -52,9 +55,10 @@ class Block:
 class FakeClient:
     """Records the request and returns a canned message."""
 
-    def __init__(self, blocks=None, error=None):
+    def __init__(self, blocks=None, error=None, stop_reason="end_turn"):
         self.blocks = blocks or [Block("text", '{"answer": true, "reason": "ok"}')]
         self.error = error
+        self.stop_reason = stop_reason
         self.requests = []
         self.messages = self
 
@@ -62,7 +66,7 @@ class FakeClient:
         self.requests.append(request)
         if self.error:
             raise self.error
-        return FakeStream(type("M", (), {"content": self.blocks})())
+        return FakeStream(type("M", (), {"content": self.blocks, "stop_reason": self.stop_reason, "stop_details": None})())
 
 
 # ----------------------------------------------------------------------
@@ -83,6 +87,99 @@ def test_the_request_names_the_current_model_and_asks_for_adaptive_thinking():
     )
     assert request["messages"] == [{"role": "user", "content": "Has the town won?"}]
     assert request["max_tokens"] > 0
+
+
+class FakeBetaClient(FakeClient):
+    """Also answers `client.beta.messages.stream`, the path the refusal-fallback beta takes."""
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.beta = self
+
+
+def test_the_gateway_spec_points_the_claude_client_at_the_ai_gateway():
+    c = from_spec("gateway")
+    assert isinstance(c, AnthropicCompletion) and c.model == "claude-opus-5-5"
+    kw = c.client_kwargs()
+    assert kw["base_url"] == "http://anthropic.ai-gateway.x2p.facebook.net" and kw["api_key"] == "meta-ai-gateway-placeholder"
+    assert kw["default_headers"]["x-meta-ai-gateway-calling-product"] == "xcolos"
+    assert kw["default_headers"]["x-meta-ai-gateway-sensitive"] == "false"
+    assert c.proxy == "http://localhost:10054" and c.max_tokens == 64000 and c.effort == "high" and c.fallbacks
+    assert from_spec("gateway:claude-sonnet-5-5").model == "claude-sonnet-5-5"
+    assert gateway_completion(effort="low").effort == "low"
+
+
+def test_a_gateway_request_sets_effort_caches_the_system_and_asks_for_fallbacks():
+    client = FakeBetaClient()
+    AnthropicCompletion(client=client, model="claude-opus-5-5", effort="high", fallbacks=True).complete("go", system="rules")
+    r = client.requests[0]
+    assert r["output_config"] == {"effort": "high"} and r["system"][0]["cache_control"] == {"type": "ephemeral"}
+    assert r["betas"] == ["server-side-fallback-2026-07-01"] and r["fallbacks"] == "default"
+
+
+def test_without_gateway_options_the_anthropic_request_is_unchanged():
+    client = FakeClient()
+    AnthropicCompletion(client=client).complete("x")
+    assert not {"output_config", "betas", "fallbacks"} & set(client.requests[0])
+    assert "base_url" not in AnthropicCompletion(api_key="k").client_kwargs()
+
+
+def test_a_refusal_or_a_reply_with_no_text_raises_a_completion_error():
+    cases = (([Block("text", "no")], "refusal", "refus"), ([Block("thinking", "hm")], "end_turn", "no text"))
+    for blocks, stop, words in cases:
+        try:
+            AnthropicCompletion(client=FakeClient(blocks=blocks, stop_reason=stop)).complete("x")
+        except CompletionError as error:
+            assert words in str(error), str(error)
+        else:
+            raise AssertionError(f"{stop} should raise")
+
+
+def test_the_gateway_request_is_labelled_xcolos_even_inside_claude_code():
+    """A Claude Code shell exports its own calling product; the gateway request must still say xcolos."""
+    import os
+
+    import pytest
+
+    try:
+        import anthropic
+    except ImportError:
+        pytest.skip("the anthropic SDK is not installed")
+    try:
+        import httpx2 as http  # anthropic 1.x
+    except ImportError:
+        import httpx as http  # anthropic 0.x
+    seen = []
+
+    def handler(request):
+        seen.append(request)
+        raise http.ConnectError("stop here")
+
+    old = os.environ.get("ANTHROPIC_CUSTOM_HEADERS")
+    os.environ["ANTHROPIC_CUSTOM_HEADERS"] = (
+        "X-Meta-AI-Gateway-Calling-Product: claude_code:cli\nx-meta-ai-gateway-harness: claude_code\n"
+        "X-Meta-AI-Gateway-Trace-Id: claude_code_invocation_1"
+    )
+    try:
+        c = gateway_completion()
+        c.http_client = anthropic.DefaultHttpxClient(transport=http.MockTransport(handler))
+        try:
+            c.complete("x")
+        except CompletionError:
+            pass
+    finally:
+        if old is None:
+            os.environ.pop("ANTHROPIC_CUSTOM_HEADERS", None)
+        else:
+            os.environ["ANTHROPIC_CUSTOM_HEADERS"] = old
+    assert seen and all(r.headers["x-meta-ai-gateway-calling-product"] == "xcolos" for r in seen)
+    assert seen[0].url.host == "anthropic.ai-gateway.x2p.facebook.net"
+    # anthropic 2.x sends the key as a bearer token, 0.x/1.x as x-api-key; the gateway replaces either placeholder
+    sent = seen[0].headers.get("x-api-key") or seen[0].headers.get("authorization", "").removeprefix("Bearer ")
+    assert sent == "meta-ai-gateway-placeholder"
+    # nothing else of Claude Code's own labelling rides along
+    assert "x-meta-ai-gateway-harness" not in seen[0].headers
+    assert "claude_code" not in seen[0].headers.get("x-meta-ai-gateway-trace-id", "")
 
 
 def test_thinking_can_be_turned_off():
@@ -210,6 +307,55 @@ def test_an_unknown_or_incomplete_spec_says_what_is_accepted():
             pass
         else:
             raise AssertionError(f"{bad!r} should not build a backend")
+
+
+class Down:
+    """A model that cannot be reached, counting how often it is asked."""
+
+    model = "down"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        self.calls += 1
+        raise CompletionError("Model API returned 403: requires the Meta corporate network")
+
+
+def test_alternatives_ask_the_next_model_when_one_fails_and_keep_the_one_that_answered():
+    import contextlib
+    import io
+
+    down, said = Down(), io.StringIO()
+    both = FallbackCompletion([down, EchoCompletion("ok")])
+    with contextlib.redirect_stderr(said):
+        assert both.complete("x") == "ok" and both.complete("y") == "ok"
+    assert down.calls == 1  # a model that is down costs one failed call, not one per call
+    assert said.getvalue().count("down: Model API returned 403") == 1  # the switch is said once, so a run shows which model answered
+
+
+def test_alternatives_report_every_failure_when_none_answers():
+    try:
+        FallbackCompletion([Down(), Down()]).complete("x")
+    except CompletionError as exc:
+        assert str(exc).count("403") == 2
+    else:
+        raise AssertionError("no model answered, so the call must fail")
+
+
+def test_a_spec_names_alternatives_with_a_bar():
+    both = from_spec("echo:a|echo:b")
+    assert isinstance(both, FallbackCompletion) and both.complete("x") == "a"
+    assert from_spec("echo:a|b").complete("x") == "a|b"  # a bar inside one spec's text is not a choice
+    assert split_alternatives(" gateway | muse ") == ["gateway", "muse"]
+    assert split_alternatives("command:sort | uniq") == ["command:sort | uniq"]
+
+
+def test_a_seat_falls_back_to_the_next_model_when_the_first_cannot_be_reached():
+    from xcolos.seat_models import seat_completion
+
+    complete = seat_completion("command:false|echo:Pass", pause=lambda s: None)
+    assert complete([{"role": "user", "content": "your move"}], None) == "Pass"
 
 
 # ----------------------------------------------------------------------
@@ -705,3 +851,69 @@ def test_the_servers_first_choice_is_the_newest_model_unless_the_environment_nam
         os.environ.pop("XCOLOS_MUSE_MODEL", None)
         if saved is not None:
             os.environ["XCOLOS_MUSE_MODEL"] = saved
+
+
+def test_a_model_seat_is_invited_to_give_reasons_before_its_answer_but_never_told_to():
+    from xcolos.seat_models import SEAT_SYSTEM
+
+    assert SEAT_SYSTEM.startswith("You are one player in a game")
+    assert "keep any reasoning short and before the answer" in SEAT_SYSTEM  # Claude gave reasons on all 103 Hanabi decisions with this
+    assert "first give your reasons" not in SEAT_SYSTEM  # told to, Claude refused bids as reasoning_extraction and the plays stopped
+
+
+class Flaky:
+    """Fails with the given errors in turn, then answers."""
+
+    def __init__(self, *errors: str) -> None:
+        self.errors, self.calls = list(errors), 0
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        self.calls += 1
+        if self.errors:
+            raise CompletionError(self.errors.pop(0))
+        return "Pass"
+
+
+def _seat_over(inner, waits):
+    import xcolos.seat_models as sm
+
+    original = sm.from_spec
+    sm.from_spec = lambda spec: inner
+    try:
+        return sm.seat_completion("command:stand-in", pause=waits.append)
+    finally:
+        sm.from_spec = original
+
+
+def test_a_seat_waits_out_rate_limits_long_enough_for_them_to_clear():
+    waits: list[float] = []
+    inner = Flaky(*["the model call failed: Error code: 429 - rate_limit_error"] * 5)
+    assert _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None) == "Pass"
+    assert inner.calls == 6 and sum(waits) >= 120  # five throttled calls, then the answer; a match is not lost to a burst
+
+
+def test_a_seat_does_not_retry_a_refusal():
+    waits: list[float] = []
+    inner = Flaky("the model refused the request (category: reasoning_extraction)", "x")
+    try:
+        _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None)
+    except CompletionError:
+        pass
+    else:
+        raise AssertionError("a refusal must reach the caller")
+    assert inner.calls == 1 and waits == []
+
+
+def test_a_seat_waits_out_a_network_blip_long_enough_for_the_connection_to_come_back():
+    waits: list[float] = []
+    blip = "the model call failed: folly::AsyncSocketException: AsyncSocketException: connect failed (immediately), type = Socket not open, errno = 65 (No route to host)"
+    inner = Flaky(*[blip] * 4)
+    assert _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None) == "Pass"
+    assert inner.calls == 5 and sum(waits) >= 120  # a Turn the Tide match died one move from the end on 15 seconds of retries
+
+
+def test_a_connection_refused_is_retried_and_not_taken_for_a_model_refusal():
+    waits: list[float] = []
+    inner = Flaky("the model call failed: [Errno 61] Connection refused")
+    assert _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None) == "Pass"
+    assert inner.calls == 2 and waits

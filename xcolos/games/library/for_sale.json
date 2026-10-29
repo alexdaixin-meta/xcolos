@@ -1,0 +1,907 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "for_sale",
+    "name": "For Sale: Sealed Bids",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "blurb": "Buy properties with sealed bids and private coins, then sell them for cheques; most cheques plus leftover coins wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "coins",
+        "visible": "ally",
+        "type": "number",
+        "initial": 18
+      },
+      {
+        "key": "cheques",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "bid",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_key",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_rank",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "played",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "final_money",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "final_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "property_deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30
+        ]
+      },
+      {
+        "key": "cheque_deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          0,
+          0,
+          2,
+          2,
+          3,
+          3,
+          4,
+          4,
+          5,
+          5,
+          6,
+          6,
+          7,
+          7,
+          8,
+          8,
+          9,
+          9,
+          10,
+          10,
+          11,
+          11,
+          12,
+          12,
+          13,
+          13,
+          14,
+          14,
+          15,
+          15
+        ]
+      },
+      {
+        "key": "revealed_properties",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "revealed_cheques",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "priority_first",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "player_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "starting_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 18
+      },
+      {
+        "key": "property_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "property_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "property_deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "properties_used",
+        "visible": "public",
+        "type": "number",
+        "initial": 24
+      },
+      {
+        "key": "properties_unused",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "cheque_min_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "cheque_max_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "cheque_missing_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "cheque_distinct_values",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "cheque_copies_each",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "cheque_deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "cheques_used",
+        "visible": "public",
+        "type": "number",
+        "initial": 24
+      },
+      {
+        "key": "total_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "buying_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "first_selling_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 9
+      },
+      {
+        "key": "cards_revealed_per_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "first_place_pay_fraction",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "second_third_pay_divisor",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "properties_per_player_after_buying",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "initial_cheque_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tie_break_bid_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "rank_coin_tiebreak_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting state",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "starting_coins"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "cheques",
+            "value": {
+              "calc": "initial_cheque_total"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "[]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "property_deck",
+            "value": {
+              "calc": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "cheque_deck",
+            "value": {
+              "calc": "[0, 0, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "buying",
+      "label": "reveal properties",
+      "when": {
+        "calc": "round <= buying_rounds"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "priority_first",
+            "value": {
+              "calc": "(round - 1) % player_count + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "revealed_properties",
+            "value": {
+              "calc": "[]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "property_deck[int(uniform(0, len(property_deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "revealed_properties",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "property_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "property_deck[int(uniform(0, len(property_deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "revealed_properties",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "property_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "property_deck[int(uniform(0, len(property_deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "revealed_properties",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "property_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "revealed_properties",
+            "value": {
+              "calc": "sorted(revealed_properties)"
+            }
+          }
+        }
+      ],
+      "text": "Buying round {round}. Properties revealed (LOW, MIDDLE, HIGH): {revealed_properties}. Tie-break priority starts with seat {priority_first}."
+    },
+    {
+      "use": "sync",
+      "phase": "buying",
+      "label": "buying view",
+      "when": {
+        "calc": "round <= buying_rounds"
+      },
+      "mode": "self",
+      "to": "all",
+      "text": "Before you bid:"
+    },
+    {
+      "use": "poll",
+      "phase": "buying",
+      "label": "sealed bid",
+      "when": {
+        "calc": "round <= buying_rounds"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": 0,
+        "max": {
+          "calc": "you.coins"
+        }
+      },
+      "store": "bid",
+      "text": "Round {round}: properties {revealed_properties} (LOW, MIDDLE, HIGH). Submit a secret bid, a whole number from 0 up to your coins. Highest bid takes HIGH and pays the full bid; second takes MIDDLE and third takes LOW, each paying half their bid rounded down. Ties go by priority starting with seat {priority_first}."
+    },
+    {
+      "use": "update",
+      "phase": "buying",
+      "label": "rank the bids",
+      "when": {
+        "calc": "round <= buying_rounds"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_key",
+            "value": {
+              "calc": "you.bid * tie_break_bid_multiplier + (player_count - ((you.seat - priority_first + player_count) % player_count))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bid_rank",
+            "value": {
+              "calc": "1 + count(p.bid_key > you.bid_key for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "buying",
+      "label": "take the properties",
+      "when": {
+        "calc": "round <= buying_rounds"
+      },
+      "do": [
+        {
+          "append": {
+            "players": {
+              "where": "you.bid_rank == 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "max(revealed_properties)"
+            },
+            "text": "Seat {player} takes HIGH, property {value}."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.bid_rank == 1"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-min(you.coins, you.bid * first_place_pay_fraction)"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": {
+              "where": "you.bid_rank == 2"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "revealed_properties[1]"
+            },
+            "text": "Seat {player} takes MIDDLE, property {value}."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.bid_rank == 2"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-min(you.coins, int(you.bid / second_third_pay_divisor))"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": {
+              "where": "you.bid_rank == 3"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "min(revealed_properties)"
+            },
+            "text": "Seat {player} takes LOW, property {value}."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.bid_rank == 3"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-min(you.coins, int(you.bid / second_third_pay_divisor))"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "selling",
+      "label": "reveal cheques",
+      "when": {
+        "calc": "round >= first_selling_round"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "revealed_cheques",
+            "value": {
+              "calc": "[]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "cheque_deck[int(uniform(0, len(cheque_deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "revealed_cheques",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "cheque_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "cheque_deck[int(uniform(0, len(cheque_deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "revealed_cheques",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "cheque_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "cheque_deck[int(uniform(0, len(cheque_deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "revealed_cheques",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "cheque_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "revealed_cheques",
+            "value": {
+              "calc": "sorted(revealed_cheques)"
+            }
+          }
+        }
+      ],
+      "text": "Selling round {round}. Cheques revealed (low to high): {revealed_cheques}."
+    },
+    {
+      "use": "sync",
+      "phase": "selling",
+      "label": "selling view",
+      "when": {
+        "calc": "round >= first_selling_round"
+      },
+      "mode": "self",
+      "to": "all",
+      "text": "Before you sell:"
+    },
+    {
+      "use": "poll",
+      "phase": "selling",
+      "label": "choose a property",
+      "when": {
+        "calc": "round >= first_selling_round"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "played",
+      "text": "Round {round}: cheques {revealed_cheques}. Secretly choose one property from your hand. The highest property played takes the highest cheque, the middle takes the middle cheque, the lowest takes the lowest cheque."
+    },
+    {
+      "use": "update",
+      "phase": "selling",
+      "label": "sell the properties",
+      "when": {
+        "calc": "round >= first_selling_round"
+      },
+      "do": [
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "int(you.played)"
+            },
+            "text": "Seat {player} played property {value}."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "count(int(p.played) > int(you.played) for p in players) == 0"
+            },
+            "key": "cheques",
+            "value": {
+              "calc": "max(revealed_cheques)"
+            },
+            "text": "Seat {player} takes the highest cheque, {value}."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "count(int(p.played) > int(you.played) for p in players) == 1"
+            },
+            "key": "cheques",
+            "value": {
+              "calc": "revealed_cheques[1]"
+            },
+            "text": "Seat {player} takes the middle cheque, {value}."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "count(int(p.played) > int(you.played) for p in players) == 2"
+            },
+            "key": "cheques",
+            "value": {
+              "calc": "min(revealed_cheques)"
+            },
+            "text": "Seat {player} takes the lowest cheque, {value}."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "end of round",
+      "label": "advance the round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "end of round",
+      "label": "final money",
+      "when": {
+        "calc": "round > total_rounds"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "final_money",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "final_coins",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "final_money",
+            "value": {
+              "calc": "you.cheques + you.coins"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "final_coins",
+            "value": {
+              "calc": "you.coins"
+            }
+          }
+        }
+      ],
+      "text": "The game is over. Final money (cheques plus coins) is revealed."
+    },
+    {
+      "use": "check",
+      "phase": "end of round",
+      "label": "after round 16",
+      "when": {
+        "calc": "round > total_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round > total_rounds"
+      },
+      "rank_by": "you.final_money * 100 + you.final_coins",
+      "reveal": [
+        "coins",
+        "cheques"
+      ],
+      "text": "Winner: {result}. Final money (remaining coins): Seat 1 {players[0].final_money} ({players[0].final_coins}), Seat 2 {players[1].final_money} ({players[1].final_coins}), Seat 3 {players[2].final_money} ({players[2].final_coins})."
+    }
+  },
+  "limits": {
+    "rounds": 16,
+    "rounds_max": 17,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "{player_count} players. Each starts with {starting_coins} coins; your coin total is private, only you see it. The property deck holds the cards {property_min} to {property_max}, one of each ({property_deck_size} cards). The cheque deck holds the values 0 and 2 to 15, {cheque_copies_each} of each, for {cheque_deck_size} cheques. Each player has a private cheque total starting at {initial_cheque_total} and a property hand starting empty. Hands are public.\n\nThe game lasts {total_rounds} rounds. Rounds 1-{buying_rounds} are BUYING rounds and rounds {first_selling_round}-{total_rounds} are SELLING rounds.\n\nBUYING ROUND: In round 1 only, the property deck is shuffled; only the top {properties_used} cards will ever be used and the bottom {properties_unused} stay unseen. The next {cards_revealed_per_round} cards from the top are revealed, called LOW, MIDDLE and HIGH by value. All players at the same moment secretly submit a bid: a whole number from 0 up to their current coins. Bids are ranked from highest to lowest. Ties are broken by this round's priority order: in round r, priority goes first to player ((r-1) mod 3)+1, then to the next player number, wrapping 3 to 1 (in round 2 the order is 2, 3, 1). The first-ranked player takes HIGH and pays their full bid (a bid of 7 costs 7). The second-ranked player takes MIDDLE and pays half their bid, rounded down. The third-ranked player takes LOW and pays half their bid, rounded down (a bid of 5 costs 2). Payments go to the bank and come out of each player's private coins. It is announced publicly which player took LOW, MIDDLE and HIGH; bid amounts and coin totals are NOT announced. After round {buying_rounds} each player holds exactly {properties_per_player_after_buying} properties.\n\nSELLING ROUND: In round {first_selling_round} only, the cheque deck is shuffled; only the top {cheques_used} cheques will ever be used. The next {cards_revealed_per_round} cheques from the top are revealed. All players at the same moment secretly choose one property from their own hand. The chosen properties are revealed; properties are all different, so there are no ties. The player who played the highest property adds the highest cheque to their cheque total. The middle property gets the middle cheque, and the lowest property gets the lowest cheque. Played properties are discarded from hands. It is announced publicly who played which property and who took which cheque; running cheque totals stay private.\n\nEND: After round {total_rounds}, each player's final money is their cheque total plus their remaining coins, and these are revealed. The player with the most final money wins. If two or more tie for most, the tied player with more remaining coins wins. If they are still tied, the game is a draw among them and they share the win."
+}

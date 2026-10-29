@@ -1,0 +1,1333 @@
+[
+  {
+    "name": "Setup: scores, wrong counts and round all start at 0",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 0
+      }
+    },
+    "rule_text": "Scores start at 0 and carry across legs."
+  },
+  {
+    "name": "Scores carry into a new leg (round 5 starts leg 2, score stays)",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 2,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "147"
+      },
+      {
+        "seat": 2,
+        "options_include": "258"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 2,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 5
+      }
+    },
+    "rule_text": "Scores start at 0 and carry across legs."
+  },
+  {
+    "name": "Full match with nobody guessing lasts 12 rounds and ends in a shared win",
+    "rule": "R1",
+    "players": 2,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 1,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 0,
+        "2": 0
+      },
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rule_text": "The match has 12 rounds in 3 legs of 4 rounds each; leg-round = ((round - 1) mod 4) + 1."
+  },
+  {
+    "name": "Codes are written in round 1; a correct guess in leg-round 1 scores 4",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "147"
+      },
+      {
+        "seat": 1,
+        "options_include": "258"
+      },
+      {
+        "seat": 2,
+        "options_include": "258"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "When leg-round is 1 (rounds 1, 5, 9), both players secretly and simultaneously write a code."
+  },
+  {
+    "name": "Code entry 852 is stored sorted as 258, so a guess of 258 is correct",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "147"
+      },
+      {
+        "seat": 1,
+        "options_include": "258"
+      },
+      {
+        "seat": 2,
+        "options_include": "852"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a code entry has three different digits in any order (e.g. 8,2,5), then it is sorted ascending and stored as code 258."
+  },
+  {
+    "name": "Repeated-digit code entry becomes 0-1-2, so a guess of 012 is correct",
+    "rule": "R5",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "147"
+      },
+      {
+        "seat": 1,
+        "options_include": "012"
+      },
+      {
+        "seat": 2,
+        "options_include": "112"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      }
+    },
+    "rule_text": "When a code entry is invalid (repeated digits, wrong count, non-digits, blank), then the code becomes 0-1-2 (code = 12)."
+  },
+  {
+    "name": "New leg resets solved and guesses, so a previously solved seat can score again in round 5",
+    "rule": "R6",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "score": 3,
+          "solved": 1,
+          "guesses_left": 0
+        },
+        "2": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "147"
+      },
+      {
+        "seat": 1,
+        "options_include": "369"
+      },
+      {
+        "seat": 2,
+        "options_include": "369"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 7,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 5
+      }
+    },
+    "rule_text": "When a leg starts, each player's guesses_left is set to 2, solved to 0 and used_mask to 0."
+  },
+  {
+    "name": "A card already used this leg is not offered again",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "used_mask": 4,
+          "code": 147
+        },
+        "2": {
+          "used_mask": 0,
+          "code": 258
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 1
+        },
+        {
+          "seat": 1,
+          "option": 2
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 3
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Each round, both players simultaneously name one card 1-6 not used this leg; that card becomes used until the leg ends."
+  },
+  {
+    "name": "Unscripted card choice: used card 1 not offered, remaining cards offered, no score change",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "used_mask": 1,
+          "code": 147
+        },
+        "2": {
+          "used_mask": 0,
+          "code": 258
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 1
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "When a player names nothing, an invalid number or an already used card, then they are given the lowest-numbered unused card."
+  },
+  {
+    "name": "Asking card 1 SUM is allowed and costs nothing (answer not observable)",
+    "rule": "R9",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 1
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Card 1 SUM answers A+B+C of the opponent's code (e.g. 2-5-8 gives 15)."
+  },
+  {
+    "name": "Asking card 2 EVENS is allowed and costs nothing (answer not observable)",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Card 2 EVENS answers how many of the opponent's digits are even, with 0 counting as even (e.g. 2-5-8 gives 2)."
+  },
+  {
+    "name": "Asking card 3 RANGE is allowed and costs nothing (answer not observable)",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 3
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Card 3 RANGE answers C-A (e.g. 2-5-8 gives 6)."
+  },
+  {
+    "name": "Asking card 4 HIGH is allowed and costs nothing (answer not observable)",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 4
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Card 4 HIGH answers how many digits are 5 or more (e.g. 2-5-8 gives 2)."
+  },
+  {
+    "name": "Asking card 5 STEPS is allowed and costs nothing (answer not observable)",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 345,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 5
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Card 5 STEPS answers how many of the pairs (A,B), (B,C) differ by exactly 1 (e.g. 3-4-5 gives 2, 2-5-8 gives 0)."
+  },
+  {
+    "name": "Asking card 6 THREES is allowed and costs nothing (answer not observable)",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 37,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 6
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Card 6 THREES answers how many digits are in {0,3,6,9} (e.g. 0-3-7 gives 2)."
+  },
+  {
+    "name": "Both seats ask a card in the same round; asking alone changes no score",
+    "rule": "R15",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 4
+        },
+        {
+          "seat": 2,
+          "option": 1
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 0,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "After asking, the engine announces to both players which card each player asked and its answer."
+  },
+  {
+    "name": "Guess 852 is sorted to 258 and matches in leg-round 3 for 2 points",
+    "rule": "R16",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "852"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 2,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 3
+      }
+    },
+    "rule_text": "Each round, both players simultaneously pass or write a guess; a guess of three different digits is sorted ascending."
+  },
+  {
+    "name": "A seat that already solved the leg gets no further score change",
+    "rule": "R17",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 4,
+          "guesses_left": 1,
+          "solved": 1,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "score": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "When a guess entry is not three different digits, or the guesser has guesses_left = 0, or solved = 1, then it counts as a pass and costs nothing."
+  },
+  {
+    "name": "Last guess leaves none: one wrong guess costs 1, a later attempt costs nothing more",
+    "rule": "R18",
+    "players": 2,
+    "rounds": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 3,
+          "wrong_count": 0,
+          "guesses_left": 1,
+          "solved": 0,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "score": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "369",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 2,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 3
+      }
+    },
+    "rule_text": "When a valid guess is made, then the guesser's guesses_left decreases by 1."
+  },
+  {
+    "name": "A correct guess in leg-round 4 scores 1",
+    "rule": "R19",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 2,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        },
+        "2": {
+          "code": 258,
+          "score": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        }
+      },
+      "game": {
+        "round": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "258"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 4
+      }
+    },
+    "rule_text": "When a valid guess equals the opponent's code, then the guesser scores 5 - leg-round (4, 3, 2, 1 in leg-rounds 1-4) and solved = 1 for the rest of the leg."
+  },
+  {
+    "name": "A wrong guess costs 1 point and adds 1 wrong guess",
+    "rule": "R20",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 5,
+          "wrong_count": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "score": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "259"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 0,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "When a valid guess does not equal the opponent's code, then the guesser loses 1 point and wrong_count increases by 1."
+  },
+  {
+    "name": "Simultaneous guesses: one correct (+3 in leg-round 2), one wrong (-1)",
+    "rule": "R21",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        },
+        "2": {
+          "code": 258,
+          "score": 2,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 0
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "258"
+      },
+      {
+        "seat": 2,
+        "options_include": "148"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 1,
+          "wrong_count": 1
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "Every guess and its result (correct or wrong) is announced to both players."
+  },
+  {
+    "name": "After the opponent solved, the other seat still asks and can score (+2 in leg-round 3)",
+    "rule": "R22",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 3,
+          "guesses_left": 1,
+          "solved": 1,
+          "used_mask": 1
+        },
+        "2": {
+          "code": 258,
+          "score": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 1
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "741"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": 2
+        }
+      ],
+      "players": {
+        "1": {
+          "score": 3,
+          "wrong_count": 0
+        },
+        "2": {
+          "score": 2,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 3
+      }
+    },
+    "rule_text": "When one player guesses correctly, the other player still keeps asking and guessing in that leg."
+  },
+  {
+    "name": "Leg-round 4 reveal leaves scores unchanged and the round reaches 4",
+    "rule": "R23",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 2,
+          "wrong_count": 1,
+          "guesses_left": 1,
+          "solved": 0,
+          "used_mask": 7
+        },
+        "2": {
+          "code": 258,
+          "score": 3,
+          "wrong_count": 0,
+          "guesses_left": 1,
+          "solved": 1,
+          "used_mask": 7
+        }
+      },
+      "game": {
+        "round": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 2,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 3,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 4
+      }
+    },
+    "rule_text": "When leg-round is 4 (rounds 4, 8, 12), both codes are revealed to both players and the scores are announced."
+  },
+  {
+    "name": "Match ends after round 12: higher score wins",
+    "rule": "R24",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 10,
+          "wrong_count": 2,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        },
+        "2": {
+          "code": 258,
+          "score": 8,
+          "wrong_count": 0,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        }
+      },
+      "game": {
+        "round": 11
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 998,
+        "2": 800
+      },
+      "players": {
+        "1": {
+          "score": 10,
+          "wrong_count": 2
+        },
+        "2": {
+          "score": 8,
+          "wrong_count": 0
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rule_text": "When round 12 is finished, the match ends; the higher score wins, then fewer wrong guesses, else a draw."
+  },
+  {
+    "name": "Match end tie on score: fewer wrong guesses wins",
+    "rule": "R24",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 6,
+          "wrong_count": 1,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        },
+        "2": {
+          "code": 258,
+          "score": 6,
+          "wrong_count": 2,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        }
+      },
+      "game": {
+        "round": 11
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 599,
+        "2": 598
+      },
+      "players": {
+        "1": {
+          "score": 6,
+          "wrong_count": 1
+        },
+        "2": {
+          "score": 6,
+          "wrong_count": 2
+        }
+      }
+    },
+    "rule_text": "When round 12 is finished, the match ends; the higher score wins, then fewer wrong guesses, else a draw."
+  },
+  {
+    "name": "Match end with equal score and equal wrong guesses is a shared win",
+    "rule": "R24",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "code": 147,
+          "score": 5,
+          "wrong_count": 1,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        },
+        "2": {
+          "code": 258,
+          "score": 5,
+          "wrong_count": 1,
+          "guesses_left": 2,
+          "solved": 0,
+          "used_mask": 7
+        }
+      },
+      "game": {
+        "round": 11
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 499,
+        "2": 499
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rule_text": "When round 12 is finished, the match ends; the higher score wins, then fewer wrong guesses, else a draw."
+  }
+]

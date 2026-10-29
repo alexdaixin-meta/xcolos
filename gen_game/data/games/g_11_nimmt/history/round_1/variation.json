@@ -1,0 +1,131 @@
+{
+  "original_summary": "11 Nimmt is a shedding card game for 2 to 7 players. On each turn a player either plays one card onto a pile (higher than its top, within a circular distance of 10) or takes a whole pile into hand. Taking big piles earns bull cards, which allow multi-card runs. A round ends when someone empties their hand, the others score ox-head penalties for the cards they still hold, and the lowest total over several rounds wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy wins outright. 'Always take a pile' never empties the hand and swells it. 'Always play the lowest legal card' leaves you stuck and forced to take big piles when the tops jump. Choosing which pile to feed or block, and when to take a pile, changes who empties first. With 3 or more players one player's gain is not a direct loss for each rival. Two-player games are pure difference games. Seat order gives the first player a small tempo edge in each round."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Skill matters: pile blocking, timing takes to earn bulls, and saving runs. But fresh piles are seeded from a random draw deck every time a pile is taken, and the deal of 10 cards from 104 varies a lot. Luck has a large share in any single round."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Weak players still shed cards and score something. Strong players plan bull runs, track which numbers are gone, and take small piles to reset tops in their favour. The game is not solved."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden. A player must infer from what opponents play or decline to play which ranges they hold, and plan several turns ahead around bull runs and pile tops."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Card legality is arithmetic (higher than the top, circular distance at most 10). Penalties are ox-head sums. The lowest total wins. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "bad",
+      "evidence": "The pile count grows without bound, so state is unbounded. Bull runs let a player play an arbitrary number of cards in one turn. Every pile take triggers two random draws. A 104-card deck, 10-card hands and up to 7 rounds of play far exceed the limits of 4 choice steps, 1 random draw per round, 20 attributes and 40 rounds."
+    }
+  ],
+  "problems": [
+    "The number of piles grows each time one is taken, giving unbounded state that the engine cannot track within 20 attributes.",
+    "Each pile take draws two random cards from the deck, which breaks the limit of one random draw per round and adds luck to every take.",
+    "Bull runs allow an unbounded number of cards in one turn, which exceeds the choice-step limit.",
+    "The 104-card deck, 10-card hands and multi-round match (as many rounds as players) are too long and too large to build and play inside 40 rounds.",
+    "The two-player game is a pure difference game, and seat order gives the first player a tempo edge (they may empty their hand before others have had as many turns).",
+    "Random pile seeding and a large random deal let luck swamp skill in a single deal."
+  ],
+  "changes": [
+    {
+      "what": "Use exactly 3 piles throughout. A taken pile is immediately restarted, so there are always 3.",
+      "why": "This bounds the state to 3 pile lists and keeps the take-or-play pile choice.",
+      "fixes": "The number of piles grows each time one is taken, giving unbounded state that the engine cannot track within 20 attributes."
+    },
+    {
+      "what": "When a player takes a pile, they restart it with a card of their own choosing from their hand (which now includes the taken cards). Nothing is drawn from a deck during play.",
+      "why": "This removes all in-play randomness and turns the restart into a strategic choice: block opponents or set up your own run.",
+      "fixes": "Each pile take draws two random cards from the deck, which breaks the limit of one random draw per round and adds luck to every take."
+    },
+    {
+      "what": "Bulls are capped. Each bull held lets a player add one extra card to the same pile in the same turn, with a maximum of 2 extra cards.",
+      "why": "This keeps the bull-run idea while fitting within 4 choice steps.",
+      "fixes": "Bull runs allow an unbounded number of cards in one turn, which exceeds the choice-step limit."
+    },
+    {
+      "what": "Use a deck of 1 to 40, circular distance at most 6, 6-card hands, 3 or 4 players, and a single deal of at most 36 or 40 turns. Each engine round is one player's turn.",
+      "why": "This scales the game to the round and attribute limits while keeping the density of legal plays similar to the original.",
+      "fixes": "The 104-card deck, 10-card hands and multi-round match (as many rounds as players) are too long and too large to build and play inside 40 rounds."
+    },
+    {
+      "what": "Use 3 or 4 players only. When someone empties their hand, the current cycle is completed so that every player has had the same number of turns. The lowest penalty wins.",
+      "why": "With 3 or more players the game is not a difference game. Finishing the cycle removes the first seat's tempo edge.",
+      "fixes": "The two-player game is a pure difference game, and seat order gives the first player a tempo edge (they may empty their hand before others have had as many turns)."
+    },
+    {
+      "what": "Make the full contents of every pile public, so that every taken card is known to everyone. The initial deal is the only random event.",
+      "why": "Hidden information shrinks to the original deal plus the undealt cards. A careful tracker can deduce more and more about opponents' hands, so skill beats luck over a game.",
+      "fixes": "Random pile seeding and a large random deal let luck swamp skill in a single deal."
+    }
+  ],
+  "keeps": [
+    "Each turn you either play one card onto a pile or take a whole pile into your hand.",
+    "A play must be higher than the pile top within a circular distance, with wraparound past the highest card.",
+    "If you cannot or do not play, you must take a pile.",
+    "Taking a pile of 3 or more cards earns a bull, which allows multi-card runs onto one pile. When the supply runs out, you steal a bull from the player who has the most.",
+    "The deal ends when a player empties their hand. Others score ox-head penalties for the cards left in hand, and the lowest penalty wins.",
+    "Hands are hidden, and you must read opponents from what they play and decline."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core take-or-play decision, hidden hands and bull runs survive once the piles are fixed at 3, randomness is reduced to the opening deal, and runs are capped. All of these fit the limits."
+  },
+  "variation": {
+    "name": "Eleven Takes: Three Piles",
+    "summary": "A compact, luck-light 11 Nimmt for 3 to 4 players. Players shed hidden hands onto 3 public piles using circular ascending plays. They take piles to reset them with a card of their choice, and use capped bull runs. The lowest ox-head penalty after one deal wins.",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "SETUP\n1. Use a deck of cards numbered 1 to 40.\n2. Ox-heads per card: 3 if the number is a multiple of 10; 2 if it is a multiple of 5 but not of 10; 1 otherwise. The whole deck holds 52 ox-heads.\n3. Shuffle once. This is the only random event in the game. Deal 6 cards face down to each player as a private hand. Turn 3 cards face up to start Pile A, Pile B and Pile C, one card each. The remaining cards (13 with 4 players, 19 with 3) are set aside unseen for the rest of the game.\n4. Place a supply of bull tokens equal to the number of players minus 1 (3 with 4 players, 2 with 3 players).\n5. Seats are numbered 1 to N. Seat 1 moves first, and play proceeds in seat order.\n\nWHAT IS PUBLIC\n- The full ordered contents of every pile.\n- Each player's hand size and bull count.\n- Every action taken.\nOnly the contents of hands and the set-aside cards are hidden.\n\nLEGAL PLAY\n6. A card c may be played on a pile whose top card is t if (c - t) mod 40 is between 1 and 6. Examples: on 12 you may play 13 to 18; on 37 you may play 38, 39, 40, 1, 2 or 3.\n\nA TURN (one engine round)\n7. The active player privately chooses one action:\n   (a) PLAY card X onto pile P, where X is in their hand and legal on P; or\n   (b) TAKE pile P.\n   A player may take even when a legal play exists. If the chosen action is illegal, or the player has no legal play and chose PLAY, they instead TAKE the smallest pile (ties: A before B before C).\n8. If the player PLAYED: card X goes on top of pile P. If they hold at least 1 bull, they may then add one more card legal on the new top of the same pile. If they hold 2 or more bulls, they may add a second extra card the same way. They may stop at any point. An illegal extra card is ignored and ends the run. Bulls are not spent by using them.\n9. If the player TOOK pile P:\n   - All cards of P go into their hand.\n   - They must then choose any one card from their hand to place face up as the single card of the restarted pile P.\n   - If P held 3 or more cards before it was taken, the player gains a bull from the supply. If the supply is empty, they instead take one bull from the opponent holding the most bulls; ties go to the first such player in seat order after the taker. If no opponent has a bull, nothing happens.\n10. If the active player's hand is now empty, the game will end at the end of the current cycle, that is, after the player in seat N has finished their turn. Every player therefore gets the same number of turns.\n11. Pass the turn to the next seat.\n\nEND OF GAME\n12. The game ends at the end of the cycle in which any player emptied their hand. It also ends after 10 full cycles (40 turns with 4 players) or 12 full cycles (36 turns with 3 players), whichever comes first.\n13. Each player's penalty is the total ox-heads of the cards in their hand. A player with an empty hand scores 0.",
+    "objective": "The player with the lowest penalty wins. If two or more players tie for lowest, the game is a draw among them (an engine draw).",
+    "expected_effect": "All randomness is in the opening deal, and the full contents of every pile are public. Strong players track every card that has been seen and deduce which numbers opponents can hold. They restart taken piles with cards that block a rival's likely ranges or set up their own bull runs. They also time takes of piles with 3 or more cards to gain bulls, or to steal one from the leader. Taking a 1-card pile becomes a tempo move that does not grow your hand: you swap a card into a better position. Mindless policies lose. 'Always play the lowest legal card' gets stuck behind high tops. 'Always take the smallest pile' never empties a hand and is limited by the cycle cap. 'Always take the biggest pile' piles up ox-heads. Finishing the cycle removes the first seat's edge. A talk phase is left out: talk would add a message to every one of up to 40 sequential turns. In a sequential game where every action is already public, informal ganging up on the leader can be done through play itself, so talk would add words without adding a decision."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 16,
+    "hidden_elements": 1,
+    "random_draws_per_round": 0,
+    "rounds": 40
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Arithmetic checks. Ox-heads: 10/20/30/40 give 4x3=12; 5/15/25/35 give 4x2=8; the other 32 cards give 32. Total 52, as stated. Cards: 4 players use 24+3=27 and set aside 13; 3 players use 18+3=21 and set aside 19. Both correct. Turn caps are 40 (4p) and 36 (3p).\n\nWhat each action does to hand size:\n| action | hand change |\n|---|---|\n| PLAY, 0 bulls | -1 |\n| PLAY, 1 bull | -1 or -2 |\n| PLAY, 2+ bulls | -1 to -3 |\n| TAKE pile of size k | +k-1 (gain k, restart with 1) |\n\nTaking a 1-card pile is a swap with no change in hand size. You can dump a 3-ox card and pick up a 1-ox card, or plant a seed your hand can chain from. Taking a pile of 3+ costs at least +2 cards but earns a bull. That bull later allows double or triple plays. This is a real trade-off, not a dominated option.\n\nThoughtless policies under the winner rule (lowest penalty wins):\n- Always TAKE smallest pile: hand never shrinks. Once others grow the piles, the smallest is often 2+ cards, so the hand grows. Best case it ends near 6 one-ox cards, about 6 penalty. Any opponent who empties their hand scores 0 and beats it. A player who has made 3-4 net plays, holding 2-3 cards worth about 3-5, also beats it. It loses to sensible play.\n- Always TAKE pile A: about +1 or more cards every turn. Loses badly to everything, including random play.\n- Always PLAY the lowest legal card, otherwise take the smallest pile: a reasonable greedy baseline. It never exploits reseeding (taking to plant a chain start), banking bulls, or denying the leader by taking and reseeding the pile they need. A planner beats it whenever the deal allows a chain. It does not win almost every time.\n- Random choice: illegal actions fall back to taking the smallest pile. This is a weak but legal policy that loses to both of the above.\n\nNo option is strictly better whatever opponents do. Playing is usually good. Taking is sometimes forced or useful, for a bull, a swap, or denial.\n\nSeats: rule 10 completes the cycle, so every seat gets equal turns. Seat 1 sees fresh piles first, while seat N sees the most information before each cycle ends. Both edges are mild and roughly offset. With 3-4 players and an open race, every seat can realistically win. Ties for 0 give engine draws only when two players empty in the same cycle, which is not the typical outcome."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete for every situation:\n- Legality: (c-t) mod 40 in 1..6, with worked examples.\n- Illegal or impossible PLAY: falls back to taking the smallest pile, with ties A<B<C.\n- Illegal extra card: ignored and ends the run.\n- Bull supply empty: steal from the opponent with the most bulls; ties go to the next in seat order; if no opponent has a bull, nothing happens.\n- End trigger: completes the cycle.\n- Hard cap: 10 or 12 cycles.\n- Scoring: arithmetic sum of ox-heads in hand; lowest wins; ties draw.\n\nThe game is finite and needs no judge, board or clock. Sequential turns suit sequential_choice, since one engine round is one turn.\n\nLimits:\n- Choice steps per turn are the main action, extra card 1, extra card 2 and the restart card = 4, the maximum.\n- The extra-card and restart choices each carry a `when` condition. That is allowed, because it is conditional on single steps, not a block switch.\n- 15 steps covers the modular legality check, moving cards, two guarded extras, taking the pile, restart, bull gain or steal (comparing player bull counts uses the table-attribute workaround), and the empty-hand end flag.\n- Attributes 16 \u2264 20, hidden elements 1 (hands; set-aside cards are just an unused list), 0 random draws per round after the single shuffle, rounds 40 \u2264 40.\n\nTalk: none, which is sensible. Every action is public and sequential, so players react to observed moves rather than guessing simultaneous ones. Any talk would be non-binding chatter in a free-for-all race. The repeated-game cooperation clause does not apply; there is no cooperate or defect structure."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The single shuffle decides each hand of 6, the 3 starting tops, and which 13-19 cards are missing. A clustered hand (several cards within 6 of each other) is a real advantage, and a missing link card can break a chain. I estimate chance decides roughly 30-40% of outcomes.\n\nGood play can overcome a weak deal:\n- Taking a 1-card pile lets you reseed any pile with a card that starts your own chain.\n- Banking a bull from a 3+ pile converts later turns into 2-3 card plays.\n- Ox-head-aware dumping (shedding 10s and 5s first, keeping 1-ox cards) cuts the penalty even without emptying.\n- Denial is possible: take and reseed the pile the leader needs, or steal bulls when the supply is empty.\n\nThere is plenty to infer. All piles are public, so players can count which numbers are out. Hand sizes and bull counts are public. An opponent declining to play on a pile reveals gaps in their hand. Acting on these inferences is direct: choose which pile to advance or block.\n\nWhen all players play well, the result depends on tempo and denial interactions, not on the deal alone. The deal sets the starting difficulty, but it does not fix the winner. A planner reliably beats the greedy and random baselines."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

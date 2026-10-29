@@ -1,0 +1,155 @@
+{
+  "original_summary": "Put is an old two-to-four-player card game played with three-card hands, in which 3 and 2 rank above the Ace. Players play tricks without having to follow suit, and the first to win two tricks takes the hand. Between tricks a player may say 'Put', and the opponent must either fold, conceding 1 point, or 'see it', in which case the whole game rides on that hand. The previous XColos variation replaced the trick play with a single blind choice of card order made by both players at once, and testing found its card phase was a lottery.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "In the original, always-Put is beaten by an opponent who sees only with strong cards. Always-fold concedes every Put. Always-see pays out the full game against strong Puts. No simple policy wins, and alternating the deal removes most of the seat edge. The previous variation kept this betting layer, so its failure was elsewhere."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The original's skill comes from responding to cards as they are seen and from the Put/fold decision between tricks. The previous variation removed both. It made card play one simultaneous choice of permutation, and if both players randomise uniformly every order is equally good, so card results came from the deal plus random alignment. In the original itself, letting a single seen Put decide the whole game (5 or 7 points) makes the result swing on very few hands."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "The original has bluffing, reading folds and cheap trick-taking. In the previous variation, the only decisions were one Put/See pair per hand, made before any card fell, which left little room to improve. A weak player could still score by luck, but a strong player gained only modestly."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Hands are hidden in the original, so there is real inference, especially after a trick has been seen. The previous variation took away every observation that happened inside a hand: the only information was one public up-card, which the opponent could place anywhere. Inference therefore had nothing to work on."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Trick results, folds and points all follow from card values and choices by simple comparison and addition. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The original is text-friendly but open-ended: Puts can come before any trick, and the match is to 5 or 7 points. The previous variation fitted the engine but used 5 choice steps, counting the leader-reply step, which is above the limit of 4. Its Put decision also came only before any card was seen."
+    }
+  ],
+  "problems": [
+    "P1: In the previous variation, card play is one blind, simultaneous choice of permutation. Against a uniformly random opponent every order is equally good, so trick results are a lottery.",
+    "P2: Every betting decision comes before any card is played, so Put/See cannot use information revealed during the hand. That is the heart of the original game.",
+    "P3: The previous variation needed 5 choice steps (leader call, responder action, leader reply, two orders), which exceeds the limit of 4.",
+    "P4: The stakes are too flat. A seen Put pays 3 against 1 for a plain hand and 1 for a fold, so bluffing and calling carry little weight compared with the card luck.",
+    "P5: The win condition 'more tricks' differs from the original's 'win two tricks', so one trick plus two ties scores, which blurs the trick play.",
+    "P6: With 12 hands at 1-3 points each, chance often decides the match when both players play well."
+  ],
+  "changes": [
+    {
+      "what": "Trick 1 is played in sequence and in the open. The leader leads one card face up. The responder sees it and then chooses which card to answer with.",
+      "why": "Responding to a seen card rewards real reasoning. The responder can beat cheaply, duck with the lowest card, or spend a high card, and each choice changes what is left. For example, the responder holds 11, 9 and 6, and the leader leads a 4 while holding 12 and 8. Answering with the 6 wins tricks 1 and 3, and so the hand. Answering with the 9 or the 11 loses tricks 2 and 3, and so the hand. A random answer wins only 1 time in 3; correct play wins every time.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Tricks 2 and 3 are played automatically by a fixed rule. Each player plays their higher remaining card to trick 2 and their lower remaining card to trick 3.",
+      "why": "This removes the blind matching that made the previous variation a lottery. Once trick 1 is played, the rest of the hand is decided by the cards, but each player knows only their own cards. The Put decision then becomes a matter of reading a hidden but fixed outcome. Choosing which card to lead and which to answer with becomes a planning decision, because it decides which two cards are left to meet high-against-high and low-against-low.",
+      "fixes": "P1"
+    },
+    {
+      "what": "The Put window moves to after trick 1. Both players choose Put or Check at the same moment. If exactly one player Puts, the other chooses See or Fold. If both Put, the Put counts as seen automatically. If both Check, the hand is played for 1 point.",
+      "why": "Betting now uses what has been seen: the trick-1 cards, how the opponent chose to lead or answer, and one's own remaining two cards. Merging the Put and reply decisions keeps the game at exactly 4 choice steps.",
+      "fixes": "P2, P3"
+    },
+    {
+      "what": "The stakes are raised. A plain hand pays 1 point, a seen Put pays 4, and a fold concedes 1 to the putter.",
+      "why": "Bluffing with a losing hand turns a 1-point loss into a 1-point gain if the opponent folds. Calling a bluff is worth 4. The betting layer now matters as much as the cards, without one hand settling the match the way 'whole game' did.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The original scoring condition is restored: a player must win at least 2 of the 3 tricks to win the hand. Tied tricks belong to no one, so a trick plus two ties, or a trick each plus a tie, scores nothing.",
+      "why": "This matches the original's trick-and-tie rule. It also makes ducking and tying with an equal card real tactical options.",
+      "fixes": "P5"
+    },
+    {
+      "what": "The match lasts 16 hands, with the lead alternating so that each seat leads 8 times.",
+      "why": "More hands average out the deal. Exact alternation cancels the responder's information advantage across the match.",
+      "fixes": "P6"
+    }
+  ],
+  "keeps": [
+    "The 52-card deck with Three highest, then Two, Ace, King and so on down to Four, with no suits or trumps and no need to follow.",
+    "Three-card hands, where winning two of three tricks takes the hand and tied tricks belong to no one.",
+    "The Put call, with the choice to fold (conceding 1) or to see it for a much bigger stake.",
+    "Calling Put after seeing cards fall, so bluffing and reading the opponent stay central.",
+    "The lead alternating between the two players from hand to hand."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The original has a real bluffing-and-trick core that fits in 4 choice steps once the card play is made sequential and the Put window is placed after the first trick."
+  },
+  "variation": {
+    "name": "Put: Sixteen Hands",
+    "summary": "This is a two-player game of three-card Put over 16 hands. The leader leads one card face up and the responder answers it after seeing it. Both players then decide at the same moment whether to Put, knowing the first trick and their own last two cards, and an unmatched Put must be seen or folded. The last two tricks play out automatically, high card against high card and low against low.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "CARDS. Use a deck of 52 cards made of four copies of each value from 1 to 13. Value 13 is a Three (highest), 12 a Two, 11 an Ace, 10 a King, 9 a Queen, 8 a Jack, 7 a Ten, 6 a Nine, 5 an Eight, 4 a Seven, 3 a Six, 2 a Five and 1 a Four (lowest). There are no suits. In any trick the higher value wins, and equal values tie the trick, which then belongs to no one.\n\nSETUP. Both players start with a score of 0. The match is exactly 16 hands. Seat 1 leads in odd-numbered hands and seat 2 leads in even-numbered hands. The other seat is the responder.\n\nEACH HAND, in this order:\n1. Reset. Restore and shuffle the full 52-card deck. Clear each player's hand, played card, call, response and trick count, and clear the stake and the folded marker.\n2. Deal. Deal 3 cards to each player. Each player sees only their own cards.\n3. Lead (leader's choice). The leader chooses one of their 3 cards and plays it face up.\n4. Announce the lead to both players.\n5. Answer (responder's choice). Having seen the lead, the responder chooses one of their 3 cards and plays it face up.\n6. Trick 1. Compare the two cards; the higher wins trick 1 and an equal pair is a tie. Announce the result.\n7. Put window (both players at the same moment). Each player privately chooses Put or Check, without seeing the other's choice.\n8. Announce both calls.\n9. Reply. This step happens only if exactly one player chose Put. The player who chose Check now chooses See or Fold. If both chose Put, the Put counts as seen. If both chose Check, there is no Put. The stake for the hand is 4 if a Put was seen (by See or by both Putting), 1 if both Checked.\n10. Fold. If a player folded, the player who Put scores 1 point and the hand ends there; skip to step 15. The remaining cards are not shown.\n11. Trick 2. Each player automatically plays the higher of their two remaining cards. Compare them as in trick 1.\n12. Trick 3. Each player automatically plays their last card. Compare them as in trick 1.\n13. Reveal. Show all cards and each player's number of tricks won.\n14. Hand scoring. A player who won at least 2 of the 3 tricks scores the stake (1 or 4). If neither player won 2 tricks, because of tied tricks, no one scores.\n15. End check. After hand 16 the match ends; otherwise the next hand begins.\n\nThere is no talk phase.",
+    "objective": "After 16 hands, the player with the higher total score wins. If the totals are equal, the match is a draw.",
+    "expected_effect": "Card play now rewards thought. Leaders weigh up whether to lead high to take trick 1 or to lead low and save their strength for the high-against-high trick. Responders choose between the cheapest card that beats the lead and throwing away their lowest card, and the worked example shows that this beats random answering. Because tricks 2 and 3 are fixed once trick 1 has been played, the Put window works like a river bet in poker. Each player knows their own two remaining cards and has watched how the opponent led or answered, and must infer whether they hold the winning pair. Bluff-Puts gain 1 point when the opponent folds and lose 4 when seen. That makes every simple policy exploitable. Always-Put loses to an opponent who sees only with strong cards and folds weak ones. Always-Check concedes the 4-point hands to selective Putters. Always-Fold gives away a point on every Put. Always-See pays 4 to every strong Put. Over 16 hands with the lead alternating, deal luck and seat advantage largely cancel out, so reading the opponent and accurate betting decide the match."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 12,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 16
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Stakes: a Put that is folded pays the putter 1. A Put that is seen pays 3 to whoever wins more tricks. Both checking pays 1 to whoever wins more tricks. Equal tricks pays nothing. This is zero-sum, so there is no cooperation issue in late hands. Thoughtless policies, judged by the winner rule: (a) ALWAYS FIRST (Check as leader; See when facing Put; Check when facing Check; See as reply; order 1-2-3): a sensible opponent Puts only strong hands. That costs this policy 3 on most of those hands, while its own strong hands earn only 1 after Check/Check. Rough EV is about -0.4 per hand, so it loses most 12-hand matches. (b) ALWAYS LAST (Put as leader; Fold facing Put; Put after Check; Fold as reply; order 3-2-1): as leader its Put is seen by strong hands and folded by weak ones, roughly 0.5x(+1) + 0.5x(~0.3x3 - 0.7x3) \u2248 -0.1. As responder it folds to every Put, conceding 1. It is a net loser. (c) ALWAYS PUT/SEE (never fold): a threshold player who sees only with the top half of hands and Puts strong hands gives this policy about -0.1 to -0.2 per hand. It can win against random play, but it loses on average to sensible play, so it does not 'never lose'. (d) ALWAYS FOLD: loses 1 to every Put, so it loses surely. No card order is strictly better: positions are deal order, not rank, and against a uniformly random order every permutation gives the same trick distribution. Seats: the responder has an information edge within a hand (it acts after the leader's call), but leadership alternates 6/6 over 12 hands, so neither seat is favoured. Both players can realistically win. The 1/3 stake labels match the arithmetic. Pass."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The flow is complete. Every combination of calls is covered: Check/Check plays for 1. Put/See and Check/Put/See play for 3. Any Fold pays the putter 1. Step 6 is correctly gated by a single-step `when` condition, which the engine supports, so no block branching is needed. The card order is a simultaneous poll, as the platform requires. Positions are defined by deal order, and up_card is position 1. Ties of tricks and of the match are specified. The game is finite: exactly 12 hands. It is decided by arithmetic on tricks and score. Limits: steps 11 \u2264 20; choice steps 4 \u2264 4 (at the limit); attributes 20 \u2264 20 (at the limit); hidden elements 2 \u2264 3; random draws 1 (the shuffle/deal) \u2264 1; rounds 12 \u2264 40. It needs no board, clock or judge. It is a two-player zero-sum game, so pre-round talk is correctly absent."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "The original's skill lies in sequential trick play: the winner leads, you respond to a seen card, and you can Put or fold between tricks after seeing cards fall. The variation replaces all of this with one blind, simultaneous choice of permutation. That choice is a pure matching game. If the opponent randomizes uniformly, every permutation of yours yields an identical distribution of trick outcomes. Uniform-vs-uniform is therefore an equilibrium, and under intended good play the card phase is a lottery. Example: 9-7-5 vs 8-6-4 can give 3-0 or 2-1 depending only on the blind alignment. The single public up_card gives at most a weak tell, because the opponent can place it anywhere. What remains for skill is one Put/See decision pair per hand, made only before any card is played. With good play on both sides, the result is fixed by the deal plus the random alignment. Rough estimate: 70% or more of hand outcomes, and a large share of 12-hand match results at 1-3 points per hand, come from chance. A strong reasoner beats a mediocre one only modestly, so chance often decides the winner."
+        },
+        "required_changes": [
+          "Restore sequential, observable card play so that inference and response matter, while staying within 4 choice steps.",
+          "Merge the Put/See decisions: remove step 6 (leader_reply), and treat a responder's Put after a leader's Check as automatically seen.",
+          "Choice 3: the leader plays one card face up as trick 1.",
+          "Choice 4: after seeing that card, the responder chooses which of their 3 cards answers it and the order of the other two.",
+          "Play the leader's remaining two cards automatically in a stated fixed rule, for example highest remaining first. Alternatively, let the leader also pre-commit the order of the remaining two cards at choice 3.",
+          "Alternatively, add a Put/Fold window after trick 1, using single steps with `when` conditions, so players can act on cards already seen. This must stay at 4 or fewer choice steps by cutting another choice.",
+          "Raise the seen-Put stake (for example to 5, as in the original) so that the betting decision carries more weight than the 1-point fold.",
+          "Show by a worked example that some ordering or response beats random play against a uniformly randomizing opponent."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "PAYOFFS. Facing a lone Put, Fold costs exactly 1 point. See risks the stake of 4. If q is the chance of winning 2 tricks (ignoring ties), See is worth about 4q - 4(1-q) = 8q - 4. See beats Fold when 8q - 4 > -1, that is when q > 3/8. A Put that is folded to earns +1, the same as winning a both-Check hand.\n\nOutcome table for the Put window (A row, B column):\n- Put/Put: stake 4, played out.\n- Put/Check: B chooses See (stake 4) or Fold (A +1).\n- Check/Put: A chooses See or Fold (B +1).\n- Check/Check: stake 1, played out.\n\nDOMINANCE. Neither call is strictly better.\n- Put forces stake 4 or a fold, but hands the See/Fold option to the opponent.\n- Check keeps the option but risks paying 1 to a Put.\n\nTHOUGHTLESS POLICIES against a sensible opponent who folds when q < 3/8 and otherwise Sees or Puts:\n- Always Put. It wins +1 on the roughly 35% of hands where the opponent folds. It plays stake 4 on the roughly 65% where the opponent holds q > 3/8, with average q about 0.65, so EV about 4(0.65 - 0.35) = -1.2 for the always-Putter. Net about 0.35 - 0.78 = -0.43 per hand, about -7 over 16 hands. It loses most matches.\n- Always Check + always See. The opponent Puts only when strong (or bluffs rarely), so this player pays 4 on strong opposing hands and gains only 1 on checked hands. Net negative; it loses.\n- Always Check + always Fold. The opponent simply Puts every hand: -16. It loses every match.\n- Always lead or answer the highest card. It wastes a high card on trick 1 when the responder can dump a low card, which costs the later auto-played tricks. A responder who sees the lead exploits it.\n- Random play. It Sees with q below 3/8 and folds with q above it, so it loses on average to the threshold player.\n\nNo policy guarantees a win or a draw: each call is exposed whenever the opponent holds the cards. No option 'never leaves you behind': Fold loses 1, and Put and See risk 4.\n\nSEATS. The responder sees the lead before answering, which is an information edge in trick 1. Lead alternates over an even 16 hands, so each seat responds exactly 8 times. The Put window is simultaneous, so there is no order edge there. Both players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "DECK. Four copies of 13 values gives 52 cards, with value names given for every number. Ties are defined for every trick.\n\nORDER. Every step is specified, including the both-Put case (counts as seen, stake 4) and the both-Check case (stake 1). Step 9 runs only when exactly one player Puts. Scoring is defined for folds (Putter +1) and for no-one-wins-2 (no score).\n\nFINITE. Exactly 16 hands. The winner is the higher arithmetic total, and equal totals are a draw.\n\nLIMITS. Every stated figure is within the platform's caps:\n- steps 15 <= 20\n- choice steps 4 <= 4 (Lead, Answer, Put window, Reply)\n- attributes 12 <= 20\n- hidden elements 1 <= 3\n- random draws 1 <= 1 (the shuffle/deal)\n- rounds 16 <= 40\n\nSIMULTANEITY. The Put window is a simultaneous poll, as required.\n\nENGINE FIT.\n- 'Skip to step 15' after a fold is not a block substitution. It is implemented by putting a when folded==0 condition on steps 11-14, which the engine supports.\n- Step 9 carries a when condition (exactly one Put).\n- No board, judge, clock, trading or binding agreement is needed.\n- The automatic play of tricks 2-3 is arithmetic.\n\nTALK. This is a two-player game, so the three-player talk rule does not apply. Omitting talk is acceptable.\n\nREPEATED-GAME CHECK. There is no cooperate/betray structure. Each hand is a zero-sum bet, so late rounds are not dominated by a 'safe' option: Fold still costs 1 and Check still risks a Put."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT THERE IS TO INFER. After trick 1, each player knows:\n- their own two remaining cards;\n- the opponent's trick-1 card, which is itself a strategic choice that signals strength or a deliberate dump;\n- the trick-1 result;\n- the deck composition (four of each value).\n\nTricks 2-3 are deterministic once the hands are fixed. The key decision is estimating q, the chance of taking 2 tricks against the unseen two cards, from these clues.\n\nACTING ON IT.\n- The trick-1 card choice: beat cheaply, dump low, or lead to probe.\n- The Put/Check call, which allows bluffing.\n- See/Fold against the 3/8 threshold, after observing whether the opponent Put.\n\nCHANCE. Card strength decides any single hand. Over 16 hands with stakes of 1 to 4, deal variance is substantial: roughly 40-50% of a single match's result between equal players is card luck. However:\n- a threshold player beats always-See, always-Put and random play by several points per match on average (about 0.4 points per hand against always-Put);\n- folding weak hands for 1 instead of losing 4, and catching or making bluffs, are skill edges that accumulate.\n\nEQUAL GOOD PLAY. When both play well the result tilts toward the deal, as in any poker-like game. But the stake depends on reasoned Put/See decisions rather than being fixed by the deal, and the deal alone does not decide outcomes between unequal players. A good reasoner is clearly favoured over a poor one."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

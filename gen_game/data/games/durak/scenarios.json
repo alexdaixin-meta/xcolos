@@ -1,0 +1,1315 @@
+[
+  {
+    "name": "Setup: each seat holds 8 cards and 20 cards are set aside",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 8
+        },
+        "2": {
+          "hand_size": 8
+        }
+      },
+      "lens": {
+        "game": {
+          "set_aside": 20
+        },
+        "players": {
+          "1": {
+            "hand": 8
+          },
+          "2": {
+            "hand": 8
+          }
+        }
+      }
+    },
+    "rule_text": "At setup, seat 1 holds shuffled positions 1-8 and seat 2 holds positions 9-16. Each has hand_size = 8, and the 20 remaining cards go to set_aside, which is never drawn."
+  },
+  {
+    "name": "Setup: trump unset, no attacker, no bouts, empty discard",
+    "rule": "R4",
+    "players": 2,
+    "seed": 2,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "trump": -1,
+        "attacker": 0,
+        "bout": 0
+      },
+      "lens": {
+        "game": {
+          "discard": 0
+        }
+      }
+    },
+    "rule_text": "At setup, trump = -1, attacker = 0 (none), bout = 0 and discard is empty."
+  },
+  {
+    "name": "Seat 2 offers Hearts and Spades, seat 1 picks Spades so trump is 3",
+    "rule": "R5",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Hearts and Spades"
+      },
+      {
+        "seat": 1,
+        "options_include": "Spades"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": 3,
+        "bout": 0
+      }
+    },
+    "rule_text": "In round 1, seat 2 picks one of 6 suit pairs. A missing or illegal answer gives Clubs and Diamonds."
+  },
+  {
+    "name": "Seat 1 picks Hearts from Diamonds and Hearts, so trump is 2",
+    "rule": "R6",
+    "players": 2,
+    "seed": 4,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Diamonds and Hearts"
+      },
+      {
+        "seat": 1,
+        "options_include": "Hearts"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": 2
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Diamonds"
+        },
+        {
+          "seat": 1,
+          "option": "Hearts"
+        }
+      ]
+    },
+    "rule_text": "In round 1, seat 1 picks one suit of that pair as trump. A missing or illegal answer gives the first suit named. Trump is announced."
+  },
+  {
+    "name": "Seat 1 holds the lowest trump (27) and attacks first",
+    "rule": "R7",
+    "players": 2,
+    "seed": 5,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            0,
+            1,
+            27,
+            30
+          ],
+          "hand_size": 4
+        },
+        "2": {
+          "hand": [
+            9,
+            10,
+            11,
+            28
+          ],
+          "hand_size": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Clubs and Spades"
+      },
+      {
+        "seat": 1,
+        "options_include": "Spades"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": 3,
+        "attacker": 1,
+        "bout": 0
+      }
+    },
+    "rule_text": "After trump is set, the attacker is the seat holding the lowest-id trump card. If neither seat holds a trump card, seat 2 attacks first."
+  },
+  {
+    "name": "Neither seat holds a trump, so seat 2 attacks first",
+    "rule": "R7",
+    "players": 2,
+    "seed": 6,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            0,
+            1,
+            27
+          ],
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9,
+            10,
+            28
+          ],
+          "hand_size": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Diamonds and Hearts"
+      },
+      {
+        "seat": 1,
+        "options_include": "Hearts"
+      }
+    ],
+    "expect": {
+      "game": {
+        "trump": 2,
+        "attacker": 2
+      }
+    },
+    "rule_text": "After trump is set, the attacker is the seat holding the lowest-id trump card. If neither seat holds a trump card, seat 2 attacks first."
+  },
+  {
+    "name": "Stale bout values are reset: a beaten-off bout still passes the attack",
+    "rule": "R8",
+    "players": 2,
+    "seed": 7,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            15
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            5,
+            12
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1,
+        "defender_took": true,
+        "throw_card": 20,
+        "defence_card": 7,
+        "attack_card": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "attacker": 2,
+        "bout": 1
+      }
+    },
+    "rule_text": "At the start of each bout, table_cards = [], attack_card = -1, defence_card = -1, throw_card = -1 and defender_took = false."
+  },
+  {
+    "name": "Attack card leaves the hand and an unbeatable attack is taken",
+    "rule": "R9",
+    "players": 2,
+    "seed": 8,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            0,
+            5,
+            20
+          ],
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9,
+            10
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 20
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "attacker": 1,
+        "bout": 1
+      }
+    },
+    "rule_text": "When the attacker attacks, the chosen card leaves their hand, goes to table_cards as attack_card and is shown. A missing or illegal answer plays their lowest id."
+  },
+  {
+    "name": "Defender is offered TAKE and only the cards that beat the attack",
+    "rule": "R10",
+    "players": 2,
+    "seed": 9,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            15
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            2,
+            5,
+            8,
+            12,
+            30
+          ],
+          "hand_size": 5
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 6
+        }
+      },
+      "game": {
+        "attacker": 1,
+        "bout": 1
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "TAKE"
+        },
+        {
+          "seat": 2,
+          "option": 5
+        },
+        {
+          "seat": 2,
+          "option": 8
+        },
+        {
+          "seat": 2,
+          "option": 30
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 2
+        },
+        {
+          "seat": 2,
+          "option": 12
+        }
+      ]
+    },
+    "rule_text": "The defender is offered TAKE plus exactly the cards in their hand that beat attack_card. A missing or illegal answer means TAKE."
+  },
+  {
+    "name": "Defender beats with a higher card of the same suit and the bout is beaten off",
+    "rule": "R11",
+    "players": 2,
+    "seed": 10,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            15
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            5,
+            12
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "attacker": 2,
+        "bout": 1
+      }
+    },
+    "rule_text": "When the defender plays a card, it leaves their hand, goes to table_cards and becomes defence_card. When the defender chooses TAKE, defender_took becomes true."
+  },
+  {
+    "name": "Trump 27 beats non-trump 8; clubs 0 does not",
+    "rule": "R2",
+    "players": 2,
+    "seed": 11,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            8,
+            19
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            0,
+            27
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 8
+      },
+      {
+        "seat": 2,
+        "options_include": 27
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "attacker": 2,
+        "bout": 1
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": 27
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "Card d beats card a when floor(d/9) = floor(a/9) and d > a, or when floor(d/9) = trump and floor(a/9) != trump. For example, with trump = 3, card 27 beats card 8, card 5 beats card 3, and card 3 does not beat card 5."
+  },
+  {
+    "name": "Same rank across suits (4, 13, 22 are all rank 10): a same-rank card is thrown in after a TAKE",
+    "rule": "R1",
+    "players": 2,
+    "seed": 12,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            4,
+            13,
+            22
+          ],
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9
+          ],
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 22
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "attacker": 1,
+        "bout": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 13
+        },
+        {
+          "seat": 1,
+          "option": 22
+        }
+      ]
+    },
+    "rule_text": "Card id c has suit floor(c/9) (0 Clubs, 1 Diamonds, 2 Hearts, 3 Spades) and rank (c mod 9) + 6. Two cards have the same rank when their ids are equal mod 9."
+  },
+  {
+    "name": "Throw-in offers cards matching the attack rank or the defence rank; the thrown card is beaten by a trump",
+    "rule": "R12",
+    "players": 2,
+    "seed": 13,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            12,
+            14,
+            20
+          ],
+          "hand_size": 4
+        },
+        "2": {
+          "hand": [
+            5,
+            9,
+            30
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 12
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 30
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "attacker": 2,
+        "bout": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "PASS"
+        },
+        {
+          "seat": 1,
+          "option": 12
+        },
+        {
+          "seat": 1,
+          "option": 14
+        }
+      ]
+    },
+    "rule_text": "The throw-in options are PASS plus attacker cards matching attack_card mod 9 or defence_card mod 9 (when defence_card != -1). Cards are added only if (defender_took or the defender holds >= 1 card) and the attacker holds >= 1 card."
+  },
+  {
+    "name": "Defender beats the attack with their last card, the attacker may only pass, and seat 2 wins",
+    "rule": "R13",
+    "players": 2,
+    "seed": 14,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            12
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            5
+          ],
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -1,
+        "2": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 0
+        }
+      }
+    },
+    "rule_text": "When the defender beat the attack with their last card, the throw-in options are only PASS."
+  },
+  {
+    "name": "One card is thrown in and leaves the attacker's hand",
+    "rule": "R14",
+    "players": 2,
+    "seed": 15,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            12,
+            14,
+            20
+          ],
+          "hand_size": 4
+        },
+        "2": {
+          "hand": [
+            5,
+            9,
+            30
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 14
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 30
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "attacker": 2,
+        "bout": 1
+      }
+    },
+    "rule_text": "At most 1 card is thrown in per bout. A thrown card leaves the attacker's hand, goes to table_cards as throw_card and is shown. A missing or illegal answer means PASS."
+  },
+  {
+    "name": "Second defence: the defender cannot beat the thrown card and takes all three cards",
+    "rule": "R15",
+    "players": 2,
+    "seed": 16,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            12,
+            14,
+            20
+          ],
+          "hand_size": 4
+        },
+        "2": {
+          "hand": [
+            5,
+            9
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 12
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 4
+        }
+      },
+      "game": {
+        "attacker": 1,
+        "bout": 1
+      }
+    },
+    "rule_text": "When throw_card != -1 and defender_took is false, the defender is offered TAKE plus the cards in their hand that beat throw_card. A chosen card goes to table_cards, TAKE sets defender_took = true, and a missing or illegal answer means TAKE."
+  },
+  {
+    "name": "After a TAKE, a thrown card gets no second defence",
+    "rule": "R16",
+    "players": 2,
+    "seed": 17,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            12,
+            20
+          ],
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9,
+            13
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 12
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 4
+        }
+      },
+      "game": {
+        "attacker": 1,
+        "bout": 1
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 13
+        }
+      ]
+    },
+    "rule_text": "When throw_card != -1 and defender_took is already true, there is no second defence."
+  },
+  {
+    "name": "Taken bout: the defender gets the table cards and the attacker stays",
+    "rule": "R17",
+    "players": 2,
+    "seed": 18,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            0,
+            5,
+            20
+          ],
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9,
+            10
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 20
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "attacker": 1,
+        "bout": 1
+      }
+    },
+    "rule_text": "When defender_took is true at resolve, all table_cards go into the defender's hand, the attacker stays the attacker, and 'taken' is announced."
+  },
+  {
+    "name": "Beaten-off bout: the cards are discarded and the defender becomes the attacker",
+    "rule": "R18",
+    "players": 2,
+    "seed": 19,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            8,
+            19
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            0,
+            27
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 8
+      },
+      {
+        "seat": 2,
+        "options_include": 27
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "attacker": 2,
+        "bout": 1
+      },
+      "lens": {
+        "game": {
+          "discard": 2
+        }
+      }
+    },
+    "rule_text": "When defender_took is false at resolve, all table_cards go to discard, the defender becomes the attacker, and 'beaten off' is announced."
+  },
+  {
+    "name": "After a bout, bout goes from 0 to 1 and the hand sizes are updated",
+    "rule": "R19",
+    "players": 2,
+    "seed": 20,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            15
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            5,
+            12
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1,
+        "bout": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "bout": 1
+      }
+    },
+    "rule_text": "After each bout, both hand_size values are updated and announced, and bout increases by 1."
+  },
+  {
+    "name": "The attacker plays their last card, the defender takes, and seat 1 wins",
+    "rule": "R20",
+    "players": 2,
+    "seed": 21,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ],
+          "hand_size": 1
+        },
+        "2": {
+          "hand": [
+            9,
+            10
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -3
+      },
+      "players": {
+        "1": {
+          "hand_size": 0
+        },
+        "2": {
+          "hand_size": 3
+        }
+      }
+    },
+    "rule_text": "When exactly one seat has hand_size = 0 at an end check, that seat wins and the game ends."
+  },
+  {
+    "name": "Both seats empty their hands in the same bout: a shared win",
+    "rule": "R21",
+    "players": 2,
+    "seed": 22,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3
+          ],
+          "hand_size": 1
+        },
+        "2": {
+          "hand": [
+            5
+          ],
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "round_number": 1,
+        "trump": 3,
+        "attacker": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 0,
+        "2": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 0
+        },
+        "2": {
+          "hand_size": 0
+        }
+      }
+    },
+    "rule_text": "When both seats have hand_size = 0 at an end check, the game ends in a draw."
+  },
+  {
+    "name": "Round 40 ends and seat 1 wins with fewer cards",
+    "rule": "R22",
+    "players": 2,
+    "seed": 23,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            20
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            9,
+            10,
+            11
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "round_number": 39,
+        "trump": 3,
+        "attacker": 1,
+        "bout": 38
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": -1,
+        "2": -4
+      },
+      "players": {
+        "1": {
+          "hand_size": 1
+        },
+        "2": {
+          "hand_size": 4
+        }
+      }
+    },
+    "rule_text": "When round 40 ends with both seats holding cards, the seat with fewer cards wins, and equal counts are a draw."
+  },
+  {
+    "name": "Round 40 ends with equal hand sizes: a shared win",
+    "rule": "R22",
+    "players": 2,
+    "seed": 24,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            3,
+            20,
+            21
+          ],
+          "hand_size": 3
+        },
+        "2": {
+          "hand": [
+            9
+          ],
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "round_number": 39,
+        "trump": 3,
+        "attacker": 1,
+        "bout": 38
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": -2,
+        "2": -2
+      },
+      "players": {
+        "1": {
+          "hand_size": 2
+        },
+        "2": {
+          "hand_size": 2
+        }
+      }
+    },
+    "rule_text": "When round 40 ends with both seats holding cards, the seat with fewer cards wins, and equal counts are a draw."
+  }
+]

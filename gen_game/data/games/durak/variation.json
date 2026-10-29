@@ -1,0 +1,129 @@
+{
+  "original_summary": "Durak is a Russian shedding card game for 2 to 6 players with a 36-card deck and a trump suit. Attackers lead cards, the defender must beat each one or pick up the whole table, extra cards of matching rank can be thrown in, and the last player left holding cards is the loser (the durak).",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy is safe. Always TAKE piles cards into your own hand and loses. Always beating with the lowest legal card spends trumps on cheap attacks. Always attacking with the lowest card lets the defender discard cheaply. Seat order matters only through who holds the lowest trump, and that is random."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Card counting, saving trumps and choosing throw-ins give a real edge. With 2 to 6 players and a talon that keeps refilling hands, the deal and the draws swing many games."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "It is played seriously by humans. Beginners can still empty their hands. Experts improve through memory, inference about the opponent's hand and timing."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden. What the opponent plays, takes or declines to beat reveals their hand, and good play needs a plan for when to spend trumps."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Who runs out of cards is plain fact, and legality is arithmetic on suit and rank."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "Multi-player throw-ins of up to 6 cards and draw-to-6 refills make a bout far longer than the step limits allow. Durak needs a cut-down version."
+    }
+  ],
+  "problems": [
+    "P1: The full multi-player bout (up to 6 attacks, several throwers, a refill order) exceeds the step and choice limits per round.",
+    "P2: The refilling talon adds a lot of luck and many random draws per round.",
+    "P3 (built version): the throw-in option list was built from the attacker's whole hand instead of only the cards whose rank matches a card on the table, so illegal cards (for example id 20 when the table held ranks 6 and 7) were offered.",
+    "P4 (built version): after the defender beat the attack with their last card, the attacker was still offered throw-ins. The bout must instead end beaten off and the defender wins.",
+    "P5 (built version): the rule text left the matching test, the skip condition and the fallback for a missing answer implicit, so the builder improvised them."
+  ],
+  "changes": [
+    {
+      "what": "Two players. Each bout has at most 4 choices: attack, defend, one throw-in, defend the throw-in.",
+      "why": "Keeps attack, beat-or-take and throw-in while fitting at most 4 choice steps per round.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Deal 8 each from the shuffled 36 and set the other 20 aside unseen. There is no talon and no refill.",
+      "why": "Only one random event (the shuffle). The unseen 20 keep the opponent's hand uncertain, so inference still matters.",
+      "fixes": "P2"
+    },
+    {
+      "what": "The throw-in options are defined as an explicit computed list: PASS, plus each attacker card c with c mod 9 equal to (attack card mod 9), or equal to (defence card mod 9) when a defence card was played. The list never includes other hand cards.",
+      "why": "This states the matching test as one arithmetic comparison per card, so the builder cannot offer the whole hand.",
+      "fixes": "P3"
+    },
+    {
+      "what": "The throw-in list is built only when the defender said TAKE, or still holds at least 1 card, and the attacker holds at least 1 card. Otherwise the list is just PASS and the bout resolves straight away.",
+      "why": "Enforces that you cannot throw in against an empty-handed defender. Beating your last card ends the bout and wins.",
+      "fixes": "P4"
+    },
+    {
+      "what": "The rules are written as a numbered step list. Each step states its condition and the fallback for a missing or illegal answer: attack falls back to the lowest card id, defence to TAKE, throw-in to PASS.",
+      "why": "Removes the ambiguity the builder filled in wrongly.",
+      "fixes": "P5"
+    },
+    {
+      "what": "The first player to empty their hand wins. If both empty in the same bout, it is a draw. There is a 40-round cap, after which fewer cards wins and equal counts draw.",
+      "why": "This is the durak ending without a talon, with a guaranteed finish. No total is compared, so the higher-total trap does not arise.",
+      "fixes": "P1"
+    }
+  ],
+  "keeps": [
+    "The 36-card deck from 6 to Ace in four suits, with a trump suit.",
+    "Attack, then the defender beats with a higher card of the same suit or with a trump, or takes the table.",
+    "Throwing in a card of a rank already on the table.",
+    "A successful defender becomes the attacker. A defender who takes is attacked again.",
+    "Shedding all your cards is the goal. Being left holding cards loses."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Durak works as a two-player, fixed-hand, single-throw-in game within the limits. The build failures came from an under-specified throw-in list, which the explicit rules now fix."
+  },
+  "variation": {
+    "name": "Duel Durak",
+    "summary": "Two-player Durak with fixed 8-card hands, 20 unseen set-aside cards, a trump chosen by offer-and-pick, and at most one throw-in per bout. The first player to shed all their cards wins.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "CARDS. There are 36 cards with ids 0 to 35.\n- Suit = floor(id/9): 0 Clubs, 1 Diamonds, 2 Hearts, 3 Spades.\n- Rank = (id mod 9) + 6: 6, 7, 8, 9, 10, Jack 11, Queen 12, King 13, Ace 14.\n- Two cards have the same rank when their ids are equal mod 9.\n\nBEATING. A card d beats a card a if either:\n(i) floor(d/9) = floor(a/9) and d > a, or\n(ii) floor(d/9) = trump and floor(a/9) is not trump.\n\nSETUP (before round 1):\n- The deck 0..35 is shuffled once.\n- Seat 1 gets shuffled positions 1-8 and seat 2 gets positions 9-16. Both hands are sorted ascending.\n- Positions 17-36 (20 cards) form the set_aside pile. It is never seen and never drawn from.\n- Each seat sees only its own hand. Both are told that each player holds 8 cards.\n- Table values: trump = -1, attacker = none, bout = 0, discard = empty.\n\nROUND 1 (trump choice).\n- Step A: Seat 2 chooses one pair of suits from these six: Clubs and Diamonds; Clubs and Hearts; Clubs and Spades; Diamonds and Hearts; Diamonds and Spades; Hearts and Spades. A missing or illegal answer means Clubs and Diamonds.\n- Step B: Seat 1 chooses one suit of that pair. A missing or illegal answer means the first suit named. That suit becomes trump and is announced.\n- First attacker: the seat holding the lowest-id card of the trump suit. If neither seat holds a trump, seat 2 attacks first.\n\nROUNDS 2 to 40 (one bout per round). The defender is the seat that is not the attacker.\n- Step 1 (reset): table_cards = empty, attack_card = -1, defence_card = -1, throw_card = -1, defender_took = false.\n- Step 2 (attack): The attacker chooses any card from their hand. A missing or illegal answer means their lowest-id card. The card moves from their hand to table_cards as attack_card and is shown to both players.\n- Step 3 (defence options): The defender's options are TAKE, plus every card in the defender's hand that beats attack_card.\n- Step 4 (defence): The defender chooses. A missing or illegal answer means TAKE. If they choose a card, it moves from their hand to table_cards as defence_card. If they choose TAKE, defender_took = true.\n- Step 5 (throw-in options): The option list is built as follows.\n  - Start with [PASS].\n  - Only if (defender_took is true OR the defender holds at least 1 card) AND the attacker holds at least 1 card: for each card c in the attacker's hand, add c if c mod 9 = attack_card mod 9, or if defence_card is not -1 and c mod 9 = defence_card mod 9.\n  - No other card is ever added. In particular, if the defender beat the attack with their last card, the list is only [PASS].\n- Step 6 (throw-in): The attacker chooses one option. A missing or illegal answer means PASS. A chosen card moves from the attacker's hand to table_cards as throw_card and is shown. At most 1 card is thrown in per bout.\n- Step 7 (second defence options): This step and Step 8 happen only if throw_card is not -1 and defender_took is false. The options are TAKE, plus every card in the defender's hand that beats throw_card.\n- Step 8 (second defence): The defender chooses. A missing or illegal answer means TAKE. A chosen card moves from their hand to table_cards. TAKE sets defender_took = true.\n- Step 9 (resolve):\n  - If defender_took is true, all table_cards go into the defender's hand, sorted, and the attacker stays the attacker. The result is announced as 'taken'.\n  - Otherwise all table_cards go to discard, the defender becomes the next attacker, and the result is announced as 'beaten off'.\n- Step 10: Update both hand sizes, announce them, and set bout = bout + 1.\n- Step 11 (end check):\n  - If exactly one seat holds 0 cards, that seat wins and the game ends.\n  - If both hold 0, the game is a draw.\n- After round 40, the seat with fewer cards wins. Equal counts are a draw.",
+    "objective": "The first seat to hold 0 cards at an end check wins. If both seats hold 0 at the same check, the game is a draw. If round 40 ends with both still holding cards, the seat with fewer cards wins, and equal counts are a draw.",
+    "expected_effect": "The game plays as real Durak in miniature. Players count the cards they have seen, and because 20 cards are unseen they must infer the rest of the opponent's hand from what the opponent takes and what they beat with. They choose when to spend trumps, and they use throw-ins to force a pickup or to dump a matching card. The trump offer is a small bluff-and-read: seat 2 offers suits that suit its own hand, and seat 1 infers which suit to refuse. The throw-in now offers only rank-matching cards and is skipped against an empty-handed defender, which matches rules R10 and R11. There is no talk, because this is a two-player zero-sum game."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 4,
+    "attributes": 17,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "This is a zero-sum race to empty your hand. It has no cooperation payoff, so the 'safe option makes cooperation pointless' test does not apply. Card-count arithmetic per bout, as (attacker change, defender change): beaten off with 1 attack and 1 defence = (-1,-1); beaten off with a throw-in = (-2,-2); taken with no throw-in = (-1,+1); taken with a throw-in = (-2,+2). Only takes change the count difference. If every attack is beaten, counts stay equal down to 1-1. The attacker then plays their last card, Step 5 gives only [PASS], and the defender beats with their last card. That is a 0-0 draw, which Step 11 handles. Wins therefore come from forcing takes. Thoughtless policies under the winner rule: (1) Always TAKE as defender: every bout moves 1-2 cards to you while the attacker sheds and keeps attacking. The attacker empties first, so this policy loses almost always. (2) Always attack with the lowest card (the default): it never forces a take from a defender who holds same-suit higher cards or any trump. It concedes the initiative and does not reach 0 first against a defender who beats cheaply, so it is beatable. (3) Always attack with the highest card: it wastes high trumps that are the only answers to the opponent's trump attacks. It loses to an opponent who saves trumps and then attacks with a trump the policy can no longer beat. (4) Always PASS on throw-ins: it sheds more slowly than a throwing opponent, which converts takes into 2-card swings. It loses races it could have won, so it is not dominant. (5) Always throw in when legal: this can break up a matching pair you need later, and it gives the defender a card to beat with a same-rank trump. It is not dominant either. No option wins whatever the opponent does, because whether you can beat a card depends on the opponent's hidden hand. Seat edge, trump choice as cut-and-choose: seat 2 names a pair; seat 1 keeps the half better for seat 1. Seat 2's best response is the two suits where seat 2 is strongest. Each hand holds about 2 cards per suit on average (8 cards / 4 suits), so seat 2's top two suits typically hold 3+ cards each. Seat 1 then picks the suit where its own holding is relatively better, but that suit still favours seat 2. Seat 1 has the last word; seat 2 has the information-shaping move, and also takes the first attack in the rare case that neither seat holds a trump. That case has probability C(27,16)/C(36,16) \u2248 0.18%. Otherwise the first attack goes to the lowest-trump holder, the classic compensation for the weaker trump holding. Neither seat has a structural lock. Both seats can win, and draws are possible but need exactly matched shedding."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules fully define the cards: suit = floor(id/9), rank = id mod 9 + 6, and 'beats' is pure arithmetic on ids and trump. All option lists are built arithmetically, with defaults for every choice (Clubs and Diamonds; first named suit; lowest card; TAKE; PASS). The last-card edge cases are covered. If the defender beats with their last card, the throw-in list is [PASS] and they win at the end check. If the attacker empties and the defender takes, the attacker wins. If both reach 0, it is a draw. No bout can start with an empty hand, because the end check fires first. Termination: there are at most 8 beat-offs, since each removes at least 2 of the 16 live cards. A run of takes strictly shrinks the attacker's hand. Round 40 has a fewer-cards tiebreak, so the game is finite and decided by arithmetic. Limits: 14 steps (max 20); 4 choice steps (attack, defence, throw-in, second defence; max 4); 17 attributes (max 20); hidden elements are the two hands plus the unseen set-aside pile, 3 at most (max 3); one shuffle at setup (max 1 random draw); 40 rounds (max 40). Steps 7-8 are single steps with a `when` condition, not a conditional block, so this is supported. There is no board, clock, trading or binding agreement. With two players and opposed interests, having no talk phase is correct."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance enters only through the single shuffle. Its effect is mitigated by the cut-and-choose trump selection: no player can be stuck with a trump suit they are void in if they choose well. A rough estimate is that about 35-45% of the outcome comes from the deal. The rest comes from the trump choice, attack ordering, throw-in timing and conserving trumps. There is real inference. The 20-card set-aside pile means the opponent's 8 cards are an unknown subset of the 28 you cannot see, so you cannot count cards exactly. You must infer from three signals: seat 2's pair choice, which reveals its strong suits; seat 1's pick from that pair; and which attacks the opponent beats versus takes. A take signals a void or an unwillingness to spend a trump. When both play well, the result is not fixed by the deal alone. The trump pick, lead order, and the decision to take early to save a trump versus beating all change who forces the decisive take. A skilled player with an average hand regularly beats a careless one who spends trumps early or attacks into known strength."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

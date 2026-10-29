@@ -1,0 +1,977 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "air_land_and_sea",
+    "name": "Air, Land and Sea: Three Fronts",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "Two commanders fight 6-round battles over Air, Land and Sea, placing cards face-up or face-down and deciding each round whether to withdraw; first to 12 VP wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "vp",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "air",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "land",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "sea",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "faceup_played",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "facedown_played",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "withdraw_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "card_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "theater_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "match_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "battle_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "battle_over",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "match_over",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "last_withdrawals",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "last_placements",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 18
+      },
+      {
+        "key": "theaters",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "min_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "max_match_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 36
+      },
+      {
+        "key": "battle_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "last_battle_start_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 31
+      },
+      {
+        "key": "withdraw_base_vp",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "facedown_strength",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "battle_win_vp",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "sweep_vp",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "target_vp",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "start the match",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "vp",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "match_round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "battle_round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "battle_over",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "match_over",
+            "value": false
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "the deck list",
+      "to": "all",
+      "text": "The deck has {deck_size} cards: Air 1-6, Land 1-6 and Sea 1-6, one card of each strength per theater."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "start of a battle",
+      "when": {
+        "calc": "battle_round == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": [
+              "Air 1",
+              "Air 2",
+              "Air 3",
+              "Air 4",
+              "Air 5",
+              "Air 6",
+              "Land 1",
+              "Land 2",
+              "Land 3",
+              "Land 4",
+              "Land 5",
+              "Land 6",
+              "Sea 1",
+              "Sea 2",
+              "Sea 3",
+              "Sea 4",
+              "Sea 5",
+              "Sea 6"
+            ]
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "faceup_played",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "facedown_played",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "air",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "land",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "sea",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ],
+      "text": "A new battle begins in match round {match_round}. The cards are shuffled and {hand_size} are dealt to each player; the rest stay unseen. All theater strengths are 0."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your position",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "vp",
+        "hand",
+        "air",
+        "land",
+        "sea",
+        "faceup_played",
+        "facedown_played"
+      ],
+      "text": "Battle round {battle_round}, match round {match_round}. Your position:"
+    },
+    {
+      "use": "poll",
+      "phase": "withdraw",
+      "label": "withdraw decision",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Fight",
+          "Withdraw"
+        ]
+      },
+      "store": "withdraw_choice",
+      "text": "Battle round {battle_round}: choose Fight or Withdraw, in secret. If only you withdraw, your opponent gains {withdraw_base_vp} + floor((battle round - 1) / 2) VP and the battle ends. If both withdraw, nobody scores and the battle ends. If both fight, you then play a card."
+    },
+    {
+      "use": "update",
+      "phase": "withdraw",
+      "label": "resolve withdrawals",
+      "do": [
+        {
+          "set": {
+            "key": "last_withdrawals",
+            "value": {
+              "calc": "'Seat 1: ' + players[0].withdraw_choice + '; Seat 2: ' + players[1].withdraw_choice"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.withdraw_choice != 'Withdraw' and count(p.withdraw_choice == 'Withdraw' for p in players) == 1"
+            },
+            "key": "vp",
+            "value": {
+              "calc": "withdraw_base_vp + int((battle_round - 1) / 2)"
+            },
+            "text": "Seat {player} gains VP from the opponent's withdrawal; the battle ends."
+          }
+        },
+        {
+          "set": {
+            "key": "battle_over",
+            "value": true,
+            "if": {
+              "calc": "count(p.withdraw_choice == 'Withdraw' for p in players) >= 1"
+            }
+          }
+        }
+      ],
+      "text": "Withdraw decisions: {last_withdrawals}."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "card choice",
+      "when": {
+        "calc": "not battle_over"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "card_choice",
+      "text": "Choose one card from your hand to play this battle round. It stays secret until placement."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "theater choice",
+      "when": {
+        "calc": "not battle_over"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Air",
+          "Land",
+          "Sea"
+        ]
+      },
+      "store": "theater_choice",
+      "text": "Name the theater for your card: Air, Land or Sea. In its own theater it is face-up and adds its printed strength; elsewhere it is face-down and adds exactly {facedown_strength}."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "placement",
+      "when": {
+        "calc": "not battle_over"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "last_placements",
+            "value": {
+              "calc": "'Seat 1: ' + (players[0].card_choice + ' face-up in ' + players[0].theater_choice if players[0].card_choice[0] == players[0].theater_choice[0] else 'face-down card (strength 3) in ' + players[0].theater_choice) + '. Seat 2: ' + (players[1].card_choice + ' face-up in ' + players[1].theater_choice if players[1].card_choice[0] == players[1].theater_choice[0] else 'face-down card (strength 3) in ' + players[1].theater_choice)"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.card_choice"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": {
+              "where": "you.card_choice[0] == you.theater_choice[0]"
+            },
+            "key": "faceup_played",
+            "value": {
+              "calc": "you.card_choice + ' in ' + you.theater_choice"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": {
+              "where": "you.card_choice[0] != you.theater_choice[0]"
+            },
+            "key": "facedown_played",
+            "value": {
+              "calc": "you.card_choice + ' in ' + you.theater_choice"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.theater_choice == 'Air'"
+            },
+            "key": "air",
+            "value": {
+              "calc": "int(you.card_choice[len(you.card_choice) - 1]) if you.card_choice[0] == 'A' else facedown_strength"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.theater_choice == 'Land'"
+            },
+            "key": "land",
+            "value": {
+              "calc": "int(you.card_choice[len(you.card_choice) - 1]) if you.card_choice[0] == 'L' else facedown_strength"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.theater_choice == 'Sea'"
+            },
+            "key": "sea",
+            "value": {
+              "calc": "int(you.card_choice[len(you.card_choice) - 1]) if you.card_choice[0] == 'S' else facedown_strength"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "play",
+      "label": "reveal placements",
+      "when": {
+        "calc": "not battle_over"
+      },
+      "to": "all",
+      "text": "Placements: {last_placements}. Strengths: Seat 1 Air {players[0].air}, Land {players[0].land}, Sea {players[0].sea}; Seat 2 Air {players[1].air}, Land {players[1].land}, Sea {players[1].sea}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve the battle",
+      "when": {
+        "calc": "battle_round == battle_rounds and not battle_over"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "((1 if you.air > players[2 - you.seat].air else 0) + (1 if you.land > players[2 - you.seat].land else 0) + (1 if you.sea > players[2 - you.seat].sea else 0)) == theaters"
+            },
+            "key": "vp",
+            "value": {
+              "calc": "sweep_vp"
+            },
+            "text": "Seat {player} wins the battle controlling all three theaters and gains {sweep_vp} VP."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "((1 if you.air > players[2 - you.seat].air else 0) + (1 if you.land > players[2 - you.seat].land else 0) + (1 if you.sea > players[2 - you.seat].sea else 0)) < theaters and (((1 if you.air > players[2 - you.seat].air else 0) + (1 if you.land > players[2 - you.seat].land else 0) + (1 if you.sea > players[2 - you.seat].sea else 0)) > ((1 if players[2 - you.seat].air > you.air else 0) + (1 if players[2 - you.seat].land > you.land else 0) + (1 if players[2 - you.seat].sea > you.sea else 0)) or (((1 if you.air > players[2 - you.seat].air else 0) + (1 if you.land > players[2 - you.seat].land else 0) + (1 if you.sea > players[2 - you.seat].sea else 0)) == ((1 if players[2 - you.seat].air > you.air else 0) + (1 if players[2 - you.seat].land > you.land else 0) + (1 if players[2 - you.seat].sea > you.sea else 0)) and you.air + you.land + you.sea > players[2 - you.seat].air + players[2 - you.seat].land + players[2 - you.seat].sea))"
+            },
+            "key": "vp",
+            "value": {
+              "calc": "battle_win_vp"
+            },
+            "text": "Seat {player} wins the battle and gains {battle_win_vp} VP."
+          }
+        },
+        {
+          "set": {
+            "key": "battle_over",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "battle drawn",
+      "when": {
+        "calc": "battle_round == battle_rounds and battle_over and count(p.withdraw_choice == 'Withdraw' for p in players) == 0 and ((1 if players[0].air > players[1].air else 0) + (1 if players[0].land > players[1].land else 0) + (1 if players[0].sea > players[1].sea else 0)) == ((1 if players[1].air > players[0].air else 0) + (1 if players[1].land > players[0].land else 0) + (1 if players[1].sea > players[0].sea else 0)) and players[0].air + players[0].land + players[0].sea == players[1].air + players[1].land + players[1].sea"
+      },
+      "to": "all",
+      "text": "The battle is drawn: equal theaters controlled and equal total strength. Nobody scores."
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "battle result",
+      "when": {
+        "calc": "battle_round == battle_rounds and battle_over and count(p.withdraw_choice == 'Withdraw' for p in players) == 0"
+      },
+      "to": "all",
+      "text": "The battle is resolved. Final strengths: Seat 1 Air {players[0].air}, Land {players[0].land}, Sea {players[0].sea}; Seat 2 Air {players[1].air}, Land {players[1].land}, Sea {players[1].sea}. VP: Seat 1 {players[0].vp}, Seat 2 {players[1].vp}. Face-down cards revealed: Seat 1 {players[0].facedown_played}; Seat 2 {players[1].facedown_played}."
+    },
+    {
+      "use": "update",
+      "phase": "advance",
+      "label": "advance the round",
+      "do": [
+        {
+          "adjust": {
+            "key": "match_round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "match_over",
+            "value": {
+              "calc": "(battle_over and match_round > last_battle_start_round) or any(p.vp >= target_vp for p in players) or match_round > max_match_rounds"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "battle_round",
+            "value": {
+              "calc": "1 if battle_over else battle_round + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "battle_over",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "withdraw_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "theater_choice",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "advance",
+      "label": "is the match over",
+      "when": {
+        "calc": "any(p.vp >= target_vp for p in players) or match_over or match_round > max_match_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "any(p.vp >= target_vp for p in players) or match_over or match_round > max_match_rounds"
+      },
+      "rank_by": "you.vp",
+      "text": "Winner: {result}. Final VP: Seat 1 {players[0].vp}, Seat 2 {players[1].vp}; target {target_vp}."
+    }
+  },
+  "limits": {
+    "rounds": 36,
+    "rounds_max": 36,
+    "actions_max": 2000,
+    "deadline_s": 120
+  },
+  "rules": "DECK. There are {deck_size} cards. Each has a theater (Air, Land or Sea) and a strength from {min_strength} to {max_strength}, exactly one card of each strength per theater (Air 1-6, Land 1-6, Sea 1-6). Both players know the full deck list.\n\nMATCH STRUCTURE. The match lasts at most {max_match_rounds} rounds. It is a sequence of battles, each lasting up to {battle_rounds} battle rounds. When a battle ends, the next battle begins in the next match round, but only if that round is {last_battle_start_round} or earlier; otherwise the match ends.\n\nSTART OF A BATTLE (battle round 1 only). All {deck_size} cards are shuffled and {hand_size} are dealt privately to each player; the remaining 6 stay unseen for this battle. Your hand is shown to you in the order dealt. Both players' strength in each theater is set to 0.\n\nEACH BATTLE ROUND, in order:\n1. WITHDRAW DECISION (simultaneous). Each player secretly chooses Fight or Withdraw; neither sees the other's choice until both are in. If exactly one player withdraws in battle round k, the other player gains {withdraw_base_vp} + floor((k-1)/2) VP (2 VP in rounds 1-2, 3 VP in rounds 3-4, 4 VP in rounds 5-6) and the battle ends immediately. If both withdraw, nobody scores and the battle ends immediately. When a battle ends by withdrawal, no card or theater choice is made that round. If both fight, the round continues.\n2. CARD CHOICE (simultaneous). Each player secretly picks one card from their own hand.\n3. THEATER CHOICE (simultaneous). Each player secretly names Air, Land or Sea.\n4. PLACEMENT. Each chosen card leaves its owner's hand and is placed on its owner's side in the named theater. If the named theater matches the card's own theater, the card is face-up and adds its printed strength. Otherwise it is face-down and adds exactly {facedown_strength} strength.\n5. REVEAL. Both players are told every new placement: face-up cards by identity, face-down cards only as 'face-down card (strength 3) in [theater]'. All six theater strengths are announced.\n6. If this was battle round {battle_rounds} (both hands empty), the battle is resolved.\n\nRESOLVING A BATTLE. In each theater, the player with the higher strength controls it; a tie means nobody controls it. The player controlling more theaters wins the battle. If both control the same number, the player with the higher total strength across all three theaters wins. If that is also equal, the battle is drawn and nobody scores. The winner gains {battle_win_vp} VP, or {sweep_vp} VP if they control all three theaters. All face-down identities are then revealed to both players.\n\nAFTER EACH ROUND, the match ends if either player has {target_vp} or more VP, and that player wins. Only one player can score in any battle, so both can never reach {target_vp} together. If the match ends because the round limit allows no further full battle, the player with more VP wins; equal VP is a draw."
+}

@@ -8,9 +8,6 @@ not against what the engine says happened.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 from xcolos.agents import RandomAgent
 from xcolos.flow import FlowOrchestrator
 from xcolos.game import Game
@@ -19,9 +16,6 @@ from xcolos.host import LocalAgentHost, Registry
 from xcolos.identity import Player
 from xcolos.log import MatchLog
 from xcolos.runner import Runner
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from referee import referee  # noqa: E402
 
 DEFINITION = available()["auction"]
 
@@ -41,9 +35,8 @@ def play(seed: int, n: int = 4):
     for bound in host.register():
         index = game.register_seat(bound.name, host.host_id, bound.profile)
         registry.attach(index, host, bound)
-    # The referee decides the winner by final wealth, as the file says in words.
-    orchestrator = FlowOrchestrator(
-        DEFINITION, referee(lambda you: you["cash"] + you["holdings"]))
+    # The ending ranks the seats by final wealth (`rank_by`); no model is involved.
+    orchestrator = FlowOrchestrator(DEFINITION)
     return Runner(game, orchestrator, registry).run(), game, orchestrator
 
 

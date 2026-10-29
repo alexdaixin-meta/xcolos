@@ -1,0 +1,54 @@
+
+$ gen_game convert medici --judge   (code e5a100032e, 09:38:11)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests follow the rules. In all four failing scenarios the active seat was never offered the lot-size choice that rule R4 gives it, or was offered only part of it. The trace also shows other defects in the file: only seat 2 was polled for a bid, the deck held repeated 'Grain-2' cards, and the game stopped at round 6 instead of running 6N rounds.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows the game moves `round` from 1 to 2 and `active_seat` from 1 to 2 before round 1 is played, so seat 2 chooses the lot size in round 1. The rules make seat ((r-1) mod N)+1 active, which is seat 1 in round 1. Because of this off-by-one, the scripted lot sizes and bids never reach the right seats, every bid comes out 0, nobody wins, and all three revealed cards are discarded instead of only the unchosen one.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests follow the rules. In R2 the 58-florin result checks out: 40, plus 3 from each of the 4 split majorities, plus 6 for favoured cards, gives 58008. The traces show the game file does not give the active seat a correct lot-size choice: in round 5 seat 2 was never offered 3, and in rounds 18 (N=3), 7 (N=3) and 16 (N=4) the active seat was never asked for a lot size at all.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows two bugs in the game file. The deck is built as only three copies of 'Spice-3' instead of the 48-card deck. The round counter also advances from 1 to 2, moving the active seat from 1 to 2, before the lot-size choice, so seat 2 picks the lot size in round 1 and seat 1 is never offered it. These failures come from the implementation, not from the tests or the rules.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows clear bugs in the game file. The deck is built as only three 'Spice-3' cards instead of the 48-card deck. The round counter moves 0→1→2 inside the first round, so seat 2 rather than seat 1 is asked for the lot size in round 1. The tests' failures follow directly from these bugs, and the rules are expressible on the platform.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows the game file breaking the rules. The deck is built as only three copies of 'Spice-3' instead of 48 cards, and the round counter goes 0→1→2 within the first round. As a result, seat 2 is asked for the lot size in round 1 instead of seat 1. The tests read the rules correctly; the file is wrong.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows the game's own errors. In round 1 the table round went 0 -> 1 and then 1 -> 2 before any choice, so active_seat became 2 instead of 1, and seat 2 picked the lot size. The tests also report that seat 1 was never offered the bids 0 or 40, so the bid choice does not offer the whole range from 0 to the player's florins.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows the file is wrong, not the tests. In the first round `round` goes 0→1 and then 1→2, so it is advanced twice. `active_seat` stays 0 and then becomes 2, so seat 2 picked the lot size instead of seat 1. Every bid also came out 0 because seat 1 was never offered 40 (or even 0) as a bid, so the reveal, cut, bid and load rules never ran as written.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows the game file is wrong in two places. Round goes 0 -> 1 -> 2 before the lot choice, so active_seat is 2 in what should be round 1 (seat 2 chose the lot size). The bid choice also never offered seat 1 the range 0..florins (not 0, 5 or 40), so every bid fell to the default 0 and nobody ever won a lot. The tests follow the rules, and nothing here is beyond the platform.
+
+medici: dropped
+  too complex: it could not be built to behave as designed: scenario `The revealed top 3 cards form a lot of 3, and the winner loads exactly those` failed: rule R5 is broken: When a round's reveal happens, then the top 3 deck cards are shown to everyone.; seat 1 florins: expected 35, got 40; seat 1 ship_value: expected 7, got 0; Ada: the rule for 5 was never matched (the game never put that option to this seat) (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/medici
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/medici/VERIFIED.md

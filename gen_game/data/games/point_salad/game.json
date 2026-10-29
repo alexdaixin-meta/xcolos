@@ -1,0 +1,764 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "point_salad",
+    "name": "Point Salad: Secret Recipes",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "blurb": "Three secret two-vegetable Recipes, 12 rounds of talk and simultaneous picks; collisions shrink gains, and points plus recipe score wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "t",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "l",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "c",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "recipe",
+        "visible": "ally",
+        "type": "text",
+        "initial": "",
+        "values": [
+          "",
+          "TL",
+          "LC",
+          "CT"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "card_value",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "recipe_score",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "message",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "gain",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "card_types",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          "Tomato Fan",
+          "Lettuce Fan",
+          "Carrot Fan",
+          "Rainbow",
+          "Big Bowl",
+          "Balance"
+        ]
+      },
+      {
+        "key": "recipe_deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "TL",
+          "LC",
+          "CT"
+        ]
+      },
+      {
+        "key": "drawn",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "n_card",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "n_t",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "n_l",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "n_c",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "player_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "card_types_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "fan_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "rainbow_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "big_bowl_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "balance_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "balance_min_each",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "balance_max_spread",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "sole_vegetable_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "pair_vegetable_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "triple_vegetable_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "recipe_first_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "recipe_second_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "recipe_min_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "start_vegetables",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "start_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting baskets",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "t",
+            "value": {
+              "calc": "start_vegetables"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "l",
+            "value": {
+              "calc": "start_vegetables"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "c",
+            "value": {
+              "calc": "start_vegetables"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "points",
+            "value": {
+              "calc": "start_points"
+            }
+          }
+        }
+      ],
+      "text": "Every player starts with t={start_vegetables}, l={start_vegetables}, c={start_vegetables} and points={start_points}."
+    },
+    {
+      "use": "update",
+      "label": "deal the recipes",
+      "do": [
+        {
+          "set": {
+            "key": "drawn",
+            "value": {
+              "calc": "recipe_deck[int(uniform(0, len(recipe_deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "recipe",
+            "value": {
+              "calc": "drawn"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "recipe_deck",
+            "value": {
+              "calc": "drawn"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "drawn",
+            "value": {
+              "calc": "recipe_deck[int(uniform(0, len(recipe_deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "recipe",
+            "value": {
+              "calc": "drawn"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "recipe_deck",
+            "value": {
+              "calc": "drawn"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "drawn",
+            "value": {
+              "calc": "recipe_deck[int(uniform(0, len(recipe_deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "recipe",
+            "value": {
+              "calc": "drawn"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "recipe_deck",
+            "value": {
+              "calc": "drawn"
+            }
+          }
+        }
+      ],
+      "text": "The three Recipe tiles have been dealt, one to each player, face down."
+    },
+    {
+      "use": "sync",
+      "label": "your recipe",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "recipe",
+        "t",
+        "l",
+        "c",
+        "points"
+      ],
+      "text": "Your secret Recipe and starting basket:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "draw",
+      "label": "draw the card",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "card",
+            "value": {
+              "calc": "card_types[int(uniform(0, card_types_count))]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "card_types",
+            "value": {
+              "calc": "card"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "card_types",
+            "value": {
+              "calc": "card"
+            }
+          }
+        }
+      ],
+      "text": "Round {round} of {rounds}: the scoring card is {card}."
+    },
+    {
+      "use": "update",
+      "phase": "draw",
+      "label": "value the card",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "card_value",
+            "value": {
+              "calc": "fan_multiplier * you.t if card == 'Tomato Fan' else (fan_multiplier * you.l if card == 'Lettuce Fan' else (fan_multiplier * you.c if card == 'Carrot Fan' else (rainbow_multiplier * min(you.t, you.l, you.c) if card == 'Rainbow' else (big_bowl_multiplier * (you.t + you.l + you.c) if card == 'Big Bowl' else (balance_value if (min(you.t, you.l, you.c) >= balance_min_each and max(you.t, you.l, you.c) - min(you.t, you.l, you.c) <= balance_max_spread) else 0)))))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "message",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "gain",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "store": "message",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "The card this round is {card}. Write one short message to the table. Everyone writes at the same time; messages bind no one."
+    },
+    {
+      "use": "poll",
+      "phase": "pick",
+      "label": "pick",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Tomato",
+          "Lettuce",
+          "Carrot",
+          "Card"
+        ]
+      },
+      "store": "pick",
+      "text": "Pick exactly one: Tomato, Lettuce, Carrot or Card (the {card}). Everyone picks at the same moment; nobody sees a pick until all are in."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "count the picks",
+      "do": [
+        {
+          "set": {
+            "key": "n_card",
+            "value": {
+              "calc": "count(p.pick == 'Card' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "n_t",
+            "value": {
+              "calc": "count(p.pick == 'Tomato' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "n_l",
+            "value": {
+              "calc": "count(p.pick == 'Lettuce' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "n_c",
+            "value": {
+              "calc": "count(p.pick == 'Carrot' for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve the card",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.pick == 'Card'"
+            },
+            "key": "gain",
+            "value": {
+              "calc": "you.card_value if n_card == 1 else 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.pick == 'Card' and n_card == 1"
+            },
+            "key": "points",
+            "value": {
+              "calc": "you.gain"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve the vegetables",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.pick == 'Tomato'"
+            },
+            "key": "gain",
+            "value": {
+              "calc": "sole_vegetable_gain if n_t == 1 else (pair_vegetable_gain if n_t == 2 else triple_vegetable_gain)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pick == 'Lettuce'"
+            },
+            "key": "gain",
+            "value": {
+              "calc": "sole_vegetable_gain if n_l == 1 else (pair_vegetable_gain if n_l == 2 else triple_vegetable_gain)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pick == 'Carrot'"
+            },
+            "key": "gain",
+            "value": {
+              "calc": "sole_vegetable_gain if n_c == 1 else (pair_vegetable_gain if n_c == 2 else triple_vegetable_gain)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.pick == 'Tomato'"
+            },
+            "key": "t",
+            "value": {
+              "calc": "you.gain"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.pick == 'Lettuce'"
+            },
+            "key": "l",
+            "value": {
+              "calc": "you.gain"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.pick == 'Carrot'"
+            },
+            "key": "c",
+            "value": {
+              "calc": "you.gain"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "recipe scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "recipe_score",
+            "value": {
+              "calc": "(recipe_first_weight * you.t + recipe_second_weight * you.l + recipe_min_weight * min(you.t, you.l)) if you.recipe == 'TL' else ((recipe_first_weight * you.l + recipe_second_weight * you.c + recipe_min_weight * min(you.l, you.c)) if you.recipe == 'LC' else (recipe_first_weight * you.c + recipe_second_weight * you.t + recipe_min_weight * min(you.c, you.t)))"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "round results",
+      "to": "all",
+      "text": "Round {round} results (card {card}; Card pickers {n_card}, Tomato {n_t}, Lettuce {n_l}, Carrot {n_c}). Seat 1 picked {players[0].pick} and received {players[0].gain}; now t={players[0].t}, l={players[0].l}, c={players[0].c}, points={players[0].points}. Seat 2 picked {players[1].pick} and received {players[1].gain}; now t={players[1].t}, l={players[1].l}, c={players[1].c}, points={players[1].points}. Seat 3 picked {players[2].pick} and received {players[2].gain}; now t={players[2].t}, l={players[2].l}, c={players[2].c}, points={players[2].points}."
+    },
+    {
+      "use": "update",
+      "phase": "announce",
+      "label": "reveal the recipes",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "do": [
+        {
+          "disclose": {
+            "attribute": "recipe",
+            "of": 1,
+            "to": "all",
+            "text": "Seat {subject}'s Recipe was {value}."
+          }
+        },
+        {
+          "disclose": {
+            "attribute": "recipe",
+            "of": 2,
+            "to": "all",
+            "text": "Seat {subject}'s Recipe was {value}."
+          }
+        },
+        {
+          "disclose": {
+            "attribute": "recipe",
+            "of": 3,
+            "to": "all",
+            "text": "Seat {subject}'s Recipe was {value}."
+          }
+        },
+        {
+          "disclose": {
+            "attribute": "recipe_score",
+            "of": 1,
+            "to": "all",
+            "text": "Seat {subject}'s recipe score is {value}."
+          }
+        },
+        {
+          "disclose": {
+            "attribute": "recipe_score",
+            "of": 2,
+            "to": "all",
+            "text": "Seat {subject}'s recipe score is {value}."
+          }
+        },
+        {
+          "disclose": {
+            "attribute": "recipe_score",
+            "of": 3,
+            "to": "all",
+            "text": "Seat {subject}'s recipe score is {value}."
+          }
+        }
+      ],
+      "text": "Recipes revealed. Seat 1: {players[0].recipe}, recipe {players[0].recipe_score} + points {players[0].points}. Seat 2: {players[1].recipe}, recipe {players[1].recipe_score} + points {players[1].points}. Seat 3: {players[2].recipe}, recipe {players[2].recipe_score} + points {players[2].points}."
+    },
+    {
+      "use": "check",
+      "phase": "announce",
+      "label": "after round 12",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.points + you.recipe_score",
+      "reveal": [
+        "recipe",
+        "recipe_score"
+      ],
+      "text": "Winner: {result}. Final totals (points + recipe): Seat 1 {players[0].points} + {players[0].recipe_score}, Seat 2 {players[1].points} + {players[1].recipe_score}, Seat 3 {players[2].points} + {players[2].recipe_score}."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 12,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Point Salad: Secret Recipes, for {player_count} players. Vegetables: Tomato (t), Lettuce (l), Carrot (c).\n\nSETUP: There are 3 Recipe tiles: TL (tomato and lettuce), LC (lettuce and carrot) and CT (carrot and tomato). They are shuffled and one is dealt to each player, so all three are used. Each player sees only their own Recipe. A Recipe never changes for the rest of the game. Every player starts with t={start_vegetables}, l={start_vegetables}, c={start_vegetables} and points={start_points}. Baskets (t, l, c) and points are public at all times. Recipes are secret until game end.\n\nEACH ROUND ({rounds} rounds):\n1. Draw the card: one scoring card type is drawn at random, with replacement, equally likely from these {card_types_count}, and announced to everyone. Tomato Fan: worth {fan_multiplier} x t. Lettuce Fan: worth {fan_multiplier} x l. Carrot Fan: worth {fan_multiplier} x c. Rainbow: worth {rainbow_multiplier} x min(t, l, c). Big Bowl: worth {big_bowl_multiplier} x (t + l + c). Balance: worth {balance_value} if t, l and c are each at least {balance_min_each} and max(t,l,c) - min(t,l,c) is at most {balance_max_spread}; otherwise 0.\n2. Talk: every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Messages bind no one.\n3. Pick: every player at the same moment chooses exactly one of Tomato, Lettuce, Carrot, Card.\n4. Resolve the Card: if exactly one player chose Card, that player gains points equal to the drawn card's value, computed from their basket as it stood at the start of this round. If zero players, or two or more players, chose Card, nobody gains anything from it: the card is discarded and colliding players receive nothing this round.\n5. Resolve vegetables, separately for each vegetable: if exactly 1 player chose it, that player adds {sole_vegetable_gain} of it to their basket; if exactly 2 players chose it, each adds {pair_vegetable_gain}; if all 3 chose it, nobody gets any ({triple_vegetable_gain}).\n6. Announce: everyone's pick, what each received, and all baskets and points.\n7. After {rounds} rounds the game ends.\n\nEND: Each player's Recipe is revealed and scored. With first and second as that player's counts of the Recipe's two vegetables: recipe_score = {recipe_first_weight} x first + {recipe_second_weight} x second + {recipe_min_weight} x min(first, second). The third vegetable scores nothing. TL uses t and l; LC uses l and c; CT uses c and t. Examples: CT with c=2, t=2 scores 12; CT with c=3, t=2 scores 14; TL with t=4, l=1 scores 12; LC with l=0, c=6 scores 12. final_total = points + recipe_score. The highest final_total wins; for example points 10 with recipe 12 (22) beats points 0 with recipe 14 (14). If two or three players tie for the highest final_total, the game is a draw among them (they share the win).\n\nCard example: a player starting a round with t=3, l=1, c=2 who is the sole Card claimant scores Tomato Fan 6, Lettuce Fan 2, Carrot Fan 4, Rainbow 3, Big Bowl 6, Balance 0 (spread 2 > 1)."
+}

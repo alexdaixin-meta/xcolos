@@ -1,0 +1,845 @@
+[
+  {
+    "name": "Setup: both players start at 0 points and 0 hands won on hand 1, so one PUT/FOLD hand leaves the Caller at exactly 1 and 1",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      },
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "Both players start with 0 points and 0 hands won, and the match lasts exactly 40 hands."
+  },
+  {
+    "name": "Hand 1 (odd): seat 1 is Caller, seat 2 Responder; PUT then FOLD scores for seat 1",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      },
+      "game": {
+        "hand_number": 2
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "PUT"
+        },
+        {
+          "seat": 2,
+          "option": "RE-PUT"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "PASS"
+        },
+        {
+          "seat": 2,
+          "option": "PUT"
+        }
+      ]
+    },
+    "rule_text": "When hand_number is odd, seat 1 (A) is the Caller and seat 2 (B) is the Responder; when it is even, seat 2 is the Caller and seat 1 is the Responder."
+  },
+  {
+    "name": "Hand 2 (even): seat 2 is Caller, seat 1 Responder; PUT then FOLD scores for seat 2",
+    "rule": "R3",
+    "players": 2,
+    "seed": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      },
+      "game": {
+        "hand_number": 3
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "PUT"
+        },
+        {
+          "seat": 1,
+          "option": "RE-PUT"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "PASS"
+        },
+        {
+          "seat": 1,
+          "option": "PUT"
+        }
+      ]
+    },
+    "rule_text": "When hand_number is odd, seat 1 (A) is the Caller and seat 2 (B) is the Responder; when it is even, seat 2 is the Caller and seat 1 is the Responder."
+  },
+  {
+    "name": "Each player is dealt 3 private cards; 8 cards leave the 52-card deck (counts only, the deal is random)",
+    "rule": "R4",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 44
+        },
+        "players": {
+          "1": {
+            "hand": 3
+          },
+          "2": {
+            "hand": 3
+          }
+        }
+      },
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "Each hand, all 52 cards are shuffled and each player gets 3 private cards in hand and 1 face_up card that is announced to both players."
+  },
+  {
+    "name": "Caller is offered PUT and PASS first; after PUT the Responder is not offered PUT or PASS",
+    "rule": "R5",
+    "players": 2,
+    "seed": 4,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "PUT"
+        },
+        {
+          "seat": 1,
+          "option": "PASS"
+        },
+        {
+          "seat": 2,
+          "option": "SEE"
+        },
+        {
+          "seat": 2,
+          "option": "FOLD"
+        },
+        {
+          "seat": 2,
+          "option": "RE-PUT"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "PASS"
+        },
+        {
+          "seat": 2,
+          "option": "PUT"
+        }
+      ]
+    },
+    "rule_text": "The Caller first says PUT or PASS."
+  },
+  {
+    "name": "PUT then SEE goes straight to play: the Caller gets no second question (trick result is random, not asserted)",
+    "rule": "R6",
+    "players": 2,
+    "seed": 5,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "SEE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "SEE"
+        },
+        {
+          "seat": 1,
+          "option": "FOLD"
+        }
+      ]
+    },
+    "rule_text": "When the Caller said PUT and the Responder says SEE, the stake is 2 and play follows."
+  },
+  {
+    "name": "PUT then FOLD: the Caller scores 1 point and 1 hand won, with no play",
+    "rule": "R7",
+    "players": 2,
+    "seed": 6,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "points": 3,
+          "hands_won": 2
+        },
+        "2": {
+          "points": 5,
+          "hands_won": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 4,
+          "hands_won": 3
+        },
+        "2": {
+          "points": 5,
+          "hands_won": 4
+        }
+      },
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When the Caller said PUT and the Responder says FOLD, the Caller scores 1 point and 1 hand won, and the hand ends without play."
+  },
+  {
+    "name": "PUT then RE-PUT: the Caller is offered SEE and FOLD",
+    "rule": "R8",
+    "players": 2,
+    "seed": 7,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "RE-PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "SEE"
+        },
+        {
+          "seat": 1,
+          "option": "FOLD"
+        }
+      ],
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When the Caller said PUT and the Responder says RE-PUT, the Caller must answer SEE or FOLD."
+  },
+  {
+    "name": "PASS then PASS goes straight to play: no SEE/FOLD question for the Caller (result random, not asserted)",
+    "rule": "R9",
+    "players": 2,
+    "seed": 8,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "PUT"
+        },
+        {
+          "seat": 2,
+          "option": "PASS"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "SEE"
+        },
+        {
+          "seat": 1,
+          "option": "FOLD"
+        },
+        {
+          "seat": 2,
+          "option": "RE-PUT"
+        },
+        {
+          "seat": 2,
+          "option": "SEE"
+        }
+      ]
+    },
+    "rule_text": "When the Caller said PASS and the Responder says PASS, the stake is 1 and play follows."
+  },
+  {
+    "name": "PASS then PUT: the Caller is offered SEE and FOLD",
+    "rule": "R10",
+    "players": 2,
+    "seed": 9,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "SEE"
+        },
+        {
+          "seat": 1,
+          "option": "FOLD"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "RE-PUT"
+        }
+      ],
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When the Caller said PASS and the Responder says PUT, the Caller must answer SEE or FOLD."
+  },
+  {
+    "name": "PUT, RE-PUT, SEE leads to play and the hand completes (stake 4 result is random, not asserted)",
+    "rule": "R11",
+    "players": 2,
+    "seed": 10,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "RE-PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "SEE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When the Caller answers SEE after a RE-PUT, the stake is 4 and play follows."
+  },
+  {
+    "name": "FOLD after RE-PUT: the Responder scores 2 points and 1 hand won",
+    "rule": "R12",
+    "players": 2,
+    "seed": 11,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "RE-PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 2,
+          "hands_won": 1
+        }
+      },
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When the Caller answers FOLD after a RE-PUT, the Responder scores 2 points and 1 hand won, and the hand ends without play."
+  },
+  {
+    "name": "PASS, PUT, SEE leads to play and the hand completes (result random, not asserted)",
+    "rule": "R13",
+    "players": 2,
+    "seed": 12,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "SEE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When the Caller answers SEE after PASS then PUT, the stake is 2 and play follows."
+  },
+  {
+    "name": "FOLD after PASS then PUT: the Responder scores 1 point and 1 hand won",
+    "rule": "R14",
+    "players": 2,
+    "seed": 13,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      },
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When the Caller answers FOLD after PASS then PUT, the Responder scores 1 point and 1 hand won, and the hand ends without play."
+  },
+  {
+    "name": "Hand 2 with seat 2 as Caller: FOLD after PASS then PUT gives seat 1 (the Responder) 1 point",
+    "rule": "R14",
+    "players": 2,
+    "seed": 14,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 1,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 2,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 1,
+          "hands_won": 1
+        },
+        "2": {
+          "points": 0,
+          "hands_won": 0
+        }
+      },
+      "game": {
+        "hand_number": 3
+      }
+    },
+    "rule_text": "When the Caller answers FOLD after PASS then PUT, the Responder scores 1 point and 1 hand won, and the hand ends without play."
+  },
+  {
+    "name": "When play happens, the hand is played out and the match moves on (cards random; only the hand number is asserted)",
+    "rule": "R15",
+    "players": 2,
+    "seed": 15,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS"
+      }
+    ],
+    "expect": {
+      "game": {
+        "hand_number": 2
+      }
+    },
+    "rule_text": "When play happens, both players simultaneously choose an ordered list of 3 different cards from their 4 cards, and the face-up card may be used or left out."
+  },
+  {
+    "name": "After hand 40 the match ends: equal points, more hands won wins",
+    "rule": "R20",
+    "players": 2,
+    "seed": 16,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "points": 5,
+          "hands_won": 3
+        },
+        "2": {
+          "points": 4,
+          "hands_won": 10
+        }
+      },
+      "game": {
+        "hand_number": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 5003,
+        "2": 5011
+      },
+      "players": {
+        "1": {
+          "points": 5,
+          "hands_won": 3
+        },
+        "2": {
+          "points": 5,
+          "hands_won": 11
+        }
+      }
+    },
+    "rule_text": "After hand 40 the match ends; more points wins, then more hands won breaks a tie, and if both are equal it is a draw."
+  },
+  {
+    "name": "After hand 40 the match ends: more points wins despite fewer hands won",
+    "rule": "R20",
+    "players": 2,
+    "seed": 17,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "points": 10,
+          "hands_won": 2
+        },
+        "2": {
+          "points": 3,
+          "hands_won": 20
+        }
+      },
+      "game": {
+        "hand_number": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 10002,
+        "2": 4021
+      },
+      "players": {
+        "1": {
+          "points": 10,
+          "hands_won": 2
+        },
+        "2": {
+          "points": 4,
+          "hands_won": 21
+        }
+      }
+    },
+    "rule_text": "After hand 40 the match ends; more points wins, then more hands won breaks a tie, and if both are equal it is a draw."
+  },
+  {
+    "name": "After hand 40 the match ends: equal points and hands won is a shared draw",
+    "rule": "R20",
+    "players": 2,
+    "seed": 18,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "points": 5,
+          "hands_won": 4
+        },
+        "2": {
+          "points": 4,
+          "hands_won": 3
+        }
+      },
+      "game": {
+        "hand_number": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 5004,
+        "2": 5004
+      },
+      "players": {
+        "1": {
+          "points": 5,
+          "hands_won": 4
+        },
+        "2": {
+          "points": 5,
+          "hands_won": 4
+        }
+      }
+    },
+    "rule_text": "After hand 40 the match ends; more points wins, then more hands won breaks a tie, and if both are equal it is a draw."
+  },
+  {
+    "name": "Hand 40 is the last: the match ends after it with the scores from that hand",
+    "rule": "R2",
+    "players": 2,
+    "seed": 19,
+    "default": "decline",
+    "given": {
+      "game": {
+        "hand_number": 40
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PUT"
+      },
+      {
+        "seat": 1,
+        "options_include": "FOLD"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 0,
+        "2": 1001
+      },
+      "players": {
+        "1": {
+          "points": 0,
+          "hands_won": 0
+        },
+        "2": {
+          "points": 1,
+          "hands_won": 1
+        }
+      }
+    },
+    "rule_text": "Both players start with 0 points and 0 hands won, and the match lasts exactly 40 hands."
+  }
+]

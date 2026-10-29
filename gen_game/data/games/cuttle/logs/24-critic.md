@@ -1,0 +1,60 @@
+# 24 critic
+
+- time: 2026-10-27T18:00:03+00:00 (67.6s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 a3c4c172e175b2ad, reply sha256 65882ae200f80dc3
+
+## Sent
+
+````
+ORIGINAL GAME: Cuttle
+Two players share a standard 52-card deck. Deal 6 cards to dealer and 5 to opponent, rest is draw pile; scrap pile is face-up discard showing top only. On your turn do exactly one: draw one card, or play one card from hand. Number cards A,2-10 can be point cards worth their value (A=1) placed on your side; first to 21+ points wins, but kings reduce requirement to 14/10/7/5 for 1-4 kings you control. A point card can also scuttle: play a higher rank, or equal rank with higher suit C<D<H<S, to discard both cards. Cards  A,2-7,9 can be one-offs discarded after use for effects like wipe points, destroy permanents, recover from scrap, force opponent discard 2, draw 2, play top of deck immediately, bounce a permanent. 8,J,Q,K are permanents staying on table: 8 forces opponent to reveal hand, J stacked on a point card steals it, Q protects your other points/permanents from single-target effects, K lowers win threshold. 2 can be played on opponent's turn to counter a one-off. If draw pile empty you may pass; three passes ends game with no winner.
+
+PROPOSED VARIATION: Cuttle Lite: Blind Scuttle (rev. 2)
+Players: 2 to 2
+Rules: DECK: 48 cards. Number cards of rank 1 to 10, four of each (40 cards). 4 Jacks (J). 4 Kings (K). There are no suits.
+
+STORED STATE (17 attributes). Per player: hand (list), point_pile (list of ranks), point_view (list of band letters, kept parallel to point_pile), points, king_count, is_first, standing. Shared: draw_pile, scrap_pile, turn. Two values are derived, not stored: hand_count = number of cards in hand, and threshold = (32 if is_first else 30) − 5 × king_count.
+
+SETUP:
+- Shuffle the deck.
+- Deal 6 cards to each player's hidden hand. The remaining 36 cards are the face-down draw pile, and the scrap pile is empty.
+- Choose one seat at random to have is_first = true; the other has is_first = false. These never change.
+- Each player starts with an empty point_pile, an empty point_view, points 0, king_count 0 and standing 0.
+- Set turn = 1. The First player acts on odd turns and the other player on even turns.
+
+BANDS: a number card's band is L if its rank is 1-3, M if 4-7, and H if 8-10.
+
+POSITIONS: a target position is a whole number from 1 to the current length of the opponent's point_pile, counted from the oldest card (position 1). When a card is removed from a pile, the cards after it each move down one position. Every removal, insertion or move applied to a point_pile is applied in the same way, at the same position, to that player's point_view.
+
+VISIBILITY:
+- Private to each player: their own hand, their exact point_pile, their points and their threshold arithmetic.
+- Public to both: each player's hand_count, point_view, king_count and is_first; the draw pile size; the full scrap pile.
+
+EACH TURN (turns 1 to 40), for the acting player:
+1. WIN CHECK: if the acting player's points ≥ their threshold, set their standing = 1000 and end the game. This is the only way to win before the end.
+2. CHOOSE: the acting player gives one reply with three fields: action, card rank (if needed) and target position (if needed). The actions are:
+   - PASS: nothing happens.
+   - DRAW: legal only if the draw pile is not empty and hand_count < 8. Move the top draw-pile card into your hand.
+   - POINTS: name a number card in your hand. Remove it from your hand, append its rank to the end of your point_pile, and append its band to the end of your point_view.
+   - SCUTTLE: name a number card in your hand and a target position in the opponent's point_pile.
+     • Success: if your rank is strictly greater than the target's rank, your card and the target card both go to the scrap pile, and the target's entries are removed from the opponent's point_pile and point_view.
+     • Failure: otherwise, only your card goes to the scrap pile, and nothing else is revealed.
+   - JACK: play a Jack from your hand and name a target position in the opponent's point_pile. Remove that card from the opponent's point_pile and point_view, and append it (rank and band) to the end of your own. The Jack goes to the scrap pile.
+   - KING: play a King from your hand. It stays in front of you permanently, and your king_count increases by 1.
+3. VALIDATE: a reply that is missing or unparseable, names a card you do not hold, names a target that does not exist, or breaks the DRAW conditions counts as PASS.
+4. RECOMPUTE: for both players, points = sum of the ranks in their point_pile.
+5. ADVANCE: turn increases by 1. If turn is now 41, the game ends at once with no further win check. Each player's standing = −max(threshold − points, 0).
+
+The one-turn grace follows from the timing. Reaching your threshold during your turn only wins at the start of your next turn, so the opponent has one turn to scuttle or steal you back below it.
+How the winner is decided: If a start-of-turn win check sets a player's standing to 1000, that player wins. If the game ends after turn 40, each standing equals minus that player's shortfall to their own threshold. The higher standing (the smaller shortfall) wins, and equal standings are a draw.
+The designer's stated complexity: {"steps_per_round": 13, "choice_steps_per_round": 1, "attributes": 17, "hidden_elements": 3, "random_draws_per_round": 1, "rounds": 40}
+````
+
+## Reply
+
+````
+```json
+{"balanced": {"verdict": "fail", "evidence": "SEAT EDGE. The original Cuttle offsets moving first by dealing the dealer 6 cards and the opponent 5. This variation deals 6 and 6. The only offset is that the second seat's threshold is 2 points lower (32 vs 30).\nRough race with highest-card-first play (expected top order statistics of 6 cards from ranks 1-10):\n| plays | expected sum |\n|---|---|\n| 1 | 9.2 |\n| 2 | 16.8 |\n| 3 | 23.1 |\n| 4 | 28.0 |\n| 5 | 31.6 |\nSo both seats need about 5 point plays. First reaches it on turn 9 and checks on turn 11; Second reaches it on turn 10 and checks on turn 12. One tempo is worth one card, about 5.5-6 points, but the offset is 2 points. The higher threshold costs First an extra card only when its sum lands at exactly 30-31, roughly 15-20% of races. Unquantified, but likely a clear First-seat edge.\nTHOUGHTLESS POLICIES under the WINNER RULE:\n- Always PASS: loses to any player who plays points, so it fails as a policy, which is fine.\n- Always DRAW: stalls at hand 8, then PASSes. Loses. Fine.\n- 'Play King if held, else highest number card as POINTS, else DRAW' (A):\n  - vs random: wins almost always (random players waste turns on failed scuttles and PASS).\n  - vs sensible: SCUTTLE is a 1-for-1 card trade that gains no tempo. It is blind (only bands are shown). A failure just burns your card. It can never remove a 10, because success needs strictly greater rank and 10 is the maximum.\n  - So the sensible deviations from A are rare: a Jack, or a grace-turn scuttle. Policy A is close to optimal and wins or draws most of its games.\nDOMINATED OPTIONS:\n- KING strictly dominates POINTS with any card of rank ≤5. It is worth 5 threshold points, permanent, and immune to both scuttle and Jack. A point card of rank ≤5 is worth ≤5 and is vulnerable.\n- POINTS with a 10 dominates POINTS with a 9: higher value, and only a Jack can remove it.\nJACK has no counter (Queens and 2s were removed). It swings up to 20 points (−10 to them, +10 to you), and the public H band shows exactly where to aim it.\nBoth players can win, but the numbers favour the first seat and the holder of J/K/10s, not better play.", "playable": {"verdict": "pass", "evidence": "Complexity is within limits:\n- Attributes: 7 per player × 2 + 3 shared = 17 ≤ 20.\n- Hidden elements: hands, exact point_piles, draw order = 3.\n- One draw per turn, so random_draws_per_round = 1.\n- One choice step per turn.\n- 40 turns ≤ 40 rounds; the 13 stated steps are plausible.\nThe game is finite: it ends at a win check or after turn 40.\nIt is decided by arithmetic: a standing of 1000, or −shortfall.\nIt needs no board, clock or judge. Two players, so no talk question arises.\nMinor ambiguities that the referee can resolve:\n- Naming a J or K for POINTS or SCUTTLE is not explicitly listed in VALIDATE (it should count as PASS).\n- 'Threshold arithmetic' is called private, but king_count and is_first are public, so the threshold is in fact public.\nNeither blocks play."}, "reasoning_over_luck": {"verdict": "fail", "evidence": "The decisive resources are all dealt at random:\n- 10s cannot be scuttled.\n- Jacks are unanswerable swings of up to 20 points.\n- Kings are 5 unremovable points each.\nWith 6 cards each and an average rank of 5.5, an opening hand often already holds about 30 points. The game typically ends around turns 9-14, so the deal largely sets the race.\nSuppose both players play the intended good strategy: play high, save the Jack for the opponent's grace turn, King early. Then the winner is mostly whoever was dealt or drew more of the 8 J/K cards and the 10s.\nExamples:\n- Hand 10,10,10,K vs a hand with no J: unstoppable by turn 7.\n- A player with 2 Jacks vs 0: wins most races.\nReasoning does exist but is thin:\n- inferring 8/9/10 inside an H band from the scrap pile and failed scuttles;\n- timing a Jack to the grace turn.\nScuttle inference rarely matters because scuttle is weak and cannot touch 10s.\nEstimated chance share of the result: above 50%. A good reasoner is not clearly favoured over a greedy play-highest-card policy."}, "required_changes": ["Seat balance: restore a real offset for moving first and justify it numerically. Either deal First 5 cards and Second 6, or tune the threshold gap (e.g. 34 vs 30) using a simple race simulation.", "Make 10s removable: let SCUTTLE succeed on rank ≥ target, or let any H-band scuttle hit an H target. Then playing a 10 is not near-immune.", "Limit Jacks. Possible ways: only target L or M band cards, or require the stolen card to go to the scrap pile instead of the thief's pile, or let the target discard a card of equal-or-higher rank to block. Any one of these turns a free 20-point swing into a decision.", "Make Kings contestable or weaker: e.g. −3 threshold each, or removable by a Jack or a scuttle with a 10. Then KING no longer strictly dominates low point plays.", "Reduce deal luck. For example, give each player 1 Jack and 1 King at setup outside the shuffle, and draw the rest. Then the special cards are not decided by the deal and play revolves around timing and inference.", "Strengthen inference, e.g. a failed scuttle reveals 'higher or equal' publicly, and a successful one reveals rank to both players. Then show by example that a reasoning player beats the greedy 'King, then highest card' policy most of the time."]}
+```
+````

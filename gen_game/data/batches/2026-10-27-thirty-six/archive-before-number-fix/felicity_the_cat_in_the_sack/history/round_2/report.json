@@ -1,0 +1,589 @@
+{
+  "game": "felicity_the_cat_in_the_sack",
+  "attempts": [
+    "it plays, but part of it does nothing: game attribute `starting_cards` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup: each hand holds 9 cards and set_aside holds one card per player",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Setup: mice 15, cat_points 0, no rounds completed",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Each round every hand shrinks by one played card",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sack holds every seat's card with start_seat 3 of 4; sole bidder seat 4 takes all four cats",
+      "passed": false,
+      "failures": [
+        "rule R4 is broken: sack_owners lists every seat starting at start_seat, ascending and wrapping, and sack_cards holds each owner's played_card in that order. With start_seat=3 of 4, sack_owners=[3,4,1,2].",
+        "seat 4 mice: expected 13, got 17",
+        "seat 4 cat_points: expected 27, got 0",
+        "Dara: the rule for 2 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_3'; r1 seat 2: 'cat_5'; r1 seat 3: 'cat_8'; r1 seat 4: 'cat_11'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 4 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'rabbit'; seat 2 aside_pick: '' -> 'cat_5'; seat 3 aside_pick: '' -> 'cat_-8'; seat 4 aside_pick: '' -> 'small_dog'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 4 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; table set_aside: [] -> ['rabbit', 'cat_5', 'cat_-8', 'small_dog']; table start_seat: 0 -> 2 .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"cat_5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"cat_8\", \"aside_pick\": \"cat_-8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effec; table {\"set_aside\": [\"rabbit\", \"cat_5\", \"cat_-8\", \"small_dog\"], \"start_seat\": 4, \"round_number\": 1, \"sack_owners\": [3, 4, 1, 2], \"sack_cards\": [], \"sack_revealed\": [\"cat_8\"], \"discard_pile\": [\"cat_8\", \"cat_11\", \"cat_3\", \"cat_5\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_si"
+    },
+    {
+      "name": "Talk changes no state; all pass",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Stage 1 offers bids from 0 up to the player's mice only",
+      "passed": false,
+      "failures": [
+        "rule R6 is broken: In stage 1, sack_cards[1] is appended to sack_revealed, and each player simultaneously picks a bid from 0 to their mice. A bid of 0 is a pass.",
+        "seat 1 was never offered 5, but should have been",
+        "seat 1 was never offered 0, but should have been"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_-8'; r1 seat 2: 'cat_-8'; r1 seat 3: 'cat_-8'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'rabbit'; seat 2 aside_pick: '' -> 'large_dog'; seat 3 aside_pick: '' -> 'cat_-5'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['rabbit', 'large_dog', 'cat_-5']; table start_seat: 0 -> 2; seat 1 mice: 15 -> 5; table start_seat: 2 -> 1; seat 1 played_card: '' -> 'cat_-8' .... Final: players {\"seat 1\": {\"hand\": [\"cat_-5\", \"cat_3\", \"cat_5\", \"cat_8\", \"cat_11\", \"cat_15\", \"large_dog\", \"small_dog\"], \"played_card\": \"cat_-8\", \"aside_pick\": \"rabbit\", \"mice\": 7, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [\"cat_-5\", \"cat_3\", \"cat_5\", \"cat_8\", \"cat_11\", \"cat_15\", \"rabbit\", \"small_dog\"], \"played_card\": \"cat_-8\", \"aside_pick\": \"large_dog\", \"mice\": 17, \"cat_points\": 0, \"bid; table {\"set_aside\": [\"rabbit\", \"large_dog\", \"cat_-5\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_-8\"], \"discard_pile\": [\"cat_-8\", \"cat_-8\", \"cat_-8\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_asid"
+    },
+    {
+      "name": "Passers in stage 1 gain 2 mice",
+      "passed": false,
+      "failures": [
+        "rule R7 is broken: When a player passes in stage 1 (bid 0, or bid above their mice), that player gains 2 mice and gets in_auction=false.",
+        "seat 1 mice: expected 11, got 17",
+        "seat 1 cat_points: expected 3, got 0",
+        "Ada: the rule for 4 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_3'; r1 seat 2: 'rabbit'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'small_dog'; seat 2 aside_pick: '' -> 'small_dog'; seat 3 aside_pick: '' -> 'cat_8'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['small_dog', 'small_dog', 'cat_8']; table start_seat: 0 -> 1; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['cat_3']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['rabbit']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0; table {\"set_aside\": [\"small_dog\", \"small_dog\", \"cat_8\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_3\"], \"discard_pile\": [\"cat_3\", \"rabbit\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_asid"
+    },
+    {
+      "name": "Nobody bids: start_seat 4 of 4 wraps to 1, everyone gains 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Single stage-1 bidder wins the sack at their bid",
+      "passed": false,
+      "failures": [
+        "rule R9 is broken: When exactly one player bids in stage 1, that player wins the sack at their bid, and stage 2 does not happen.",
+        "seat 2 mice: expected 9, got 17",
+        "seat 2 cat_points: expected 13, got 0",
+        "Blaise: the rule for 6 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_5'; r1 seat 2: 'cat_8'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'cat_-8'; seat 2 aside_pick: '' -> 'small_dog'; seat 3 aside_pick: '' -> 'cat_11'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['cat_-8', 'small_dog', 'cat_11']; table start_seat: 0 -> 2; seat 1 hand: ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_5']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['cat_8']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"cat_-8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_8\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_11\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"; table {\"set_aside\": [\"cat_-8\", \"small_dog\", \"cat_11\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_5\"], \"discard_pile\": [\"cat_5\", \"cat_8\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_p"
+    },
+    {
+      "name": "Highest stage-1 bid leads; leader holding at 0 wins at standing bid",
+      "passed": false,
+      "failures": [
+        "rule R10 is broken: When two or more players bid in stage 1, standing_bid is the highest bid and leader_seat is its bidder. A tie goes to the first tied seat counting from the seat after start_seat.",
+        "seat 2 mice: expected 9, got 17",
+        "seat 2 cat_points: expected 8, got 0",
+        "seat 1 mice: expected 18, got 17",
+        "Ada: the rule for 4 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 6 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_5'; r1 seat 2: 'cat_3'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'rabbit'; seat 2 aside_pick: '' -> 'cat_-5'; seat 3 aside_pick: '' -> 'large_dog'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog']; table set_aside: [] -> ['rabbit', 'cat_-5', 'large_dog']; table start_seat: 0 -> 3; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog'] -> ['cat_5']; seat 2 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_3']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"large_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"; table {\"set_aside\": [\"rabbit\", \"cat_-5\", \"large_dog\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_5\"], \"discard_pile\": [\"cat_5\", \"cat_3\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_p"
+    },
+    {
+      "name": "Stage-1 tie: leader is first tied seat after start_seat (seat 3 over seat 1)",
+      "passed": false,
+      "failures": [
+        "rule R10 is broken: When two or more players bid in stage 1, standing_bid is the highest bid and leader_seat is its bidder. A tie goes to the first tied seat counting from the seat after start_seat.",
+        "seat 3 mice: expected 10, got 17",
+        "seat 3 cat_points: expected 8, got 0",
+        "seat 1 mice: expected 18, got 17",
+        "game start_seat: expected 3, got 2",
+        "Cleo: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_5'; r1 seat 2: 'cat_3'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'rabbit'; seat 2 aside_pick: '' -> 'cat_3'; seat 3 aside_pick: '' -> 'rabbit'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; table set_aside: [] -> ['rabbit', 'cat_3', 'rabbit']; table start_seat: 0 -> 1; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog'] -> ['cat_5']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_3']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"cat_3\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effe; table {\"set_aside\": [\"rabbit\", \"cat_3\", \"rabbit\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_5\"], \"discard_pile\": [\"cat_5\", \"cat_3\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_per_p"
+    },
+    {
+      "name": "Stage 2 offers raises up to mice only; non-leader raise wins",
+      "passed": false,
+      "failures": [
+        "rule R11 is broken: In stage 2, sack_cards[2] is revealed, and each player with in_auction=true is offered 0 or any whole number from standing_bid+1 to their mice.",
+        "seat 1 mice: expected 0, got 12",
+        "seat 1 cat_points: expected 3, got 0",
+        "seat 2 mice: expected 18, got 17",
+        "game start_seat: expected 1, got 2",
+        "seat 1 was never offered 10, but should have been",
+        "Ada: the rule for 3 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 10 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_8'; r1 seat 2: 'cat_-5'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'large_dog'; seat 2 aside_pick: '' -> 'large_dog'; seat 3 aside_pick: '' -> 'cat_8'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['large_dog', 'large_dog', 'cat_8']; table start_seat: 0 -> 2; seat 1 mice: 15 -> 10; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog'] -> ['cat_8']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog'] -> ['cat_-5'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_8\", \"aside_pick\": \"large_dog\", \"mice\": 12, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_-5\", \"aside_pick\": \"large_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0; table {\"set_aside\": [\"large_dog\", \"large_dog\", \"cat_8\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_8\"], \"discard_pile\": [\"cat_8\", \"cat_-5\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_asid"
+    },
+    {
+      "name": "Leader's raise above standing bid is their effective bid and beats a lower raise",
+      "passed": false,
+      "failures": [
+        "rule R12 is broken: When the leader answers 0 in stage 2, their effective bid equals standing_bid. When the leader answers a number above standing_bid, that number is their effective bid.",
+        "seat 2 mice: expected 6, got 17",
+        "seat 2 cat_points: expected 8, got 0",
+        "seat 1 mice: expected 18, got 17",
+        "Ada: the rule for 4 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 8 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 6 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 9 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_5'; r1 seat 2: 'cat_3'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'rabbit'; seat 2 aside_pick: '' -> 'cat_15'; seat 3 aside_pick: '' -> 'cat_-8'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['rabbit', 'cat_15', 'cat_-8']; table start_seat: 0 -> 1; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog'] -> ['cat_5']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_3']; seat 3 hand: ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"cat_15\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_-8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"eff; table {\"set_aside\": [\"rabbit\", \"cat_15\", \"cat_-8\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_5\"], \"discard_pile\": [\"cat_5\", \"cat_3\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_per_"
+    },
+    {
+      "name": "Non-leader answering 0 in stage 2 has no effective bid; leader wins at standing bid",
+      "passed": false,
+      "failures": [
+        "rule R13 is broken: When a non-leader answers 0, or a number not above standing_bid or above their mice, in stage 2, that player has no effective bid.",
+        "seat 1 mice: expected 9, got 17",
+        "seat 1 cat_points: expected 11, got 0",
+        "seat 2 mice: expected 18, got 17",
+        "game start_seat: expected 1, got 2",
+        "Ada: the rule for 6 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 4 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_11'; r1 seat 2: 'rabbit'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'cat_8'; seat 2 aside_pick: '' -> 'cat_-8'; seat 3 aside_pick: '' -> 'cat_-5'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['cat_8', 'cat_-8', 'cat_-5']; table start_seat: 0 -> 2; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_11']; seat 2 hand: ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit']; seat 3 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_11\", \"aside_pick\": \"cat_8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_-8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"ef; table {\"set_aside\": [\"cat_8\", \"cat_-8\", \"cat_-5\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_11\"], \"discard_pile\": [\"cat_11\", \"rabbit\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_pe"
+    },
+    {
+      "name": "Stage-2 tie among non-leaders goes to first seat after start_seat",
+      "passed": false,
+      "failures": [
+        "rule R14 is broken: In stage 2 the highest effective bid wins. On a tie the leader wins if among the tied players; otherwise the first tied seat counting from the seat after start_seat wins.",
+        "seat 2 mice: expected 7, got 17",
+        "seat 2 cat_points: expected 8, got 0",
+        "seat 1 mice: expected 18, got 17",
+        "seat 3 mice: expected 18, got 17",
+        "Blaise: the rule for 8 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 3 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 8 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_5'; r1 seat 2: 'cat_3'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'rabbit'; seat 2 aside_pick: '' -> 'cat_3'; seat 3 aside_pick: '' -> 'cat_-8'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['rabbit', 'cat_3', 'cat_-8']; table start_seat: 0 -> 1; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog'] -> ['cat_5']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_3']; seat 3 hand: ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"cat_3\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_-8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effe; table {\"set_aside\": [\"rabbit\", \"cat_3\", \"cat_-8\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_5\"], \"discard_pile\": [\"cat_5\", \"cat_3\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_per_p"
+    },
+    {
+      "name": "Stage-2 tie including the leader goes to the leader",
+      "passed": false,
+      "failures": [
+        "rule R14 is broken: In stage 2 the highest effective bid wins. On a tie the leader wins if among the tied players; otherwise the first tied seat counting from the seat after start_seat wins.",
+        "seat 2 mice: expected 6, got 17",
+        "seat 2 cat_points: expected 8, got 0",
+        "seat 1 mice: expected 18, got 17",
+        "game start_seat: expected 2, got 1",
+        "Ada: the rule for 9 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 7 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 9 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_5'; r1 seat 2: 'cat_3'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'small_dog'; seat 2 aside_pick: '' -> 'cat_-5'; seat 3 aside_pick: '' -> 'cat_8'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['small_dog', 'cat_-5', 'cat_8']; table start_seat: 0 -> 3; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['cat_5']; seat 2 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_3']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"e; table {\"set_aside\": [\"small_dog\", \"cat_-5\", \"cat_8\"], \"start_seat\": 1, \"round_number\": 1, \"sack_owners\": [3, 1, 2], \"sack_cards\": [], \"sack_revealed\": [\"rabbit\"], \"discard_pile\": [\"rabbit\", \"cat_5\", \"cat_3\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_p"
+    },
+    {
+      "name": "Every in-auction stage-2 loser gains 3 mice",
+      "passed": false,
+      "failures": [
+        "rule R15 is broken: When stage 2 resolves, every in_auction player other than the winner gains 3 mice.",
+        "seat 2 mice: expected 9, got 17",
+        "seat 2 cat_points: expected 11, got 0",
+        "seat 1 mice: expected 18, got 17",
+        "seat 3 mice: expected 18, got 17",
+        "Ada: the rule for 4 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 6 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 2 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_8'; r1 seat 2: 'rabbit'; r1 seat 3: 'cat_3'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'small_dog'; seat 2 aside_pick: '' -> 'small_dog'; seat 3 aside_pick: '' -> 'cat_5'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['small_dog', 'small_dog', 'cat_5']; table start_seat: 0 -> 3; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['cat_8']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['rabbit']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_3'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_8\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"cat_5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0,; table {\"set_aside\": [\"small_dog\", \"small_dog\", \"cat_5\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_8\"], \"discard_pile\": [\"cat_8\", \"rabbit\", \"cat_3\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside"
+    },
+    {
+      "name": "Sack winner pays and becomes start_seat",
+      "passed": false,
+      "failures": [
+        "rule R16 is broken: The sack winner pays winning_bid mice, all sack cards are revealed, and the winner becomes start_seat.",
+        "seat 1 mice: expected 10, got 17",
+        "Ada: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'rabbit'; r1 seat 2: 'rabbit'; r1 seat 3: 'rabbit'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'small_dog'; seat 2 aside_pick: '' -> 'cat_-5'; seat 3 aside_pick: '' -> 'large_dog'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog']; table set_aside: [] -> ['small_dog', 'cat_-5', 'large_dog']; table start_seat: 0 -> 1; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['rabbit']; seat 2 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog'] -> ['rabbit'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"large_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\":; table {\"set_aside\": [\"small_dog\", \"cat_-5\", \"large_dog\"], \"start_seat\": 1, \"round_number\": 1, \"sack_owners\": [3, 1, 2], \"sack_cards\": [], \"sack_revealed\": [\"rabbit\"], \"discard_pile\": [\"rabbit\", \"rabbit\", \"rabbit\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_a"
+    },
+    {
+      "name": "Large dog removes highest positive cat: 15,3,large_dog = 3",
+      "passed": false,
+      "failures": [
+        "rule R17 is broken: When exactly one dog is in the sack and it is large_dog, it removes the highest positive cat, or the most negative cat if there is no positive cat. Example: a sack of cat_15, cat_3, large_dog has value 3.",
+        "seat 1 mice: expected 14, got 17",
+        "seat 1 cat_points: expected 3, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_15'; r1 seat 2: 'cat_3'; r1 seat 3: 'large_dog'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'cat_-5'; seat 2 aside_pick: '' -> 'rabbit'; seat 3 aside_pick: '' -> 'cat_3'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['cat_-5', 'rabbit', 'cat_3']; table start_seat: 0 -> 3; seat 1 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_15']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog'] -> ['cat_3']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['large_dog'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_15\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"large_dog\", \"aside_pick\": \"cat_3\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"; table {\"set_aside\": [\"cat_-5\", \"rabbit\", \"cat_3\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_15\"], \"discard_pile\": [\"cat_15\", \"cat_3\", \"large_dog\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_"
+    },
+    {
+      "name": "Large dog with no positive cat removes most negative: -8,-5,large_dog = -5",
+      "passed": false,
+      "failures": [
+        "rule R17 is broken: When exactly one dog is in the sack and it is large_dog, it removes the highest positive cat, or the most negative cat if there is no positive cat. Example: a sack of cat_15, cat_3, large_dog has value 3.",
+        "seat 1 mice: expected 14, got 17",
+        "seat 1 cat_points: expected -5, got 0",
+        "Ada: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_-8'; r1 seat 2: 'cat_-5'; r1 seat 3: 'large_dog'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'cat_-5'; seat 2 aside_pick: '' -> 'cat_-8'; seat 3 aside_pick: '' -> 'cat_8'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['cat_-5', 'cat_-8', 'cat_8']; table start_seat: 0 -> 2; seat 1 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8']; seat 2 hand: ['cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['large_dog'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_-8\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_-5\", \"aside_pick\": \"cat_-8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"large_dog\", \"aside_pick\": \"cat_8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, ; table {\"set_aside\": [\"cat_-5\", \"cat_-8\", \"cat_8\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_-8\"], \"discard_pile\": [\"cat_-8\", \"cat_-5\", \"large_dog\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside"
+    },
+    {
+      "name": "Small dog removes most negative cat: -8,5,small_dog = 5",
+      "passed": false,
+      "failures": [
+        "rule R18 is broken: When exactly one dog is in the sack and it is small_dog, it removes the most negative cat, or the lowest positive cat if there is no negative cat. Example: a sack of cat_-8, cat_5, small_dog has value 5.",
+        "seat 1 mice: expected 14, got 17",
+        "seat 1 cat_points: expected 5, got 0",
+        "Ada: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_-8'; r1 seat 2: 'cat_5'; r1 seat 3: 'small_dog'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'large_dog'; seat 2 aside_pick: '' -> 'cat_11'; seat 3 aside_pick: '' -> 'rabbit'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog']; table set_aside: [] -> ['large_dog', 'cat_11', 'rabbit']; table start_seat: 0 -> 3; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog'] -> ['cat_-8']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_5']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'large_dog', 'small_dog'] -> ['small_dog'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_-8\", \"aside_pick\": \"large_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_5\", \"aside_pick\": \"cat_11\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"small_dog\", \"aside_pick\": \"rabbit\", \"mice\": 17, \"cat_points\": 0, \"bid\": ; table {\"set_aside\": [\"large_dog\", \"cat_11\", \"rabbit\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_-8\"], \"discard_pile\": [\"cat_-8\", \"cat_5\", \"small_dog\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_as"
+    },
+    {
+      "name": "Small dog with no negative cat removes lowest positive: 3,8,small_dog = 8",
+      "passed": false,
+      "failures": [
+        "rule R18 is broken: When exactly one dog is in the sack and it is small_dog, it removes the most negative cat, or the lowest positive cat if there is no negative cat. Example: a sack of cat_-8, cat_5, small_dog has value 5.",
+        "seat 1 mice: expected 14, got 17",
+        "seat 1 cat_points: expected 8, got 0",
+        "Ada: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_3'; r1 seat 2: 'cat_8'; r1 seat 3: 'small_dog'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'cat_11'; seat 2 aside_pick: '' -> 'large_dog'; seat 3 aside_pick: '' -> 'cat_-5'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['cat_11', 'large_dog', 'cat_-5']; table start_seat: 0 -> 1; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_3']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'small_dog'] -> ['cat_8']; seat 3 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['small_dog'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_3\", \"aside_pick\": \"cat_11\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"cat_8\", \"aside_pick\": \"large_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"small_dog\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0; table {\"set_aside\": [\"cat_11\", \"large_dog\", \"cat_-5\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_3\"], \"discard_pile\": [\"cat_3\", \"cat_8\", \"small_dog\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_asid"
+    },
+    {
+      "name": "Two dogs remove nothing: 15,large_dog,small_dog = 15",
+      "passed": false,
+      "failures": [
+        "rule R19 is broken: When the sack holds zero or two dogs, no cat is removed. Example: a sack of cat_15, large_dog, small_dog has value 15.",
+        "seat 1 mice: expected 14, got 17",
+        "seat 1 cat_points: expected 15, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_15'; r1 seat 2: 'large_dog'; r1 seat 3: 'small_dog'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'cat_15'; seat 2 aside_pick: '' -> 'small_dog'; seat 3 aside_pick: '' -> 'cat_5'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['cat_15', 'small_dog', 'cat_5']; table start_seat: 0 -> 3; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_15']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog'] -> ['large_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['small_dog'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_15\", \"aside_pick\": \"cat_15\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"large_dog\", \"aside_pick\": \"small_dog\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"small_dog\", \"aside_pick\": \"cat_5\", \"mice\": 17, \"cat_points\": 0, \"bid; table {\"set_aside\": [\"cat_15\", \"small_dog\", \"cat_5\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_15\"], \"discard_pile\": [\"cat_15\", \"large_dog\", \"small_dog\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set"
+    },
+    {
+      "name": "Negative sack value is added: -8,rabbit,-5 = -13",
+      "passed": false,
+      "failures": [
+        "rule R20 is broken: sack_value is the sum of the remaining cat values, with rabbit and dogs worth 0, and it is added to the winner's cat_points even if negative. Example: cat_-8, rabbit, cat_-5 gives -13.",
+        "seat 1 mice: expected 14, got 17",
+        "seat 1 cat_points: expected -13, got 0",
+        "Ada: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 'cat_-8'; r1 seat 2: 'rabbit'; r1 seat 3: 'cat_-5'; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: seat 1 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: [] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 1 aside_pick: '' -> 'cat_15'; seat 2 aside_pick: '' -> 'cat_-5'; seat 3 aside_pick: '' -> 'cat_8'; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'rabbit', 'large_dog', 'small_dog']; seat 2 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog']; table set_aside: [] -> ['cat_15', 'cat_-5', 'cat_8']; table start_seat: 0 -> 2; seat 1 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-8']; seat 2 hand: ['cat_-8', 'cat_3', 'cat_5', 'cat_8', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['rabbit']; seat 3 hand: ['cat_-8', 'cat_-5', 'cat_3', 'cat_5', 'cat_11', 'cat_15', 'rabbit', 'large_dog', 'small_dog'] -> ['cat_-5'] .... Final: players {\"seat 1\": {\"hand\": [], \"played_card\": \"cat_-8\", \"aside_pick\": \"cat_15\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 2\": {\"hand\": [], \"played_card\": \"rabbit\", \"aside_pick\": \"cat_-5\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"effective_bid\": 0, \"in_auction\": false}, \"seat 3\": {\"hand\": [], \"played_card\": \"cat_-5\", \"aside_pick\": \"cat_8\", \"mice\": 17, \"cat_points\": 0, \"bid\": 0, \"ef; table {\"set_aside\": [\"cat_15\", \"cat_-5\", \"cat_8\"], \"start_seat\": 2, \"round_number\": 1, \"sack_owners\": [1, 2, 3], \"sack_cards\": [], \"sack_revealed\": [\"cat_-8\"], \"discard_pile\": [\"cat_-8\", \"rabbit\", \"cat_-5\"], \"standing_bid\": 0, \"leader_seat\": 0, \"bidder_count\": 0, \"sack_done\": true, \"sack_winner\": 0, \"winning_bid\": 0, \"sack_value\": 0, \"sack_cats\": [], \"dog_count\": 0, \"dog_removed\": 0, \"starting_hand_size\": 10, \"set_aside_pe"
+    },
+    {
+      "name": "Game ends after round 9; equal score broken by more cat_points",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Fully tied score and cat_points share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        5
+      ],
+      "results": {
+        "seat 3": 11,
+        "seat 1": 14,
+        "seat 2": 10,
+        "seat 5": 2,
+        "seat 4": 3
+      },
+      "turns_min": 84,
+      "turns_max": 155
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 3": 22,
+      "seat 1": 21,
+      "seat 2": 17
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 10,
+        "loss": 50,
+        "draw": 0,
+        "win_rate": 0.17
+      },
+      "first@seat2": {
+        "win": 12,
+        "loss": 48,
+        "draw": 0,
+        "win_rate": 0.2
+      },
+      "last@seat1": {
+        "win": 15,
+        "loss": 44,
+        "draw": 1,
+        "win_rate": 0.25
+      },
+      "last@seat2": {
+        "win": 24,
+        "loss": 36,
+        "draw": 0,
+        "win_rate": 0.4
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 122.2,
+      "prompt_chars_avg": 206,
+      "prompt_chars_max": 421
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "The designer suggests 4, which is kept. 3 is the minimum for a sack built from several hidden cards with rivals bidding. Above 5 the sack and the bidding become too diluted for one card or bid to matter."
+    },
+    {
+      "what": "Talk is a simultaneous poll broadcast to all",
+      "why": "The rules say messages are written simultaneously without seeing the others. Players disagree about the sack's value, so bluffing about one's own card matters."
+    },
+    {
+      "what": "The tie-break uses the order (seat - start_seat - 1 + N) mod N",
+      "why": "This is the arithmetic form of 'first tied seat starting from the seat after start_seat'."
+    },
+    {
+      "what": "rank_by = (cat_points + mice) * 1000 + cat_points",
+      "why": "This encodes score first and cat_points as the tie-break. |cat_points| stays well below 500 given the finite cards."
+    },
+    {
+      "what": "Card values are read from the card name (cat_X is worth X; rabbit and dogs are worth 0)",
+      "why": "The rules give cards as named tokens with these values."
+    },
+    {
+      "what": "Players are offered only legal numbers, though the rules also say out-of-range numbers mean pass or drop out",
+      "why": "The engine offers ranges. The out-of-range rule is still stated so the resolution stays faithful."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The branches 'round ends' and 'go to R10' are run as per-step `when` conditions on bidder_count and sack_winner in a flat step list",
+      "why": "The engine has no block branching. Single steps with arithmetic conditions give the same result."
+    },
+    {
+      "what": "The dog rule and sack_value are worked out in one update step with conditional arithmetic over sack_cards",
+      "why": "The removal rules are deterministic arithmetic, so no referee is needed."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 4,
+    "attributes": 46,
+    "hidden_elements": 9
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Felicity the Cat in the Sack is a 3-5 player bluffing auction game. Each round every player secretly adds one card (a cat worth -8 to 15, a rabbit, or a dog) to a shared 'sack', and the cards are revealed one by one while players bid mice or drop out for an escalating consolation payment. The buyer gets the sack's cat points after dog effects, and the most cat points plus leftover mice wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "Always passing collects only small consolation mice and loses to a player who buys good sacks cheaply. Always bidding high overpays for sacks seeded with -8 and -5 cats. Starting first gives some tempo, but the start seat moves to each round's winner."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "Every player plays all of their cards over 9 rounds, so the luck is limited to one random card set aside per hand. What separates players is which card to contribute when, and reading other players' bids as information about their hidden contributions."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Beginners can score by passing and buying the occasional obvious sack. Strong players track which cards each opponent has used, time their dogs and negative cats, and bluff by bidding up a sack that contains their own -8."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Each player knows only their own card in the sack, and the cards are revealed gradually. Bids leak information about what others contributed, and hand tracking over 9 rounds rewards planning."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "The score is cat values plus mice, all arithmetic."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "The clockwise open-outcry auction with an unbounded number of raises does not fit a flat step list. The previous variation's staged simultaneous auction was built incorrectly: sack_cards was left empty, start_seat was re-randomised, stored bids were overwritten so every sack was treated as all-pass, and stage options were missing. It also needed 5 choice steps (card, talk, 3 bid stages), over the limit of 4."
+      }
+    ],
+    "problems": [
+      "P1: The open clockwise auction with unlimited raises cannot be built as a flat step list.",
+      "P2: The previous build re-randomised start_seat after setup and left sack_cards empty, so the sack had no cards to value or reveal.",
+      "P3: The previous build overwrote or reset stored bids before resolution, so legal bids were treated as passes and nobody ever won a sack.",
+      "P4: The previous variation used 3 bidding stages plus a card choice and a talk phase, which is 5 choice steps against a limit of 4. Later-stage bid options (for example 3) were never offered.",
+      "P5: The pass and leave rules across stages were complicated (who is out, who gets which reward, what happens when everyone passes). This made the resolution error-prone to build.",
+      "P6: The dog rule's fallback ('lowest negative') was ambiguous."
+    ],
+    "changes": [
+      {
+        "what": "The auction becomes exactly two simultaneous sealed-bid stages. Stage 1 reveals sack card 1 and lets anyone bid or pass. Stage 2 reveals sack card 2, and the remaining players may raise. The stage-1 leader may also hold, writing 0, to keep their stage-1 bid. The highest effective bid wins.",
+        "why": "This keeps the escalating, information-revealing auction in a fixed number of steps.",
+        "fixes": "P1"
+      },
+      {
+        "what": "start_seat is drawn once at setup and changes only at the end of a round: to the sack winner, or to the next seat if nobody bought the sack. sack_owners lists the seats in seat order starting from start_seat. sack_cards is filled with each owner's played_card in the same order, immediately after cards are played, and is kept until the round ends.",
+        "why": "The sack must exist, with known owners per position, before revealing and valuing it.",
+        "fixes": "P2"
+      },
+      {
+        "what": "Each stage writes every submitted number into that player's bid attribute. Legality is checked against the standing_bid in force before the stage, which is 0 at stage 1. Bids are cleared only at the start of the next round.",
+        "why": "Resolution must read the real bids.",
+        "fixes": "P3"
+      },
+      {
+        "what": "Choices are limited to card, message, stage-1 bid and stage-2 bid, which is 4 choice steps. Every legal value is listed as an option at both stages: stage 1 offers 0 to the player's mice; stage 2 offers 0 and standing_bid+1 to the player's mice.",
+        "why": "This stays inside the choice limit and makes every legal bid choosable.",
+        "fixes": "P4"
+      },
+      {
+        "what": "Rewards are simplified. Every stage-1 passer gains 2 mice and leaves. Every player still in at stage 2 who does not win gains 3 mice. If everyone passes at stage 1, nobody takes the sack and its cards are discarded.",
+        "why": "Each player is in one of three clear outcomes. This keeps the original's rising consolation payments (2, then 3).",
+        "fixes": "P5"
+      },
+      {
+        "what": "The dog rule is restated precisely. It applies only if exactly one dog is in the whole sack. The large dog removes the highest positive cat, or the most negative cat if there is no positive one. The small dog removes the most negative cat, or the lowest positive cat if there is no negative one.",
+        "why": "The rule is unambiguous arithmetic.",
+        "fixes": "P6"
+      }
+    ],
+    "keeps": [
+      "Identical 10-card hands (cats -8, -5, 3, 5, 8, 11, 15; rabbit; large dog; small dog), with one random card per hand set aside unseen.",
+      "15 starting mice, 9 rounds, and each player secretly adds one card to a shared sack every round.",
+      "Gradual reveal of sack cards during the auction, so bids are made on partial information.",
+      "Escalating consolation mice for dropping out, and the buyer pays the bank.",
+      "The dog rule that removes one cat, and the winner becomes start player.",
+      "Score is cat points plus remaining mice; ties are broken by cat points."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The hidden-contribution auction is a strong reasoning game. A two-stage simultaneous auction with explicitly stored bids keeps its identity within the limits and fixes the build failures."
+    },
+    "variation": {
+      "name": "Cat in the Sack: Two-Stage Auction",
+      "summary": "Each round every player secretly adds a card to a sack ordered from the start player. After one simultaneous message, players bid in two sealed simultaneous stages as the first two sack cards are revealed. Drop-outs collect consolation mice, the buyer pays and takes the sack's cats after the dog rule, and after 9 rounds the highest cats plus mice wins.",
+      "players": {
+        "min": 3,
+        "max": 5,
+        "suggested": 4
+      },
+      "rules": "CARDS. Every player starts with the same 10 cards: cat_-8, cat_-5, cat_3, cat_5, cat_8, cat_11, cat_15 (cats, worth their number), rabbit (worth 0, not a cat), large_dog and small_dog (worth 0).\n\nR1 SETUP. Remove one random card from each player's hand into the face-down set_aside pile, which nobody sees. Each hand now has 9 cards. Hands are private.\n\nR2 SETUP. Each player has 15 mice and 0 cat_points; both are public. Choose start_seat at random. This is the only time start_seat is randomised. Play 9 rounds.\n\nEach round:\n\nR3 PLAY. At the start of the round, set every player's bid to 0 and in_auction to true, standing_bid to 0, leader_seat to 0, sack_done to false and sack_winner to 0. Every player then simultaneously chooses one card from their hand. It leaves their hand and becomes their played_card, which is private.\n\nR4 SACK. sack_owners lists all seats in seat order, beginning with start_seat and continuing to the next higher seat, wrapping from the last seat to seat 1. sack_cards is the list of each owner's played_card in that same order: one card per seat, so 3 to 5 cards. Everyone knows which seat owns each position, but only the owner knows their own card. sack_cards is kept until the end of the round.\n\nR5 TALK. Every player simultaneously writes one short message without seeing the others. Then all messages are shown with names. Talk is not binding; bluffing is allowed.\n\nR6 STAGE 1. Sack card 1 (the start player's card) is revealed to all and added to sack_revealed. The standing_bid is 0. Every player simultaneously writes a whole number from 0 to their mice; every value in that range is an option. The number is stored as that player's bid. A bid of 0 is a pass, and so is any number above the player's mice.\n\nR7 STAGE 1 RESOLUTION. All bids are announced by name. Each passer gains 2 mice and sets in_auction to false. If no one bid, nobody takes the sack: discard sack_cards, set start_seat to the next seat after start_seat, and the round ends. If exactly one player bid, that player wins the sack at once at their bid (go to R10). Otherwise, standing_bid becomes the highest bid. leader_seat is the player with that bid; ties go to the first tied seat in seat order starting from the seat after start_seat.\n\nR8 STAGE 2. Sack card 2 is revealed to all and added to sack_revealed. Each player still in simultaneously writes a number. The options are 0 and every whole number from standing_bid+1 to their mice, where standing_bid is the value set in R7. The number is stored as that player's bid.\n- For the leader, 0 means 'hold': their effective bid stays the standing_bid. A legal number above standing_bid is their new effective bid.\n- For any other player, a legal number is their effective bid. 0, or any number at or below standing_bid or above their mice, means they drop out with no effective bid.\n\nR9 STAGE 2 RESOLUTION. All stage-2 numbers are announced by name. The winner is the player with the highest effective bid. If tied, the leader wins if they are among the tied players; otherwise the first tied seat in seat order starting from the seat after start_seat wins. Every other player still in at stage 2 gains 3 mice.\n\nR10 TAKING THE SACK. The winner pays their winning bid in mice to the bank. All sack cards are revealed. Dog rule: if exactly one dog is in the whole sack, it removes one cat.\n- The large dog removes the highest positive cat. If there is no positive cat, it removes the most negative cat.\n- The small dog removes the most negative cat. If there is no negative cat, it removes the lowest positive cat.\n- If there is no cat at all, nothing happens.\n- If there are zero or two dogs, nothing is removed.\nsack_value is the sum of the remaining cat values; the rabbit and dogs count 0. The winner adds sack_value to cat_points (it may be negative). The winner becomes start_seat. All sack cards are then discarded.\n\nR11 END. After round 9, each player's score is cat_points + mice.",
+      "objective": "The highest score (cat_points + mice) wins. If players tie, the one with more cat_points among them wins. If still tied, it is a draw between them.",
+      "expected_effect": "Players weigh when to dump their -8, -5 and dogs into sacks they expect others to buy, and when to commit their 15 or 11 to a sack they plan to win. Stage-1 bids leak information about each bidder's own contribution, so later bidders must infer whether a high bid means a good hidden card or a bluff. Card counting across 9 rounds rewards planning, since everyone knows the full deck minus one set-aside card per player. Talk earns its place because only one player can win. Players disagree about the sack's value: an owner of a -8 wants others to overpay, and an owner of the 15 wants to buy cheaply. A player who simply believes 'my card is the 15, bid it up' can pay 10 mice for a sack worth -5. Simple policies all lose to competent play. Always passing earns at most 18 extra mice, while buyers of good sacks gain more. Always bidding everything empties the purse on poisoned sacks. Random bidding overpays. The random set-aside card is symmetric and only slightly shifts what can be played, so it does not decide the winner."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 17,
+      "choice_steps_per_round": 4,
+      "attributes": 18,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 9
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "BASE NUMBERS. Each player's cat cards sum to -8-5+3+5+8+11+15 = 29. The average card is worth 29/10 = 2.9. A sack therefore averages about 8.7 with 3 players and about 14.5 with 5. A lone large dog cuts this by about 10, and a lone small dog adds about 6, so the dog effects roughly cancel. Over the game a player plays 9 of 10 cards, putting about 26 cat points into play per player: about 78 in total at 3 players and about 130 at 5. Mice convert to score 1:1. Winner payments go to the bank. Consolation mice also come from the bank: +2 for a stage-1 pass, +3 for losing at stage 2.\n\nWINNER RULE, thoughtless policies.\n(a) ALWAYS PASS. This scores a fixed 15 + 9x2 = 33 with 0 cat points.\n- If even one other player bids 1 alone, that player gains V-1, about +8 per round. A sensible player can always fall back to passing (2 per round), so sensible play is at least about 33 in expectation and usually well above it.\n- Example, 3 players: two sensible players each win about 4.5 sacks at an average bid b. Each scores about 15 + 39 - 4.5b + 4.5x3 = 67.5 - 4.5b. This beats 33 for any b below about 7.6.\n- Always-pass therefore loses to sensible play. It draws only against other always-passers, where all players finish on 33.\n(b) ALWAYS BID MAXIMUM. In round 1 this player pays 15 for an expected sack of about 9, so it is about -6 down at once. Afterwards it is mice-starved: its bids are capped by its mice, so it keeps paying near its full stack for sacks worth less. It loses to sensible play and usually to random play too.\n(c) ALWAYS BID 1, THEN DROP (the closest thing to an exploit).\n- When others bid, it earns +3 instead of +2, because a stage-2 loser gets more than a stage-1 passer.\n- When no one else bids, it wins at 1. This is adversely selected: sensible players stay out exactly when card 1 and their own cards are bad, so its lone wins skew toward negative sacks.\n- It scores about 15 + 27 = 42 with near-zero cat points.\n- Sensible players can bid low and let it drop. Through non-binding talk they can alternate who takes each sack. They then win sacks at about 2 for V of about 9 or more, a net of about +7 per win, which beats its +3.\n- It does not win against sensible play. Bidding 1 at stage 1 is not strictly better than passing: if no one else bids, it yields V-1 versus 2, which loses whenever V < 3.\n(d) RANDOM bidding overpays relative to V and is beaten by sensible play.\n\nNO DOMINANT OPTION. No bid value and no card choice is best whatever the opponents do. The value of a bid depends on the unrevealed cards 3 to N and on how hard rivals compete.\n\nSEATS.\n- Start seat: its card is revealed first, so it loses its private information. Because the previous winner becomes start seat, this acts as a mild catch-up.\n- Tie-breaks favour the seat after start_seat. The distinct bid values make ties uncommon, so this is a small edge.\n\nThe tie-break chain (cat points, then a draw) is coherent. Every player can realistically win."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "COMPLETENESS. Every case is specified:\n- no bids;\n- exactly one bid;\n- several bids, with leader tie-break by seat order;\n- stage 2 for the leader (hold or raise) and for others (raise above the standing bid or drop);\n- a stage-2 tie, which the leader wins. A holding leader can never tie, because others must exceed the standing bid.\n- all non-leaders dropping, in which case the leader wins at the standing bid;\n- every dog branch, including no positive cat, no negative cat, no cat, and zero or two dogs;\n- 0 mice, where the only option is 0, a pass.\nBids can never exceed a player's mice, so every payment is affordable.\n\nFINITE AND ARITHMETIC. The game has a fixed 9 rounds. Each player holds exactly 9 cards, one played per round. The score cat_points + mice is pure arithmetic.\n\nLIMITS. All within caps:\n- Choice steps: card, talk, bid 1, bid 2 = 4 (cap 4).\n- Steps: about 17 to 19 by my count (reset, choose, build sack, talk, reveal 1, poll, pass bonuses, no-bid end, lone winner, leader, reveal 2, poll, resolve, bonuses, pay, dog and value, score and start seat). This is within 20.\n- Attributes: 18 or fewer.\n- Hidden elements: hands, played_card and set_aside = 3, at most the cap of 3 (the designer says 2, but either is legal).\n- Random draws per round: 0. Randomness occurs only at setup.\n\nENGINE.\n- 'Go to R10' is a block skip. It is implementable with per-step `when sack_done` conditions, which the engine supports, so no conditional subsequence is needed.\n- Both choices are simultaneous polls.\n- No board, clock or judge is needed.\n\nTALK. Talk is simultaneous and placed where players genuinely conflict over who takes the sack. Each owner holds private knowledge of their own sack card, which gives bluffing and inference real content. Following another player's proposal can cost you, so talk is warranted for 3 to 5 players.\n\nMinor clarity point, not blocking: in a no-bid round the sack is discarded unseen. This should be stated as intended for card counting."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "CHANCE. The only randomness is the setup: one set-aside card per player and the start seat.\n- Set-aside cards go into sacks that anyone may win, so a player is not directly harmed by losing a strong card.\n- The swing in total cats available is at most 23 points across all players. It does not land on one player.\n- The randomly chosen start seat gives a small tie-break and information effect. It is overcome within a round or two.\nI estimate chance at under 15% of outcomes.\n\nINFERENCE AND PLANNING.\n- All players start with identical 10-card hands and every won sack is revealed, so card counting narrows each opponent's remaining hand. By round 9 each opponent's card is one of at most 2 possibilities.\n- Players must value partly hidden sacks: they know card 1, then card 2, plus their own card.\n- Players must read opponents' bids and their talk, which may be bluffs.\n- Players must choose when to dump negative cats or dogs into a sack they intend to lose, and budget mice across rounds.\n\nGOOD PLAY BY ALL. If everyone plays well, the winner is decided by valuation and bidding accuracy, not by a deal. Good play is clearly favoured over random or thoughtless play."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 2,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "In the bidding scenarios the scripted bids were never offered to the players. Seat 1's bid of 1 and Blaise's bid of 3 were never put to them, so every stage-1 poll fell back to a pass (0), and the all-pass branch ran where a sale should have happened. The rules are clear and the platform supports numeric simultaneous bids, so the bid poll in the game file is wrong.",
+      "guidance": "Rebuild the bid choice for each stage as a simultaneous numeric poll among the players still in. Its options must be 0 (pass) plus every whole number from standing_bid + 1 up to that player's current mice. At stage 1 with 15 mice that is 0 and 1..15; check this against the stage-1 standing bid of initial_standing_bid = 0. Any number outside that range must be treated as a pass. Then confirm resolution from these bids works:\n- A sole bidder becomes leader and wins immediately at their bid.\n- They pay mice, gain the cat value after the dog rule, and become start_seat.\n- Passers gain the stage reward.\n- A stage-2 bid at or below the standing bid counts as a pass.\nFor the stage-1 all-pass case, the whole sack is discarded unopened, so all sack cards, including card 1, go to the unopened pile. Card 1 being face up while players bid does not count as opening the sack. Every player gains all_pass_stage_1_reward, and start_seat moves to the next seat, wrapping from the last seat back to 1.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "Each failure is a fixable coding slip, not a flaw in the rules or a missing capability. The attempts hit an unfilled {mice} placeholder, private bookkeeping fields shown blank to players, and an `unopened_pile` attribute that a rare all-pass branch only would ever change. The rules are expressible: simultaneous bids, hidden hands, and `when`/`if` conditional updates are all supported.",
+      "guidance": "1) Prompts: use only the placeholders the step can fill ({value}, {seat}). Do not write {mice} in a prompt; the player's public `mice` is already in the state they are shown. Word the prompt as 'bid from standing bid + 1 up to your mice'. 2) Bookkeeping: hide every scratch attribute so players never see empty internal fields. This covers draft, message, played_card, bid_said and similar. Mark table-level ones visibility `none` and per-player private ones as hidden, keeping visible only mice, cat_points, start_seat and the revealed sack cards. Fix this in the same pass as the other items, since it has failed twice. 3) `unopened_pile`: delete it. It is not in the interface, and discarding an unopened sack needs no pile; just clear the sack cards. The all-pass-at-stage-1 branch (every player gains all_pass_stage_1_reward, start passes to the next seat) can be done with when-conditioned steps on mice and start_seat, which do change. Do not add any other attribute that only that rare branch updates. If you must track it, make sure some step that runs every round also writes it, e.g. resetting it each round. 4) Every parameter listed in the interface must be an attribute, never a number buried in a step. The ending must be a single rank_by of (you.cat_points + you.mice) * 1000 + you.cat_points.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "In several scenarios a lone legal bid of 1 (or another legal bid) is treated as a pass. Seat 1 ends with 17 mice (15 + the 2-mouse pass reward) and 0 cat points instead of winning the sack, which points to a bug in how the game file reads, validates or resolves bids, not to a problem with the rules.",
+      "guidance": "1. Fix stage bidding so a submitted number is stored as that player's bid, and is counted as a pass only if it is 0, below standing_bid + 1, or above the player's current mice. Check that the comparison uses the standing bid in force before this stage (initial_standing_bid = 0 at stage 1), not the updated one, and that the stored bid is not reset or overwritten before resolution.\n2. In resolution, only players whose bid is 0 or illegal count as passers. Only they leave the auction and gain pass_reward_stage_N.\n3. The highest bid becomes standing_bid. The leader is chosen by the seat-order tiebreak starting from the seat after the start player.\n4. If exactly one player is still in, that player wins at once. They pay the bid, gain the sack's cat value after the dog rule, and become start_seat.\n5. Offer every legal bid value from standing_bid + 1 to the player's mice as an option at stages 2 and 3, so later-stage bids such as 3 can actually be chosen.\n6. Build sack_owners and sack_cards from start_seat in seat order, using the current start_seat and not a value re-randomised after setup. Fill sack_cards with each owner's played_card, so it holds one card per seat while the round is resolved."
+    },
+    {
+      "round": 2,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "Every failing scenario has the same cause: the stage-1 bid poll never offers the numbers the rules require. Seats were never offered 0, 2, 4, 5 or 6, so everyone ended up passing (mice 17, no sack taken). Numeric bids are supported, and the pass bonus and start_seat advance worked correctly, so the fault is in how the game file builds the bid options, not in the rules or the tests.",
+      "guidance": "In R6, make the stage-1 bid a simultaneous numeric choice whose options are every whole number from stage1_min_bid (0) up to that player's current mice. Build the options from the player's own mice attribute, not from a fixed or empty list, and check that the range is actually produced for each seat. Store the chosen number in that player's bid, then resolve R7 from those bids. Exactly one nonzero bid means that player wins at once: pay the bid, apply the dog rule to all sack cards, add sack_value to cat_points, and make the winner start_seat. Two or more bids set standing_bid and leader_seat. Apply the same fix to stage 2 (R8): options are 0 plus every whole number from standing_bid+1 to the player's mice, offered only to players still in_auction. Then re-run the scenarios. With start_seat 3 of 4 and seat 4 the sole bidder at 2, seat 4 should end with mice 13 and cat_points 27.",
+      "missing": ""
+    },
+    {
+      "round": 2,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The sack held cat_3, cat_8 and small_dog. Under R10 a lone small dog with no negative cat removes the lowest positive cat, so the sack is worth 8, but the game left dog_removed at 0 and scored 11. The test reads the rules correctly, and the file is missing the small dog's fallback branch.",
+      "guidance": "Fix the R10 dog rule so it covers all four branches whenever exactly dogs_needed_for_dog_rule (1) dog is in the sack. (1) Large dog: remove the highest positive cat; if there is no positive cat, remove the most negative cat. (2) Small dog: remove the most negative cat; if there is no negative cat, remove the lowest positive cat. (3) No cats at all: nothing is removed. (4) Zero or two dogs: nothing is removed. Work out the min and max over sack_cats, along with whether any value is negative or positive, and pick the removed value with `if` conditions. Subtract it from the cat sum before adding sack_value to cat_points. Check the case where the small dog's fallback fires: the sack 3, 8, small_dog must be worth 8, and the large dog with only negative cats must remove the most negative one."
+    },
+    {
+      "round": 2,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "In every failing scenario the stage-1 bid poll never offered the numbers 0 to the player's mice: seat 1 was never offered 0 or 5, and the rules for 4 and 6 were never matched. So every player was recorded as passing, gained 2 mice (17 each), and no sack was taken. The rules are clear and the engine supports numeric bids in a simultaneous poll, so this is an error in the game file.",
+      "guidance": "1. Fix the R6 stage-1 poll so each player is offered every whole number from stage1_min_bid (0) up to their current mice. Build the option range from the player's own `mice` attribute, and make it a simultaneous poll. Store the chosen number in `bid`.\n2. In R7, count bidders as players with bid > 0 and bid <= mice. Passers gain stage1_pass_bonus and get in_auction=false.\n3. If exactly one player bid, award the sack at their bid. Apply R10: pay the bid, apply the dog rule, add sack_value to cat_points, and make the winner start_seat.\n4. Only if no one bid: discard sack_cards and advance start_seat to the next seat.\n5. Check the R8 stage-2 options in the same way: 0 plus standing_bid+1 up to the player's mice, offered only to players still in.\n6. Make sure setup does not overwrite state a scenario supplies through `given` (the given hands appeared to be replaced by full 10-card hands). Deal the 10 cards and remove one at random only as the normal initial setup.\n7. Keep every number as a parameter attribute.",
+      "missing": ""
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 17,
+      "choice_steps_per_round": 4,
+      "attributes": 18,
+      "hidden_elements": 2,
+      "random_draws_per_round": 0,
+      "rounds": 9
+    },
+    "measured": {
+      "steps_per_round": 14,
+      "choice_steps_per_round": 4,
+      "attributes": 46,
+      "hidden_elements": 9
+    }
+  },
+  "verdict": "needs_review"
+}

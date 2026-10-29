@@ -1,0 +1,166 @@
+{
+  "original_summary": "Button Men is a two-player dice duel. Each player rolls a set of dice of different sizes in public. Players take turns capturing opposing dice, either with one die of equal or higher value (power attack) or with several dice summing exactly to the target's value (skill attack). The attacking dice are rerolled, and the player whose captures add up to more sides wins the round, best of five.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "bad",
+      "evidence": "Original: captures are compulsory when possible and all rolls are public, so most turns have one obvious or forced move. First mover gets the first capture on a fresh roll. In the previous hidden variation a failed attack cost nothing and told the attacker the exact target value. That made 'attack the d12 with my highest die, then finish it with a die known to beat it' near-optimal. Player A won about 60% by capturing B's d12 on turn 1. Always-pass as B won about 50% against random play through the 0-0 double pass, because ties went to B."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Opening rolls, the random seat and every reroll drive the result. In the previous variation, two good players were judged to be decided by seat and rolls in more than 60% of games. The only real decision, which target to take, was nearly solved by expected value: the d12 is always the best target."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "With public rolls the original is a short tactical calculation that a strong model solves turn by turn. With free probing the previous variation became near-perfect information after a few misses. There was little room above the greedy policy, and a weak player still won often by luck."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "bad",
+      "evidence": "The original has nothing hidden: rolls are public, so there is no inference and no opponent type. The previous variation hid values but gave them away for free on a miss. The defender learned only a weak bound. There was no bluff, no allocation and no cost of being wrong."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Captures, sizes and totals are pure arithmetic. The previous variation left a few ambiguities: duplicate attackers, whether two dice counts as a power or a skill attack, and the order of end checks. These are fixable without a judge."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is turn-based and text-only with no board. But setup rolls 8 dice at once, and a successful skill attack rerolls 2 to 4 dice in one turn, both above the 1-random-draw-per-round limit. Best of five rounds would need 8 fresh rolls each round. Special die skills add long rule chains."
+    }
+  ],
+  "problems": [
+    "P1 Free probing: a failed attack costs nothing and reveals the exact target value, so attacking weakly dominates passing and the probe-then-capture policy is near-optimal.",
+    "P2 Solved targeting: with no cost of failure, attacking the d12 maximises expected value for every attacker value, so target choice takes no thought.",
+    "P3 Seat edge: the first mover takes the opponent's d12 on turn 1 about 60% of the time and then stalls, and the seat is assigned at random.",
+    "P4 Tie and double-pass rule favours the second player: always-pass as B wins about half of games against random play by forcing a 0-0 tie.",
+    "P5 Luck dominance: the opening 8-die roll decides much of the game, so a reasoning player is not reliably favoured.",
+    "P6 Platform limits: setup rolls 8 dice in one round, and a skill attack can reroll up to 4 dice in one turn, against a limit of 1 random draw per round.",
+    "P7 Thin inference: the defender learns almost nothing, and the attacker learns too much, so there is little to deduce or bluff about.",
+    "P8 Ambiguities: duplicate attackers, power versus skill attack with several dice, and the order of end checks are unspecified."
+  ],
+  "changes": [
+    {
+      "what": "A failed attack hands the attacking die to the defender: it is captured and the defender scores its size. In a failed two-die attack, the larger-size attacker is captured.",
+      "why": "Probing now risks points. Attacking a big target with a weak die can lose more than it gains, and passing becomes a real option.",
+      "fixes": "P1 Free probing"
+    },
+    {
+      "what": "On a failure, nobody is told the target's value. Only the value of a die at the moment it is captured is announced publicly.",
+      "why": "Exact values are no longer handed out. Players must deduce them from the allocation total, the captured values and the attacks made.",
+      "fixes": "P7 Thin inference"
+    },
+    {
+      "what": "Starting values are not rolled. Each player secretly sets their own four dice, each between 1 and its size, totalling exactly 16. The two players do this at the same time at the start of each leg.",
+      "why": "This removes the 8-die setup roll and its luck. It also creates a hidden allocation to read and to bluff with: load the d12 as a fortress or as a 12-power hammer, or spread strength over the small dice.",
+      "fixes": "P5 Luck dominance; P6 Platform limits; P2 Solved targeting"
+    },
+    {
+      "what": "The expected value of a target now depends on the opponent's allocation and on the cost of a miss, which is the size of your own attacker.",
+      "why": "A d12 defended by a 12 can only be taken by a 12 or an exact sum. Low-valued small dice become the efficient targets. Target choice becomes a read of the opponent, not a fixed rule.",
+      "fixes": "P2 Solved targeting"
+    },
+    {
+      "what": "The match is two legs with fresh secret allocations. The player who moved first in leg 1 moves second in leg 2. Scores from both legs are added.",
+      "why": "Each player holds each seat once, so any first-mover advantage cancels out.",
+      "fixes": "P3 Seat edge"
+    },
+    {
+      "what": "Equal totals are a draw. Neither seat wins ties.",
+      "why": "The always-pass policy can now at best draw against another passer and loses to any profitable attacker.",
+      "fixes": "P4 Tie and double-pass rule favours the second player"
+    },
+    {
+      "what": "Skill attacks use exactly two different dice. On success only the larger-size attacker is rerolled, and the smaller keeps its value. Power attacks use exactly one die. Failed attacks reroll nothing.",
+      "why": "Every turn uses at most one random draw.",
+      "fixes": "P6 Platform limits"
+    },
+    {
+      "what": "Explicit rules are added: no die listed twice, one attacker means a power attack and two attackers means a skill attack, invalid declarations count as a pass, and a fixed order of resolution and end checks.",
+      "why": "Leaves nothing to interpretation.",
+      "fixes": "P8 Ambiguities"
+    }
+  ],
+  "keeps": [
+    "Two players, each with a d4, d6, d8 and d12 whose sizes are public.",
+    "Power attacks (one die of equal or higher value) and skill attacks (dice summing exactly to the target's value).",
+    "Captured dice score their size (number of sides), not their value.",
+    "A die that makes a successful capture is rerolled.",
+    "A match made of several parts with the seat alternating, echoing the original best-of-rounds format."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The capture-by-value-scored-by-size core is a good inference game once values are hidden, misses are costly, and starting values are a secret allocation instead of a roll. All of this fits within 40 turns, 2 choice steps and 1 draw per turn."
+  },
+  "variation": {
+    "name": "Loaded Button Men",
+    "summary": "Two players secretly load four dice with values totalling 16, then take turns attacking each other's dice. A capture scores the target's size; a miss gives your attacker to the opponent. Two legs with swapped first mover; higher combined total wins.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "DICE. Each player owns four dice: a d4, a d6, a d8 and a d12.\n- A die's SIZE is its number of sides (4, 6, 8 or 12). Sizes are public.\n- A die's VALUE is a whole number from 1 to its size. A player always knows their own values. A player is never told the opponent's values, except as stated below.\n- Each player has a SCORE that starts at 0 and carries over between legs.\n\nMATCH STRUCTURE.\n- The match has two legs: leg 1 is turns 1 to 20 and leg 2 is turns 21 to 40.\n- Before turn 1, one player is chosen at random to be First.\n- Leg 1: First acts on odd turns (1, 3, ..., 19) and the other player, Second, acts on even turns (2, 4, ..., 20).\n- Leg 2: Second acts on odd turns (21, 23, ..., 39) and First acts on even turns (22, ..., 40).\n\nLOADING (at the start of each leg, on turns 1 and 21).\n- Both players at the same moment secretly choose a value for each of their four dice.\n- Each value must be at least 1 and at most that die's size, and the four values must total exactly 16.\n- An invalid loading is replaced by the default loading: d4=2, d6=3, d8=4, d12=7.\n- All four dice of both players are in play at the start of each leg. Captures from leg 1 do not carry over, but scores do.\n\nEACH TURN (while the current leg is not over):\n1. Public status. Announce the turn number, the leg, whose turn it is, which die sizes each player still has in play, both scores, and whether the previous turn in this leg was a pass.\n2. Private status. Tell each player the current values of their own remaining dice.\n3. Choice. The active player either PASSES or declares an ATTACK:\n   - one of the opponent's remaining dice as TARGET, and\n   - either one of their own remaining dice (a POWER attack) or exactly two different dice of their own (a SKILL attack).\n   A die may not be listed twice. Any declaration that breaks these rules counts as a pass.\n4. Resolution.\n   - A power attack succeeds if the attacker's value is greater than or equal to the target's value.\n   - A skill attack succeeds if the two attackers' values sum exactly to the target's value.\n5. Public result. Announce the pass, or the target size, the attacking die sizes and whether the attack succeeded.\n6. Success.\n   - The target is captured and removed from the leg.\n   - Its value is announced publicly.\n   - The attacker's score rises by the target's size.\n   - The attacking die (in a skill attack, only the larger-size of the two) is rerolled to a uniformly random value from 1 to its size. Its new value is told only to its owner.\n   - In a skill attack the smaller attacker keeps its value.\n7. Failure.\n   - The attacking die is captured by the defender. In a skill attack, only the larger-size attacker is captured; the smaller stays in play with its value unchanged.\n   - The captured die's value is announced publicly.\n   - The defender's score rises by the captured die's size.\n   - Nothing is rerolled, and the target's value is not revealed.\n8. Leg end check. The leg ends immediately if any of these is true:\n   - either player has no dice left;\n   - this turn and the previous turn in this leg were both passes;\n   - this is turn 20 (for leg 1).\n   If leg 1 ends early, the remaining turns up to 20 are skipped with no actions.\n9. Match end. After turn 40, or when leg 2 ends, the match ends.\n\nNOTES.\n- Values change only by loading at the start of a leg or by the reroll after a successful attack.\n- Captured dice never return within a leg.\n- Captures are not compulsory: a player may always pass.",
+    "objective": "When the match ends, the player with the higher score (total sizes of all dice they captured across both legs, including dice won from the opponent's failed attacks) wins. Equal scores are a draw.",
+    "expected_effect": "Loading becomes a bluffing and reading problem. One player hides a 12 on the d12 as a sure-capture hammer or as an untouchable fortress; another spreads strength over the small dice to sweep low-valued targets. A rigid opening of '12 on the d12, capture their d12 at once' gains 12 points but leaves three dice worth 4 between them, which an opponent who loaded its small dice sweeps for up to 18. Because a miss gives the opponent your attacker's size, each attack weighs the chance of success, inferred from the 16-point total, the publicly revealed captured values and the opponent's behaviour, against the risk. Passing to make the trailing player take risks becomes a real tactic.\n\nSimple policies all lose to good play:\n- Always-pass can only draw against another passer and loses to any profitable attacker.\n- Always-attack-the-d12-with-my-highest-die feeds dice to a fortress loading.\n- Random play feeds dice to the defender.\n\nSwapping seats between legs cancels any first-mover edge. Removing the setup roll leaves only reroll luck, so reasoning, not the deal, should decide most matches. No talk phase is included, because talk between two players with opposed interests adds nothing to reason about here."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 2,
+    "attributes": 13,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "SINGLE-ATTACK TABLE. A power attack with known value a against an unseen target of size s succeeds with P = min(a,s)/s. It scores s on success and costs nothing on failure, because nothing is lost, nothing is rerolled, and the attacker learns the exact target value.\nAttacker value a | target d4 (EV) | d6 | d8 | d12\n a=3  | 0.75 (3.0) | 0.50 (3.0) | 0.375 (3.0) | 0.25 (3.0)\n a=6  | 1.00 (4.0) | 1.00 (6.0) | 0.75 (6.0)  | 0.50 (6.0)\n a=9  | 1.00 (4.0) | 1.00 (6.0) | 1.00 (8.0)  | 0.75 (9.0)\n a=12 | 1.00 (4.0) | 1.00 (6.0) | 1.00 (8.0)  | 1.00 (12.0)\nAttacking the d12 is the expected-value-maximising target for every a, tied with smaller targets only when a \u2264 4 (for a \u2264 4, EV = a against every target of size \u2265 a, hence the ties at a=3). Its success probability equals the target's on any failure, so the targeting decision is nearly solved.\n\nPASS VS ATTACK. A failed attack has no cost except a weak bound leaked to the defender. Attacking therefore weakly dominates passing for any player who is behind, and for A when tied. The policy 'attack the highest unrevealed target with my highest die; after a miss, capture it with a die known to be \u2265 its value' is a near-optimal thoughtless policy. Probe-then-capture also guarantees eventual capture of any target whose value is matched by some own die.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (ties go to B):\n(1) Always pass as A: B passes, the game ends 0-0 and B wins. A always loses.\n(2) Always pass as B:\n- Against sensible A, A attacks freely. B's dice never change, so every miss permanently reveals a value, and A captures repeatedly. B loses.\n- Against a random A that passes on turn 1 with probability about 1/2, the double pass ends the game 0-0 and B wins. B wins at least about 50% of games against random play while doing nothing.\n(3) Greedy d12-hunting: this is close to the sensible policy itself, so 'sensible play' adds little beyond it.\n\nSEAT EDGE. On turn 1, A's best die (essentially its d12, E[max of d4,d6,d8,d12] \u2248 7.6) captures B's d12 with P \u2248 E[max]/12 \u2248 0.63. That puts A 12 ahead and leaves B with no die able to power-capture a high-value d12. A can then stall by passing while B must attack. The edge snowballs. The tie-goes-to-B rule only matters for exact ties (e.g. 12-12, 4+8 vs 12) and does not offset a roughly 60% chance of an opening 12-point swing. Seat is assigned at random, so this edge is luck."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "PLATFORM LIMITS.\n- random_draws_per_round: a successful skill attack rerolls 2 to 4 dice in one turn (one round), which needs up to 4 random draws against a limit of 1. The designer's stated value of 1 is wrong.\n- Setup: rolls 8 dice at once.\n- Attributes: 8 die values, 8 presence flags (or values set to 0), 2 scores, a pass flag and a turn counter come to about 12 only if presence is encoded inside the values. That is fine but tight.\n- Within limits: 40 turns = 40 rounds, 1 choice step, 11 steps, no talk. No talk is correct for 2 players.\n\nAMBIGUITIES.\n- May the same die be listed twice as an attacker?\n- Does a skill attack with two dice where one alone would succeed count as a skill attack (exact sum) or a power attack?\n- Should the 'turn 40' end and the double-pass end be checked before or after the reroll messages?\n- Revealed target values must be remembered by the model from the transcript. Workable, but the engine keeps no record of them.\n\nThe rest is finite and decided arithmetically."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Chance drives much of the result:\n- The random seat assignment.\n- The single opening roll, especially both d12 values: if A's d12 shows 10 to 12, A takes B's d12 on turn 1 with P \u2265 10/12.\n- A fresh random value after every success.\n\nWhen both players follow the intended good strategy (greedy probe-then-capture, plus stalling when ahead), play is close to mechanical. The winner is then largely the player with the better roll and the first move. My estimate is that more than 60% of outcomes are decided by seat and rolls.\n\nWhat there is to infer is thin. A defender learns only whether the attacker's value is below or at/above their own known value. An attacker learns exact values, which turns the game into near-perfect information after a few misses. A reasoning player is not clearly favoured over a greedy one."
+        },
+        "required_changes": [
+          "Make failure costly so that probing is a real decision: on failure, reroll the attacking dice publicly, or deduct points equal to the attacker's size, or give the defender a free counterattack. Reveal only 'higher/lower' to the attacker, not the exact value.",
+          "Remove the seat edge: play two half-games with swapped first mover (20 turns each, with a re-roll at the half), or give Player B a fixed head start (e.g. B starts at +6). Base the head start on a simulated first-mover win rate, and keep tie-breaking only as a last resort.",
+          "Keep to 1 random draw per round: restrict skill attacks to exactly two dice and reroll only one designated die (the other is discarded or kept), or reroll attackers in later dedicated steps. Pre-roll the 8 setup dice across setup steps.",
+          "Clarify the attacker rules: no duplicate dice; a multi-die attack is always judged by exact sum; state the order of end checks.",
+          "Report a simulation in which greedy d12-hunting, always-pass, and random policies play both seats against a lookahead player, showing that the reasoning player wins clearly more often and that neither seat wins more than about 55%."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Loading constraint: four values with min 1 each and total exactly 16. d12 can be loaded to 12 only if the others are (1,1,2) in some order. A d12 at 12 wins any power attack (12 >= every possible target value), so the leg's first mover F can load HEAVY = (d4,d6,d8,d12) = (1,1,2,12) and take S's d12 for a certain +12. The answer to that is to load SPREAD, putting little on the d12, e.g. (4,6,5,1) or (4,4,4,4).\n\nLoading table, F acting first in the leg (outcomes after the opening turns):\n- F HEAVY vs S HEAVY: T1 F d12 takes S d12, +12, and F's d12 rerolls to v~U(1..12). T2 S d8=2 power-attacks an F small die (all <= 2), certain +8 or +6. Then F's d12 vs S's smalls (<= 2) succeeds with probability 11/12. Edge to F.\n- F HEAVY vs S SPREAD(4,4,4,4): T1 F +12. T2 S d4=4 takes F d8 (<= 2), certain +8. T3 F d12 at v attacks S d8=4 (value inferable from the 16 total, and S's captured d12 value 4 is announced): success 9/12, so EV = 0.75*8 - 0.25*12 = +3. Close.\n- F SPREAD vs S HEAVY: F's d12=4 cannot beat S's 12. F d8=4 takes S d8 (<= 2), certain +8. S d12=12 then takes F d12, certain +12. Edge to S.\n- F SPREAD vs S SPREAD: power attacks on known-equal values succeed (>=). Roughly even.\nNo loading is strictly best for either seat; this is a real mixed loading game.\n\nMove-order edge: the first mover of a leg gains about +12 in expectation. Leg 2 swaps the order (Second acts on odd turns 21-39), so the edge is symmetric across the match. The random First draw only decides who leads leg 1.\n\nThoughtless policies under the winner rule:\n- Always pass: the opponent loads d12=12 and captures for certain, so the always-passer is behind by 12 or more each leg and loses. If both always pass, the leg ends 0-0, a draw against an equally thoughtless player only.\n- Always attack with the largest die on the largest target, default loading (d12=7): beaten by a HEAVY loader (12 >= 7 takes its d12), and its own d12=7 attacking a d12 loaded at 12 fails, giving the opponent +12. It loses.\n- Always skill-attack: requires an exact sum against a hidden value. Against values spread over 1-12, success is usually well under 1/3, and each failure hands over the larger die (6-12 points). It loses.\n- Random play: frequent failed attacks feed the opponent. It loses to sensible play.\n\nNo policy never loses, and both players can realistically win.",
+          "verdict_note": "pass"
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Limits: 40 rounds (turns), at the limit of 40. 16 steps <= 20. 2 choice steps (simultaneous loading poll on turns 1 and 21, plus the active player's choice) <= 4. 13 attributes <= 20. 1 hidden element type (die values) <= 3. At most one random draw per turn (the reroll after a success). The random First choice is a one-off draw before turn 1, i.e. setup.\n\nRules coverage:\n- Every situation is covered. Invalid loading becomes the default; an invalid declaration counts as a pass.\n- Success and failure for power and skill attacks are fully specified, including which die rerolls or is captured. Sizes are distinct, so 'larger-size' is unambiguous.\n- Leg-end conditions are explicit: no dice left, two consecutive passes, or turn 20. Skipped turns are specified.\n- The match is finite at 40 turns, and the winner is decided by arithmetic on the score.\n\nPlatform fit:\n- Loading is simultaneous, as required. No board, clock, judge, trading or binding agreements are needed.\n- Two players, so no talk phase is needed; omitting it is correct.\n- This is not a cooperation game, so the late-round betrayal test does not apply. Passing late is not dominant: an opponent's free attack on a low-value die still scores.",
+          "verdict_note": "pass"
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The key decisions are skill-based.\n- Loading is a simultaneous guessing game with the payoffs in the table above.\n- Each attack requires inference. Opponent values are constrained by the public total of 16, by values revealed on capture, and by failed attacks (a failed power attack reveals that the target exceeds the attacker's value).\n- Each attack is a risk calculation, e.g. EV = 0.75*8 - 0.25*12 = +3 for a d12 at unknown v against a d8 at 4.\n\nChance enters only through the reroll of the successful die, which is private to its owner. That makes the opponent's estimate of it a further inference problem, not pure noise.\n\nWith equal good play (mirrored loadings, symmetric legs), the result depends on rerolls and on reading the opponent's loading. Draws are possible, and the winner is not fixed by a single hidden type or deal. A player who loads blindly or attacks hidden values without inference hands over 6-12 points per failure. That clearly favours the reasoner. Estimated chance share of the outcome is moderate, around 25-35%."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

@@ -81,7 +81,7 @@
       }
     ]
   },
-  "rules": "12 rounds of hidden affinities ({num_rounds} rounds). Each player is secretly Crimson (High=Left) or Azure (High=Right). Odd rounds Player 1 is Poisoner and Player 2 Chooser; even rounds roles swap. Each round Poisoner secretly poisons Left or Right and Chooser secretly drinks Left or Right (simultaneous). Reveal: if choices match Poisoner scores, else Chooser scores. Points = {high_payoff} if the scoring player's High side equals the matched/drunk side, else {low_payoff}. Highest total after {num_rounds} wins; equal is a draw.",
+  "rules": "12 rounds of hidden affinities ({num_rounds} rounds). Each player is secretly Crimson (High=Left) or Azure (High=Right). Odd rounds Player 1 is Poisoner and Player 2 Chooser; even rounds roles swap. Each round Poisoner secretly poisons Left or Right and Chooser secretly drinks Left or Right (simultaneous). Reveal: if choices match Poisoner scores, else Chooser scores. Points = {high_payoff} if the scoring player's High side equals the matched/drunk side, else {low_payoff}. Highest total after {num_rounds} wins; equal totals share the win.",
   "setup": [
     {
       "use": "update",
@@ -215,33 +215,17 @@
         "calc": "round >= num_rounds"
       },
       "against": [
-        "seat_1_wins",
-        "seat_2_wins",
-        "draw"
+        "over"
       ]
     }
   ],
   "end": {
-    "seat_1_wins": {
+    "over": {
       "when": {
-        "calc": "players[0].score > players[1].score"
+        "calc": "round >= num_rounds"
       },
-      "result": "seat 1",
-      "text": "Seat 1 wins with {players[0].score} to {players[1].score}."
-    },
-    "seat_2_wins": {
-      "when": {
-        "calc": "players[1].score > players[0].score"
-      },
-      "result": "seat 2",
-      "text": "Seat 2 wins with {players[1].score} to {players[0].score}."
-    },
-    "draw": {
-      "when": {
-        "calc": "players[0].score == players[1].score"
-      },
-      "result": "draw",
-      "text": "Draw at {players[0].score} each."
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final score: seat 1 {players[0].score}, seat 2 {players[1].score}."
     }
   },
   "limits": {

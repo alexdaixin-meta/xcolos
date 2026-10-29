@@ -1,0 +1,894 @@
+[
+  {
+    "name": "Both scores start at 0 and stay 0 after a turn of questions; leg 1 goes on to turn 2",
+    "rule": "R1",
+    "players": 2,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "sum"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 0,
+          "legs_solved": 0
+        },
+        "2": {
+          "score": 0,
+          "legs_solved": 0
+        }
+      },
+      "game": {
+        "leg": 1,
+        "turn_in_leg": 2
+      }
+    },
+    "rule_text": "The match is 4 legs of 6 turns each, 24 turns in all, and both scores start at 0."
+  },
+  {
+    "name": "Codes chosen on turn 1 are used to answer questions",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "2-5"
+      },
+      {
+        "seat": 2,
+        "options_include": "1-3"
+      },
+      {
+        "seat": 1,
+        "options_include": "sum"
+      },
+      {
+        "seat": 2,
+        "options_include": "gap"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_action": "sum",
+          "last_answer": "MIDDLE"
+        },
+        "2": {
+          "last_action": "gap",
+          "last_answer": "APART"
+        }
+      },
+      "game": {
+        "leg": 1,
+        "turn_in_leg": 2
+      }
+    },
+    "rule_text": "When turn_in_leg is 1, both players choose a code at the same time and in secret from the 21 codes low-high with 0 <= low <= high <= 5, for example 3-3."
+  },
+  {
+    "name": "Code chosen on turn 1 is kept on turn 2",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 2,
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "4-5"
+      },
+      {
+        "seat": 1,
+        "options_include": "sum"
+      },
+      {
+        "seat": 1,
+        "options_include": "big"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_action": "big",
+          "last_answer": "2"
+        }
+      },
+      "game": {
+        "turn_in_leg": 3
+      }
+    },
+    "rule_text": "A player's code is not changed during a leg; code_low and code_high are only set on turn 1 of a leg."
+  },
+  {
+    "name": "Each unsolved player is offered the five questions and guesses",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "sum"
+      },
+      {
+        "seat": 2,
+        "options_include": "edge"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "sum"
+        },
+        {
+          "seat": 1,
+          "option": "odd"
+        },
+        {
+          "seat": 1,
+          "option": "gap"
+        },
+        {
+          "seat": 1,
+          "option": "big"
+        },
+        {
+          "seat": 1,
+          "option": "edge"
+        },
+        {
+          "seat": 1,
+          "option": "guess 3-3"
+        },
+        {
+          "seat": 2,
+          "option": "sum"
+        },
+        {
+          "seat": 2,
+          "option": "guess 0-5"
+        }
+      ],
+      "players": {
+        "1": {
+          "last_action": "sum"
+        },
+        "2": {
+          "last_action": "edge"
+        }
+      }
+    },
+    "rule_text": "On each turn, every unsolved player picks at the same time exactly one action: sum, odd, gap, big, edge, or guess of a full code."
+  },
+  {
+    "name": "Sum: 2-5 gives HIGH, 0-1 gives LOW",
+    "rule": "R5",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 0,
+        "seat1_code_high": 1,
+        "seat2_code_low": 2,
+        "seat2_code_high": 5
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 1
+        },
+        "2": {
+          "code_low": 2,
+          "code_high": 5
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "sum"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_answer": "HIGH"
+        },
+        "2": {
+          "last_answer": "LOW"
+        }
+      }
+    },
+    "rule_text": "When a player asks sum and the opponent's code is (L, H), then the answer is LOW if L+H is 0-3, MIDDLE if 4-6, HIGH if 7-10; for example code 2-5 gives HIGH."
+  },
+  {
+    "name": "Odd: 1-3 gives 2, 0-4 gives 0",
+    "rule": "R6",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 0,
+        "seat1_code_high": 4,
+        "seat2_code_low": 1,
+        "seat2_code_high": 3
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 4
+        },
+        "2": {
+          "code_low": 1,
+          "code_high": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "odd"
+      },
+      {
+        "seat": 2,
+        "options_include": "odd"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_answer": "2"
+        },
+        "2": {
+          "last_answer": "0"
+        }
+      }
+    },
+    "rule_text": "When a player asks odd, then the answer is the number of odd tiles in the opponent's code; for example code 1-3 gives 2 and code 0-4 gives 0."
+  },
+  {
+    "name": "Gap: 2-4 gives APART, 3-3 gives PAIR",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 3,
+        "seat1_code_high": 3,
+        "seat2_code_low": 2,
+        "seat2_code_high": 4
+      },
+      "players": {
+        "1": {
+          "code_low": 3,
+          "code_high": 3
+        },
+        "2": {
+          "code_low": 2,
+          "code_high": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gap"
+      },
+      {
+        "seat": 2,
+        "options_include": "gap"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_answer": "APART"
+        },
+        "2": {
+          "last_answer": "PAIR"
+        }
+      }
+    },
+    "rule_text": "When a player asks gap, then the answer is PAIR if H-L = 0, ADJACENT if H-L = 1, APART if H-L >= 2; for example code 2-4 gives APART."
+  },
+  {
+    "name": "Big: 2-3 gives 1, 4-5 gives 2",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 4,
+        "seat1_code_high": 5,
+        "seat2_code_low": 2,
+        "seat2_code_high": 3
+      },
+      "players": {
+        "1": {
+          "code_low": 4,
+          "code_high": 5
+        },
+        "2": {
+          "code_low": 2,
+          "code_high": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "big"
+      },
+      {
+        "seat": 2,
+        "options_include": "big"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_answer": "1"
+        },
+        "2": {
+          "last_answer": "2"
+        }
+      }
+    },
+    "rule_text": "When a player asks big, then the answer is the number of tiles that are 3 or more; for example code 2-3 gives 1."
+  },
+  {
+    "name": "Edge: 0-5 gives 2, 0-0 gives 2",
+    "rule": "R9",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 0,
+        "seat1_code_high": 0,
+        "seat2_code_low": 0,
+        "seat2_code_high": 5
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 0
+        },
+        "2": {
+          "code_low": 0,
+          "code_high": 5
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "edge"
+      },
+      {
+        "seat": 2,
+        "options_include": "edge"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_answer": "2"
+        },
+        "2": {
+          "last_answer": "2"
+        }
+      }
+    },
+    "rule_text": "When a player asks edge, then the answer is the number of tiles equal to 0 or 5; for example code 0-5 gives 2 and code 0-0 gives 2."
+  },
+  {
+    "name": "Repeating odd in the same leg gives the same answer",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 2,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 0,
+        "seat1_code_high": 0,
+        "seat2_code_low": 1,
+        "seat2_code_high": 4
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 0
+        },
+        "2": {
+          "code_low": 1,
+          "code_high": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "odd",
+        "times": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_action": "odd",
+          "last_answer": "1"
+        }
+      },
+      "game": {
+        "turn_in_leg": 4
+      }
+    },
+    "rule_text": "When a player repeats a question in the same leg, then the answer is the same as before, because the code has not changed."
+  },
+  {
+    "name": "Correct guess on turn 3 scores 4",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 3,
+        "seat1_code_low": 0,
+        "seat1_code_high": 0,
+        "seat2_code_low": 2,
+        "seat2_code_high": 5
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 0,
+          "score": 0
+        },
+        "2": {
+          "code_low": 2,
+          "code_high": 5,
+          "score": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "guess 2-5"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 4,
+          "last_answer": "CORRECT"
+        },
+        "2": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "When a guess equals the opponent's code exactly, then it is CORRECT and the guesser scores 7 minus turn_in_leg: 6 on turn 1, 5 on turn 2, 4 on turn 3, 3 on turn 4, 2 on turn 5, 1 on turn 6."
+  },
+  {
+    "name": "Correct guess adds a solved leg and the solver sits out the next turn",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 2,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 0,
+        "seat1_code_high": 0,
+        "seat2_code_low": 1,
+        "seat2_code_high": 4
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 0
+        },
+        "2": {
+          "code_low": 1,
+          "code_high": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "guess 1-4"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 5,
+          "legs_solved": 1,
+          "last_action": "solved"
+        },
+        "2": {
+          "score": 0,
+          "legs_solved": 0
+        }
+      }
+    },
+    "rule_text": "When a guess is correct, then the guesser's legs_solved increases by 1 and solved becomes true for the rest of the leg."
+  },
+  {
+    "name": "Wrong guess scores 0 and costs nothing",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 0,
+        "seat1_code_high": 0,
+        "seat2_code_low": 3,
+        "seat2_code_high": 4
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 0,
+          "score": 3,
+          "legs_solved": 1
+        },
+        "2": {
+          "code_low": 3,
+          "code_high": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "guess 3-3"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 3,
+          "legs_solved": 1
+        }
+      }
+    },
+    "rule_text": "When a guess is wrong, then it scores 0, costs nothing, and the answer is how many guessed tiles appear in the code, each code tile matching at most one guessed tile; for example guess 3-3 against code 3-4 answers 1, and guess 1-2 against code 3-4 answers 0."
+  },
+  {
+    "name": "A solved player is not asked and scores nothing; the other keeps playing",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 3,
+        "seat1_code_low": 2,
+        "seat1_code_high": 2,
+        "seat2_code_low": 1,
+        "seat2_code_high": 4
+      },
+      "players": {
+        "1": {
+          "code_low": 2,
+          "code_high": 2,
+          "solved": true,
+          "score": 5,
+          "legs_solved": 1
+        },
+        "2": {
+          "code_low": 1,
+          "code_high": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "guess 2-2"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "score": 5,
+          "legs_solved": 1,
+          "last_action": "solved"
+        },
+        "2": {
+          "score": 4,
+          "legs_solved": 1,
+          "last_answer": "CORRECT"
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "sum"
+        },
+        {
+          "seat": 1,
+          "option": "guess 1-4"
+        }
+      ],
+      "offered": [
+        {
+          "seat": 2,
+          "option": "sum"
+        }
+      ]
+    },
+    "rule_text": "When a player has solved == true, then they are not asked for an action for the rest of that leg and score nothing more in it, while the other player keeps playing normally."
+  },
+  {
+    "name": "Both actions and their truthful answers are reported",
+    "rule": "R15",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "turn_in_leg": 2,
+        "seat1_code_low": 3,
+        "seat1_code_high": 5,
+        "seat2_code_low": 1,
+        "seat2_code_high": 2
+      },
+      "players": {
+        "1": {
+          "code_low": 3,
+          "code_high": 5
+        },
+        "2": {
+          "code_low": 1,
+          "code_high": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "gap"
+      },
+      {
+        "seat": 2,
+        "options_include": "big"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_action": "gap",
+          "last_answer": "ADJACENT"
+        },
+        "2": {
+          "last_action": "big",
+          "last_answer": "2"
+        }
+      }
+    },
+    "rule_text": "After both have chosen on a turn, then both players are told each player's action and its truthful answer, computed from the opponent's code."
+  },
+  {
+    "name": "After turn 6 the next leg starts and solved is reset",
+    "rule": "R16",
+    "players": 2,
+    "rounds": 2,
+    "given": {
+      "game": {
+        "leg": 1,
+        "turn_in_leg": 6,
+        "seat1_code_low": 0,
+        "seat1_code_high": 0,
+        "seat2_code_low": 1,
+        "seat2_code_high": 1
+      },
+      "players": {
+        "1": {
+          "code_low": 0,
+          "code_high": 0,
+          "solved": true,
+          "score": 4,
+          "legs_solved": 1
+        },
+        "2": {
+          "code_low": 1,
+          "code_high": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "sum",
+        "times": "all"
+      },
+      {
+        "seat": 1,
+        "options_include": "edge"
+      }
+    ],
+    "expect": {
+      "game": {
+        "leg": 2,
+        "turn_in_leg": 2
+      },
+      "players": {
+        "1": {
+          "score": 4,
+          "legs_solved": 1,
+          "last_action": "edge"
+        },
+        "2": {
+          "score": 0,
+          "legs_solved": 0
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "guess 0-0"
+        }
+      ]
+    },
+    "rule_text": "When turn 6 of a leg ends, then both codes are revealed to both players, solved is reset, and the next leg starts with new codes; a leg nobody solved scores nothing."
+  },
+  {
+    "name": "Match ends after turn 6 of leg 4; higher score wins",
+    "rule": "R17",
+    "players": 2,
+    "given": {
+      "game": {
+        "leg": 4,
+        "turn_in_leg": 6
+      },
+      "players": {
+        "1": {
+          "score": 10,
+          "legs_solved": 2
+        },
+        "2": {
+          "score": 8,
+          "legs_solved": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "sum",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 102,
+        "2": 83
+      },
+      "game": {
+        "leg": 5
+      }
+    },
+    "rule_text": "When leg becomes 5 after the fourth leg, then the match ends."
+  },
+  {
+    "name": "Equal scores: more legs solved wins",
+    "rule": "R18",
+    "players": 2,
+    "given": {
+      "game": {
+        "leg": 4,
+        "turn_in_leg": 6
+      },
+      "players": {
+        "1": {
+          "score": 9,
+          "legs_solved": 2
+        },
+        "2": {
+          "score": 9,
+          "legs_solved": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "sum",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 92,
+        "2": 93
+      }
+    },
+    "rule_text": "When the match ends, then the higher score wins; on equal scores the player with more legs_solved wins; if both are equal the match is a draw (shared win)."
+  },
+  {
+    "name": "Equal scores and legs solved: shared win",
+    "rule": "R18",
+    "players": 2,
+    "given": {
+      "game": {
+        "leg": 4,
+        "turn_in_leg": 6
+      },
+      "players": {
+        "1": {
+          "score": 7,
+          "legs_solved": 2
+        },
+        "2": {
+          "score": 7,
+          "legs_solved": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "sum",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "sum",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 72,
+        "2": 72
+      }
+    },
+    "rule_text": "When the match ends, then the higher score wins; on equal scores the player with more legs_solved wins; if both are equal the match is a draw (shared win)."
+  }
+]

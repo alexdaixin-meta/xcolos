@@ -1,0 +1,993 @@
+[
+  {
+    "name": "Battle start deals 6 cards to each hand and sets 6 aside, leaving the deck empty (deal is random, only counts asserted)",
+    "rule": "R1",
+    "players": 2,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "set_aside": 6,
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          }
+        }
+      },
+      "players": {
+        "2": {
+          "vp": 2
+        }
+      },
+      "game": {
+        "battle_over": true
+      }
+    },
+    "rule_text": "When a battle starts (rounds 1, 7, 13 and 19), then all 18 cards are shuffled, 6 are dealt privately to each player's hand, and the remaining 6 go to set_aside unseen."
+  },
+  {
+    "name": "Battle start resets all strengths to 0 (seat 1 then withdraws)",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "air_strength": 5,
+          "land_strength": 4,
+          "sea_strength": 3,
+          "face_down_theaters": [
+            "Air"
+          ]
+        },
+        "2": {
+          "air_strength": 2,
+          "land_strength": 6,
+          "sea_strength": 1,
+          "face_down_theaters": [
+            "Sea",
+            "Land"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 1,
+        "battle": 1,
+        "first_player": 1,
+        "battle_over": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "air_strength": 0,
+          "land_strength": 0,
+          "sea_strength": 0
+        },
+        "2": {
+          "air_strength": 0,
+          "land_strength": 0,
+          "sea_strength": 0
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "face_down_theaters": 0
+          },
+          "2": {
+            "face_down_theaters": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a battle starts, then all strengths, face-up cards and face-down cards of both players are reset to empty or 0."
+  },
+  {
+    "name": "After battle 1 ends, battle 2 has seat 2 as first player",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "battle": 1,
+        "round_in_battle": 6,
+        "first_player": 1,
+        "battle_over": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      },
+      {
+        "seat": 2,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "game": {
+        "battle": 2,
+        "first_player": 2
+      }
+    },
+    "rule_text": "When it is battle 1 or 3, then seat 1 (A) is first player; when it is battle 2 or 4, then seat 2 (B) is first player."
+  },
+  {
+    "name": "After battle 2 ends, battle 3 has seat 1 as first player",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "battle": 2,
+        "round_in_battle": 6,
+        "first_player": 2,
+        "battle_over": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      },
+      {
+        "seat": 2,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "game": {
+        "battle": 3,
+        "first_player": 1
+      }
+    },
+    "rule_text": "When it is battle 1 or 3, then seat 1 (A) is first player; when it is battle 2 or 4, then seat 2 (B) is first player."
+  },
+  {
+    "name": "Each player takes one action in a round",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 4",
+            "Land 1"
+          ]
+        },
+        "2": {
+          "hand": [
+            "Sea 5",
+            "Air 2"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 2,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "deploy Air 4"
+      },
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 5"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "air_strength": 4,
+          "land_strength": 0
+        },
+        "2": {
+          "sea_strength": 5,
+          "air_strength": 0
+        }
+      },
+      "game": {
+        "battle_over": false
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 1
+          },
+          "2": {
+            "hand": 1
+          }
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "deploy Air 4"
+        },
+        {
+          "seat": 2,
+          "option": "deploy Sea 5"
+        }
+      ]
+    },
+    "rule_text": "When a round is played and the battle has not ended by withdrawal, then the first player takes one action, then the second player takes one action, and both see each result."
+  },
+  {
+    "name": "Deploying Land 6 adds 6 to land strength and leaves the hand",
+    "rule": "R5",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Land 6",
+            "Air 1"
+          ],
+          "land_strength": 3
+        },
+        "2": {
+          "hand": [
+            "Sea 1",
+            "Sea 2"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 2,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "deploy Land 6"
+      },
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "land_strength": 9,
+          "air_strength": 0
+        },
+        "2": {
+          "sea_strength": 1
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 1,
+            "face_up_cards": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a player deploys a card, then it leaves the hand, is shown face-up, and adds its rank (1 to 6) to that player's strength in the theater of its suit."
+  },
+  {
+    "name": "Improvising Land 5 to Sea adds 2 to sea only",
+    "rule": "R6",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Land 5",
+            "Air 1"
+          ]
+        },
+        "2": {
+          "hand": [
+            "Sea 1",
+            "Sea 2"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 2,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "improvise Land 5 to Sea"
+      },
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 2"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "sea_strength": 2,
+          "land_strength": 0,
+          "air_strength": 0
+        },
+        "2": {
+          "sea_strength": 2
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 1,
+            "face_down_theaters": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a player improvises a card to a theater, then it leaves the hand, adds 2 to that player's strength in the chosen theater, and the opponent learns only the theater."
+  },
+  {
+    "name": "Withdrawing with 4 cards gives the opponent 2 VP",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 1",
+            "Air 2",
+            "Land 1",
+            "Land 2"
+          ]
+        },
+        "2": {
+          "hand": [
+            "Sea 1",
+            "Sea 2",
+            "Sea 3",
+            "Sea 4"
+          ],
+          "vp": 3
+        }
+      },
+      "game": {
+        "round_in_battle": 3,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 0
+        },
+        "2": {
+          "vp": 5
+        }
+      },
+      "game": {
+        "battle_over": true
+      }
+    },
+    "rule_text": "When a player withdraws holding 4 or more cards, then the opponent gains 2 VP."
+  },
+  {
+    "name": "Second player withdrawing with 3 cards gives the opponent 3 VP",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 1",
+            "Air 2",
+            "Land 1"
+          ]
+        },
+        "2": {
+          "hand": [
+            "Sea 1",
+            "Sea 2",
+            "Sea 3"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 4,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "deploy Air 2"
+      },
+      {
+        "seat": 2,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 3,
+          "air_strength": 2
+        },
+        "2": {
+          "vp": 0
+        }
+      },
+      "game": {
+        "battle_over": true
+      }
+    },
+    "rule_text": "When a player withdraws holding 2 or 3 cards, then the opponent gains 3 VP."
+  },
+  {
+    "name": "Withdrawing with 1 card gives the opponent 4 VP",
+    "rule": "R9",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 3"
+          ]
+        },
+        "2": {
+          "hand": [
+            "Sea 1"
+          ],
+          "vp": 6
+        }
+      },
+      "game": {
+        "round_in_battle": 6,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 0
+        },
+        "2": {
+          "vp": 10
+        }
+      },
+      "game": {
+        "battle_over": true
+      }
+    },
+    "rule_text": "When a player withdraws holding 1 card, then the opponent gains 4 VP."
+  },
+  {
+    "name": "A player holding 0 cards is not offered withdraw",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": []
+        },
+        "2": {
+          "hand": [
+            "Sea 1",
+            "Sea 2"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 2,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 1"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "withdraw"
+        }
+      ],
+      "players": {
+        "2": {
+          "vp": 0,
+          "sea_strength": 1
+        }
+      }
+    },
+    "rule_text": "When a player holds 0 cards, then they may not withdraw."
+  },
+  {
+    "name": "After a withdrawal the rest of the battle passes with no actions and no scoring",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 4,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 1",
+            "Air 2",
+            "Land 1",
+            "Land 2"
+          ],
+          "air_strength": 4
+        },
+        "2": {
+          "hand": [
+            "Sea 5",
+            "Sea 2",
+            "Sea 3",
+            "Sea 4"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 3,
+        "battle": 1,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 0,
+          "air_strength": 4
+        },
+        "2": {
+          "vp": 2,
+          "sea_strength": 0
+        }
+      },
+      "game": {
+        "battle": 2,
+        "first_player": 2
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "deploy Sea 5"
+        },
+        {
+          "seat": 1,
+          "option": "deploy Air 1"
+        }
+      ]
+    },
+    "rule_text": "When a player withdraws, then no further actions are taken in that battle and its remaining rounds pass with no actions."
+  },
+  {
+    "name": "A card placed on an occupied theater adds to what is already there",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 3",
+            "Land 1"
+          ],
+          "air_strength": 5
+        },
+        "2": {
+          "hand": [
+            "Sea 1",
+            "Sea 2"
+          ]
+        }
+      },
+      "game": {
+        "round_in_battle": 2,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "deploy Air 3"
+      },
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "air_strength": 8
+        }
+      }
+    },
+    "rule_text": "When a later card is placed on a theater, then every card on that side still counts, covered or not."
+  },
+  {
+    "name": "Higher strength controls each theater; seat 1 wins Air and Sea and gains 6",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Sea 1"
+          ],
+          "air_strength": 7,
+          "land_strength": 3,
+          "sea_strength": 2
+        },
+        "2": {
+          "hand": [
+            "Air 1"
+          ],
+          "air_strength": 4,
+          "land_strength": 6,
+          "sea_strength": 1
+        }
+      },
+      "game": {
+        "round_in_battle": 6,
+        "battle": 1,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "deploy Sea 1"
+      },
+      {
+        "seat": 2,
+        "options_include": "deploy Air 1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 6
+        },
+        "2": {
+          "vp": 0
+        }
+      },
+      "game": {
+        "battle": 2,
+        "first_player": 2
+      }
+    },
+    "rule_text": "When a battle is fought to the end (after its round 6, with no withdrawal), then for each theater the player with the higher strength sum controls it."
+  },
+  {
+    "name": "Ties, including 0-0, go to the first player (seat 2 in battle 2)",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Land 1"
+          ],
+          "air_strength": 5,
+          "land_strength": 5,
+          "sea_strength": 0
+        },
+        "2": {
+          "hand": [
+            "Air 2"
+          ],
+          "air_strength": 3,
+          "land_strength": 3,
+          "sea_strength": 0
+        }
+      },
+      "game": {
+        "round_in_battle": 6,
+        "battle": 2,
+        "first_player": 2,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "deploy Air 2"
+      },
+      {
+        "seat": 1,
+        "options_include": "deploy Land 1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 0,
+          "land_strength": 6
+        },
+        "2": {
+          "vp": 6,
+          "air_strength": 5
+        }
+      },
+      "game": {
+        "battle": 3,
+        "first_player": 1
+      }
+    },
+    "rule_text": "When the strength sums in a theater are equal, including 0-0, then the first player of that battle controls it."
+  },
+  {
+    "name": "Controlling all 3 theaters still gains exactly 6 VP",
+    "rule": "R15",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 1"
+          ],
+          "vp": 2
+        },
+        "2": {
+          "hand": [
+            "Sea 1"
+          ],
+          "air_strength": 2,
+          "land_strength": 2,
+          "sea_strength": 2,
+          "vp": 4
+        }
+      },
+      "game": {
+        "round_in_battle": 6,
+        "battle": 1,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "deploy Air 1"
+      },
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 2,
+          "air_strength": 1
+        },
+        "2": {
+          "vp": 10,
+          "sea_strength": 3
+        }
+      }
+    },
+    "rule_text": "When a player controls 2 or 3 theaters at the end of a battle fought to the end, then that player gains 6 VP."
+  },
+  {
+    "name": "A face-down card counts 2 when the battle is fought to the end (reveal itself not observable)",
+    "rule": "R16",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Land 6"
+          ],
+          "air_strength": 3,
+          "land_strength": 0,
+          "sea_strength": 0
+        },
+        "2": {
+          "hand": [
+            "Sea 1"
+          ],
+          "air_strength": 4,
+          "land_strength": 0,
+          "sea_strength": 0
+        }
+      },
+      "game": {
+        "round_in_battle": 6,
+        "battle": 1,
+        "first_player": 1,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "improvise Land 6 to Air"
+      },
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "vp": 6,
+          "air_strength": 5,
+          "land_strength": 0
+        },
+        "2": {
+          "vp": 0,
+          "sea_strength": 1
+        }
+      }
+    },
+    "rule_text": "When a battle is fought to the end, then all face-down cards are revealed for the record."
+  },
+  {
+    "name": "Game ends after round 24; the last battle's 6 VP decides the winner",
+    "rule": "R17",
+    "players": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Air 1"
+          ],
+          "air_strength": 3,
+          "land_strength": 3,
+          "sea_strength": 0,
+          "vp": 6
+        },
+        "2": {
+          "hand": [
+            "Sea 1"
+          ],
+          "air_strength": 0,
+          "land_strength": 0,
+          "sea_strength": 0,
+          "vp": 10
+        }
+      },
+      "game": {
+        "round_in_battle": 6,
+        "battle": 4,
+        "first_player": 2,
+        "battle_over": false
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "deploy Sea 1"
+      },
+      {
+        "seat": 1,
+        "options_include": "deploy Air 1"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 12,
+        "2": 10
+      },
+      "players": {
+        "1": {
+          "vp": 12
+        },
+        "2": {
+          "vp": 10
+        }
+      },
+      "game": {
+        "battle": 5
+      }
+    },
+    "rule_text": "When round 24 is over, then the game ends and the player with more VP wins; equal VP is a draw."
+  },
+  {
+    "name": "Equal VP after round 24 is a shared win",
+    "rule": "R17",
+    "players": 2,
+    "given": {
+      "players": {
+        "1": {
+          "vp": 8
+        },
+        "2": {
+          "vp": 8
+        }
+      },
+      "game": {
+        "round_in_battle": 6,
+        "battle": 4,
+        "first_player": 2,
+        "battle_over": true
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "withdraw"
+      },
+      {
+        "seat": 2,
+        "options_include": "withdraw"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 8,
+        "2": 8
+      }
+    },
+    "rule_text": "When round 24 is over, then the game ends and the player with more VP wins; equal VP is a draw."
+  }
+]

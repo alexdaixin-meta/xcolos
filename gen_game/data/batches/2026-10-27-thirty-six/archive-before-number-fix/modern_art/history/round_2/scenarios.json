@@ -1,0 +1,1318 @@
+[
+  {
+    "name": "Setup: money 60, owned 0, seasons and values 0, auctioneer seat 1",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 60,
+          "owned_red": 0,
+          "owned_blue": 0,
+          "owned_green": 0
+        },
+        "2": {
+          "money": 60,
+          "owned_red": 0,
+          "owned_blue": 0,
+          "owned_green": 0
+        },
+        "3": {
+          "money": 60,
+          "owned_red": 0,
+          "owned_blue": 0,
+          "owned_green": 0
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "seasons_done": 0,
+        "season_red": 0,
+        "season_blue": 0,
+        "season_green": 0,
+        "value_red": 0,
+        "value_blue": 0,
+        "value_green": 0
+      }
+    },
+    "rule_text": "At setup, every player has money 60 and all owned counts 0, every artist has season count 0 and value 0, seasons_done is 0, and auctioneer is seat 1."
+  },
+  {
+    "name": "Deal (chance-independent): every composition holds all three artists, so seats 1 and 2 are each offered Red, Blue and Green",
+    "rule": "R2",
+    "players": 3,
+    "seed": 1,
+    "rounds": 2,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Red"
+        },
+        {
+          "seat": 1,
+          "option": "Blue"
+        },
+        {
+          "seat": 1,
+          "option": "Green"
+        },
+        {
+          "seat": 2,
+          "option": "Red"
+        },
+        {
+          "seat": 2,
+          "option": "Blue"
+        },
+        {
+          "seat": 2,
+          "option": "Green"
+        }
+      ]
+    },
+    "rule_text": "At setup, when deal_roll is 1 the seats 1,2,3 get compositions A,B,C; for 2 they get A,C,B; for 3 B,A,C; for 4 B,C,A; for 5 C,A,B; for 6 C,B,A. A is Red 4, Blue 2, Green 1; B is Red 1, Blue 4, Green 2; C is Red 2, Blue 1, Green 4."
+  },
+  {
+    "name": "Hands (chance-independent): seat 1 opens holding cards of every artist",
+    "rule": "R3",
+    "players": 3,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Red"
+        },
+        {
+          "seat": 1,
+          "option": "Blue"
+        },
+        {
+          "seat": 1,
+          "option": "Green"
+        }
+      ]
+    },
+    "rule_text": "Each player's hand counts are visible only to that player, and every hand totals 7 cards at setup."
+  },
+  {
+    "name": "Auctioneer may only play an artist it holds",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 0,
+          "hand_blue": 2,
+          "hand_green": 0
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Blue"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Red"
+        },
+        {
+          "seat": 1,
+          "option": "Green"
+        }
+      ],
+      "game": {
+        "current_artist": "Blue",
+        "season_blue": 1
+      }
+    },
+    "rule_text": "The auctioneer may choose only an artist for which their own hand count is above 0."
+  },
+  {
+    "name": "Playing Red raises season_red by 1 and sets current_artist",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "current_artist": "Red",
+        "season_red": 1,
+        "season_blue": 0,
+        "season_green": 0
+      }
+    },
+    "rule_text": "When the auctioneer plays artist X, their hand_X falls by 1, season_X rises by 1, and current_artist is announced as X."
+  },
+  {
+    "name": "Third Red card is discarded unsold: no bidding, no money moves, and the season scores",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "season_red": 2,
+        "season_blue": 0,
+        "season_green": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 60,
+          "owned_red": 0
+        },
+        "2": {
+          "money": 60,
+          "owned_red": 0
+        },
+        "3": {
+          "money": 60,
+          "owned_red": 0
+        }
+      },
+      "game": {
+        "seasons_done": 1,
+        "season_red": 0,
+        "value_red": 20
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 0
+        },
+        {
+          "seat": 3,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "When season_X reaches 3 after the play, the card is discarded unsold: there is no talk, no bidding, no money moves and no owned count changes, and season scoring happens."
+  },
+  {
+    "name": "A card that does not end the season goes to auction for the other seats",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": 0
+        },
+        {
+          "seat": 3,
+          "option": 0
+        }
+      ]
+    },
+    "rule_text": "When the card is not season-ending, all three players send one short message simultaneously, and all messages are then shown to everyone."
+  },
+  {
+    "name": "Bids run from 0 to the bidder's own money, and the auctioneer bids too",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        },
+        "2": {
+          "money": 10
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": 10
+        },
+        {
+          "seat": 1,
+          "option": 0
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 11
+        }
+      ]
+    },
+    "rule_text": "When the card is not season-ending, all three players including the auctioneer bid simultaneously a whole number from 0 to their current money."
+  },
+  {
+    "name": "Auctioneer seat 1, bids 15/15/15: seat 2 wins at 15",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 15
+      },
+      {
+        "seat": 2,
+        "options_include": 15
+      },
+      {
+        "seat": 3,
+        "options_include": 15
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 75
+        },
+        "2": {
+          "money": 45,
+          "owned_red": 1
+        },
+        "3": {
+          "money": 60,
+          "owned_red": 0
+        }
+      },
+      "game": {
+        "winner_seat": 2,
+        "price": 15
+      }
+    },
+    "rule_text": "The highest bid wins the painting; with the auctioneer at seat 1 and bids 15, 15, 15, seat 2 wins at 15."
+  },
+  {
+    "name": "Auctioneer seat 2, bids seat1=10 seat2=10 seat3=5: seat 1 wins the tie",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 2,
+        "options_include": 10
+      },
+      {
+        "seat": 1,
+        "options_include": 10
+      },
+      {
+        "seat": 3,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 50,
+          "owned_blue": 1
+        },
+        "2": {
+          "money": 70,
+          "owned_blue": 0
+        },
+        "3": {
+          "money": 60
+        }
+      },
+      "game": {
+        "winner_seat": 1,
+        "price": 10
+      }
+    },
+    "rule_text": "When bids tie for highest, the tied seat first in order starting after the auctioneer wins, with the auctioneer last; with the auctioneer at seat 2 and bids seat1=10, seat2=10, seat3=5, seat 1 wins."
+  },
+  {
+    "name": "All bids 0: the auctioneer gets the painting at price 0",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 60,
+          "owned_green": 1
+        },
+        "2": {
+          "money": 60
+        },
+        "3": {
+          "money": 60
+        }
+      },
+      "game": {
+        "winner_seat": 1,
+        "price": 0
+      }
+    },
+    "rule_text": "When every bid is 0, the auctioneer wins the painting at price 0."
+  },
+  {
+    "name": "Non-auctioneer seat 3 wins at 12 and pays the auctioneer",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 12
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 72
+        },
+        "2": {
+          "money": 60
+        },
+        "3": {
+          "money": 48,
+          "owned_red": 1
+        }
+      },
+      "game": {
+        "winner_seat": 3,
+        "price": 12
+      }
+    },
+    "rule_text": "When a non-auctioneer wins with bid 12, the winner's money falls by 12 and the auctioneer's money rises by 12."
+  },
+  {
+    "name": "Auctioneer wins at 12 and pays the bank",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 12
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 48,
+          "owned_red": 1
+        },
+        "2": {
+          "money": 60
+        },
+        "3": {
+          "money": 60
+        }
+      },
+      "game": {
+        "winner_seat": 1,
+        "price": 12
+      }
+    },
+    "rule_text": "When the auctioneer wins with bid 12, the auctioneer's money falls by 12 and no other player's money changes."
+  },
+  {
+    "name": "Auctioneer buying its own card adds to its owned count",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2,
+          "owned_blue": 1
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "season_blue": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 55,
+          "owned_blue": 2
+        }
+      },
+      "game": {
+        "season_blue": 2
+      }
+    },
+    "rule_text": "The auction winner's owned count for the current artist rises by 1, including when the winner is the auctioneer."
+  },
+  {
+    "name": "Winner and price are announced: seat 3 bids 20 over seat 2's 7",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 7
+      },
+      {
+        "seat": 3,
+        "options_include": 20
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 80
+        },
+        "2": {
+          "money": 60
+        },
+        "3": {
+          "money": 40,
+          "owned_green": 1
+        }
+      },
+      "game": {
+        "winner_seat": 3,
+        "price": 20
+      }
+    },
+    "rule_text": "After an auction, all three bids, the winner and the price are announced to everyone."
+  },
+  {
+    "name": "Last card played: season scores with all hands empty (Blue/Green tie goes to Blue), then the game ends",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 0,
+          "hand_blue": 0,
+          "hand_green": 1
+        },
+        "2": {
+          "hand_red": 0,
+          "hand_blue": 0,
+          "hand_green": 0
+        },
+        "3": {
+          "hand_red": 0,
+          "hand_blue": 0,
+          "hand_green": 0,
+          "owned_blue": 1
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "season_red": 0,
+        "season_blue": 1,
+        "season_green": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 10
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 70,
+        "2": 60,
+        "3": 80
+      },
+      "game": {
+        "value_blue": 20,
+        "value_green": 10,
+        "value_red": 0,
+        "seasons_done": 1
+      }
+    },
+    "rule_text": "Season scoring happens when the season-ending card was just played, or when all hands are empty and at least one season count is above 0."
+  },
+  {
+    "name": "Three-way tie in season counts: Red first, Blue second, Green unplaced",
+    "rule": "R17",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 0,
+          "hand_blue": 0,
+          "hand_green": 1
+        },
+        "2": {
+          "hand_red": 0,
+          "hand_blue": 0,
+          "hand_green": 0,
+          "owned_red": 1
+        },
+        "3": {
+          "hand_red": 0,
+          "hand_blue": 0,
+          "hand_green": 0,
+          "owned_blue": 1
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "season_red": 1,
+        "season_blue": 1,
+        "season_green": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 60,
+        "2": 80,
+        "3": 70
+      },
+      "game": {
+        "value_red": 20,
+        "value_blue": 10,
+        "value_green": 0
+      }
+    },
+    "rule_text": "At scoring, the artist with the highest season count places first, ties broken Red, then Blue, then Green, and its value rises by 20."
+  },
+  {
+    "name": "No second place when the other artists have season count 0",
+    "rule": "R18",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        },
+        "2": {
+          "owned_red": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "season_red": 2,
+        "season_blue": 0,
+        "season_green": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 60
+        },
+        "2": {
+          "money": 100
+        },
+        "3": {
+          "money": 60
+        }
+      },
+      "game": {
+        "value_red": 20,
+        "value_blue": 0,
+        "value_green": 0,
+        "seasons_done": 1
+      }
+    },
+    "rule_text": "At scoring, the best of the remaining two artists by season count (same tie order) places second only if its season count is above 0, and its value rises by 10."
+  },
+  {
+    "name": "Payout uses the new cumulative value; an unplaced artist pays 0 despite its value",
+    "rule": "R19",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2,
+          "owned_blue": 1
+        },
+        "2": {
+          "owned_red": 2
+        },
+        "3": {
+          "owned_green": 1
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "season_red": 2,
+        "season_blue": 1,
+        "season_green": 1,
+        "value_red": 10,
+        "value_green": 30
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 70
+        },
+        "2": {
+          "money": 120
+        },
+        "3": {
+          "money": 60
+        }
+      },
+      "game": {
+        "value_red": 30,
+        "value_blue": 10,
+        "value_green": 30
+      }
+    },
+    "rule_text": "At scoring, each player gains, for each placed artist, owned count times that artist's new cumulative value; unplaced artists pay 0 even if their value is above 0. With Red first at value 30 and a player owning 2 Red, that player gains 60 from Red."
+  },
+  {
+    "name": "After scoring, owned and season counts reset and seasons_done rises",
+    "rule": "R20",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2,
+          "owned_green": 1
+        },
+        "2": {
+          "owned_blue": 1
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "seasons_done": 1,
+        "season_red": 0,
+        "season_blue": 1,
+        "season_green": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "owned_red": 0,
+          "owned_blue": 0,
+          "owned_green": 0
+        },
+        "2": {
+          "owned_red": 0,
+          "owned_blue": 0,
+          "owned_green": 0
+        },
+        "3": {
+          "owned_red": 0,
+          "owned_blue": 0,
+          "owned_green": 0
+        }
+      },
+      "game": {
+        "seasons_done": 2,
+        "season_red": 0,
+        "season_blue": 0,
+        "season_green": 0
+      }
+    },
+    "rule_text": "After scoring, all owned counts and season counts reset to 0 and seasons_done rises by 1."
+  },
+  {
+    "name": "Auctioneer passes from 1 to 3, skipping seat 2 whose hand is empty",
+    "rule": "R21",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        },
+        "2": {
+          "hand_red": 0,
+          "hand_blue": 0,
+          "hand_green": 0
+        },
+        "3": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "auctioneer": 3
+      }
+    },
+    "rule_text": "After each round, the auctioneer passes to the next seat in the order 1->2->3->1, skipping any seat whose hand is empty."
+  },
+  {
+    "name": "Third season scored ends the game; richest seat wins",
+    "rule": "R22",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2,
+          "money": 60
+        },
+        "2": {
+          "money": 70
+        },
+        "3": {
+          "money": 50
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "seasons_done": 2,
+        "season_red": 2,
+        "season_blue": 0,
+        "season_green": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 60,
+        "2": 70,
+        "3": 50
+      },
+      "game": {
+        "seasons_done": 3,
+        "value_red": 20
+      }
+    },
+    "rule_text": "The game ends when seasons_done reaches 3, or when all hands are empty after any unfinished season has been scored; it lasts at most 21 rounds."
+  },
+  {
+    "name": "Tied for most money at the end: both seats share the win",
+    "rule": "R23",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2,
+          "money": 80
+        },
+        "2": {
+          "money": 80
+        },
+        "3": {
+          "money": 50
+        }
+      },
+      "game": {
+        "auctioneer": 1,
+        "seasons_done": 2,
+        "season_red": 0,
+        "season_blue": 2,
+        "season_green": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Blue"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 80,
+        "2": 80,
+        "3": 50
+      }
+    },
+    "rule_text": "When the game ends, the player with the most money wins; players tied for the most money share the result (a draw)."
+  },
+  {
+    "name": "Money and owned counts are public after a purchase",
+    "rule": "R24",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand_red": 2,
+          "hand_blue": 2,
+          "hand_green": 2
+        }
+      },
+      "game": {
+        "auctioneer": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 7
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "money": 67,
+          "owned_green": 0
+        },
+        "2": {
+          "money": 53,
+          "owned_green": 1
+        },
+        "3": {
+          "money": 60,
+          "owned_green": 0
+        }
+      }
+    },
+    "rule_text": "Money and owned counts are public at all times."
+  }
+]

@@ -40,10 +40,11 @@ import os
 import re
 import shlex
 import subprocess
+import sys
 from pathlib import Path
 import urllib.error
 import urllib.request
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 #: The model to reach for unless told otherwise.
 DEFAULT_MODEL = "claude-opus-5"
@@ -51,6 +52,19 @@ DEFAULT_MODEL = "claude-opus-5"
 #: A referee's reply is a small JSON object. The ceiling is for the reasoning
 #: that precedes it, not the answer.
 DEFAULT_MAX_TOKENS = 4096
+
+#: Meta's AI Gateway: the sanctioned route to Claude for internal tools. There is
+#: no key; the local proxy vouches for the caller's Meta identity, and the gateway
+#: replaces the placeholder in `x-api-key`. Traffic is labelled as this project's.
+GATEWAY_URL = "http://anthropic.ai-gateway.x2p.facebook.net"
+GATEWAY_PROXY = "http://localhost:10054"
+GATEWAY_KEY = "meta-ai-gateway-placeholder"
+GATEWAY_MODEL = "claude-opus-5-5"
+GATEWAY_HEADERS = {"x-meta-ai-gateway-calling-product": "xcolos", "x-meta-ai-gateway-sensitive": "false"}
+#: Room for a whole game file; streaming keeps a long reply clear of request timeouts.
+GATEWAY_MAX_TOKENS = 64000
+#: Server-side refusal fallbacks, routed by refusal category.
+FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 
 class CompletionError(Exception):
@@ -196,12 +210,37 @@ class AnthropicCompletion:
         max_tokens: int = DEFAULT_MAX_TOKENS,
         thinking: bool = True,
         client: Any = None,
+        base_url: str | None = None,
+        proxy: str | None = None,
+        headers: dict[str, str] | None = None,
+        effort: str | None = None,
+        fallbacks: bool = False,
+        http_client: Any = None,
     ) -> None:
         self.model = model
         self.max_tokens = max_tokens
         self.thinking = thinking
         self._api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         self._client = client
+        #: Where the requests go and how: all unset for Anthropic itself, set for the AI Gateway.
+        self.base_url = base_url
+        self.proxy = proxy
+        self.headers = dict(headers or {})
+        #: `output_config.effort`; unset leaves the model's own default.
+        self.effort = effort
+        #: Ask the API to re-run a refused request on a fallback model.
+        self.fallbacks = fallbacks
+        #: An HTTP client to send through instead of building one (tests use a mock transport).
+        self.http_client = http_client
+
+    def client_kwargs(self) -> dict[str, Any]:
+        """What `anthropic.Anthropic(...)` is built with, apart from the HTTP client."""
+        kwargs: dict[str, Any] = {"api_key": self._api_key}
+        if self.base_url:
+            kwargs["base_url"] = self.base_url
+        if self.headers:
+            kwargs["default_headers"] = dict(self.headers)
+        return kwargs
 
     def _get_client(self) -> Any:
         if self._client is not None:
@@ -217,7 +256,20 @@ class AnthropicCompletion:
             raise CompletionError(
                 "no API key: set ANTHROPIC_API_KEY or pass api_key="
             )
-        self._client = anthropic.Anthropic(api_key=self._api_key)
+        kwargs = self.client_kwargs()
+        if self.headers:
+            # The SDK folds ANTHROPIC_CUSTOM_HEADERS into every client, and a Claude Code shell sets it to Claude
+            # Code's own labelling (harness, trace id, session). Labelled traffic carries only its own headers.
+            ours = {k.lower() for k in self.headers}
+            for line in os.environ.get("ANTHROPIC_CUSTOM_HEADERS", "").split("\n"):
+                key = line.partition(":")[0].strip()
+                if key and key.lower() not in ours:
+                    kwargs["default_headers"][key] = anthropic.omit
+        if self.http_client is not None:
+            kwargs["http_client"] = self.http_client
+        elif self.proxy:
+            kwargs["http_client"] = anthropic.DefaultHttpxClient(proxy=self.proxy)
+        self._client = anthropic.Anthropic(**kwargs)
         return self._client
 
     def complete(self, prompt: str, system: str = "") -> str:
@@ -236,20 +288,41 @@ class AnthropicCompletion:
             ]
         if self.thinking:
             request["thinking"] = {"type": "adaptive"}
+        if self.effort:
+            request["output_config"] = {"effort": self.effort}
 
         try:
-            with self._get_client().messages.stream(**request) as stream:
-                message = stream.get_final_message()
+            client = self._get_client()
+            if self.fallbacks:
+                stream = client.beta.messages.stream(**request, betas=[FALLBACK_BETA], fallbacks="default")
+            else:
+                stream = client.messages.stream(**request)
+            with stream as live:
+                message = live.get_final_message()
         except CompletionError:
             raise
         except Exception as error:
             raise CompletionError(f"the model call failed: {error}") from None
 
-        return "".join(
+        if getattr(message, "stop_reason", None) == "refusal":
+            category = getattr(getattr(message, "stop_details", None), "category", None)
+            raise CompletionError(f"the model refused the request (category: {category or 'unknown'})")
+        text = "".join(
             block.text
             for block in message.content
             if getattr(block, "type", None) == "text"
         )
+        if not text:
+            raise CompletionError(f"the model returned no text (stop reason: {getattr(message, 'stop_reason', None)})")
+        return text
+
+
+def gateway_completion(model: str = GATEWAY_MODEL, effort: str = "high") -> AnthropicCompletion:
+    """Claude through Meta's AI Gateway: no key, the caller's identity through the local proxy, labelled as xcolos."""
+    return AnthropicCompletion(
+        model=model, api_key=GATEWAY_KEY, max_tokens=GATEWAY_MAX_TOKENS, base_url=GATEWAY_URL,
+        proxy=GATEWAY_PROXY, headers=GATEWAY_HEADERS, effort=effort, fallbacks=True,
+    )
 
 
 #: Meta's internal Model API. Muse Spark speaks the OpenAI Responses shape and
@@ -546,6 +619,60 @@ def _cache_key(system: str) -> str:
     return f"xcolos-judge-{digest}"
 
 
+#: The names a spec can start with, so that a bar inside one spec's own text (a shell pipe, a reply) is not read as a choice.
+KINDS = ("anthropic", "gateway", "muse", "command", "echo", "claude", "offline")
+
+
+def split_alternatives(spec: str) -> list[str]:
+    """`gateway|muse` names two models, the first preferred. Split only when every part names a backend."""
+    parts = [p.strip() for p in spec.split("|")]
+    if len(parts) > 1 and all(p.partition(":")[0].strip().lower() in KINDS for p in parts):
+        return parts
+    return [spec.strip()]
+
+
+class FallbackCompletion:
+    """Several models in order of preference, so a run uses whichever can be reached: Muse needs the corporate
+    network, and Claude through the gateway needs the `anthropic` package and the local proxy.
+
+    A call goes to the first; when it fails, the next is asked. The one that answered goes first from then on, so
+    a model that is down costs one failed call, not one per call.
+    """
+
+    def __init__(self, backends: list[Completion]) -> None:
+        if not backends:
+            raise CompletionError("no models to choose from")
+        self.backends = list(backends)
+
+    @property
+    def model(self) -> str:
+        return getattr(self.backends[0], "model", type(self.backends[0]).__name__)
+
+    def __getattr__(self, name: str) -> Any:
+        backends = self.__dict__.get("backends", [])
+        if name == "converse" and backends and all(hasattr(b, "converse") for b in backends):
+            return lambda messages, system="": self._first_that_answers(lambda b: b.converse(messages, system=system))
+        raise AttributeError(name)
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        return self._first_that_answers(lambda b: b.complete(prompt, system=system))
+
+    def _first_that_answers(self, call: Callable[[Any], str]) -> str:
+        failures = []
+        for backend in list(self.backends):
+            try:
+                reply = call(backend)
+            except Exception as exc:  # noqa: BLE001 - whatever stopped this model, the next one may answer
+                failures.append(f"{getattr(backend, 'model', type(backend).__name__)}: {exc}")
+                continue
+            if failures:  # said once, at the switch, so a run shows which model answered
+                print(f"note: {'; '.join(failures)[:300]}; using {getattr(backend, 'model', type(backend).__name__)} instead", file=sys.stderr)
+            self.backends.remove(backend)
+            self.backends.insert(0, backend)
+            return reply
+        raise CompletionError("no model answered: " + "; ".join(failures))
+
+
 def from_spec(spec: str) -> Completion:
     """Build a backend from one string, for a command line or a config file.
 
@@ -553,15 +680,23 @@ def from_spec(spec: str) -> Completion:
 
         anthropic                     the default model
         anthropic:claude-opus-5       a named model
+        gateway                       Claude through Meta's AI Gateway (no key)
+        gateway:claude-sonnet-5-5     a named model through the gateway
         muse                          Muse Spark on the internal Model API
         muse:muse-spark-1.1-byoc      a named Muse model
         command:ollama run llama3     any program
         echo:{"answer": true}         a fixed reply, for a wiring check
+        gateway|muse                  either, the first preferred: whichever answers
     """
+    alternatives = split_alternatives(spec)
+    if len(alternatives) > 1:
+        return FallbackCompletion([from_spec(p) for p in alternatives])
     kind, _, rest = spec.partition(":")
     kind = kind.strip().lower()
     if kind == "anthropic":
         return AnthropicCompletion(model=rest.strip() or DEFAULT_MODEL)
+    if kind == "gateway":
+        return gateway_completion(model=rest.strip() or GATEWAY_MODEL)
     if kind == "muse":
         return MuseCompletion(model=rest.strip() or MUSE_MODEL)
     if kind == "command":
@@ -571,5 +706,5 @@ def from_spec(spec: str) -> Completion:
     if kind == "echo":
         return EchoCompletion(rest or json.dumps({"answer": False, "reason": "echo"}))
     raise CompletionError(
-        f"unknown backend {spec!r}; expected anthropic:, command: or echo:"
+        f"unknown backend {spec!r}; expected anthropic:, gateway:, muse:, command: or echo:, or several joined by |"
     )

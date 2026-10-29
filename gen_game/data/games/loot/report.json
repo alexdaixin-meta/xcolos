@@ -1,0 +1,377 @@
+{
+  "game": "loot",
+  "attempts": [
+    "playing it with random seats failed: seed 1, 3 players: the match crashed: FlowError: 'you.committed <= you.crew' reads `you` where there is no player",
+    ""
+  ],
+  "conformance": [
+    "rule R10 has no scenario: nothing checks it"
+  ],
+  "scenarios": [
+    {
+      "name": "Setup: 30 crew, 0 gold, ships [3,5,7], Captain and Admiral unused",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "With 4 players round 5 is owned by seat 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game with 4 players ends after round 12; owner seat 4 keeps its last ship and wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 1 begins with seat 1 as owner, offered its unsailed ships",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Owner with several ships chooses the 7 to sail",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Owner with one ship left sails it automatically",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sailed ship value is revealed at the end of the round",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Talk step runs and the round completes",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Seat with 10 crew may commit up to 10 but not 11, and wins the ship alone",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Committed crew is spent: seat 2 spends all 10, then can commit only 0 as owner and loses its 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Captain adds 6: commit 2 + Captain beats defense 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Admiral keeps the ship against a 20-crew attack",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Wrong-role and used trumps are not offered",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Attack 8 beats defense 7 and the other attacker's 5",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Attack 7 against defense 7: owner keeps the ship",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Two attackers tied at 10 against defense 0: owner keeps the ship",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Taker adds the ship value to gold: 4 + 3 = 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Sailed ship removed and declared trumps marked used",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "End of round reveals ship value and taker",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Final round ties seats 2 and 3 at 13 gold: shared win, unspent crew worth 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        5
+      ],
+      "results": {
+        "seat 3": 13,
+        "seat 1": 8,
+        "seat 2": 6,
+        "seats 1, 2 and 3": 2,
+        "seat 5": 6,
+        "seat 4": 5
+      },
+      "turns_min": 66,
+      "turns_max": 187
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 3": 26,
+      "seat 1": 13,
+      "seat 2": 17,
+      "seats 1, 2 and 3": 4
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "first@seat2": {
+        "win": 0,
+        "loss": 60,
+        "draw": 0,
+        "win_rate": 0.0
+      },
+      "last@seat1": {
+        "win": 1,
+        "loss": 51,
+        "draw": 8,
+        "win_rate": 0.02
+      },
+      "last@seat2": {
+        "win": 12,
+        "loss": 40,
+        "draw": 8,
+        "win_rate": 0.23
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 161.0,
+      "prompt_chars_avg": 173,
+      "prompt_chars_max": 245
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "The designer suggests 4, and the minimum of 3 keeps it from being a plain duel. Two or more raiders are needed for ties between attackers and for a raider to free-ride while others overbid. Beyond 5 players each seat is owner rarely and the ties between attackers dominate."
+    },
+    {
+      "what": "Keep the simultaneous talk poll",
+      "why": "The source requires it. Players have opposing interests over who raids which ship, so a non-binding message can bluff, threaten or deter, and following someone else's proposal can cost a player."
+    },
+    {
+      "what": "The unsailed-ships list is public and a value is removed only at bookkeeping",
+      "why": "The source announces the owner's unsailed ships each round. Removing the value at sail time would leak the hidden value before the announcement."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player rations 30 crew over 3 x N rounds. They infer which ship sailed from the remaining list, time the one-shot Admiral and Captain, and use talk to bluff or provoke ties between rival raiders."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for the most gold is a shared win instead of a draw",
+      "why": "The engine ranks by an arithmetic expression and players level at the top share the win. This is the closest equivalent to 'the game is a draw'."
+    },
+    {
+      "what": "The commit poll offers only valid amounts and valid trumps",
+      "why": "The engine constrains answers to the offered range, so the source's 'invalid amounts are set to 0' and 'invalid trumps are ignored' rarely trigger. Both are kept as rules anyway."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 4,
+    "attributes": 33,
+    "hidden_elements": 10
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Loot is a 2-8 player card game. Players sail merchant ships worth 2-8 gold. Rivals attack them with colored pirate cards, and whoever holds the highest strength of one color, or the trump captain or Admiral, when their turn comes round claims the ship. Gold from claimed ships is scored, minus merchants left in hand.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "weak",
+        "evidence": "Some simple policies do lose: never attacking forfeits most gold, and hoarding merchants costs gold at the end. But drawing a strong captain or a high merchant gives a large edge that no choice creates. In two-player games, defending everything and attacking little is often enough."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "Card counting and timing attacks help. However, which captains, Admiral and pirate colors you draw largely decides the contests, so the draw is a large share of the result."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Weak players still win some uncontested ships. Strong players improve by timing boosts, reading which colors rivals hold, and choosing when to sail high merchants."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Hands are hidden. Players infer whether a rival can still beat a contest from what has been discarded, and decide whether to commit more cards to a fight or let it go."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Gold is summed arithmetically from claimed merchants, minus merchants left in hand."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "bad",
+        "evidence": "There are many simultaneous ship contests, each tracked per color, with a turn-relative claim timing ('since your last turn'), a 78-card deck and draws every turn. That means many hidden elements, many draws per round and long chains of rules, far beyond the step and attribute limits."
+      }
+    ],
+    "problems": [
+      "Too many concurrent contests, each with per-color strength tracking and turn-relative claim timing: it cannot be built inside the step and attribute limits.",
+      "Several random draws per turn from a large deck: this exceeds the one-draw-per-round limit and lets the luck of the draw (captains, Admiral, high merchants) swamp skill.",
+      "Endowments are unequal: one player can be dealt captains and 8-gold merchants while another gets 2s and weak pirates, so the draw alone can decide the winner.",
+      "Card counting by color is an important skill, but it rests on a large hidden state that the platform cannot track."
+    ],
+    "changes": [
+      {
+        "what": "Replace the open-ended multi-ship board with one contest per round. A rotating owner sails one merchant, and every player commits strength to it at the same moment.",
+        "why": "One contest per round fits about 12 steps and keeps the core attack-versus-defend fight for a merchant.",
+        "fixes": "Too many concurrent contests, each with per-color strength tracking and turn-relative claim timing: it cannot be built inside the step and attribute limits."
+      },
+      {
+        "what": "Replace the pirate cards with a private budget of 30 crew points per player. Crew committed is spent whether the contest is won or lost, as attacking cards were discarded.",
+        "why": "This keeps the cost of fighting and the choice to fight or let go, without a deck or any draws.",
+        "fixes": "Several random draws per turn from a large deck: this exceeds the one-draw-per-round limit and lets the luck of the draw (captains, Admiral, high merchants) swamp skill."
+      },
+      {
+        "what": "Give every player the identical merchant set (3, 5 and 7 gold), one Captain (+6 strength once as an attacker) and one Admiral (an automatic defense once as the owner).",
+        "why": "Equal endowments mean the result comes from play, not the deal. The trump cards remain as one-shot timing decisions.",
+        "fixes": "Endowments are unequal: one player can be dealt captains and 8-gold merchants while another gets 2s and weak pirates, so the draw alone can decide the winner."
+      },
+      {
+        "what": "The owner secretly chooses which unsailed merchant to sail. Commitments stay secret, and only the winner, the ship's value and any trump used are announced, so remaining crew stays hidden.",
+        "why": "This replaces card counting with one manageable piece of hidden state: rivals must infer how much crew each player has left from which contests they won, and guess the ship's value from the owner's remaining set and behavior.",
+        "fixes": "Card counting by color is an important skill, but it rests on a large hidden state that the platform cannot track."
+      },
+      {
+        "what": "Add one simultaneous message per player before commitments.",
+        "why": "With only one winner, players disagree. Bluffing about a ship's value or one's remaining crew, and proposals to gang up on the leader, are worth reasoning about.",
+        "fixes": "Card counting by color is an important skill, but it rests on a large hidden state that the platform cannot track."
+      }
+    ],
+    "keeps": [
+      "Merchant ships worth gold, sailed by their owner and attacked by rivals",
+      "Fighting costs resources that are lost whether you win or lose",
+      "Ties between top attackers leave the ship with its owner",
+      "A one-shot Captain that boosts an attack and a one-shot Admiral that defends your own ship",
+      "Hidden information about what rivals can still commit",
+      "Most gold wins"
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The core attack-or-defend contest over merchants, with spent resources and trump cards, survives as a sealed all-pay contest with hidden budgets and equal endowments, inside the limits."
+    },
+    "variation": {
+      "name": "Loot: Sealed Raids",
+      "summary": "Four pirates each own three merchant ships (3, 5 and 7 gold) and a hidden 30-point crew. Each round one owner secretly sails a ship. Everyone commits crew at the same moment, and spent crew is lost. The highest strength takes the gold, and most gold after 12 rounds wins.",
+      "players": {
+        "min": 3,
+        "max": 5,
+        "suggested": 4
+      },
+      "rules": "SETUP: Each player starts with 30 crew (private: only that player and the engine know their remaining crew), 0 gold, three unsailed merchant ships worth 3, 5 and 7 gold, one unused Captain and one unused Admiral. Players are seated 1 to N. The game lasts 3 x N rounds (12 with 4 players).\n\nEACH ROUND:\n1. Owner. The owner is player ((round - 1) mod N) + 1. Each player is owner exactly 3 times. The engine announces who the owner is and which of the owner's ships are still unsailed.\n2. Sail. The owner privately chooses one of their unsailed ships to sail. If only one remains, it is sailed automatically. Its value is not yet revealed.\n3. Talk. Every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Talk binds no one.\n4. Commit. At the same moment, every player secretly chooses a whole number of crew to commit, from 0 up to their remaining crew. In the same poll, the owner may declare their Admiral if it is unused, and each non-owner may declare their Captain if it is unused. Invalid amounts are set to 0. Invalid trump declarations are ignored.\n5. Spend. Every player's committed crew is subtracted from their remaining crew, whatever the result.\n6. Strength. The owner's defense equals the crew they committed. Each attacker's strength equals the crew they committed, plus 6 if they declared their Captain this round.\n7. Resolve. The rules are applied in this order:\n   (a) If the owner declared the Admiral, the owner keeps the ship.\n   (b) Otherwise, find the highest attacker strength. The ship goes to that attacker only if their strength is strictly greater than the owner's defense and strictly greater than every other attacker's strength.\n   (c) In every other case, including ties between the top attackers or an attack that does not beat the defense, the owner keeps the ship.\n8. Score. Whoever gets the ship adds its value to their gold.\n9. Bookkeeping. The ship is marked sailed. Declared trumps are marked used.\n10. Announce. The engine reveals the ship's value, who got it, and who used a Captain or Admiral this round. It does not reveal any crew amounts.\n11. Advance. Move to the next round, or end the game after round 3 x N.\n\nEND: Unspent crew is worth nothing.",
+      "objective": "After the final round, the player with the most gold wins. If two or more players tie for the most gold, the game is a draw.",
+      "expected_effect": "Every ship now costs crew to fight for, so players must budget 30 crew across 12 contests. They read the 3/5/7 set each owner has left to guess the sailed ship's value, and infer rivals' remaining crew from which contests each player won. Simple policies lose. Never committing lets attackers take your ships with 1 crew. Going all-in early leaves you defenseless later. A flat spread is beaten by rivals who concentrate on 7s or who wait for depleted owners. Timing the Captain and Admiral matters because attackers commit without knowing whether the Admiral is coming. Talk earns its place because only one player can win. Players disagree over whom to attack and whether a ship is worth fighting for. An owner may claim a ship is the 3 to deter raids. A player may propose that everyone gang up on the leader, then hold back crew while others spend theirs. A player who just follows a proposal to attack the leader can lose: they burn crew while the proposer free-rides, or they lose crew to an unannounced Admiral."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 3,
+      "attributes": 14,
+      "hidden_elements": 3,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "One contest, owner defense d, attacker commits a (crew), strength a+6 with Captain. Crew is spent whatever the result. Admiral always keeps the ship.\n\nTable for a single unprotected ship with one attacker:\n- d=0, a=1: attacker takes the ship.\n- d=10, a=10 with Captain (16): attacker takes it.\n- d=15, a=10 with Captain (16): attacker takes it.\n- d=15, a=15 with no Captain: owner keeps it (no strict win).\n- Two attackers at 8 and 8, d=0: tie, so the owner keeps it.\n\nEach player owns 15 gold of ships. Total gold is 15N (60 with 4 players). Crew is a single 30-unit budget, and because every bid is paid, each contest is an all-pay auction. A higher commit wins more contests but leaves less crew for later ones, so no commit level is strictly better.\n\nThoughtless policies under the WINNER rule (4 players):\n(1) Always commit 0, never use trumps. Any 1-crew attacker takes your 3 and 5 (and your 7). You never steal. Against one opponent B who steals your 3 with 1 crew, defends its own 3 and 5 with 10 each and saves the Admiral for its 7: B has 18, you have at most 12. You lose. Against random bidders you also lose ships to any positive bid that is not tied.\n(2) Always the highest bid, i.e. all 30 crew in your first round. You win at most that one contest, then have 0 crew. Your remaining unprotected ship falls to any 1-crew attacker, so you finish with about 7+3 or 7+5 while others keep about 15. You lose.\n(3) Always pass and play the Admiral on the 7. You keep 7, and your 3 and 5 are taken by minimal bids. Final 7 against 15+. You lose.\n(4) Pure defense: Admiral on the 7, 15 crew on each of the 3 and 5, never attack. You get at most 15. Attacker A spends 10 crew plus its Captain (16 > 15) on your sailed ship, defends its own 3 and 5 with 10 each and keeps its 7 by Admiral. A finishes with 18 or 20 against your 12 or 10. You lose. This policy is not never-lose.\n(5) Captain at the first chance with 0 crew (strength 6). Any defense of 6 or more, or any rival attacker at 6 or more, beats or ties it. It sometimes wins and sometimes loses.\n\nNo policy wins or draws against every opponent action.\n\nSeats: every player owns exactly 3 rounds, and ownership rotates. Late owners face opponents who dump crew they no longer need, but those owners also have more information when attacking. Early owners face cautious attackers but sail blind. The asymmetry is mild and two-sided, and no seat has a dominant edge.\n\nEvery player can win by a well-timed theft while keeping their own ships. The labelled roles (owner defends, attackers compete, ties favour the owner) match the arithmetic."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules cover every case:\n- Invalid crew amounts are set to 0, and invalid trump declarations are ignored.\n- If all bids are 0, the highest is 0, which is not greater than 0, so the owner keeps the ship.\n- An attacker tie and a failure to beat the defense both mean the owner keeps the ship.\n- With only one unsailed ship, it sails automatically.\n- A non-owner may declare the Captain with 0 crew, giving strength 6, and the rules allow this.\n\nThe game is finite: 3N rounds, at most 15. The winner is decided by arithmetic on gold, and the draw rule is explicit.\n\nComplexity is within limits:\n- 12 steps (limit 20).\n- 3 choice steps: sail, talk, commit plus trumps in one simultaneous poll (limit 4).\n- About 14 attributes: per player crew, gold, three ship flags, Captain used, Admiral used and commit, plus round-level owner, ship value and top strength (limit 20).\n- 3 hidden elements: crew, the sailed ship and commits (limit 3).\n- 0 random draws.\n\nFinding the unique top attacker uses the arithmetic_ranking workaround (calc), which is affordable within 20 steps. Engine features used are private_values, numeric_bids, simultaneous_choice, free_text_talk and fixed_rounds. It needs no board, clock, trading or binding promises.\n\nTalk is simultaneous and justified. Attackers disagree with each other, since a tie between them hands the ship to the owner, and the owner wants to deter or split them. Following a proposal (\"you attack, I'll stay out\") can cost a player the ship or the crew, so talk gives material for bluffing and coordination.\n\nThis is not a cooperate-or-defect repeated game. Late rounds are all-pay auctions with known values, not a fixed safe option."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "There are no random draws (0 per round), so chance comes only from opponents' simultaneous mixed choices, about 0% from the engine.\n\nPlayers have several things to infer:\n- The value of the sailed ship. It is one of 3, 5 or 7, narrowed by elimination as ships are revealed, and the third sail is known.\n- Each opponent's remaining crew. Crew is hidden, but outcomes leak it: a successful steal without the Captain means the thief spent more than the defense, and a failed defense bounds the defense.\n- Whether the Admiral is still coming. An unused Admiral deters attacks, and bluffing with it is possible.\n- Whether other attackers will collide, which can be read from talk.\n\nPlayers act on these inferences by allocating a 30-unit budget over 3N contests and timing the one Captain and one Admiral. When all players follow good strategy, the result comes from equilibrium-style mixing in all-pay contests rather than a hidden type or a deal. A player who tracks crew and saves the Captain for a contest where the defense is predictably low is clearly favoured over one who bids thoughtlessly (see the policy losses under balanced)."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 3,
+      "attributes": 14,
+      "hidden_elements": 3,
+      "random_draws_per_round": 0,
+      "rounds": 12
+    },
+    "measured": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 4,
+      "attributes": 33,
+      "hidden_elements": 10
+    }
+  },
+  "verdict": "ready_for_review"
+}

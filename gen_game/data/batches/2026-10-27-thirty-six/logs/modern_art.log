@@ -1,0 +1,52 @@
+
+$ gen_game convert modern_art --judge   (code e5a100032e, 09:38:11)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests match the rules: the auctioneer must pick a reserve from 0 up to their current money. The game never put 0, 25 or 100 to seat 1 as a reserve option, so the reserve fell back to a default and the table `reserve` stayed 0 when it should have been 25. The reserve choice step is missing or wrongly built in the game file; the rules themselves are fine.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The reserve choice is not built correctly. Seat 1 was never offered a reserve of 0 or 100, and an auctioneer choosing 25 still left the table `reserve` at 0. The card choice worked, so the fault is in the reserve step, not in the rules or the tests.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are clear and within the platform's capabilities, but the file deals 9 cards each instead of 10. Its trace shows some 'pick' draws (e.g. green) that never reach a hand, so the deal loop loses picks. The R3 to R5 scenarios also show the reserve choice is never put to the auctioneer as options from 0 to their current money.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows the file departing from the rules. Seat 1's dealt hand was overwritten after the deal: on roll 6 it got C (2,1,4), then hand_blue went 1->2 and hand_green 4->2. The bid and choice steps also do not offer what R3 and R7 require: no seat was ever offered a bid of 0 or 10, and seat 1 played Green although its rule asked for Red.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The trace shows the game mishandling hands: after seat 1 played Green, its hand_blue rose from 1 to 2 and hand_green fell from 4 to 2, which breaks R4 (only the chosen artist's count falls, by 1). The bid step also never presents the 0 to money range in a way the tests recognise, so the seats were never offered 0 or 10 as bids.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests' expectations follow R2, R3 and R7. The game never offered the sealed bids as options from 0 up to each bidder's money, so the bid rules 'never matched' for any seat. The deal is also corrupted: seat 1 was dealt C (2/1/4) and then its hand_blue went 1 -> 2, ending at 2/2/1 after one Green play.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: Sealed numeric bids are supported, yet the bid step never accepted the tested amounts (5, 12, 8, 10): every bid was recorded as 0 and the auctioneer took the painting free. The trace also shows a deal bug, where seat 1's hand_green was set to 4 and then overwritten to 1.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are coherent and use only supported features (simultaneous numeric bids, conditional updates). The game file is at fault. Its bid step never offered a numeric bid that the scripted bids (5, 8, 12, 10) could match, so every bid stayed 0 and the auctioneer took the painting free. Its deal also overwrote seat 1's hand_green from 4 to 1 after the roll-6 case had been applied.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests follow the rules. Seats 2 and 3 are scripted to bid 5, 12 or 10, but every bid came out 0 and no money moved, and the scripted rule for the bid amount was never matched. That means the game's bid step never offered a numeric bid from 0 to the player's money. The deal also corrupts seat 1's hand: on roll 6, hand_green went from 4 to 1.
+
+modern_art: dropped
+  too complex: it could not be built to behave as designed: scenario `With the season open, talk happens and the round goes on to a sale (seat 2 buys at 5)` failed: rule R9 is broken: When season_over is 0, then all three players write one message at the same time, and all are shown labelled by seat.; seat 1 money: expected 65, got 60; seat 2 money: expected 55, got 60; seat 2 bid: expected 5, got 0; Blaise: the rule for 5 was never matched (the game never put  (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/modern_art
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/modern_art/VERIFIED.md

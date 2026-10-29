@@ -114,6 +114,14 @@ def test_long_lists_go_in_batches_and_snippets_are_cut():
     assert max(len(p) for p in model.prompts) < 2 * (rate.SNIPPET_CHARS + 100)
 
 
+def test_a_game_of_luck_rates_below_a_strategic_game_the_engine_cannot_run():
+    system = rate.system_prompt(gates.load_manifest())
+    three = next(l for l in system.splitlines() if l.strip().startswith("3 "))
+    two = next(l for l in system.splitlines() if l.strip().startswith("2 "))
+    assert "strategic" in three and "cannot" in three and "luck" not in three
+    assert "mostly luck" in two
+
+
 def test_the_rubric_is_anchored_in_the_manifest():
     system = rate.system_prompt(gates.load_manifest())
     assert "conditional_subsequence" in system  # the cannot list
@@ -180,11 +188,54 @@ def test_lowering_the_threshold_reads_earlier_leads_without_rating_them_again():
     assert len(rmodel.prompts) == asked and len(emodel.prompts) == 1
 
 
+def test_rerate_asks_again_for_leads_rated_but_never_read_and_keeps_the_new_rating():
+    inv, log, rmodel, emodel, rater, ex = world([ratings(i0=2, i1=2, i2=2, i3=2), ratings(i0=5, i1=1, i2=1, i3=1)],
+                                                [good("Alpha")])
+    run(inv, log, rater, ex)
+    assert emodel.prompts == []
+    counts = run(inv, CrawlLog(log.path), rater, ex, rerate=True)
+    assert counts == {"rated:5": 1, "rated:1": 3, "added:ready": 1}
+    assert CrawlLog(log.path).entries[lead("Beta").url]["rating"] == 1
+
+
+def test_rerate_leaves_a_page_already_read_alone():
+    inv, log, rmodel, emodel, rater, ex = world([ratings(i0=5, i1=1, i2=1, i3=1), ratings(i0=1, i1=1, i2=1)],
+                                                [good("Alpha")])
+    run(inv, log, rater, ex)
+    run(inv, CrawlLog(log.path), rater, ex, rerate=True)
+    assert "Alpha" not in rmodel.prompts[1] and inv.get("alpha").rating == 5
+
+
 def test_a_lead_with_no_valid_rating_is_not_logged_so_it_is_asked_again():
     inv, log, rmodel, emodel, rater, ex = world([ratings(i0=5, i1=5, i2=5), "junk"], [good("Alpha"), good("Beta", " More.")])
     counts = run(inv, log, rater, ex, limit=1)
     assert counts.get("unrated") == 1
     assert lead("Delta").url not in log.entries
+
+
+class Stops:
+    """A rater's model that answers twice and then the run is stopped (^C)."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        self.calls += 1
+        if self.calls > 2:
+            raise KeyboardInterrupt
+        return ratings(i0=4)
+
+
+def test_a_run_stopped_while_rating_keeps_the_ratings_it_made():
+    inv, log, *_ = world()
+    rater = Rater(Stops(), inv.manifest, batch=1)  # two leads fetched and rated at a time
+    try:
+        run(inv, log, rater, None, rate_only=True)
+    except KeyboardInterrupt:
+        pass
+    again = CrawlLog(log.path).entries
+    assert [again[lead(t).url]["rating"] for t in TITLES[:2]] == [4, 4]
+    assert lead("Gamma").url not in again
 
 
 def test_rate_only_reads_nothing_in_full():

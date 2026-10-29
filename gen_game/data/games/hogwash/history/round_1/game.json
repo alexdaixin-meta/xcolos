@@ -1,0 +1,1526 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "hogwash",
+    "name": "Hogwash: Even Rounds",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 3
+    },
+    "blurb": "Play 1 to 3 cards face down claiming the required rank; whoever is wrong about a challenge takes the whole pile. Fewest cards wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "done",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hand_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "taken",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "finished",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "challenge",
+        "visible": "ally",
+        "type": "text",
+        "initial": "PASS"
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pile",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pile_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "last_played",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "play_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "turn",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "required_rank",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "active_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "resolver_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "was_bluff",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "end_marked",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "taker",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "cards_taken",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "verdict",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "revealed",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 25
+      },
+      {
+        "key": "rank_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "copies_per_rank",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "hand_size_3_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "hand_size_4_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "initial_pile_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "min_cards_per_play",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_cards_per_play",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "first_required_rank",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_turns",
+        "visible": "public",
+        "type": "number",
+        "initial": 36
+      },
+      {
+        "key": "first_active_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "initial_taken",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "0 - len(players) * int(0 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "1 - len(players) * int(1 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "2 - len(players) * int(2 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "3 - len(players) * int(3 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "4 - len(players) * int(4 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "5 - len(players) * int(5 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "6 - len(players) * int(6 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "7 - len(players) * int(7 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "8 - len(players) * int(8 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "9 - len(players) * int(9 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "10 - len(players) * int(10 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "11 - len(players) * int(11 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "12 - len(players) * int(12 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "13 - len(players) * int(13 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "14 - len(players) * int(14 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "15 - len(players) * int(15 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "16 - len(players) * int(16 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "17 - len(players) * int(17 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "18 - len(players) * int(18 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "19 - len(players) * int(19 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "20 - len(players) * int(20 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "21 - len(players) * int(21 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "22 - len(players) * int(22 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "23 - len(players) * int(23 / len(players)) + 1"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the first pile card and starting values",
+      "do": [
+        {
+          "set": {
+            "key": "pile",
+            "value": {
+              "calc": "deck"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "pile_count",
+            "value": {
+              "calc": "len(pile)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand_count",
+            "value": {
+              "calc": "len(you.hand)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "taken",
+            "value": {
+              "calc": "initial_taken"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "finished",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "challenge",
+            "value": "PASS"
+          }
+        },
+        {
+          "set": {
+            "key": "turn",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "required_rank",
+            "value": {
+              "calc": "first_required_rank"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "first_active_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "end_marked",
+            "value": false
+          }
+        }
+      ],
+      "text": "The cards are dealt. One card lies face down as the start of the pile."
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "the turn",
+      "to": "all",
+      "text": "Turn {turn}: Player {active_seat} is active; required rank is {required_rank}."
+    },
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "a finished player passes",
+      "when": {
+        "calc": "not any(p.seat == active_seat and p.hand_count > 0 for p in players)"
+      },
+      "to": "all",
+      "text": "Player {active_seat} is finished: the turn passes with no play."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "how many cards",
+      "to": {
+        "where": "you.seat == active_seat and you.hand_count > 0"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_cards_per_play"
+        },
+        "max": {
+          "calc": "min(max_cards_per_play, you.hand_count)"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "play_count",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "Turn {turn}: you must claim rank {required_rank}. How many cards will you play face down (from {min_cards_per_play} to {max_cards_per_play}, never more than you hold)? Your hand is listed in your own state."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "first card",
+      "when": {
+        "calc": "play_count >= 1"
+      },
+      "to": {
+        "where": "you.seat == active_seat and you.hand_count > 0"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "append": {
+              "key": "last_played",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "append": {
+              "key": "pile",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "Choose the first card to put face down. Any rank is allowed; a card that is not rank {required_rank} is a bluff."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "second card",
+      "when": {
+        "calc": "play_count >= 2"
+      },
+      "to": {
+        "where": "you.seat == active_seat and you.hand_count > 0"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "append": {
+              "key": "last_played",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "append": {
+              "key": "pile",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "Choose the second card to put face down, from the cards you still hold."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "third card",
+      "when": {
+        "calc": "play_count >= 3"
+      },
+      "to": {
+        "where": "you.seat == active_seat and you.hand_count > 0"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "append": {
+              "key": "last_played",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "append": {
+              "key": "pile",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "Choose the third card to put face down, from the cards you still hold."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "the claim",
+      "when": {
+        "calc": "play_count > 0"
+      },
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "hand_count",
+            "value": {
+              "calc": "0 - play_count"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "pile_count",
+            "value": {
+              "calc": "play_count"
+            }
+          }
+        }
+      ],
+      "text": "Player {active_seat} plays {play_count} cards, claiming {play_count} cards of rank {required_rank}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "when": {
+        "calc": "play_count > 0"
+      },
+      "to": {
+        "where": "you.hand_count > 0"
+      },
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Player {active_seat} claims {play_count} cards of rank {required_rank}. Write one short message to the table. Messages are not binding."
+    },
+    {
+      "use": "poll",
+      "phase": "challenge",
+      "label": "challenge poll",
+      "when": {
+        "calc": "play_count > 0 and any(p.seat != active_seat and p.hand_count > 0 for p in players)"
+      },
+      "to": {
+        "where": "you.seat != active_seat and you.hand_count > 0"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "CHALLENGE",
+          "PASS"
+        ]
+      },
+      "store": "challenge",
+      "text": "Player {active_seat} claims {play_count} cards of rank {required_rank}; the pile holds {pile_count} cards. CHALLENGE or PASS? If you are the resolving challenger and the claim is true, you take the whole pile; if it is a bluff, Player {active_seat} takes it."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolution",
+      "when": {
+        "calc": "play_count > 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "resolver_seat",
+            "value": {
+              "calc": "min([p.seat for p in players if p.challenge == 'CHALLENGE' and p.seat > active_seat]) if count(p.challenge == 'CHALLENGE' and p.seat > active_seat for p in players) > 0 else (min([p.seat for p in players if p.challenge == 'CHALLENGE']) if count(p.challenge == 'CHALLENGE' for p in players) > 0 else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "was_bluff",
+            "value": {
+              "calc": "resolver_seat > 0 and count(c != required_rank for c in last_played) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "taker",
+            "value": {
+              "calc": "(active_seat if was_bluff else resolver_seat) if resolver_seat > 0 else 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "cards_taken",
+            "value": {
+              "calc": "pile_count if resolver_seat > 0 else 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "verdict",
+            "value": {
+              "calc": "('bluff' if was_bluff else 'true') if resolver_seat > 0 else ''"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "revealed",
+            "value": {
+              "calc": "last_played if resolver_seat > 0 else []"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == taker"
+            },
+            "key": "hand",
+            "value": {
+              "calc": "you.hand + pile"
+            },
+            "if": {
+              "calc": "resolver_seat > 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == taker"
+            },
+            "key": "hand_count",
+            "value": {
+              "calc": "cards_taken"
+            },
+            "if": {
+              "calc": "resolver_seat > 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == taker"
+            },
+            "key": "taken",
+            "value": {
+              "calc": "cards_taken"
+            },
+            "if": {
+              "calc": "resolver_seat > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pile",
+            "value": [],
+            "if": {
+              "calc": "resolver_seat > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pile_count",
+            "value": 0,
+            "if": {
+              "calc": "resolver_seat > 0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "no challenge",
+      "when": {
+        "calc": "play_count > 0 and resolver_seat == 0"
+      },
+      "to": "all",
+      "text": "No challenge. The cards stay in the pile, which now holds {pile_count} cards."
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "the reveal",
+      "when": {
+        "calc": "play_count > 0 and resolver_seat > 0"
+      },
+      "to": "all",
+      "text": "Player {resolver_seat} resolves the challenge. The cards just played were {revealed}. The claim was {verdict}: Player {taker} takes the pile of {cards_taken} cards."
+    },
+    {
+      "use": "update",
+      "phase": "finish",
+      "label": "finish check",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "finished",
+            "value": {
+              "calc": "you.hand_count == 0"
+            }
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "you.hand_count == 0"
+            },
+            "to": "done",
+            "text": "Player {player} has emptied their hand and is finished."
+          }
+        },
+        {
+          "set": {
+            "key": "end_marked",
+            "value": true,
+            "if": {
+              "calc": "not end_marked and any(p.finished for p in players)"
+            },
+            "text": "A player has finished: the game ends at the end of this cycle."
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "finish",
+      "label": "end of cycle",
+      "when": {
+        "calc": "active_seat == len(players) and (end_marked or turn >= max_turns)"
+      },
+      "against": [
+        "over"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "advance",
+      "label": "advance",
+      "do": [
+        {
+          "set": {
+            "key": "required_rank",
+            "value": {
+              "calc": "1 if required_rank >= rank_count else required_rank + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "1 if active_seat >= len(players) else active_seat + 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "turn",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "last_played",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "play_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "resolver_seat",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "was_bluff",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "challenge",
+            "value": "PASS"
+          }
+        }
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "active_seat == len(players) and (end_marked or turn >= max_turns)"
+      },
+      "rank_by": "0 - (you.hand_count * 1000 + you.taken)",
+      "text": "Winner: {result}. Final [seat, cards in hand, cards taken]: {[[p.seat, p.hand_count, p.taken] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 36,
+    "rounds_max": 40,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "SETUP. The deck has {deck_size} cards: ranks 1 to {rank_count}, {copies_per_rank} copies of each. It is shuffled once; this shuffle and the deal are the only random events. With 3 players each player is dealt {hand_size_3_players} cards; with 4 players each is dealt {hand_size_4_players}. The {initial_pile_cards} remaining card is placed face down as the first card of the central pile; nobody sees it. Hands are private, but everyone always knows how many cards each player holds and how many are in the pile. Each player has a public 'taken' counter starting at {initial_taken}: the total number of cards they have picked up from the pile. Turn 1: the required rank is {first_required_rank} and Player {first_active_seat} is active. Clockwise means increasing seat number, wrapping from the last seat to Player 1. A cycle is one turn for each seat, from Player 1 to the last seat.\n\nFINISHED PLAYERS. A player holding 0 cards is finished. A finished player takes no turns: when their turn comes it passes with no play, and the rank and turn still advance. A finished player writes no messages, is always counted as PASS in challenge polls, and can never receive the pile.\n\nEACH TURN. 1) The turn number, the active player and the required rank R are announced. 2) Play: the active player secretly chooses {min_cards_per_play} to {max_cards_per_play} cards from their hand (never more than they hold) and puts them face down on the pile. It is announced: 'Player X plays N cards, claiming N cards of rank R.' The claim is always exactly rank R and exactly the number of cards played. The cards may be anything; playing any card that is not rank R is a bluff. 3) Talk: every player who still holds cards, including the active player, writes one short message at the same moment; all messages are then shown to everyone. Messages are not binding: you may promise, threaten, bluff or lie. 4) Challenge poll: every non-active player who holds cards simultaneously and secretly chooses CHALLENGE or PASS. 5) Resolution: if nobody challenged, the cards stay in the pile and nobody's hand or taken counter changes. Otherwise the resolving challenger is the challenger who comes soonest clockwise after the active player. Only the cards just played are revealed. If all of them are rank R, the claim was true: the resolving challenger takes the entire pile into their hand. If any revealed card is not rank R, the claim was a bluff: the active player takes the entire pile into their hand. Whoever took the pile adds the number of cards taken to their taken counter, and the pile is then empty. The result (true or bluff), who took the pile and how many cards are announced. Other challengers lose nothing. 6) Finish check: any player now holding 0 cards is finished. The first time any player becomes finished, the game is marked to end at the end of the current cycle. A bluff that was caught never finishes the bluffer, because they have taken the pile back. 7) End check: the game ends if the turn just played was the last seat's turn and either the game has been marked to end, or this was turn {max_turns}. 8) Advance: the required rank increases by 1, wrapping from {rank_count} back to 1, and the next seat clockwise becomes the active player.\n\nWINNING. When the game ends every seat has had the same number of turns. The player holding the fewest cards wins (a finished player holds 0). Among players level on fewest cards, the one with the lowest taken counter wins. Players level on both share the result (a draw)."
+}

@@ -1,0 +1,130 @@
+# 01 design
+
+- time: 2026-10-28T05:43:21+00:00 (85.3s)  model: claude-opus-5-5
+- system prompt: [system/bd642c41-design.md](system/bd642c41-design.md) (sha256 bd642c416cb3a5ad)
+- sent sha256 1fcc75d53c4edf27, reply sha256 ea59876bc5443619
+
+## Sent
+
+````
+Original game: Welcome Back to the Dungeon
+Players in the original: 2 to 4
+
+Original rules:
+A round uses one adventurer with 6 equipment tiles giving HP and monster immunities, and a shuffled 13-card monster deck. All players share the adventurer. Clockwise bidding: on your turn draw the top monster secretly and either add it face-down to the central dungeon pile, or place it face-down before you and discard one remaining equipment tile onto it; if no equipment remains you must add to dungeon. Alternatively pass and sit out the round. If deck empties you must pass. When all but one have passed, that player enters the dungeon. Sum adventurer HP plus remaining equipment HP. Reveal dungeon cards one by one: if equipment defeats that monster type, discard it with no damage, otherwise lose HP equal to its strength. If total damage is less than starting HP you gain a success. Two successes wins. If you fail you flip your aid to wounded; second failure eliminates you. Last player remaining wins. Next round shuffle monsters and winner picks next adventurer.
+````
+
+## Reply
+
+````
+```json
+{
+  "original_summary": "Welcome Back to the Dungeon is a 2-4 player push-your-luck bluffing game. Players share one adventurer and take turns drawing monsters secretly. Each drawn monster is either added face-down to a shared dungeon, or set aside by removing one of the adventurer's equipment tiles. A player may instead pass. The last player still in must run the dungeon with the remaining equipment: two successful runs win, and two failures eliminate.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy wins. Always passing first means you never run, so you can never reach two successes and only win if both rivals are eliminated. Always adding means you are often left as the runner of a dungeon packed with your own monsters. Always sacrificing strips the adventurer to base HP, which fails almost any run. Passing, adding and sacrificing each change who runs and with what. One structural edge exists: the winner of a run picks the next adventurer, which snowballs."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Reading opponents' draws and timing your pass matter a lot. However, deck order decides which monsters reach which player. A short game ends after two runs, so a lucky early run can decide it. Some of the four adventurers' special tiles also swing results heavily."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Strong players track the dungeon size against what they know they added, infer what others removed or added from their choices, and time their pass. Weak players still score by running easy dungeons. The game is not solved."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Each player knows only the monsters they personally drew. The dungeon's contents must be inferred from its public size, the visible equipment loss and the other players' choices to continue or pass."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Damage is a sum of monster strengths minus those the remaining equipment defeats, compared with HP. A few original tiles (for example, naming a monster type, or once-per-run effects) need extra rules, but these are still arithmetic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is turn-based and text-only. But the bidding phase has variable length, game length is unbounded, there are four adventurers with six unique and partly special tiles each, and the informal table talk that drives the bluffing has no structure. All of these need simplifying to fit the step limits."
+    }
+  ],
+  "problems": [
+    "Four adventurers with six unique, partly special-ability equipment tiles is too much state and too many rule exceptions for the complexity limits.",
+    "Game length is unbounded: dungeons repeat until someone has two successes or is the last one standing, with no round cap.",
+    "The winner of a run picks the next adventurer, a rich-get-richer seat advantage that also fixes who leads the next bidding.",
+    "Bluffing about what you drew is the heart of the game, but there is no structured way to communicate, so the platform would lose the claim-and-read element.",
+    "Which information is public (dungeon size, remaining equipment, deck size) is implicit in the physical game and must be stated for a text engine.",
+    "Deck luck can decide a short game when no fallback or tiebreak exists."
+  ],
+  "changes": [
+    {
+      "what": "Use one fixed adventurer: base HP 3 and five equipment items (Armor +5 HP, Shield +3 HP, Torch defeats strength 3 or less, Holy Water defeats Vampires and the Lich, Dragon Spear defeats the Dragon). Use a fixed 13-card monster deck with strengths 1-9.",
+      "why": "Keeps the identity of equipment that adds HP or defeats monster types, while cutting rule exceptions to a single damage calculation.",
+      "fixes": "Four adventurers with six unique, partly special-ability equipment tiles is too much state and too many rule exceptions for the complexity limits."
+    },
+    {
+      "what": "One round is one player's turn. Cap the game at 40 rounds, with a tiebreak at the cap: most successes among surviving players, then fewest failures, otherwise a draw.",
+      "why": "Gives a bounded, buildable loop and a result decided by arithmetic even if no one reaches two successes.",
+      "fixes": "Game length is unbounded: dungeons repeat until someone has two successes or is the last one standing, with no round cap."
+    },
+    {
+      "what": "No adventurer choice. The first player of each new dungeon is the next surviving player clockwise from the previous runner.",
+      "why": "Removes the snowball and spreads the leading position evenly.",
+      "fixes": "The winner of a run picks the next adventurer, a rich-get-richer seat advantage that also fixes who leads the next bidding."
+    },
+    {
+      "what": "Each round, before the active player acts, every surviving player writes one short message at the same time. All messages are then shown.",
+      "why": "Gives bluffing a structured channel: claims about what was added or removed, which others must test against public facts.",
+      "fixes": "Bluffing about what you drew is the heart of the game, but there is no structured way to communicate, so the platform would lose the claim-and-read element."
+    },
+    {
+      "what": "Announce each round the dungeon size, the remaining equipment, the deck size and who has passed. Monster identities stay private to whoever drew them.",
+      "why": "Makes clear exactly what can be inferred and from what.",
+      "fixes": "Which information is public (dungeon size, remaining equipment, deck size) is implicit in the physical game and must be stated for a text engine."
+    },
+    {
+      "what": "Use several dungeons per game within 40 turns, with a reshuffle each dungeon. Two successes still win, two failures still eliminate, and the tiebreak at the cap counts every run.",
+      "why": "More dungeons per game let skill average out over deck order.",
+      "fixes": "Deck luck can decide a short game when no fallback or tiebreak exists."
+    }
+  ],
+  "keeps": [
+    "A shared adventurer whose equipment is stripped as players remove monsters.",
+    "The secret draw: each player knows only the monsters they drew.",
+    "The three-way choice on a turn: add the monster to the dungeon, sacrifice equipment to discard it, or pass and sit out.",
+    "The last player still in must run the dungeon.",
+    "Two successful runs win; two failures eliminate; the last player standing wins."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core is a strong hidden-information push-your-luck bluffing game. It fits within the limits once reduced to one adventurer, one-turn rounds with a cap, and a simultaneous talk phase."
+  },
+  "variation": {
+    "name": "Back to the Dungeon: Single Delve",
+    "summary": "Three or four players share one adventurer and take turns drawing monsters secretly. Each drawn monster goes into the dungeon or is discarded at the cost of a piece of equipment, or the player passes. The last player in runs the dungeon. Two successful runs win, two failures eliminate.",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 3
+    },
+    "rules": "COMPONENTS\n- The adventurer has base HP 3 and five equipment items:\n  - Armor: +5 HP.\n  - Shield: +3 HP.\n  - Torch: defeats every monster of strength 3 or less.\n  - Holy Water: defeats Vampires and the Lich.\n  - Dragon Spear: defeats the Dragon.\n- Monster deck (13 cards): Goblin 1 x2, Skeleton 2 x2, Orc 3 x2, Vampire 4 x2, Golem 5 x2, Lich 6 x1, Demon 7 x1, Dragon 9 x1.\n- Each player tracks successes (start 0) and failures (start 0).\n\nSETUP\n- Seat players in a fixed order. Player 1 begins the first dungeon.\n- Shuffle the deck. The dungeon starts empty. All five items are present. No one has passed.\n\nEACH ROUND (one turn)\n1. Announcement. The engine announces to everyone:\n   - whose turn it is (the active player);\n   - the number of cards in the dungeon;\n   - which equipment items remain;\n   - the number of cards left in the deck;\n   - who has passed;\n   - everyone's successes and failures.\n2. Talk. Every surviving (not eliminated) player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Talk is not binding.\n3. Pass or draw. The active player chooses PASS or DRAW.\n   - If the deck is empty, the active player must PASS.\n   - PASS: the player sits out the rest of this dungeon.\n4. Secret draw. If the player chose DRAW, they privately see the top card of the deck, which leaves the deck. They then choose one of:\n   - ADD: the card goes face-down into the dungeon. Only this player knows what it is.\n   - SACRIFICE an item: one remaining equipment item (the player names which) is permanently removed for this dungeon, and the card is discarded unseen by others. This is allowed only if at least one item remains.\n5. Advance. The turn passes to the next player clockwise who is neither eliminated nor passed in this dungeon.\n\nTHE RUN\n- The run happens at the end of a round as soon as exactly one non-eliminated player has not passed. That player is the runner.\n- HP = 3, plus 5 if Armor remains, plus 3 if Shield remains.\n- Damage = the sum of the strengths of all dungeon cards, minus the strength of each card defeated by a remaining item:\n  - Torch defeats strength 1, 2 and 3.\n  - Holy Water defeats Vampires and the Lich.\n  - Dragon Spear defeats the Dragon.\n- All dungeon cards are then revealed to everyone, along with the damage and HP.\n- If damage < HP, the runner gains 1 success. Otherwise the runner gains 1 failure.\n- A player with 2 failures is eliminated and takes no further part.\n\nNEW DUNGEON\n- After a run, reshuffle all 13 monsters into a new deck.\n- Empty the dungeon, restore all five items, and clear all passes.\n- The next active player is the first surviving player clockwise from the runner.\n\nGAME END\n- The game ends immediately when:\n  - a player reaches 2 successes (that player wins); or\n  - only one player is not eliminated (that player wins).\n- Otherwise the game ends after round 40. The surviving player with the most successes wins. If tied, the one among them with the fewest failures wins. If still tied, the game is a draw.",
+    "objective": "The first player to reach 2 successes wins. A player is also the winner if every other player has been eliminated by 2 failures. If neither happens by the end of round 40: among non-eliminated players, the highest successes wins, then the fewest failures; any remaining tie is a draw.",
+    "expected_effect": "Each player sees only part of the dungeon. They weigh the visible dungeon size and the stripped equipment against what they personally added, and decide whether to stay in to become the runner or pass and push the risk onto others.\n\nAdding a big monster is good if you expect a rival to run, and bad if you end up running. Sacrificing equipment removes a threat you know about but weakens any later run. Passing early concedes the chance to score.\n\nTalk passes both tests.\n- Reasoning: players make claims such as 'I added the Dragon' or 'that was only a Goblin' to scare rivals into continuing or to tempt them into passing, and others must check those claims against public facts.\n- Conflict: only one player can win, and each wants a rival to run a deadly dungeon or to run a safe one themselves. A player who simply believes a claim either passes away a winnable run or runs into a dungeon that wounds them.\n\nRotating the start player and reshuffling over several dungeons spread out deck luck. The 40-round cap with an arithmetic tiebreak keeps the game finite without rewarding passivity, since a player who never runs has 0 successes."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 3,
+    "attributes": 12,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 40
+  }
+}
+```
+````

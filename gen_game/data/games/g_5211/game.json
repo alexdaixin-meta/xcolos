@@ -1,0 +1,719 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "g_5211",
+    "name": "5211: Mirror Hands",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "Identical 14-card hands, two cards a round for 7 rounds: either exactly n-1 Kododos score, or the single most-played colour that did not bust."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": [
+          "R1",
+          "R2",
+          "R3",
+          "B1",
+          "B2",
+          "B3",
+          "G1",
+          "G2",
+          "G3",
+          "Y1",
+          "Y2",
+          "Y3",
+          "K",
+          "K"
+        ]
+      },
+      {
+        "key": "bonus_colour",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "first_card",
+        "visible": "ally",
+        "type": "text",
+        "initial": "none"
+      },
+      {
+        "key": "second_card",
+        "visible": "ally",
+        "type": "text",
+        "initial": "none"
+      },
+      {
+        "key": "round_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "scored_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "bonus_pool",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Red",
+          "Blue",
+          "Green",
+          "Yellow"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "kododo_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "red_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "blue_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "green_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "yellow_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "scoring_colour",
+        "visible": "public",
+        "type": "text",
+        "initial": "none"
+      },
+      {
+        "key": "top_count",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "score_cards",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 14
+      },
+      {
+        "key": "colours",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "min_card_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_card_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "kododos_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "kododo_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "cards_per_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "bonus_extra_per_card",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "kododo_target_offset",
+        "visible": "public",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "bust_offset",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "score_weight_in_ranking",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "deal hands and bonus colours",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "['R1', 'R2', 'R3', 'B1', 'B2', 'B3', 'G1', 'G2', 'G3', 'Y1', 'Y2', 'Y3', 'K', 'K']"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 1"
+            },
+            "key": "bonus_colour",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 2"
+            },
+            "key": "bonus_colour",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 3"
+            },
+            "key": "bonus_colour",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "bonus_pool[int(uniform(0, len(bonus_pool)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 4"
+            },
+            "key": "bonus_colour",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "bonus_pool",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "scored_cards",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Rounds completed: {round} of {rounds}. Write one short message to the table. Everyone writes at once; nothing said is binding."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "prepare first card",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "[c for c in you.hand if c != 'K'] + (['K'] if 'K' in you.hand else [])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "first card",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "store": "first_card",
+      "text": "Place your first card face down. Nobody sees it until all first cards are placed."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "first cards leave the hands",
+      "do": [
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.first_card"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "[c for c in you.hand if c != 'K'] + (['K'] if 'K' in you.hand else [])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "play",
+      "label": "reveal first cards",
+      "to": "all",
+      "text": "First cards revealed [seat, card]: {[[p.seat, p.first_card] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "second card",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "store": "second_card",
+      "text": "Place your second card face down from your remaining hand. Nobody sees it until all second cards are placed."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "second cards leave the hands",
+      "do": [
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.second_card"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "play",
+      "label": "reveal second cards",
+      "to": "all",
+      "text": "Second cards revealed [seat, card]: {[[p.seat, p.second_card] for p in players]}."
+    },
+    {
+      "use": "update",
+      "phase": "count",
+      "label": "count the cards",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "round_points",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "kododo_count",
+            "value": {
+              "calc": "count(p.first_card == 'K' for p in players) + count(p.second_card == 'K' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "red_count",
+            "value": {
+              "calc": "count(p.first_card in ['R1', 'R2', 'R3'] for p in players) + count(p.second_card in ['R1', 'R2', 'R3'] for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "blue_count",
+            "value": {
+              "calc": "count(p.first_card in ['B1', 'B2', 'B3'] for p in players) + count(p.second_card in ['B1', 'B2', 'B3'] for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "green_count",
+            "value": {
+              "calc": "count(p.first_card in ['G1', 'G2', 'G3'] for p in players) + count(p.second_card in ['G1', 'G2', 'G3'] for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "yellow_count",
+            "value": {
+              "calc": "count(p.first_card in ['Y1', 'Y2', 'Y3'] for p in players) + count(p.second_card in ['Y1', 'Y2', 'Y3'] for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "count",
+      "label": "kododo check",
+      "when": {
+        "calc": "kododo_count == len(players) + kododo_target_offset"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "scoring_colour",
+            "value": "Kododo"
+          }
+        },
+        {
+          "set": {
+            "key": "score_cards",
+            "value": {
+              "calc": "[]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "round_points",
+            "value": {
+              "calc": "kododo_value * count(c == 'K' for c in [you.first_card, you.second_card])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "you.round_points"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "scored_cards",
+            "value": {
+              "calc": "count(c == 'K' for c in [you.first_card, you.second_card])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "count",
+      "label": "colour check",
+      "when": {
+        "calc": "kododo_count != len(players) + kododo_target_offset"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "top_count",
+            "value": {
+              "calc": "max([c for c in [red_count, blue_count, green_count, yellow_count] if c >= 1 and c < len(players) + bust_offset] + [0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "scoring_colour",
+            "value": {
+              "calc": "'none' if top_count == 0 or count(c == top_count for c in [red_count, blue_count, green_count, yellow_count]) != 1 else ('Red' if red_count == top_count else ('Blue' if blue_count == top_count else ('Green' if green_count == top_count else 'Yellow')))"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "score_cards",
+            "value": {
+              "calc": "['R1', 'R2', 'R3'] if scoring_colour == 'Red' else (['B1', 'B2', 'B3'] if scoring_colour == 'Blue' else (['G1', 'G2', 'G3'] if scoring_colour == 'Green' else (['Y1', 'Y2', 'Y3'] if scoring_colour == 'Yellow' else [])))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "round_points",
+            "value": {
+              "calc": "sum([(min_card_value + i + (bonus_extra_per_card if you.bonus_colour == scoring_colour else 0)) * count(c == score_cards[i] for c in [you.first_card, you.second_card]) for i in [0, 1, 2]]) if len(score_cards) > 0 else 0"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "you.round_points"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "scored_cards",
+            "value": {
+              "calc": "count(c in score_cards for c in [you.first_card, you.second_card])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "count",
+      "label": "round result",
+      "to": "all",
+      "text": "Scoring this round: {scoring_colour}. Kododos {kododo_count}; Red {red_count}, Blue {blue_count}, Green {green_count}, Yellow {yellow_count}. [seat, round points, score, scored cards]: {[[p.seat, p.round_points, p.score, p.scored_cards] for p in players]}."
+    },
+    {
+      "use": "update",
+      "phase": "count",
+      "label": "next round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "count",
+      "label": "after round seven",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score * 100 + you.scored_cards",
+      "text": "Winner: {result}. Final [seat, score, scored cards]: {[[p.seat, p.score, p.scored_cards] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 7,
+    "rounds_max": 7,
+    "actions_max": 500,
+    "deadline_s": 120
+  },
+  "rules": "Let n be the number of players (3 or 4). Every player receives an identical hand of {hand_size} cards: the colours Red, Blue, Green and Yellow, each with values {min_card_value} to {max_card_value} (written R1..R3, B1..B3, G1..G3, Y1..Y3), plus {kododos_per_hand} Kododo cards (K), which have no colour and are worth {kododo_value} each. Hands are private, but because every hand starts identical and all played cards are revealed, anyone can track what each player has left. Each player is secretly dealt a bonus colour at random from Red, Blue, Green and Yellow, with no two players sharing one; only that player knows it. Scores and scored-card counts start at 0.\n\nThe game lasts {rounds} rounds. Each round:\n1. Talk: every player writes one short message at the same time, without seeing the others; all messages are then shown to everyone. Nothing said is binding.\n2. First card: every player at the same time places one card from their hand face down. 3. All first cards are revealed.\n4. Second card: every player at the same time places one more card from their remaining hand face down. 5. All second cards are revealed. Played cards leave the hands.\n6. Count K, the number of Kododos played this round, and how many cards of each colour were played.\n7. Kododo check: if K equals exactly n-1 (2 with 3 players, 3 with 4 players), each player scores {kododo_value} points per Kododo they played this round and adds that many cards to their scored-card count, and no colour scores this round. If K is not exactly n-1, Kododos played this round score nothing and the colour check is made.\n8. Colour check: a colour is busted if its count is n+1 or more (4+ with 3 players, 5+ with 4 players) and cannot score. Among colours that are not busted and were played at least once, find the highest count. If exactly one colour has it, that colour scores: each player scores the face values of their cards of that colour, plus {bonus_extra_per_card} extra point per such card if it is their bonus colour, and adds those cards to their scored-card count. If two or more colours share the highest count, or no colour qualifies, nothing scores this round.\n9. The round result and updated scores are announced.\n\nAfter round {rounds} all cards have been played and the game ends. The highest total score wins; among players tied on score, the higher scored-card count wins; players still tied share the win."
+}

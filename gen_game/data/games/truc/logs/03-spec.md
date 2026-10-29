@@ -1,0 +1,170 @@
+# 03 spec
+
+- time: 2026-10-28T01:45:31+00:00 (60.6s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 cb813f85ff35eb76, reply sha256 642ee6acb54f1325
+
+## Sent
+
+````
+Game: Truc Duel
+Players in the source: 2 to 2
+Suggested table size, chosen by the designer of these rules (keep it): 2
+
+Rules, as filed in the inventory:
+CARDS. Use a 32-card pack with four cards of each of eight ranks. Suits do not matter. Rank strength from highest to lowest: 7 (strength 8), 8 (7), A (6), K (5), Q (4), J (3), 10 (2), 9 (1).
+
+SCORES. Both players start at 0 points.
+
+EACH ROUND:
+1. Deal. Shuffle the full 32-card pack and deal 3 cards privately to each player. Each player sees only their own hand.
+2. First trick. Both players secretly and simultaneously choose one card from their hand to play. If a player names a card not in their hand, their first-listed card is played. Both cards are revealed. The higher strength wins trick 1. Equal strength means trick 1 is spoilt and belongs to no one.
+3. Raise poll. Both players secretly and simultaneously choose STAY or TWO MORE. The choices are then revealed.
+   - Both STAY: the round is worth 1 point.
+   - Both TWO MORE: the round is worth 4 points, and no one may fold.
+   - Exactly one TWO MORE: that player is the raiser. The other player, the responder, now answers once with ACCEPT, FOLD or FOUR.
+     - ACCEPT: the round is worth 2 points.
+     - FOLD: the raiser immediately scores 1 point, and the round ends (skip steps 4 to 6).
+     - FOUR: the round is worth 4 points, and the raiser may not fold.
+4. Last two tricks. Each player secretly and simultaneously writes the order in which they will play their two remaining cards (first, then second). If a player's answer is invalid, their two cards are played in the order they were dealt.
+   - Trick 2 compares each player's first card.
+   - Trick 3 compares each player's second card.
+   - In each trick, higher strength wins and equal strength is spoilt.
+5. Round winner.
+   - The player who won more of the three tricks wins the round.
+   - If both won the same number (1-1 with one spoilt, or 0-0 with three... see below), the winner of the earliest trick that was not spoilt wins the round.
+   - If all three tricks were spoilt, the round is void and no one scores.
+6. Scoring. The round winner adds the round's value (1, 2 or 4) to their score.
+7. End check. If a player has 12 or more points, the game ends.
+
+ROUND CAP. If 30 rounds have been played and no one has reached 12, the game ends.
+
+There is no talk phase. All information comes from revealed cards and choices.
+
+How the winner is decided: The first player whose score reaches 12 or more wins. Only one player scores in any round, so two players cannot reach 12 at once. If the game ends at the 30-round cap, the player with the higher score wins, and equal scores are a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Truc Duel",
+  "summary": "Two players play three-card hands of three tricks. They can raise the stakes, fold or re-raise, and the first to 12 points wins.",
+  "players": {"min": 2, "max": 2, "suggested": 2},
+  "parameters": {
+    "deck_size": 32,
+    "ranks": 8,
+    "copies_per_rank": 4,
+    "hand_size": 3,
+    "tricks_per_round": 3,
+    "strength_7": 8,
+    "strength_8": 7,
+    "strength_A": 6,
+    "strength_K": 5,
+    "strength_Q": 4,
+    "strength_J": 3,
+    "strength_10": 2,
+    "strength_9": 1,
+    "value_both_stay": 1,
+    "value_accept": 2,
+    "value_four": 4,
+    "value_both_raise": 4,
+    "fold_payout": 1,
+    "win_target": 12,
+    "round_cap": 30,
+    "starting_score": 0
+  },
+  "attributes": {
+    "player": [
+      {"key": "score", "type": "number", "visible": "public", "initial": 0, "meaning": "Points won so far.", "observable": true},
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Cards still in the hand, in dealt order. Each card is stored as its strength number (8=7, 7=8, 6=A, 5=K, 4=Q, 3=J, 2=10, 1=9).", "observable": false},
+      {"key": "played_cards", "type": "list", "visible": "public", "initial": [], "meaning": "The cards this player has revealed this round, as strengths, in trick order.", "observable": true},
+      {"key": "tricks_won", "type": "number", "visible": "public", "initial": 0, "meaning": "Tricks won in the current round (0 to 3).", "observable": true},
+      {"key": "raise_choice", "type": "text", "visible": "public", "initial": "", "meaning": "STAY or TWO MORE, revealed after the raise poll.", "observable": true},
+      {"key": "order_choice", "type": "text", "visible": "public", "initial": "", "meaning": "The order chosen for the last two cards, revealed after the order poll.", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": [8,8,8,8,7,7,7,7,6,6,6,6,5,5,5,5,4,4,4,4,3,3,3,3,2,2,2,2,1,1,1,1], "meaning": "The undealt cards of the 32-card pack, as strengths.", "observable": false},
+      {"key": "round_number", "type": "number", "visible": "public", "initial": 0, "meaning": "Rounds started so far.", "observable": true},
+      {"key": "round_value", "type": "number", "visible": "public", "initial": 0, "meaning": "What the current round is worth: 1, 2 or 4.", "observable": true},
+      {"key": "raiser", "type": "number", "visible": "public", "initial": 0, "meaning": "The seat that alone said TWO MORE; 0 if none or both did.", "observable": false},
+      {"key": "response", "type": "text", "visible": "public", "initial": "", "meaning": "The responder's ACCEPT, FOLD or FOUR; empty if there was no response.", "observable": true},
+      {"key": "folded", "type": "bool", "visible": "public", "initial": false, "meaning": "True when the responder folded this round.", "observable": false},
+      {"key": "seat1_card", "type": "number", "visible": "public", "initial": 0, "meaning": "Scratch copy of seat 1's card in the current trick, kept so the two seats can be compared.", "observable": false},
+      {"key": "seat2_card", "type": "number", "visible": "public", "initial": 0, "meaning": "Scratch copy of seat 2's card in the current trick.", "observable": false},
+      {"key": "trick1_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "Winning seat of trick 1; 0 if spoilt.", "observable": true},
+      {"key": "trick2_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "Winning seat of trick 2; 0 if spoilt.", "observable": true},
+      {"key": "trick3_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "Winning seat of trick 3; 0 if spoilt.", "observable": true},
+      {"key": "round_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "Seat that wins the round; 0 if the round is void.", "observable": true}
+    ]
+  },
+  "setup": [
+    "Seat 1 and seat 2 each start with score 0.",
+    "The table deck holds the 32-card pack: four cards of each strength from 1 to 8 (9, 10, J, Q, K, A, 8, 7).",
+    "Both players are told the rank order and the stakes rules."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "effect": "round_number += 1. deck is reset to the full 32-card pack. Each player's hand, played_cards, raise_choice and order_choice are emptied, and tricks_won = 0. round_value = 0, raiser = 0, response = '', folded = false, trick1_winner = trick2_winner = trick3_winner = round_winner = 0."},
+    {"action": "update", "who": "each player in turn", "answer": null, "effect": "Deal: 3 times for each player, pick a random card from deck, append it to that player's hand and remove it from deck."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "Each player privately sees their own hand (strengths shown with rank names); the opponent's hand stays hidden."},
+    {"action": "poll", "who": "all players", "answer": "a choice of one card from the player's own hand", "effect": "The chosen card is removed from hand and appended to played_cards. An answer that is not in the hand plays the first-listed card of hand. seat1_card and seat2_card are set to the two cards."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "trick1_winner = 1 if seat1_card > seat2_card, 2 if seat2_card > seat1_card, else 0. The trick winner's tricks_won += 1."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce both trick-1 cards and trick1_winner (or 'spoilt')."},
+    {"action": "poll", "who": "all players", "answer": "STAY or TWO MORE", "effect": "Each player's raise_choice is set, then revealed to both."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "If both raise_choice = STAY: round_value = 1. If both = TWO MORE: round_value = 4. If exactly one = TWO MORE: raiser = that seat."},
+    {"action": "ask", "who": "the seat that is not raiser (the responder), only when raiser != 0", "answer": "ACCEPT, FOLD or FOUR", "effect": "response is set and revealed."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "If response = ACCEPT: round_value = 2. If response = FOUR: round_value = 4. If response = FOLD: the raiser's score += 1, folded = true, round_winner = raiser, and steps 11 to 13 do not apply this round."},
+    {"action": "poll", "who": "all players, only when folded = false", "answer": "one of the two orderings of the player's two remaining cards: 'X first, then Y' or 'Y first, then X'", "effect": "order_choice is set. An invalid answer uses dealt order. Both remaining cards are appended to played_cards in the chosen order and removed from hand."},
+    {"action": "update", "who": "all players, only when folded = false", "answer": null, "effect": "Trick 2: seat1_card and seat2_card = each player's 2nd played card. trick2_winner = higher seat, or 0 if equal; the winner's tricks_won += 1. Trick 3: the same with the 3rd played card, giving trick3_winner. Then round_winner = the seat with more tricks_won. If tricks_won are equal, round_winner = the first non-zero of trick1_winner, trick2_winner, trick3_winner, or 0 if all are 0. If round_winner != 0, that seat's score += round_value."},
+    {"action": "tell", "who": "all players", "answer": null, "effect": "Announce all played cards, the trick winners, round_winner (or 'void' or 'fold'), round_value and both scores."},
+    {"action": "check", "who": "all players", "answer": null, "effect": "End the game if any player's score >= 12 or round_number >= 30; otherwise repeat the round."}
+  ],
+  "ending": {
+    "condition": "max(score over players) >= 12 or round_number >= 30",
+    "rank_by": "you.score",
+    "decided_by": "The higher score wins. The game ends as soon as one player reaches 12 or more; only one player scores per round, so that player has the higher score. At the 30-round cap the higher score wins, and equal scores share the win (a draw)."
+  },
+  "rules": [
+    {"id": "R1", "text": "When a round begins, the deck is reset to all 32 cards (4 of each strength 1 to 8) and each player is dealt 3 cards into their hand, so the deck holds 26 cards."},
+    {"id": "R2", "text": "When a player's hand is shown, only that player sees it; the opponent does not."},
+    {"id": "R3", "text": "When a player names a trick-1 card not in their hand, then their first-listed hand card is played."},
+    {"id": "R4", "text": "When the trick-1 cards differ, then the higher strength wins trick 1 (for example strength 8, the 7, beats strength 7, the 8); when they are equal, trick1_winner is 0 (spoilt)."},
+    {"id": "R5", "text": "When both players choose STAY, then round_value = 1."},
+    {"id": "R6", "text": "When both players choose TWO MORE, then round_value = 4 and no response is asked, so no one can fold."},
+    {"id": "R7", "text": "When exactly one player chooses TWO MORE, then the other player is asked once to choose from ACCEPT, FOLD and FOUR."},
+    {"id": "R8", "text": "When the responder chooses ACCEPT, then round_value = 2."},
+    {"id": "R9", "text": "When the responder chooses FOUR, then round_value = 4 and the raiser gets no further choice."},
+    {"id": "R10", "text": "When the responder chooses FOLD, then the raiser's score rises by 1, no further cards are played, and the responder's score is unchanged."},
+    {"id": "R11", "text": "When a player gives an invalid order for the last two cards, then the two cards are played in dealt order."},
+    {"id": "R12", "text": "When tricks 2 and 3 are played, then trick 2 compares each player's first chosen card and trick 3 each player's second; higher strength wins and equal strength gives 0."},
+    {"id": "R13", "text": "When one player has won more tricks than the other, then that player is round_winner."},
+    {"id": "R14", "text": "When both players have won the same number of tricks and not all were spoilt, then round_winner is the winner of the earliest trick that was not spoilt (for example trick 1 spoilt, seat 2 wins trick 2, seat 1 wins trick 3 gives round_winner 2)."},
+    {"id": "R15", "text": "When all three tricks are spoilt, then round_winner = 0 and no score changes."},
+    {"id": "R16", "text": "When there is a round winner without a fold, then that player's score rises by round_value (1, 2 or 4) and the other's is unchanged."},
+    {"id": "R17", "text": "When a player's score reaches 12 or more at the end check, then the game ends and that player wins."},
+    {"id": "R18", "text": "When 30 rounds have been played and no score is 12 or more, then the game ends and the higher score wins; equal scores are a draw."}
+  ],
+  "offers": [
+    {"question": "First trick: which card to play", "who": "both seats at once", "options": "each card currently in that seat's own hand (3 cards), shown by rank name"},
+    {"question": "Raise poll", "who": "both seats at once", "options": "STAY, TWO MORE"},
+    {"question": "Response to a lone raise", "who": "only the seat that chose STAY when the other chose TWO MORE", "options": "ACCEPT, FOLD, FOUR; the raiser is offered nothing"},
+    {"question": "Order of the last two cards", "who": "both seats at once, only if no one folded", "options": "'X first, then Y' and 'Y first, then X', where X and Y are that seat's two remaining cards in dealt order"}
+  ],
+  "choices": [
+    {"what": "Exactly 2 players, suggested 2", "why": "The designer set 2. The game is a heads-up duel of stakes, folds and trick order, and a third player would break the one-raiser/one-responder structure."},
+    {"what": "Cards are stored as their strength numbers 1 to 8, with rank names used in what players are shown", "why": "Trick comparison is then plain arithmetic, and suits do not matter."},
+    {"what": "No talk phase", "why": "The rules say there is none; all information comes from revealed cards and choices."},
+    {"what": "The order poll is a choice between the two orderings, not free text", "why": "It still offers exactly the two legal orders. The dealt-order fallback is kept for any invalid answer."},
+    {"what": "The garbled tie clause ('0-0 with three... see below') is read as: equal trick counts go to the earliest non-spoilt trick's winner, and all three spoilt is void", "why": "This is the only consistent reading, and the next bullet of the rules covers the all-spoilt case."},
+    {"what": "'The raiser may not fold' after FOUR, and 'no one may fold' after both raise, are built as no further question being asked", "why": "The rules give no later folding opportunity, so these lines mean the stakes are fixed."},
+    {"what": "A draw at the round cap is equal scores sharing the win", "why": "The ranking treats players level at the top as sharing the win."}
+  ],
+  "simplifications": [
+    {"what": "Trick comparison uses table scratch attributes seat1_card and seat2_card", "why": "The engine has no direct player-to-player attribute comparison; a table copy is the stated workaround."},
+    {"what": "Reshuffling the full pack is a reset of the deck list followed by random draws", "why": "The engine draws by picking at random from a list, which is the same as shuffling."}
+  ],
+  "unsupported": []
+}
+```
+````

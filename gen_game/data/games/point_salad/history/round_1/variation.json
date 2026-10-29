@@ -1,0 +1,124 @@
+{
+  "original_summary": "Point Salad is a 2-6 player card-drafting game. Each turn a player takes either one scoring-rule card or two vegetable cards from an open market, and at the end every scoring card is applied to that player's whole vegetable collection; the most points wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No fixed policy wins. Always taking veggies leaves you with no scoring cards and near 0 points. Always taking point cards leaves nothing for them to score, and many cards carry penalties. Seat order matters only slightly: later turn order wins ties and the first player gets first pick."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Good drafting does beat random drafting. But what is offered depends heavily on which of 108 unique cards turn up, and with 36-108 cards the swing from a lucky pile top is large for so short a game."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Beginners score through obvious combos. Experts gain by hate-drafting, reading what opponents' cards need, and flipping cards at the right moment."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Everything is face up: every tableau, the market and the pile tops. The only unknown is the deck order. There is planning, but almost nothing about opponents to infer; it is close to a perfect-information optimisation."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "The final score is pure arithmetic on cards held."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "bad",
+      "evidence": "It has 108 unique scoring rules, three refilling piles with pile-splitting, a market and per-player tableaux. That is far beyond 20 attributes and 1 random draw per round, and end scoring would need a step for each distinct rule."
+    }
+  ],
+  "problems": [
+    "Far too many unique cards and moving parts (three piles, pile splitting, refilling market) to build within the step, attribute and draw limits.",
+    "Nearly perfect information: there is little hidden to infer about opponents, so it tests optimisation more than opponent modelling.",
+    "Luck of which scoring cards appear is large relative to skill.",
+    "Sequential turns give a seat edge (first pick, tie-break by turn order).",
+    "End-of-game scoring of many cards against the whole tableau needs per-player storage of every drafted card, which exceeds the attribute limit."
+  ],
+  "changes": [
+    {
+      "what": "Reduce to 3 veggies (Tomato, Lettuce, Carrot), a fixed market of one of each per round, and one public point card per round drawn from 6 types.",
+      "why": "This keeps the drafting choice (take a veggie or take a scoring card) inside 1 random draw per round and a handful of steps.",
+      "fixes": "Far too many unique cards and moving parts (three piles, pile splitting, refilling market) to build within the step, attribute and draw limits."
+    },
+    {
+      "what": "Deal each player a secret Recipe. The three Recipes are rotations of one another, each prizing a different pair of veggies, and they score at game end on the player's whole basket.",
+      "why": "This creates hidden types to infer from picks and talk. Every veggie is wanted by exactly two Recipes, so interests clash. Because the Recipes are rotationally symmetric, no Recipe is better than another.",
+      "fixes": "Nearly perfect information: there is little hidden to infer about opponents, so it tests optimisation more than opponent modelling."
+    },
+    {
+      "what": "Point cards score immediately on your basket at the moment you take them.",
+      "why": "This keeps 'the same veggie counts for many cards' while needing no storage of drafted cards. It also adds a timing decision: take the card early for a little or late for a lot.",
+      "fixes": "End-of-game scoring of many cards against the whole tableau needs per-player storage of every drafted card, which exceeds the attribute limit."
+    },
+    {
+      "what": "Picks are simultaneous. If two or more players pick the same item, nobody gets it.",
+      "why": "This removes the seat edge, makes predicting opponents central, and lets a player deny a rival at a cost to themselves.",
+      "fixes": "Sequential turns give a seat edge (first pick, tie-break by turn order)."
+    },
+    {
+      "what": "Use only 6 point-card types of similar value, drawn with replacement, with every card open to all players.",
+      "why": "A card's luck is shared by everyone. What it is worth depends on each player's basket and timing, not on who saw it first.",
+      "fixes": "Luck of which scoring cards appear is large relative to skill."
+    }
+  ],
+  "keeps": [
+    "The core draft decision: take vegetables or take a scoring card.",
+    "Scoring cards that value your vegetable collection, with the same vegetable counting toward many cards.",
+    "Set-collection tension between specialising and balancing (pair bonus, Rainbow, Balance).",
+    "Hate-drafting: taking or contesting what a rival needs.",
+    "Most points wins."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Point Salad's draft-veggies-or-rules tension survives in a compact form, and a secret Recipe plus simultaneous contested picks add the opponent inference the original lacks."
+  },
+  "variation": {
+    "name": "Secret Salad",
+    "summary": "Three players draft vegetables and scoring cards over 12 rounds with simultaneous picks. Each holds a secret Recipe that prizes two of the three vegetables. Contested items go to no one, so reading and bluffing about rivals' Recipes decides who eats well.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "SETUP: There are three vegetables: Tomato (T), Lettuce (L), Carrot (C). There are three secret Recipes:\n- Recipe TL is worth 2 per T + 2 per L + 2 per complete T-L pair (that is, 2 x the smaller of T and L).\n- Recipe LC is worth 2 per L + 2 per C + 2 x the smaller of L and C.\n- Recipe CT is worth 2 per C + 2 per T + 2 x the smaller of C and T.\nShuffle the three Recipes and deal one face down to each player. Each player sees only their own Recipe and knows the other two players hold the other two. Every player starts with T=0, L=0, C=0 and 0 points.\n\nEACH ROUND (12 rounds):\n1. Draw one point card at random, with replacement, from these 6 equally likely types:\n- Tomato Fan: 2 points per T you hold.\n- Lettuce Fan: 2 points per L you hold.\n- Carrot Fan: 2 points per C you hold.\n- Rainbow: 3 points per complete set of one T, one L and one C (3 x the smallest of your three counts).\n- Big Bowl: 1 point per vegetable you hold (T+L+C).\n- Balance: 6 points if you hold at least one of each vegetable and your largest count minus your smallest count is at most 1; otherwise 0.\n2. Announce the round number, the point card, and every player's current T, L, C counts and points. Baskets and points are public; Recipes are not.\n3. Talk: every player writes one short message at the same time without seeing the others. All messages are then shown to everyone. Talk is not binding and may be false.\n4. Pick: every player simultaneously chooses exactly one of: Tomato, Lettuce, Carrot, or Card. The market each round holds exactly one Tomato, one Lettuce, one Carrot and the drawn point card.\n5. Resolve: for each of the four options, count how many players chose it.\n- If exactly one player chose a vegetable, that player adds 1 of it to their basket.\n- If exactly one player chose Card, that player immediately scores the point card against their basket as it stands now, before this round's vegetables are added. Add those points to their total.\n- If two or more players chose the same option, nobody receives it.\nUnclaimed items are discarded.\n6. Announce what every player picked and what they received.\n\nEND: After round 12, reveal all Recipes. Each player adds their Recipe score, computed on their final basket, to the points they earned from point cards. That sum is their final total.",
+    "objective": "The player with the highest final total wins. If two or three players tie for the highest total, the game is a draw.",
+    "expected_effect": "Each vegetable is prized by two of the three Recipes, so each player's two key vegetables are both contested. Players must guess who holds which Recipe from basket contents and talk, and must decide when to dodge a collision, when to force one to deny a rival, and when to grab a point card. Point cards reward timing: Big Bowl or Rainbow is weak early and strong late. Off-Recipe vegetables are worth taking for Carrot Fan, Rainbow or Balance, which also helps disguise your Recipe. Talk passes both tests. Interests conflict because only one player can win and every vegetable is wanted by two Recipes. Players can propose divisions ('I'll take Lettuce, you take Tomato'), claim a false Recipe, or promise to leave the card alone. A player who just follows proposals can be steered into taking vegetables worthless to their Recipe, or can be ambushed on the item they were promised. Simple policies lose. Always Card scores 0 in round 1, and with a single card scored before each round's vegetables are added, its basket stays empty and it scores 0 overall. Always the same vegetable earns 2 per round at best, and it is collidable or ignorable by rivals. A balanced Recipe collector earns 3 per round plus point cards. Recipes are rotations of one another, so the deal does not decide the winner."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 2,
+    "attributes": 17,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 12
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "VALUE OF ITEMS. A Recipe pays 2 per wanted vegetable plus 2 per matched pair. A balanced pair (+1 of each) is worth 2+2+2 = 6, or 3 per vegetable. A wanted vegetable added without a match is worth 2. The unwanted vegetable is worth 0 to the Recipe but still counts for Big Bowl, Rainbow, Balance and its own Fan. A Card is worth its rule applied to the basket held before this round's vegetables are added. In round r a player holding about r-1 vegetables gets: own-heavy Fan up to 2(r-1), Big Bowl (r-1), Balance 6 or 0, Rainbow 3 x the smallest count. So a Card is near 0 early and can reach 10 to 22 late. The labelled ordering checks: '2 per complete pair' equals '2 x the smaller'.\n\nRESOLUTION. There are 3 players and 4 options, and a shared choice voids the item. This is an anti-coordination (chicken) structure, so no option is strictly better. Each option is worth 0 if anyone else picks it and positive if you pick it alone.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE.\n(a) Always Card (the last option): the basket stays empty, so every Card scores 0. The total is 0 and this policy loses to any opponent who ever collects a vegetable.\n(b) Always Tomato (the first option) against sensible play. Sensible opponents avoid T. The always-T player ends with 12 T, worth 24 if its Recipe is TL or CT and 0 if LC, plus 0 Card points (it never takes a Card). The other two split L, C and Card. The baseline split (one takes L every round, the other C) gives 24, 24 and 24, a draw. Each opponent then gains by taking the Card when it suits its basket. Example: LC holds 9 L in round 10 and the Card is Lettuce Fan; taking it scores 18 in place of 2. Big Bowl late is worth about 9 in place of 2. Opportunistic Card grabs lift at least one opponent above 24, so always-T LOSES to sensible play. With an LC Recipe it loses outright.\n(c) Always Tomato against two random players. Both avoid T with probability (3/4)^2 = 9/16, giving about 6.75 T: about 13.5 points if T is in the Recipe and 0 otherwise. Each random player gets L alone with probability 3/16 and C alone with probability 3/16 per round (about 2.25 of each), roughly 9 to 12 points plus small Card points. Always-T is roughly ahead in the 2/3 of deals where T is in its Recipe and behind otherwise. That is not 'almost every time'.\n(d) Always Lettuce or always Carrot: same as (b) by symmetry.\n(e) Always pass: this does not exist; a pick is mandatory.\nNo policy found never loses.\n\nSEATS. All choices are simultaneous. The three Recipes are a cyclic rotation of one another; each vegetable is wanted by exactly two Recipes. No seat has an order or information edge. All three players can realistically win. Cooperative splitting tends toward ties, but the Card creates incentives to deviate, which breaks them."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "RULES COMPLETE. The rules define every case: the vegetable counts, all six Card formulas, collision (2+ pickers means nobody receives it), unclaimed items discarded, Card scored before vegetables are added, Recipe formulas, and the end and draw rules. The game is finite (12 rounds) and decided by arithmetic on public counts plus revealed Recipes. It needs no judge, board or clock.\n\nENGINE FIT. Conditional scoring is per-step 'when'/'if' arithmetic, which is supported; no block branching is needed. Hidden Recipes use private_values or hidden_hands. Stated limits: steps 13 <= 20; choice steps 2 (talk + pick) <= 4; attributes 17 <= 20 (3 players x T, L, C, points = 12, plus 3 Recipe ids, plus card and round). Hidden elements 1 <= 3, random draws 1 per round <= 1, rounds 12 <= 40.\n\nTALK. Talk is simultaneous, which fits. Players genuinely conflict here: each vegetable is wanted by two of the three Recipes, and the Card is contested late. Talk is used to divide items and avoid mutual voids, and a false claim can cost the follower a round's item. So talk is warranted, and no player can win by simply copying a proposal.\n\nLATE ROUNDS. This is not a repeated prisoner's dilemma with a safe defect option. In late rounds the high-value Card and the contested vegetables remain chicken games, with no option that is safe regardless of others."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "RANDOMNESS. There are two random sources: the Recipe deal (symmetric, so its luck is near zero) and the per-round Card type (6 equiprobable types, with replacement). Each vegetable's Fan appears about 2 times in 12 rounds. Big Bowl, Rainbow and Balance (about half of the draws) reward any well-built basket.\n\nSIZE OF THE CARD SWING. A late Fan matching your heaviest vegetable can be worth 12 to 20 against typical totals of 40 to 60. That is a real swing. However, the Card is visible before picking and is contested by every player who can use it, and a collision voids it. Whether you actually get it depends on predicting and signalling around opponents. Players can also hedge toward Big Bowl, Balance or Rainbow-friendly baskets.\n\nCHANCE SHARE. Estimated at about 25 to 35% of outcomes. When all players play well, with even division and Card grabs, the result is decided by who wins the contested late Cards. That is opponent modelling, not the draw alone.\n\nINFERENCE AND PLANNING. Recipes are inferable within 1 to 2 rounds from picks (6 possible deals; whoever chases L is TL or LC). Each round requires predicting the two opponents' picks among 4 options, reading non-binding talk for bluffs, and planning basket shape against the expected Card distribution. A reasoner is clearly favoured over a random or fixed policy, as shown in the balanced check."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

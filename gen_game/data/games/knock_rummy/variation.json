@@ -1,0 +1,184 @@
+{
+  "original_summary": "Knock Rummy is a draw-and-discard card game. Players try to form sets and runs, and any player may knock to end the hand at once. The lowest unmatched-card count (deadwood) wins the difference. A knocker who is not lowest pays a penalty. The reviewed 2-player variation (Even Hands) cut it to a 30-card suitless deck, 5-card hands, 4 hands and a 10-turn cap per hand.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "No pure policy is unbeatable. 'Never knock' loses to anyone who knocks early with a meld. 'Knock whenever possible' loses whenever the defender is lower and gets the +10. But one simple heuristic captures most of the edge: draw stock unless the upcard makes a meld, discard the highest loose card, knock at 8 or less. So the choices barely separate good play from rote play. The starter imbalance cancels only because A and B each start 2 hands."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "bad",
+      "evidence": "The deal alone swings about 16 points per hand: a meld appears in 35-40% of 5-card deals, with expected deadwood about 11 with one and about 27.5 without. About half of the at most 5 draws per player are blind stock draws. The per-hand standard deviation is about 12-15, and over 4 hands the total difference has a standard deviation of about 25-30. A clearly better player gains about 12-15 per match and wins only about 60-65%."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "Weak players do score, because luck hands them wins. Strong play plateaus quickly. With one meld per hand and blind draws, there is little beyond the knock-threshold heuristic to improve on. The 20-point rummy bonus is mostly a lottery on drawing into a 5-card run."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "There is hidden state: the opponent's hand and the stock. But the levers for using inference are small. Upcard pickups are rare, and the defender never gets to react to a knock, so reading the opponent rarely changes a decision. When both play well, the deal and the stock order decide the result."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Deadwood for a 5-card hand with at most one meld is a fixed arithmetic computation. Scoring and the winner are pure arithmetic."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "Turn-based and text-only, with no board. It has one shuffle per hand, few hidden elements and at most 40 turns. The only gap is that the rules did not say whether a taken upcard could be discarded on the same turn."
+    }
+  ],
+  "problems": [
+    "P1: The deal decides too much. A random 5-card hand either has a meld or does not, a swing of about 16 points before any decision.",
+    "P2: Blind stock draws make about half of all draws pure chance, so a draw choice rarely takes thought.",
+    "P3: The match is short: 4 hands with a per-hand standard deviation of 12-15. A better player wins only about 60-65%.",
+    "P4: The 20-point rummy bonus rewards drawing into a 5-card run, which is luck, not reasoning.",
+    "P5: Nothing makes reading the opponent matter. The knocker ends the hand instantly, so a defender's inference is never acted on and a knocker's risk is small.",
+    "P6: Huge hands (a 40-deadwood bust against a 2) produce single swings that swamp many hands of small skill edges.",
+    "P7: The rules are ambiguous about discarding the card just taken from the upcard."
+  ],
+  "changes": [
+    {
+      "what": "Each hand, every player is dealt 7 cards and secretly keeps 5. The other 2 go face down to a dead pile that only their owner knows.",
+      "why": "Choosing the best 5 of 7 raises the meld rate a lot (roughly 2 in 3 hands) and lets both players shape a low hand. Deal quality becomes far more even and the deal turns into a planning decision. The secret dead cards add a hidden element the opponent must reason about, since those values are out of play.",
+      "fixes": "P1: The deal decides too much."
+    },
+    {
+      "what": "The top card of the stock is always face up. Each turn the player chooses between two visible cards: the upcard or the stock top.",
+      "why": "This removes blind draws. Every draw is now a real comparison of two known options. Taking a card also denies it to the opponent. Every pickup is public, which feeds opponent modelling.",
+      "fixes": "P2: Blind stock draws make about half of all draws pure chance, so a draw choice rarely takes thought."
+    },
+    {
+      "what": "The match is 6 hands of at most 6 turns each, 3 per player, giving at most 36 turns. A starts hands 1, 3 and 5; B starts hands 2, 4 and 6.",
+      "why": "More hands average out the remaining chance. Equal turns per player within a hand remove the starter's extra turn, and alternating starters 3-3 removes any seat edge. Everything stays inside the 40-round limit.",
+      "fixes": "P3: The match is short: 4 hands with a per-hand standard deviation of 12-15. A better player wins only about 60-65%."
+    },
+    {
+      "what": "The rummy bonus is cut from 20 to 5.",
+      "why": "A lucky 5-card run should not swing a hand.",
+      "fixes": "P4: The 20-point rummy bonus rewards drawing into a 5-card run, which is luck, not reasoning."
+    },
+    {
+      "what": "Knocking requires deadwood of 10 or less. After a knock, the defender is told the knocker's deadwood and takes one final turn (take one visible card, discard one, no knock) before the showdown. The undercut reward of (k minus d) plus 10 stays.",
+      "why": "The knocker must now estimate whether the defender can get under k with one more pick. That depends on the defender's pickups, discards and the visible cards. The defender gets a real decision informed by k. Knock timing becomes a bluff-and-read problem.",
+      "fixes": "P5: Nothing makes reading the opponent matter. The knocker ends the hand instantly, so a defender's inference is never acted on and a knocker's risk is small."
+    },
+    {
+      "what": "Points scored in one hand are capped at 20, including bonuses.",
+      "why": "This limits the damage of an occasional catastrophic hand, so the match rewards consistent good decisions across hands.",
+      "fixes": "P6: Huge hands (a 40-deadwood bust against a 2) produce single swings that swamp many hands of small skill edges."
+    },
+    {
+      "what": "The rules now state that a card taken from the upcard may not be discarded on the same turn, while a card taken from the stock top may be.",
+      "why": "This removes the ambiguity and makes an upcard pickup a committed, informative signal.",
+      "fixes": "P7: The rules are ambiguous about discarding the card just taken from the upcard."
+    }
+  ],
+  "keeps": [
+    "Draw-then-discard turns with a public upcard pile",
+    "Melds as sets of three or runs of three or more, with the rest scored as deadwood",
+    "Knocking to end the hand, scoring the deadwood difference",
+    "Undercut punishment (+10) when the knocker is not lower",
+    "A small bonus for going out with zero deadwood",
+    "The scoring of a hand that ends with no knock",
+    "Scores carried across hands, with the higher total winning"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core tension is sound: knock early with risk, or wait and improve. The luck comes from blind draws, a rigid 5-card deal and big swings, and all three can be fixed inside the limits with a keep-5-of-7 deal, a visible stock top, a defender's final turn and more hands."
+  },
+  "variation": {
+    "name": "Knock Rummy Duel: Open Stock",
+    "summary": "A 2-player, 6-hand knock rummy with a 30-card suitless deck. Each player keeps 5 of 7 dealt cards. Every draw is a choice between two face-up cards. After a knock, the defender gets one last turn to undercut.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "DECK: 30 cards, values 1 to 10, three copies of each value, no suits. A card is worth its value.\n\nMATCH: The match is exactly 6 hands. Player A starts hands 1, 3 and 5. Player B starts hands 2, 4 and 6. Both scores start at 0 and carry across hands.\n\nDEALING A HAND:\n1. Shuffle all 30 cards.\n2. Deal 7 cards face down to each player.\n3. KEEP: Both players secretly and at the same time choose 5 of their 7 cards to keep. Each player's 2 other cards go face down into that player's own dead pile. Only the owner knows them. They are out of play for the hand.\n4. Turn the next card face up to start the discard pile. Its top card is the 'upcard'.\n5. The remaining 15 cards form the stock. The top card of the stock is always turned face up and visible to both players (the 'stock top'). Whenever it is taken, the next stock card is turned face up.\n\nTURNS: Players alternate turns, beginning with the starter. A hand has at most 6 turns, 3 per player. On a turn the active player makes one decision with three parts:\n(a) TAKE either the upcard or the stock top. Both players see which card was taken.\n(b) DISCARD one of their 6 cards face up onto the discard pile, where it becomes the new upcard. A card taken from the upcard this turn may not be discarded this turn. A card taken from the stock top may be.\n(c) Optionally KNOCK. A knock is allowed only if the player's deadwood after the discard is 10 or less.\nIf the active player knocked, the defender's final turn follows. If the 6th turn ends with no knock, a showdown with no knocker follows. Otherwise play passes to the other player.\n\nDEFENDER'S FINAL TURN: After a knock, the defender is told the knocker's deadwood k. The defender then takes the upcard or the stock top and discards one card, under the same no-same-turn-discard rule for a taken upcard. The defender may not knock. Then a showdown happens.\n\nMELDS AND DEADWOOD:\n- A meld is 3 cards of equal value, or 3 or more cards of consecutive values (such as 4-5-6 or 6-7-8-9). 10 is not next to 1.\n- A 5-card hand contains at most one meld.\n- A hand's deadwood is computed automatically as the lowest possible: the sum of its 5 cards minus the sum of the meld that leaves the smallest remainder. With no meld, it is the sum of all 5 cards.\n\nSHOWDOWN: Both hands are revealed. The dead piles are revealed too. Let k be the knocker's deadwood and d the defender's, both measured after the defender's final turn.\n- If k < d, the knocker scores d - k. If k = 0, the knocker scores 5 more.\n- If k >= d, the defender scores (k - d) + 10.\n- With no knocker (6-turn cap reached), the player with the lower deadwood scores the difference. On a tie, nobody scores.\n- No player can score more than 20 points in a single hand. Any excess is lost.\n\nAFTER A SHOWDOWN: If fewer than 6 hands have been played, deal the next hand. After the 6th showdown, the match ends.\n\nINFORMATION: Each player knows their own hand and their own dead pile. Both players see the whole discard pile, the current stock top, every card taken and from where, every discard, any knock and its k value, the hand and turn number, and both scores. The opponent's hand and dead pile and the stock below its top card stay hidden until the showdown.",
+    "objective": "After the 6th hand, the player with the higher total score wins. Equal totals are a draw.",
+    "expected_effect": "Deal luck shrinks because both players build their hand from 7 cards, and draw luck largely disappears because both draw options are visible. The skill share therefore rises sharply. Over 6 hands with a 20-point cap, a better player's edge should outweigh the remaining noise far more often than the 60-65% of the previous version. The key decisions are:\n- which 5 to keep, and what the opponent's two hidden dead cards might be;\n- whether to take a card for yourself or to deny the opponent;\n- when to knock, given that the defender gets one more pick and can be read from their pickups and discards.\nA defender who sees k chooses between going for an undercut and limiting losses. Simple policies all lose to some opponent: always knock at the first legal moment, always take the stock top, and never knock."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 3,
+    "attributes": 16,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 36
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "Thoughtless policies, using the WINNER RULE with deadwood estimates. A random 5-card hand averages 27.5 points; the chance of holding a meld is roughly 30%; under steady play deadwood falls to about 8-15 within a few turns. (1) 'Always knock at once': knocker deadwood k is about 27 and defender deadwood d is about 25 (the defender drew nothing yet but may hold a meld), so k>=d about half the time. When that happens the knocker pays (k-d)+10, about 15; when k<d the knocker gains d-k, about 8. Net is about -4 per hand, and the policy loses against sensible and random play. It fails as a policy. (2) 'Never knock': every hand runs to exhaustion. A sensible opponent knocks only when its estimate is well below the defender's, and scores d-k each time. This policy loses to sensible play and draws or wins against random play, so it is not a never-lose policy. (3) 'Always draw stock, discard highest': this ignores low upcards that the sensible player takes, so it loses on average. (4) 'Always take upcard': it often takes high discards, so it loses. Dominance: no option is strictly better whatever the opponent does. Knocking early wins only against a slow opponent; a low upcard is good unless it reveals your hand. The payoff ordering is stated correctly: a failed knock costs 10 more than a successful knock earns at the same margin, which deters reckless knocks. Rummy needs a 5-card run in a 5-card hand. That is rare but valid, and the +20 is not dominant. SEAT EDGE (the failure): the starter of a hand sees 6 cards first and gets the first chance to knock. A starts hands 1, 3, 5 and so on, so at match end A has started either the same number of hands as B or one more, never fewer. The edge always runs toward A. It is made worse by the turn-40 'final showdown'. If a hand is dealt on turn 38-40, its starter alone gets one or two draws or discards before a forced no-knocker showdown. That is almost pure deal luck tilted to the starter, and with alternation the starter is A whenever the hand count is odd. Expected size is a few points per match against a typical margin of 10-20, which is enough to be a systematic bias for one seat. Both players can realistically win, but the seats are not symmetric."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules cover every situation. Drawing: the source and any upcard taken are announced. Discarding any of the 6 cards is allowed, including the card just taken. Knock, exhaustion and turn 40 all trigger a showdown; if a knock and exhaustion coincide, 'if there was a knocker' makes the knock scoring apply. An invalid meld counts as none. Ties are handled in both the knock and no-knock cases. Melds are well defined: at most one per 5-card hand, three copies maximum, no wrap. The game is finite at exactly 40 turns, and the stock is never exhausted, since the showdown comes at 2 or fewer cards from 19, so no reshuffle rule is needed. Scores are arithmetic. The meld-validity check can be ruled by the referee, which is allowed. Platform: 2 players with no talk, which is correct because there is nothing to negotiate. Choice steps: draw, discard+knock, and meld declaration (a simultaneous poll) = 3, within the limit of 4. Hidden elements: two hands plus stock order = 3. Random draws: the one shuffle per new hand is the only random draw, and taking a stock card is a removal from an already shuffled list, so 1. Rounds: 40. Steps: the deal of a new hand is 4 steps (shuffle, deal A, deal B, flip), each carrying a 'when new hand' condition rather than a conditional block, which is allowed. Then draw choice plus apply (2), discard/knock plus apply (2), showdown trigger (1), declare (1), validate (2), deadwood (2), score (2), reset (1). That is about 17-18, within 20, and it uses shared_deck_draw through the list workaround. No board, clock, trading or binding agreements are needed."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance is substantial: each hand's deal and stock order produce a per-hand score standard deviation of about 8-10. Over the roughly 3-6 hands in 40 turns, that gives a match standard deviation of about 20. Skill has several levers. (a) Knock timing against an estimate of the opponent's deadwood. That estimate can be inferred from the opponent's visible upcard pickups (they took a 2, so they are collecting low cards or building a run) and their discards (a discarded 8 suggests they hold nothing much above 8 that they value less). (b) Denial: not discarding low cards or run-completers the opponent has shown interest in. (c) Choosing between keeping partial runs and dumping high cards. (d) Avoiding failed knocks, which cost 10 more. A plausible skill edge is 2-4 points per hand, about 10-20 per match, so a careful reasoner wins an estimated 65-75% against a careless one. Mirrored good play is decided by the deals, as in any card game, but a single bad deal can be survived by not knocking and minimising losses, so the deal does not decide everything. There is real hidden information (the opponent's hand) and a way to act on it (knock or wait, what to discard)."
+        },
+        "required_changes": [
+          "Remove the seat bias in hand starts. Make the starter of each new hand the player who has started fewer hands so far, with ties going to the player with the LOWER total score instead of always to A. Alternatively, offer the non-starter the first chance at the initial upcard in each hand, as in classic gin.",
+          "Neutralise the truncated final hand. Deal no new hand if fewer than 6 turns remain; the remaining turns pass with no action and the match is scored as it stands. Or score a turn-40 final showdown only if the current hand has lasted at least 4 turns, and void it otherwise."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Main decision: knock or not, against the WINNER RULE (higher 4-hand total). Knock payoff for knocker k vs defender d: k<d gives +(d-k), plus 20 if k=0; k>=d gives the defender (k-d)+10. The table assumes a defender holding no meld, with deadwood near the 5-card mean 27.5 (range 15-40). Knock at k=5: wins about 95%, gaining about 22. Knock at k=15: wins about 75%, gaining about 10, and pays about 13 when it loses. Knock at k=27 (no meld, turn 1): wins about 50%, and every loss costs at least 10, so expected value is about -5. Thoughtless policies: (1) Always knock on turn 1. Against sensible or random play the knocker scores d-k only when ahead and pays at least 10 when tied or behind, which is negative on average. It loses most matches against sensible play and draws or loses about half against random, so it does lose. (2) Never knock. Against random play it often wins, collecting +10 penalties when random players knock badly. Against sensible play it loses: the sensible player knocks with k of about 5-10 against an unimproved hand and scores 10-20 per hand, and the never-knocker can never punish this. So it does lose. (3) Always draw the upcard: it often takes useless cards. Against sensible stock-drawing play it loses deadwood races, so it does lose. (4) Always draw stock and discard the highest card is a sensible heuristic, not degenerate. It still loses to players who also use upcard information and knock timing. No option is strictly dominant: knocking is good only at low k, and the tie rule (k=d gives the defender +10) blocks safe knocks. Seats: the starter has the first knock chance. The non-starter has the opening offer and the 10th turn, which ends in a forced showdown. Each seat starts 2 of the 4 hands, so the edge cancels across the match. Both players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete. Deck 30, deal 5+5+1 upcard, 19 stock. At most 10 draws (11 with the opening offer) per hand, so the stock never empties and no reshuffle rule is needed. A 5-card hand holds at most one meld: two melds need 6 cards, and four of a kind is impossible with 3 copies. Rummy (k=0) therefore means a 5-card run. The tie and no-knocker cases are defined. The match is finite: 4 hands of at most 10 turns, so 40 turns, matching rounds=40, which is at the limit. Choice steps are 3 (opening offer, draw source, discard+knock), within 4. Steps 12, attributes 14, hidden 2-3 (two hands plus stock order), and 1 shuffle per hand are all within limits. The opening offer applies only before turn 1 and fits as a single step with a 'when' condition, not a conditional block. Two players, so no talk is needed. Minor issues: (a) the rules do not say whether a taken upcard may be discarded at once (a no-op), though both readings are playable. (b) Deadwood minimisation over at most 5 cards is checkable arithmetic: try each triple and each run of 3, 4 or 5, and take the sum minus the best meld. This can be a calc or a referee rule check, and the scores then follow arithmetically."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Chance estimate. A random 5-card deal from 30 contains a meld roughly 35-40% of the time. Expected deadwood is about 27.5 without a meld and about 11 with one, so the deal alone swings about 16 points per hand before any decision. Each player then makes at most 5 draws, about half of them blind stock draws. The skill levers are small: draw source, discard choice, knock threshold, and inferring the opponent from pickups and discards. A simple heuristic (draw stock unless the upcard completes or extends a meld, discard the highest loose card, knock at k<=8) captures most of the available edge. The rummy bonus of 20 depends almost entirely on drawing into a 5-card run. Rough model: per-hand score standard deviation about 12-15, so over 4 hands the standard deviation of the total difference is about 25-30. A clearly better player gains perhaps 3-4 points per hand, about 12-15 per match, which means winning only about 60-65% of matches. When both play the intended good strategy, the result is decided essentially by the deals and the stock order. A reasoning player is not clearly favoured, and chance often decides the winner."
+        },
+        "required_changes": [
+          "Lengthen the match to reduce variance: play 8 hands with a cap of 6 turns each (48 turns would exceed the 40-round limit, so use 8 hands x 5 turns = 40), alternating starters 4-4.",
+          "Cut the rummy bonus from 20 to 5, or remove it, so the luck of drawing a 5-card run does not swing hands.",
+          "Add a decision that rewards opponent modelling: show the defender the knocker's deadwood and let them make one final draw-and-discard before scoring (an undercut chance), so knocking requires estimating the opponent's hand from upcard pickups.",
+          "Optionally make the first upcard pickup by either player more informative (for example, a player who takes an upcard must keep it for at least one turn), so pickup tracking is a real inference source.",
+          "Clarify whether a taken upcard may be discarded on the same turn."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SEATS: Each player starts 3 of the 6 hands, so the starter's earlier knock chance and the second player's last draw in a capped hand cancel over the match. Information is symmetric: both see the upcard, the stock top, every take and every discard; each knows only their own dead pile.\n\nKNOCK EV TABLE (estimate). After the 5-of-7 keep with no meld, the best 5 low cards sum to about 15-20 (mean card 5.5). One more draw lowers deadwood by roughly 3-6, so the defender usually sits near 12-18.\n- Knock at k=10: undercut about 20%. EV is about 0.8*(+6) - 0.2*(10+2) = +2.4.\n- Knock at k=5: undercut about 5%. EV is about 0.95*(+10) - 0.05*(12) = +8.9.\n- Knock at k=0: EV is about +15+5, with the 20 cap biting.\nKnocking low is good. Knocking at 9-10 early, when the opponent has had only a draw or two and has taken low cards, is a real risk decision. The +10 undercut and the per-hand cap of 20 are internally consistent; there is no mislabelled ordering.\n\nTHOUGHTLESS POLICIES under the WINNER RULE:\n(1) Always take the upcard, discard the first card, never knock. It never reduces deadwood deliberately and never scores as knocker. Against sensible play it loses nearly every match; against random play it is about even.\n(2) Always take the stock top. It ignores a visible, often better upcard. It loses to sensible play and roughly ties random play.\n(3) Never knock. It scores only as defender (undercuts) or in capped showdowns. A sensible knocker banks d-k each hand, so it loses most matches.\n(4) Always knock as soon as allowed. This is close to the sensible policy, but it is undercut when a low-holding defender gets a draw, and it still loses whenever it is dealt worse. It does not win or draw almost always.\nNo option is strictly better regardless of the opponent, and no policy never loses. Both players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS: The rules cover the keep step, the open stock top, what happens to the upcard (the next discard below it), the ban on discarding a taken upcard, the knock gate (deadwood <=10), the defender's final turn, ties (k>=d gives the defender the hand), the capped showdown with tie = no score, and the per-hand cap.\n\nFINITENESS: The stock holds 15 cards and at most 7 takes happen per hand (6 turns plus a defender turn), so it cannot run out. Deadwood is an automatic arithmetic minimum over at most one meld; checking a triple or a run of 3, 4 or 5 is calc, with no judge needed.\n\nPLATFORM LIMITS: steps 16 <=20; choice steps 3 <=4 (keep, active take/discard/knock, defender response); attributes 16 <=20; random draws 1 per round (the shuffle in a hand's first slot); rounds 36 <=40, mapped as 6 hands x 6 turn slots. Slots left after an early knock are skipped with `when` conditions. A knock on turn 6 puts the defender's turn in the same slot through a `when` step; this needs single conditional steps, not block branching. Hidden elements: hands, dead piles and the stock below its top = 3 classes.\n\nOTHER: Two players, so no talk is needed. No board, clock, trading or binding agreements. This passes, but implementers must count the defender's step and skipped slots carefully."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "DECISIONS: Each player has at most 3 draws per hand, and both draw options are face-up. 'Take whichever card lowers my deadwood most, discard the card that leaves minimum deadwood' is mechanically computable and nearly always optimal. The keep step is also largely computable (keep the meld if any, else the lowest cards). Real judgement is concentrated in one place: whether to knock at k of about 6-10, inferring the opponent's d from their takes and discards.\n\nMIRROR TEST: When both players follow this good policy, the hand is decided by the 7-card deal and the order of the face-up stock. Who holds a meld or low cards after the keep largely determines who reaches k<=10 first and by how much. One hand swings up to 20 points, and only 6 hands are played.\n\nESTIMATE: About 60-70% of match outcomes between competent players come from the deal. A strong reasoner is favoured only modestly over a greedy computer of deadwood. There is something to infer (opponent deadwood from visible takes and discards; unknown cards from your own dead pile), but with 3 draws there is little room to act on it, so good play rarely overcomes a bad deal."
+        },
+        "required_changes": [
+          "Reduce deal luck with duplicate dealing. Hands come in 3 pairs; the second hand of each pair reuses the first hand's 7-card hands and stock order with seats swapped. Score each pair as the difference between the two players' results. Alternatively, have both players draft their 7 cards alternately from a face-up row of 14, so the starting hand is chosen, not dealt.",
+          "Lengthen hands so draws, inference and knock timing matter. Allow up to 5 turns per player (10 turns) while keeping rounds <=40, for example 4 hands x 10 slots, with the defender's turn inside the knock slot.",
+          "Add an inference target. Make the stock top hidden and leave only the upcard open, so opponents' stock draws are unknown and their deadwood must be read from discards and upcard takes. Or reveal one of each player's dead cards to the opponent at the keep step.",
+          "Lower the per-hand cap from 20 to 12, so one lucky meld deal cannot decide the match, and raise the undercut bonus to 15, so knock timing against an inferred defender hand carries more weight than the deal."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

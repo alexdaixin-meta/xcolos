@@ -1,0 +1,42 @@
+
+$ gen_game convert wizard --judge   (code 66cb7d9b5d, 13:41:47)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+triage: fix_game: Each attempt failed in a different way, and each earlier failure was fixed by the next attempt: hidden bookkeeping fields, then illegal card offers, then unfilled placeholders, and now a constant `full_deck` attribute that nothing updates. These are coder mistakes that the platform can avoid, not a sign that the rules are unsound or need something the engine lacks.
+step C: building the game file
+triage: fix_game: Leading a trick has no restriction in the rules: the leader may play any card in hand. So refusing 'Red 6' or 'Green 2' in `lead_a_card` is a bug in the file, not a flaw in the rules or a missing platform capability. The identical failure across attempts 3–5 shows the faulty offer and check were never actually changed, so this needs a targeted fix rather than a redesign.
+step C: building the game file
+triage: fix_game: The failures differ from attempt to attempt and each one is a file mistake: empty bookkeeping fields shown to players, attributes nothing updates, unfilled placeholders, and a follow-suit filter that offers cards the game then refuses. Nothing points to a missing platform capability or a flaw in the rules, since per-seat legal options can be built from state.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+
+wizard: ready for review
+  25/25 scenarios, tier 0 passed, 0 design flag(s) left after 2 variation(s)
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/wizard
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/wizard/VERIFIED.md
+
+$ gen_game uninstall wizard   (code 66cb7d9b5d, 14:31:27)
+wizard is not installed (/Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/xcolos/games/library/wizard.json does not exist)
+
+$ gen_game install wizard   (code 66cb7d9b5d, 14:31:27)
+installed /Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/xcolos/games/library/wizard.json
+  the platform loads it: Wizard Duel of Three, 3 to 3 players
+  library now holds: agram, assurance_game, auction, battle_of_wits, break_the_code, coloretto, coup, diamonds, dollar_auction, english_auction, hanabi, jaipur, knaves, mafia, medici, point_salad, psychological_jujitsu, red7, rps, schotten_totten, skull_king, sushi_go, tides_of_madness, wizard
+  restart the server to play it:  python3 -m xcolos.web --port 8000
+
+$ gen_game simulate wizard --players gateway --matches 3 --seed 1   (code 66cb7d9b5d, 14:31:27)
+match 1/3: w0001 started, players ['gateway', 'gateway', 'gateway']
+{"match": "w0001", "file": "/Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/wizard/sim/w0001-seed1.json", "status": "ended", "winner": "seat 2", "rounds": 30, "model_calls": 90, "model_errors": 0, "seconds": 736}
+match 2/3: w0002 started, players ['gateway', 'gateway', 'gateway']
+{"match": "w0002", "file": "/Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/wizard/sim/w0002-seed2.json", "status": "ended", "winner": "seats 1 and 2", "rounds": 30, "model_calls": 90, "model_errors": 0, "seconds": 696}
+match 3/3: w0003 started, players ['gateway', 'gateway', 'gateway']
+{"match": "w0003", "file": "/Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/wizard/sim/w0003-seed3.json", "status": "ended", "winner": "seat 2", "rounds": 30, "model_calls": 90, "model_errors": 0, "seconds": 667}
+reasoning check: adequate (reasoning 3, planning 3, luck 2); /Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/wizard/REASONING.md

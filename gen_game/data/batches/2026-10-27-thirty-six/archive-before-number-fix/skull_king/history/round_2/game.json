@@ -1,0 +1,1312 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "skull_king",
+    "name": "Skull King: Three-Card Bids",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Eight rounds of three cards each: bid how many of three tricks you will take, and score for bidding exactly right."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "bid",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tricks_won",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "played",
+        "visible": "public",
+        "type": "number",
+        "initial": -1
+      },
+      {
+        "key": "choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0,
+          0,
+          20,
+          30,
+          31,
+          40
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "mermaid_played",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "skull_king_played",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "pirates_in_trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "max_power",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "trick_winner",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "tricks_per_round",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "bid_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 18
+      },
+      {
+        "key": "number_card_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "number_card_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "escape_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "escape_power",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "mermaid_power",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "pirate_a_power",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "pirate_b_power",
+        "visible": "public",
+        "type": "number",
+        "initial": 31
+      },
+      {
+        "key": "skull_king_power",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "exact_bid_points_per_trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "missed_bid_penalty_per_trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "zero_bid_success_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "zero_bid_failure_penalty",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "skull_king_bonus_per_pirate",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "mermaid_captures_skull_king_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 50
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting state",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "deck",
+            "value": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              0,
+              0,
+              20,
+              30,
+              31,
+              40
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "a new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "tricks_won",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "bonus",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "played",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "key": "trick",
+            "value": 0
+          }
+        }
+      ],
+      "text": "Round {round} of {rounds} begins."
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "gather the deck",
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              0,
+              0,
+              20,
+              30,
+              31,
+              40
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "deal the hands",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 5,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 5,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[min(int(uniform(0, len(deck))), len(deck) - 1)]"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 5,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        }
+      ],
+      "text": "Each player is dealt {hand_size} cards."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your hand",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand",
+        "score"
+      ],
+      "text": "Your hand this round:"
+    },
+    {
+      "use": "poll",
+      "phase": "bid",
+      "label": "bid",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "bid_min"
+        },
+        "max": {
+          "calc": "bid_max"
+        }
+      },
+      "store": "bid",
+      "text": "Round {round}: how many of the {tricks_per_round} tricks will you win? Answer a whole number from {bid_min} to {bid_max}. Nobody sees your bid until all bids are in."
+    },
+    {
+      "use": "tell",
+      "phase": "bid",
+      "label": "the bids",
+      "to": "all",
+      "text": "All bids are in [seat, bid]: {[[p.seat, p.bid] for p in players]}."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "play trick 1",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "choice",
+      "text": "Trick 1 of {tricks_per_round}: play one card from your hand. Cards are shown by power: 0 Escape, 1-12 numbers, 20 Mermaid, 30 Pirate A, 31 Pirate B, 40 Skull King. All cards are revealed together."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve trick 1",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "played",
+            "value": {
+              "calc": "int(you.choice)"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.played"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "mermaid_played",
+            "value": {
+              "calc": "any(p.played == mermaid_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "skull_king_played",
+            "value": {
+              "calc": "any(p.played == skull_king_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pirates_in_trick",
+            "value": {
+              "calc": "count(p.played == pirate_a_power or p.played == pirate_b_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "max_power",
+            "value": {
+              "calc": "max([p.played for p in players])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "trick_winner",
+            "value": {
+              "calc": "min([p.seat for p in players if p.played == mermaid_power]) if (mermaid_played and skull_king_played) else min([p.seat for p in players if p.played == max_power])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner"
+            },
+            "key": "tricks_won",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner and you.played == skull_king_power"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "skull_king_bonus_per_pirate * pirates_in_trick"
+            },
+            "if": {
+              "calc": "pirates_in_trick > 0"
+            },
+            "text": "The Skull King captures Pirates: seat {player} earns a bonus."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner and you.played == mermaid_power"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "mermaid_captures_skull_king_bonus"
+            },
+            "if": {
+              "calc": "skull_king_played"
+            },
+            "text": "The Mermaid captures the Skull King: seat {player} earns a bonus."
+          }
+        },
+        {
+          "adjust": {
+            "key": "trick",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "choice",
+            "value": ""
+          }
+        }
+      ],
+      "text": "Trick {trick}: cards played [seat, power]: {[[p.seat, p.played] for p in players]}. Seat {trick_winner} wins the trick."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "play trick 2",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "choice",
+      "text": "Trick 2 of {tricks_per_round}: play one card from your hand. Cards are shown by power: 0 Escape, 1-12 numbers, 20 Mermaid, 30 Pirate A, 31 Pirate B, 40 Skull King. All cards are revealed together."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve trick 2",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "played",
+            "value": {
+              "calc": "int(you.choice)"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.played"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "mermaid_played",
+            "value": {
+              "calc": "any(p.played == mermaid_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "skull_king_played",
+            "value": {
+              "calc": "any(p.played == skull_king_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pirates_in_trick",
+            "value": {
+              "calc": "count(p.played == pirate_a_power or p.played == pirate_b_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "max_power",
+            "value": {
+              "calc": "max([p.played for p in players])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "trick_winner",
+            "value": {
+              "calc": "min([p.seat for p in players if p.played == mermaid_power]) if (mermaid_played and skull_king_played) else min([p.seat for p in players if p.played == max_power])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner"
+            },
+            "key": "tricks_won",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner and you.played == skull_king_power"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "skull_king_bonus_per_pirate * pirates_in_trick"
+            },
+            "if": {
+              "calc": "pirates_in_trick > 0"
+            },
+            "text": "The Skull King captures Pirates: seat {player} earns a bonus."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner and you.played == mermaid_power"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "mermaid_captures_skull_king_bonus"
+            },
+            "if": {
+              "calc": "skull_king_played"
+            },
+            "text": "The Mermaid captures the Skull King: seat {player} earns a bonus."
+          }
+        },
+        {
+          "adjust": {
+            "key": "trick",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "choice",
+            "value": ""
+          }
+        }
+      ],
+      "text": "Trick {trick}: cards played [seat, power]: {[[p.seat, p.played] for p in players]}. Seat {trick_winner} wins the trick."
+    },
+    {
+      "use": "poll",
+      "phase": "play",
+      "label": "play trick 3",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "store": "choice",
+      "text": "Trick 3 of {tricks_per_round}: play your last card. Cards are shown by power: 0 Escape, 1-12 numbers, 20 Mermaid, 30 Pirate A, 31 Pirate B, 40 Skull King. All cards are revealed together."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve trick 3",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "played",
+            "value": {
+              "calc": "int(you.choice)"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.played"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "mermaid_played",
+            "value": {
+              "calc": "any(p.played == mermaid_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "skull_king_played",
+            "value": {
+              "calc": "any(p.played == skull_king_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pirates_in_trick",
+            "value": {
+              "calc": "count(p.played == pirate_a_power or p.played == pirate_b_power for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "max_power",
+            "value": {
+              "calc": "max([p.played for p in players])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "trick_winner",
+            "value": {
+              "calc": "min([p.seat for p in players if p.played == mermaid_power]) if (mermaid_played and skull_king_played) else min([p.seat for p in players if p.played == max_power])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner"
+            },
+            "key": "tricks_won",
+            "value": 1
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner and you.played == skull_king_power"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "skull_king_bonus_per_pirate * pirates_in_trick"
+            },
+            "if": {
+              "calc": "pirates_in_trick > 0"
+            },
+            "text": "The Skull King captures Pirates: seat {player} earns a bonus."
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.seat == trick_winner and you.played == mermaid_power"
+            },
+            "key": "bonus",
+            "value": {
+              "calc": "mermaid_captures_skull_king_bonus"
+            },
+            "if": {
+              "calc": "skull_king_played"
+            },
+            "text": "The Mermaid captures the Skull King: seat {player} earns a bonus."
+          }
+        },
+        {
+          "adjust": {
+            "key": "trick",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "choice",
+            "value": ""
+          }
+        }
+      ],
+      "text": "Trick {trick}: cards played [seat, power]: {[[p.seat, p.played] for p in players]}. Seat {trick_winner} wins the trick."
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "score the round",
+      "when": {
+        "calc": "trick >= tricks_per_round"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "((exact_bid_points_per_trick * you.bid + you.bonus) if you.tricks_won == you.bid else -(missed_bid_penalty_per_trick * abs(you.tricks_won - you.bid))) if you.bid >= 1 else (zero_bid_success_points if you.tricks_won == 0 else -zero_bid_failure_penalty)"
+            }
+          }
+        }
+      ],
+      "text": "Round {round} scored. [seat, bid, tricks won, bonus]: {[[p.seat, p.bid, p.tricks_won, p.bonus] for p in players]}. Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "check",
+      "phase": "score",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 8,
+    "rounds_max": 10,
+    "actions_max": 2000,
+    "deadline_s": 120
+  },
+  "rules": "The game lasts {rounds} rounds. Every player's score starts at 0.\n\nThe deck has {deck_size} cards, each identified by its power: number cards {number_card_min} to {number_card_max} (one of each); {escape_count} Escapes of power {escape_power}; one Mermaid, power {mermaid_power}; Pirate A, power {pirate_a_power}; Pirate B, power {pirate_b_power}; and the Skull King, power {skull_king_power}.\n\nEach round all {deck_size} cards are gathered and shuffled, and {hand_size} cards are dealt to each player, one at a time in seat order. Your hand is private: only you see it. The undealt cards are never revealed.\n\nBID: all players bid at the same time, choosing a whole number from {bid_min} to {bid_max}: how many of the {tricks_per_round} tricks you will win. Nobody sees another bid until all bids are in; then every bid is announced to everyone.\n\nThen {tricks_per_round} tricks are played. In each trick every player at the same time plays one card from their own hand; the card leaves the hand, and all played cards are revealed together. If both the Mermaid and the Skull King were played, the Mermaid's player wins the trick. Otherwise the player of the highest-power card wins. The winner adds 1 to their tricks won. If the Skull King won the trick, its player gains a bonus of {skull_king_bonus_per_pirate} for each Pirate played in that trick (no Pirate, no bonus). If the Mermaid won the trick and the Skull King was played in it, the Mermaid's player gains a bonus of {mermaid_captures_skull_king_bonus}.\n\nSCORING after the three tricks: if you bid 1, 2 or 3 and your tricks won equal your bid, you gain {exact_bid_points_per_trick} times your bid plus your bonus. If you bid 1, 2 or 3 and your tricks won differ from your bid, you lose {missed_bid_penalty_per_trick} times the difference, and your bonus is not scored. If you bid 0 and won no tricks, you gain {zero_bid_success_points}. If you bid 0 and won 1 or more tricks, you lose {zero_bid_failure_penalty}. Bonuses and tricks won reset each round.\n\nThere is no discussion. After round {rounds}, the highest total score wins; players tied for the highest share the win."
+}

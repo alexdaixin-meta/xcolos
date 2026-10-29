@@ -60,6 +60,7 @@ class Game:
         self.phase = "setup"
         self.status = RunStatus.SETUP
         self.winner: str | None = None
+        self.standings: dict[int, float] | None = None
         self.reason: str | None = None
         self.summary: str = ""  # how the game ended, in words: final scores, what decided it
 
@@ -369,10 +370,17 @@ class Game:
         self.round += 1
         self.log.record("process", "advance_round")
 
-    def end_game(self, winner: str, reason: str, summary: str = "") -> None:
+    def end_game(self, winner: str, reason: str, summary: str = "",
+                 standings: dict[int, float] | None = None) -> None:
         self.status = RunStatus.ENDED
         self.winner, self.reason, self.summary = winner, reason, summary
-        self.log.record("process", "end_game", winner=winner, reason=reason, summary=summary)
+        self.standings = standings
+        fields: dict[str, Any] = {}
+        if standings is not None:
+            # String keys: the log is JSON, and a record with int keys is refused.
+            fields["standings"] = {str(s): v for s, v in standings.items()}
+        self.log.record("process", "end_game", winner=winner, reason=reason,
+                        summary=summary, **fields)
 
     def abandon(self, reason: str) -> None:
         self.status = RunStatus.ABANDONED

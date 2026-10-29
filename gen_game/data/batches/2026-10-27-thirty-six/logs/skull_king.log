@@ -1,0 +1,43 @@
+
+$ gen_game convert skull_king --judge   (code 4c3d46f237, 10:54:28)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_tests: The failing assertions check `deck` and `hand`, which are the coder's own bookkeeping and not part of the interface. The deck is legitimately refilled to 18 for the next round's shuffle, so expecting 9 or 3 left after the round misreads the rules. The bid and 'rule never matched' failures come from the tests' choice scripting: they expect bids to be offered as a fixed menu containing 1, the game never offered such a menu, so the default choice of 0 was entered and the bid checks failed.
+rewriting the independent tests
+step D: evaluating
+triage: fix_game: The trace shows only 12 moves in round 1. That is exactly three simultaneous card plays of 4 seats, so the game never polls a bid: `bid` stays at its starting 0, and seats are never offered 0-3. The tests correctly expect the bid each seat enters to be recorded, and the rules do not reset bids at round end.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The tests correctly expect each player to be offered the bids 0, 1, 2 and 3 and to have the chosen value recorded in `bid`. In the game file, the bid step never offered those options (not even 0), so every seat's bid stayed at the default 0 and the bid-0 scoring followed from that.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_tests: The R6 trace shows the game working as the rules say. The deck is refilled to 18 and 3 cards are dealt to each seat. A bid poll offering 0–3 stores the bids (all 0 here). Three tricks are played and resolved correctly, with seat 3 winning two and seat 2 one, and scoring applies the zero-bid +20/−20 rule. R2–R5 did not fail on what they assert (round counter, deck size, hands). They failed only on a test-side scripted rule ('option 0 offered exactly once to each seat') that the harness never matched under a 'decline' default.
+rewriting the independent tests
+step D: evaluating
+triage: fix_game: The bid poll did not offer every seat the options 0 to 3. Seat 1's rule matched, but seats 2 and 3 were never offered option 3 and fell back to the default 0, so seat 2's bid of 3 could not be entered. The rules require one simultaneous poll in which every player chooses from bid_min to bid_max, so the game file is at fault.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules say the bid poll offers exactly 0, 1, 2 and 3, and the tests rightly answer 3 whenever that option is offered. The game never offered 3 to any seat, so every bid fell back to the default 0 (seat 2's expected bid of 3 came out as 0), which means the file builds the bid options wrongly.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+triage: revise_rules: The same failure has repeated on attempts 2, 3 and 4: `bonus` (and the coder's `capture` helper) never changes in random matches, even though the coder changed the file each time. The only thing that raises `bonus` is the Mermaid and the Skull King landing in the same trick. Both must be dealt to different players and played together, so with random play this happens in only a small share of rounds, and the rule cannot be reliably exercised or checked.
+
+skull_king: dropped
+  too complex: it could not be built to behave as designed: attempt 1: an option is offered and then refused (see the offer-only-what-is-allowed pattern): refused: seat 1 was offered 31 in `play_a_card`, picked it, and was asked again without it (round 1): the first offer held an option that was not allowed. Offer each seat only what it may do, from its own state, instead of refusing afterwards | refused: seat 2 was offered 0 in `play_a_card`, picked it, and was asked again without it (round 1): the first offe
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/4c3d46f237/gen_game/data/games/skull_king
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/4c3d46f237/gen_game/data/games/skull_king/VERIFIED.md

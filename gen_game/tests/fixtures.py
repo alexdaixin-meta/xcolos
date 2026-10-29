@@ -16,10 +16,42 @@ from gen_game import complexity, critic, flow
 from gen_inventory.inventory import Inventory
 from gen_inventory.schema import from_dict
 from xcolos.games import available
+from xcolos.games.loader import load
 
 LIBRARY = Path(__file__).resolve().parents[2] / "xcolos" / "games" / "library"
 RPS_TEXT = (LIBRARY / "rps.json").read_text()
 RPS = available()["rps"]
+
+# rps with one judged step (a prose `when` a referee answers) worth +100 to seat 1, and `llm` wording on the reveal, which keeps its `text`
+JUDGED_RPS_DICT = json.loads(RPS_TEXT)
+JUDGED_RPS_DICT["steps"][5]["llm"] = "Announce the reveal in a few words."
+JUDGED_RPS_DICT["steps"].insert(20, {"use": "update", "label": "the bonus", "when": {"prose": "The bonus rule applies this round."},
+                                     "do": [{"adjust": {"player": 1, "key": "score", "value": 100}}], "text": "Bonus to seat 1."})
+JUDGED = load(json.dumps(JUDGED_RPS_DICT), source="rps")
+
+
+def _ending(raw: dict, end: dict) -> dict:
+    """rps with its endings replaced, and the check that fires them pointed at the new ones."""
+    raw["end"] = end
+    for step in raw["steps"]:
+        if step.get("use") == "check":
+            step["against"] = list(end)
+    return raw
+
+
+#: rps ended the way games did before `rank_by`: one fixed `result` per outcome. It loads and plays, but logs no standings.
+RESULT_RPS_DICT = _ending(json.loads(RPS_TEXT), {
+    "seat_1_wins": {"when": {"calc": "players[0].score > players[1].score"}, "result": "seat 1", "text": "Seat 1 wins."},
+    "seat_2_wins": {"when": {"calc": "players[1].score > players[0].score"}, "result": "seat 2", "text": "Seat 2 wins."},
+    "draw": {"when": {"calc": "players[0].score == players[1].score"}, "result": "draw", "text": "A draw."}})
+#: rps ranked by score with a bar no seat reaches (`min_to_win`): every match ends with no winner, its standings logged.
+BAR_RPS_DICT = _ending(json.loads(RPS_TEXT), {
+    "over": {"when": {"calc": "rounds_left == 0"}, "rank_by": "you.score", "min_to_win": 1000,
+             "text": "Result: {result}. Nobody reached 1000 points."}})
+#: rps whose winner a model names from a sentence (the engine's `winner`), which a generated game may not use.
+WINNER_RPS_DICT = _ending(json.loads(RPS_TEXT), {
+    "over": {"when": {"calc": "rounds_left == 0"}, "winner": "The player with the higher score wins; level scores share the win.",
+             "text": "{result} wins."}})
 
 SPEC = {
     "name": "Rock, Paper, Scissors", "summary": "ten rounds of hidden cards",
@@ -30,7 +62,7 @@ SPEC = {
     "setup": ["each player gets four of each card"],
     "round": [{"action": "ask", "who": "each player in turn", "answer": "a card from the hand", "effect": "the card leaves the hand"},
               {"action": "update", "who": "table", "answer": None, "effect": "the winner scores the card's value"}],
-    "ending": {"condition": "rounds_left == 0", "results": ["seat 1", "seat 2", "draw"], "decided_by": "higher score"},
+    "ending": {"condition": "rounds_left == 0", "rank_by": "you.score", "decided_by": "the higher score wins; level scores share the win"},
     "choices": [{"what": "twelve cards each", "why": "so ten rounds fit"}], "simplifications": [], "unsupported": [],
 }
 # Seats name the cards they play, not the position of the question: a hand of one kind of card is answered by the engine, so a script that
@@ -38,7 +70,7 @@ SPEC = {
 ALWAYS_ROCK = {"name": "everyone plays the same cards", "players": 2, "seed": 1,
                "rules": [{"seat": seat, "options_include": card, "times": n}
                          for seat in (1, 2) for card, n in (("rock", 4), ("paper", 4), ("scissors", "all"))],
-               "expect": {"result": "draw", "players": {"1": {"score": 0}, "2": {"score": 0}}, "game": {"rounds_left": 0}}}
+               "expect": {"winner": [1, 2], "players": {"1": {"score": 0}, "2": {"score": 0}}, "game": {"rounds_left": 0}}}
 #: The older, positional form: every question the game asks, in order (the last two rounds hold one kind of card, so are not asked).
 ALWAYS_ROCK_MOVES = {**{k: v for k, v in ALWAYS_ROCK.items() if k != "rules"},
                      "moves": {"1": ["rock"] * 4 + ["paper"] * 4, "2": ["rock"] * 4 + ["paper"] * 4}}

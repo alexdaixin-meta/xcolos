@@ -1,0 +1,213 @@
+# 28 spec
+
+- time: 2026-10-27T09:16:02+00:00 (55.4s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 a5b6aa2e2f1bcef5, reply sha256 f8db802b3b76d764
+
+## Sent
+
+````
+Game: Coyote: Around the Fire
+Players in the source: 3 to 4
+Suggested table size, chosen by the designer of these rules (keep it): 4
+
+Rules, as filed in the inventory:
+R1 Setup. Seats are numbered 1 to N clockwise (N is 3 or 4). Every player starts with 0 tokens and is alive. opener_seat = 1, hand_active = no, round = 1.
+
+R2 Deck. The deck has exactly 20 cards:
+- one −2
+- two −1
+- three 0
+- three 1
+- three 2
+- three 3
+- two 4
+- two 5
+- one special card, Max→0
+
+R3 Start of a round. If hand_active is no, a new hand begins:
+- The deck is restored to all 20 cards and shuffled.
+- Each alive player is dealt exactly 1 card face-down.
+- Each player is privately told the card of every other alive player, never their own.
+- current_declaration is set to none and hand_active to yes.
+- Everyone is told that a new hand begins and who opens it.
+If hand_active is already yes, the hand in progress simply continues.
+
+R4 Turn order. In every round the alive players take exactly one turn each:
+- The first turn goes to the player in opener_seat, then each next alive player clockwise, so a round has as many turns as there are alive players (at most 4).
+- The order is the same in every round of a hand, so a hand passes around the table lap after lap.
+- If Coyote is called, the hand ends and any remaining turns of that round are skipped.
+Before each turn, all players are shown the current declaration, who made it, and every declaration made so far this hand.
+
+R5 A turn.
+(a) If there is no declaration yet this hand, the player must declare a whole number from −3 to 20.
+(b) Otherwise the player either declares a whole number at least current_declaration + 1 and at most 20, or calls Coyote. If current_declaration is 20, the player must call Coyote.
+(c) A declaration makes that player the current declarer and the number the current declaration.
+
+R6 True total. All cards are revealed to everyone.
+- Add all card values, counting Max→0 as 0.
+- If Max→0 was dealt, the single highest other dealt card counts as 0 instead, provided its value is positive. If several cards tie for highest, only one of them is cancelled.
+
+R7 Resolving Coyote. Compute the true total.
+- If the true total is less than the current declaration, the current declarer loses the hand.
+- Otherwise the caller loses the hand.
+The loser gains 1 token. All cards, the true total and the loser are announced to everyone. hand_active becomes no.
+
+R8 Elimination. A player with 3 tokens is eliminated. They receive no more cards and are skipped in turn order.
+
+R9 Next opener. After every hand, opener_seat moves to the next alive player clockwise from the current opener, whoever lost. If the current opener was just eliminated, it moves to the next alive player clockwise from their seat.
+
+R10 End. The game ends immediately when only one player is alive, and that player wins. If round 40 ends first, any unfinished hand is discarded without a token. The alive player with the fewest tokens then wins; if two or more alive players tie for fewest, the game is a draw.
+
+There is no table talk: declarations and calls are the only communication.
+
+How the winner is decided: Be the last player not eliminated (3 tokens eliminate). If 40 rounds pass with more than one player alive, the alive player with the fewest tokens wins, and a tie for fewest is a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Coyote: Around the Fire",
+  "summary": "Each player sees every card but their own. Players raise a claim about the table's total until someone calls Coyote, and whoever is wrong takes a token; three tokens and you are out.",
+  "players": {"min": 3, "max": 4, "suggested": 4},
+  "parameters": {
+    "deck_size": 20,
+    "count_minus2": 1,
+    "count_minus1": 2,
+    "count_0": 3,
+    "count_1": 3,
+    "count_2": 3,
+    "count_3": 3,
+    "count_4": 2,
+    "count_5": 2,
+    "count_max0": 1,
+    "max0_code": 100,
+    "cards_per_player": 1,
+    "first_declaration_min": -3,
+    "declaration_max": 20,
+    "raise_min_step": 1,
+    "tokens_to_eliminate": 3,
+    "token_per_loss": 1,
+    "max_rounds": 40,
+    "first_opener_seat": 1
+  },
+  "attributes": {
+    "player": [
+      {"key": "seat", "type": "number", "visible": "public", "initial": "1..N clockwise", "meaning": "seat number", "observable": true},
+      {"key": "tokens", "type": "number", "visible": "public", "initial": 0, "meaning": "hands lost; at 3 the player is eliminated (the score, lower is better)", "observable": true},
+      {"key": "alive", "type": "bool", "visible": "public", "initial": true, "meaning": "false once the player has 3 tokens", "observable": true},
+      {"key": "card", "type": "number", "visible": "others", "initial": null, "meaning": "this hand's face-down card: -2..5, or 100 for Max→0; null if not dealt. Every other player sees it, the owner never does", "observable": false}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": [-2, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 100], "meaning": "undealt cards of the current hand", "observable": false},
+      {"key": "opener_seat", "type": "number", "visible": "public", "initial": 1, "meaning": "seat that takes the first turn of every round of the current hand", "observable": true},
+      {"key": "hand_active", "type": "bool", "visible": "public", "initial": false, "meaning": "whether a hand is in progress", "observable": false},
+      {"key": "round", "type": "number", "visible": "public", "initial": 1, "meaning": "round counter, up to 40", "observable": true},
+      {"key": "has_declaration", "type": "bool", "visible": "public", "initial": false, "meaning": "false while current_declaration is none", "observable": false},
+      {"key": "current_declaration", "type": "number", "visible": "public", "initial": null, "meaning": "the highest declaration this hand (none at hand start)", "observable": false},
+      {"key": "current_declarer", "type": "number", "visible": "public", "initial": null, "meaning": "seat that made current_declaration", "observable": false},
+      {"key": "declarations", "type": "list", "visible": "public", "initial": [], "meaning": "every (seat, number) declared this hand, in order", "observable": false},
+      {"key": "coyote_called", "type": "bool", "visible": "public", "initial": false, "meaning": "set when a player calls Coyote this hand", "observable": false},
+      {"key": "caller", "type": "number", "visible": "public", "initial": null, "meaning": "seat that called Coyote", "observable": false},
+      {"key": "true_total", "type": "number", "visible": "public", "initial": null, "meaning": "true total of the resolved hand", "observable": false},
+      {"key": "last_loser", "type": "number", "visible": "public", "initial": null, "meaning": "seat that lost the last hand", "observable": false},
+      {"key": "alive_count", "type": "number", "visible": "public", "initial": "N", "meaning": "number of alive players", "observable": false}
+    ]
+  },
+  "setup": [
+    "Seats are numbered 1 to N clockwise (N is 3 or 4).",
+    "Every player gets tokens = 0 and alive = true, and alive_count = N.",
+    "Set opener_seat = 1, hand_active = false and round = 1."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "when": "hand_active == false",
+     "effect": "New hand. Reset deck to the 20 cards. Set every player's card to null. For each alive player, draw 1 card at random from deck into that player's card and remove it from deck. Set has_declaration = false, current_declaration = none, current_declarer = none, declarations = [], coyote_called = false, caller = none, hand_active = true."},
+    {"action": "sync", "who": "all players", "answer": null,
+     "effect": "Each player is sent the cards of every other alive player (card is visible to others) and never their own."},
+    {"action": "tell", "who": "all players", "answer": null, "when": "a new hand began this round",
+     "effect": "Announce: 'A new hand begins; seat {opener_seat} opens.'"},
+    {"action": "tell", "who": "all players", "answer": null, "when": "hand_active and not coyote_called and alive_count >= 1",
+     "effect": "Show current_declaration, current_declarer and declarations."},
+    {"action": "ask", "who": "the 1st alive seat clockwise starting at opener_seat", "when": "hand_active and not coyote_called and alive_count >= 1",
+     "answer": "if has_declaration is false: a whole number from -3 to 20; otherwise one of 'coyote' or a whole number from current_declaration+1 to 20 (only 'coyote' if current_declaration == 20)",
+     "effect": "On a number: current_declaration = number, current_declarer = this seat, has_declaration = true, append (seat, number) to declarations. On 'coyote': coyote_called = true, caller = this seat."},
+    {"action": "tell", "who": "all players", "answer": null, "when": "hand_active and not coyote_called and alive_count >= 2",
+     "effect": "Show current_declaration, current_declarer and declarations."},
+    {"action": "ask", "who": "the 2nd alive seat clockwise starting at opener_seat", "when": "hand_active and not coyote_called and alive_count >= 2",
+     "answer": "as in the 1st turn",
+     "effect": "as in the 1st turn"},
+    {"action": "tell", "who": "all players", "answer": null, "when": "hand_active and not coyote_called and alive_count >= 3",
+     "effect": "Show current_declaration, current_declarer and declarations."},
+    {"action": "ask", "who": "the 3rd alive seat clockwise starting at opener_seat", "when": "hand_active and not coyote_called and alive_count >= 3",
+     "answer": "as in the 1st turn",
+     "effect": "as in the 1st turn"},
+    {"action": "tell", "who": "all players", "answer": null, "when": "hand_active and not coyote_called and alive_count >= 4",
+     "effect": "Show current_declaration, current_declarer and declarations."},
+    {"action": "ask", "who": "the 4th alive seat clockwise starting at opener_seat", "when": "hand_active and not coyote_called and alive_count >= 4",
+     "answer": "as in the 1st turn",
+     "effect": "as in the 1st turn"},
+    {"action": "update", "who": "all players", "answer": null, "when": "coyote_called",
+     "effect": "Work out the true total. Let S = the sum of all dealt cards that are not 100, and M = the highest dealt card that is not 100. true_total = S - (M if some dealt card == 100 and M > 0, else 0); only one copy of a tied highest card is cancelled. If true_total < current_declaration, then last_loser = current_declarer, else last_loser = caller. last_loser.tokens += 1. If last_loser.tokens >= 3, then last_loser.alive = false and alive_count -= 1. opener_seat = the next alive seat clockwise from the current opener_seat (if that opener was just eliminated, the next alive seat clockwise from their seat). hand_active = false."},
+    {"action": "tell", "who": "all players", "answer": null, "when": "coyote_called",
+     "effect": "Announce every alive player's card, true_total, last_loser and the tokens, and any elimination."},
+    {"action": "check", "who": "all players", "answer": null,
+     "effect": "End the game if alive_count == 1."},
+    {"action": "update", "who": "all players", "answer": null,
+     "effect": "round += 1"},
+    {"action": "check", "who": "all players", "answer": null,
+     "effect": "End the game if round > 40. Any unfinished hand is discarded and no token is given."}
+  ],
+  "ending": {
+    "condition": "alive_count == 1 or round > 40",
+    "rank_by": "you.alive * 10 - you.tokens",
+    "decided_by": "Eliminated players rank below every alive player. If only one player is alive, that player wins. If 40 rounds pass, the alive player with the fewest tokens wins, and alive players tied for fewest share the result (a draw)."
+  },
+  "rules": [
+    {"id": "R1", "text": "When the game starts, then every player has tokens 0 and alive true, opener_seat is 1, hand_active is false and round is 1."},
+    {"id": "R2", "text": "When a new hand begins, then deck is reset to exactly 20 cards: one -2, two -1, three 0, three 1, three 2, three 3, two 4, two 5 and one Max→0 (code 100)."},
+    {"id": "R3", "text": "When a round starts with hand_active false, then each alive player gets exactly 1 card drawn from deck, those cards leave deck, and eliminated players get no card."},
+    {"id": "R4", "text": "When cards are dealt, then each player sees the card of every other alive player and never their own."},
+    {"id": "R5", "text": "When a new hand begins, then current_declaration is none, declarations is empty, hand_active becomes true and everyone is told who opens."},
+    {"id": "R6", "text": "When a round starts with hand_active true, then no cards are dealt and the hand continues with the same cards and declarations."},
+    {"id": "R7", "text": "When a round is played, then each alive player takes at most one turn, starting at opener_seat and going clockwise through alive seats only."},
+    {"id": "R8", "text": "When Coyote is called, then the remaining turns of that round are skipped."},
+    {"id": "R9", "text": "When no declaration has been made this hand, then the player to act must declare a whole number from -3 to 20 and may not call Coyote."},
+    {"id": "R10", "text": "When a declaration exists, then the player to act may declare a whole number from current_declaration+1 to 20 or call Coyote."},
+    {"id": "R11", "text": "When current_declaration is 20, then the player to act must call Coyote."},
+    {"id": "R12", "text": "When a player declares a number, then current_declaration becomes that number, current_declarer becomes that seat, and the pair is appended to declarations."},
+    {"id": "R13", "text": "When Coyote is called and Max→0 is not dealt, then true_total is the sum of the dealt cards (for example 3, 5 and -1 give 7)."},
+    {"id": "R14", "text": "When Coyote is called and Max→0 is dealt with highest other card 5, then that 5 counts as 0 (for example Max→0, 5 and 2 give 2)."},
+    {"id": "R15", "text": "When Max→0 is dealt with two 3s as the highest other cards, then only one 3 is cancelled (for example Max→0, 3, 3 and 1 give 4)."},
+    {"id": "R16", "text": "When Max→0 is dealt and the highest other card is 0 or less, then nothing is cancelled (for example Max→0, -1 and 0 give -1)."},
+    {"id": "R17", "text": "When Coyote is called and true_total < current_declaration, then the current declarer gains 1 token."},
+    {"id": "R18", "text": "When Coyote is called and true_total >= current_declaration, then the caller gains 1 token."},
+    {"id": "R19", "text": "When a hand is resolved, then all cards, true_total and the loser are announced to everyone, and hand_active becomes false."},
+    {"id": "R20", "text": "When a player reaches 3 tokens, then alive becomes false, they get no more cards and they are skipped in turn order."},
+    {"id": "R21", "text": "When a hand ends, then opener_seat moves to the next alive seat clockwise from the current opener, whoever lost; if the opener was eliminated, it moves to the next alive seat clockwise from their seat."},
+    {"id": "R22", "text": "When only one player is alive, then the game ends immediately and that player wins."},
+    {"id": "R23", "text": "When round 40 ends with two or more players alive, then any unfinished hand is discarded with no token, and the alive player with the fewest tokens wins."},
+    {"id": "R24", "text": "When round 40 ends and two or more alive players tie for fewest tokens, then the game is a draw between them."}
+  ],
+  "offers": [
+    {"question": "A turn in a hand with no declaration yet", "who": "the alive seat whose turn it is", "options": "a whole number from -3 to 20; no Coyote"},
+    {"question": "A turn with current_declaration D < 20", "who": "the alive seat whose turn it is", "options": "coyote, or a whole number from D+1 to 20"},
+    {"question": "A turn with current_declaration 20", "who": "the alive seat whose turn it is", "options": "coyote only"},
+    {"question": "Any turn", "who": "eliminated seats", "options": "never asked"}
+  ],
+  "choices": [
+    {"what": "3 to 4 players, suggested 4", "why": "The designer chose 4. Three is the smallest table where each player reads two other cards and must guess their own while rivals push the bid. More than 4 would exceed the source's range and the 20-card deck design."},
+    {"what": "No table talk step", "why": "The rules say declarations and calls are the only communication."},
+    {"what": "Max→0 is stored as card code 100", "why": "Keeps every card a number, so the true total is pure arithmetic: code 100 counts as 0 and triggers cancelling the highest positive other card."},
+    {"what": "Rank by alive*10 - tokens", "why": "Puts every alive player above every eliminated one and orders alive players by fewest tokens."},
+    {"what": "Strategy noted", "why": "A good player infers their own card from the visible cards and from how others raise, and calls Coyote or raises depending on how plausible the claim is. A careless one declares at random."}
+  ],
+  "simplifications": [
+    {"what": "A round is written as four conditional turn steps (1st to 4th alive seat clockwise from opener_seat), each skipped once Coyote is called or when fewer seats are alive", "why": "The step list is flat; per-step when-conditions reproduce variable turn counts and skipped turns."},
+    {"what": "A tie for fewest tokens at round 40 is represented as a shared win among the tied players", "why": "The engine has no separate draw; tied top ranks share the result, which stands for the draw."}
+  ],
+  "unsupported": []
+}
+```
+````

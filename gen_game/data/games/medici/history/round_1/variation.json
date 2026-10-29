@@ -1,0 +1,139 @@
+{
+  "original_summary": "Medici is a 2-6 player auction game over 3 days. The active player turns up a lot of 1-3 commodity cards and the lot is auctioned once around the table, with the drawer bidding last. Players fill limited ships, and at the end of each day florins are paid for the most valuable ships and for majorities on cumulative commodity tracks. Most florins wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Every simple policy can lose. Always passing earns nothing, so it loses whenever rivals buy at fair prices. Always bidding your whole purse leaves you broke after one lot. Always bidding the minimum only wins lots nobody wants. The drawer bids last, which is an edge, but the drawer role rotates."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Valuing a lot against the ship and track bonuses still at stake, and sizing a lot to squeeze rivals, separate strong players from weak ones. Face-down deck order adds some luck: a player can draw a gold card or a dud. It does not swamp skill."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Pricing depends on rivals' remaining ship space, money and track standings, which leaves a deep valuation problem. A novice who buys cheaply still scores something."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Almost everything is public: lots, ships, tracks and usually money. The only hidden thing is the order of the deck, which is luck rather than something to infer. There is no opponent type to read. Reasoning is mostly calculation plus some opponent modelling of how high rivals will bid."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "All scoring is arithmetic on card values, track counts and florins."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is turn-based and text-only, but several things break the limits. Drawing 1-3 cards one at a time with a stop decision after each needs several random draws and conditional loops. Five commodities and per-player tracks for 6 players exceed the attribute limits. With 6 players an auction needs 6 sequential bid steps, more than 4 choice steps per round. Ending a day when ships fill and the fill-free rule add irregular flow."
+    }
+  ],
+  "problems": [
+    "P1: Nothing hidden worth inferring. Lots and tracks are public, so play is calculation, not inference about opponents.",
+    "P2: Card-by-card drawing with a stop after each card needs several random draws per round and loop-like control flow the engine cannot build.",
+    "P3: Up to 6 players means up to 6 sequential bids per auction, beyond 4 choice steps per round.",
+    "P4: Five commodities and per-player tracks for many players exceed the attribute budget.",
+    "P5: The day ends at an irregular moment (all ships but one full, plus the fill-free last ship), which needs conditional blocks and makes length unpredictable.",
+    "P6: Face-down draw luck (who happens to flip the high cards) adds randomness that is not skill.",
+    "P7: A fixed first player each day would gain a seat edge in an auction game where early lots set the tempo."
+  ],
+  "changes": [
+    {
+      "what": "Each player is secretly dealt a different Patron commodity. Commodity-majority awards in your Patron commodity are paid to you twice. Patrons are revealed only at the end.",
+      "why": "This creates one strong hidden element. Bids now signal which commodity a rival is chasing, and players must infer the two unknown patrons from bidding behaviour, and can bluff by bidding on a commodity that is not theirs. Patrons are a permutation of three equal commodities, so no one is dealt a better type: the type changes what to buy, not who is ahead.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Replace card-by-card drawing with an open Dock: the next 3 cards of the deck are always face up. The active player chooses to auction the first 1, 2 or 3 Dock cards as the lot. The Dock is then refilled from the deck.",
+      "why": "This keeps the drawer's key decision, sizing the lot to tempt or starve rivals, in a single choice with no loop. It also removes blind-flip luck, because everyone sees what is coming next.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Fix the game at exactly 3 players.",
+      "why": "An auction then needs 2 rival bids plus the drawer's bid. With the lot-size choice that is 4 choice steps. Three players also fit the patron permutation exactly.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Use 3 commodities (Spice, Silk, Grain), each with 10 cards valued 0,1,1,2,2,3,3,4,4,5, a 30-card deck reshuffled each day, and ship capacity 5.",
+      "why": "This keeps the attribute count low and the arithmetic easy while preserving the ship-value and track-majority trade-off.",
+      "fixes": "P4"
+    },
+    {
+      "what": "Each day is exactly 9 auction rounds: each player is active 3 times. A full ship simply cannot bid. The fill-free rule is dropped.",
+      "why": "This gives fixed length and a flat step list. With about 2 cards per lot against 15 total ship space, ships still fill and space stays scarce.",
+      "fixes": "P5"
+    },
+    {
+      "what": "The Dock shows the next 3 cards openly.",
+      "why": "Players plan around known upcoming lots, so outcomes depend on valuation rather than on flips.",
+      "fixes": "P6"
+    },
+    {
+      "what": "Rotate the first active player each day (day 1 player A, day 2 player B, day 3 player C).",
+      "why": "Every seat gets the same number of drawer turns and each seat leads one day.",
+      "fixes": "P7"
+    }
+  ],
+  "keeps": [
+    "Three trading days with florins as both purse and score",
+    "Lots of 1-3 commodity cards whose size the drawer chooses",
+    "A once-around auction with each rival bidding once in order and the drawer bidding last",
+    "Paying the bank; lots cannot be split, and a lot that would overfill your ship cannot be bid on",
+    "Limited ship holds scored by total value each day",
+    "Cumulative commodity tracks scored by majority each day",
+    "Most florins after day 3 wins"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The auction and valuation core is excellent for strategic reasoning. It only needs a hidden element to infer and a flatter structure to fit the engine."
+  },
+  "variation": {
+    "name": "Medici: Secret Patrons",
+    "summary": "A 3-player, 3-day Medici. The active player picks 1-3 cards from an open Dock as a lot and auctions it once around, bidding last. Ships score by value and cumulative commodity tracks score by majority. Each merchant secretly serves a Patron who doubles their majority award in one commodity, so bids must be read for hidden intent.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "SETUP. Three players sit in fixed order A, B, C. Each starts with 30 florins (public). Each has a ship with room for 5 cards and three public commodity tracks (Spice, Silk, Grain), all at 0. The three commodities are shuffled and one is dealt secretly to each player as their Patron, so every player has a different Patron and knows only their own. The deck has 30 cards: for each of Spice, Silk and Grain there are 10 cards valued 0, 1, 1, 2, 2, 3, 3, 4, 4, 5.\n\nSTART OF EACH DAY. There are 3 days. Shuffle all 30 cards into a face-down deck and empty every ship (tracks are NOT reset). Turn the top 3 cards face up in a row: this is the Dock, ordered first, second, third. The first active player is A on day 1, B on day 2 and C on day 3. The active role then passes in seat order A, B, C, A... each round. Each day has exactly 9 rounds.\n\nEACH ROUND.\n(1) The Dock, all ships, tracks and florins are announced.\n(2) The active player chooses a lot size of 1, 2 or 3 (no more than the cards in the Dock). The lot is the first that many Dock cards. Its size is its card count and its value is the sum of its card values.\n(3) Auction, once around. The next player in seat order after the active player bids first, then the other non-active player, then the active player last. Each bidder either passes or bids a whole number that is at least 1, higher than the current highest bid, and no more than their florins. A player whose ship lacks room for the whole lot must pass.\n(4) If anyone bid, the highest bidder pays that many florins to the bank and loads every card of the lot onto their ship. For each card loaded, that player's track in the card's commodity rises by 1, to a maximum of 10. If everyone passed, the lot is discarded.\n(5) Remove the lot's cards from the Dock, slide the remaining Dock cards forward, and refill the Dock to 3 cards from the top of the deck (fewer if the deck runs out).\n\nEND OF DAY (after round 9 of the day).\n(a) Ship scoring: rank players by total value of the cards on their ship. The highest gets 20 florins and the second gets 10. Tied players add the prizes for the places they occupy and split them equally, rounded down. A player with an empty ship gets nothing.\n(b) Commodity majorities: for each commodity, the player with the highest track gets 10 florins and the second highest gets 5. Ties split as above. A track at 0 earns nothing.\n(c) Patron: a player who earned a majority award in step (b) in their own Patron commodity receives that same amount again.\nAll awards are added to florins.\n\nEND OF GAME. After day 3 scoring, Patrons are revealed and the player with the most florins wins.",
+    "objective": "After the end-of-day scoring of day 3, the player with the most florins wins. If two or more players tie for the most, the game is a draw.",
+    "expected_effect": "Lots are priced against known ship space, cash and track standings, which keeps Medici's valuation depth. The hidden Patron adds inference. A rival who keeps paying over the odds for Silk is probably the Silk Patron, so contesting Silk costs more than it looks, while letting them have it hands them a doubled award. Players can also bluff by bidding up a non-patron commodity to drain rivals' purses. The open Dock removes blind-flip luck and makes lot sizing a deliberate squeeze: a 3-card lot that only one player can still fit, or a single juicy card to force a bidding war. Always passing earns nothing and loses to anyone buying at fair prices. Bidding your whole purse leaves you broke. Bidding the minimum wins only junk. There is no talk phase: with only 3 players and 4 choice steps already used, the auction itself carries the signalling, and cheap talk would add no conflict the bids do not already express."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 4,
+    "attributes": 15,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 27
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "AWARD ECONOMY PER DAY: ship prizes 20+10 = 30; three commodity majorities at 10+5 = 45; Patron bonus up to 10 per player, so up to 30. That is 75 to 105 florins created per day, 225 to 315 over the game. At most 15 cards are loaded per day (3 ships of 5), 45 over the game. So a card is worth very roughly 5 to 7 florins in awards, and sensible bids land around 2 to 6 per card.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (most florins wins):\n(1) Always pass. The player ends on 30 florins with no awards. The other two split about 75+ per day for three days. Even if they spend about 40 to 50 each on bids, each ends near 30 + 110 - 50 = 90, well above 30. Always pass loses against sensible play. Against random bidders it also loses: random bidders load cards and collect ship and majority prizes, and an empty ship and zero tracks earn nothing.\n(2) Always bid all your florins when legal. The player buys one lot on day 1 for about 30 and is then broke. With at most 3 cards, it may take one majority for 10 to 20, rebuys once, and is broke again. It loses to sensible play, and to random play almost always.\n(3) Always bid the minimum legal amount (current high + 1). Any later bidder outbids it at +1, so it wins only lots nobody else wants. It is often beaten on majorities and ship value. Against random play the result is mixed. It does not 'never lose'.\n(4) Lot size: always 1 or always 3. Neither is strictly better. Size 3 gives more track progress but packs low and high cards together, and fills the ship faster (5 slots).\nNo option is strictly dominant. No policy wins or draws regardless of opponents.\n\nSEAT AND ORDER: the active player bids last with full information and can top any bid by 1, which is a real edge. But each player is active 9 times. A is active in rounds 1,4,7 on day 1; 3,6,9 on day 2; 2,5,8 on day 3. B and C get the other permutations. Every player holds each round position exactly once per position class over the three days, so the late-day and first-round effects cancel. The first bidder (the seat after the active player) rotates the same way. Information is symmetric: Dock, tracks, ships and florins are public, and each player has exactly one hidden Patron. All three players can realistically win. The game is labelled as an auction with no payoff ordering to misstate.",
+          "notes": "None"
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS: the deck (30 cards, defined values), the Dock (3 face-up, ordered), lot = first N Dock cards, bid order, legal bids (at least 1, above the high bid, at most florins, room on ship), loading and track +1 capped at 10, discard if all pass, refill, and all end-of-day tie rules are specified. The Dock never runs short: each day starts with 3 cards up and 27 in the deck, and 9 rounds remove at most 27, so every round begins with 3 Dock cards. Florins can only fall through bids up to one's own total, so there is no debt.\n\nFINITE: 3 days x 9 rounds = 27 rounds. The winner is decided by arithmetic on kept numbers (florins), and a tie for most is a draw.\n\nLIMITS: rounds 27 (max 40). Choice steps 4 (lot size plus three bids; max 4).\n\nPlausible flat step list of 14 (max 20):\n1. announce\n2. lot size\n3. bid\n4. bid\n5. bid\n6. pay\n7. load/tracks\n8. refill\n9. ship ranking award (calc, `when` round = 9)\n10. Spice majority\n11. Silk majority\n12. Grain majority\n13. Patron bonus\n14. empty ships, reshuffle\nRanking uses the calc workaround.\n\nAttributes: florins, ship_count, ship_value, three tracks and patron per player, plus Dock list, deck, day and active seat. This is within 20 if counted per attribute type. It is tight if each player's copy is counted separately, and the designer's 15 should be checked against how the engine counts.\n\nHidden elements: Patrons and deck order = 2 (max 3).\n\nRandom draws: the Patron deal happens at setup. The daily shuffle can sit in the round-9 reset step. Refills are remove/append from an already shuffled list. So at most 1 per round.\n\nNo board, clock, judge, trades or binding agreements are needed. Bids are sequential, which is the point of the once-around auction, not a simultaneous choice disguised as turns.\n\nTALK: correctly omitted. The players do disagree, but the auction bids, public tracks and ship loads are themselves the signals to reason about. Talk would add only non-binding words, and binding agreements are unsupported. Players are not reduced to guessing each other.\n\nMinor wording to tidy, not blocking: in (c), 'majority award' should state that the 5-florin second place also counts, which is implied by (b)'s title. The repeated-game clause does not apply."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE SOURCES:\n- The Patron deal is symmetric: everyone gets exactly one, from the same card distribution of 0,1,1,2,2,3,3,4,4,5 per commodity.\n- The deck order decides which commodities and values appear in the Dock when you are active.\nThe Dock is public before every auction, so all players price the same cards. Luck only affects which lots you get to shape as active player, and that rotates. Estimated chance share of the result is about 20-30%.\n\nWITH ALL PLAYERS PLAYING WELL: each player chases their own Patron commodity and contests ship value. The outcome then turns on bid sizing against a limited budget, timing (ships fill at 5, tracks persist across days and cap at 10), and lot-size choices that deny opponents. It is not decided by the draw alone, because no hidden type gives a fixed advantage.\n\nINFERENCE AND OPPONENT MODELLING:\n- Opponents' Patrons can be inferred from which commodities they overbid for.\n- You can then deny their doubled majority, or bluff by buying a decoy commodity.\n- Florin totals are public, so bidding reach is computable, and the last bidder can exploit what earlier bids reveal.\n- Day-3 planning (no future value for florins after the final scoring) rewards calculation.\nA reasoning player is clearly favoured over a random or thoughtless one, as the policy tests above show."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

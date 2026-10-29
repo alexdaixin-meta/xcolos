@@ -1,0 +1,767 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "hats",
+    "name": "Ripening Hats",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "Twelve rounds of secretly picking hat colours: a colour only you pick pays its ripening value, with a bonus for your secret favourite; contested colours pay nothing."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "favourite",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "score",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "message",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "colour_pool",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Red",
+          "Blue",
+          "Green",
+          "Yellow",
+          "Purple"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "value_red",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "value_blue",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "value_green",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "value_yellow",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "value_purple",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "count_red",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_blue",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_green",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_yellow",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_purple",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "status_red",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "status_blue",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "status_green",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "status_yellow",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "status_purple",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "black_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "num_colours",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "initial_colour_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "max_colour_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "reset_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "value_increment",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "black_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "favourite_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "contested_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "initial_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "set colour values",
+      "do": [
+        {
+          "set": {
+            "key": "value_red",
+            "value": {
+              "calc": "initial_colour_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_blue",
+            "value": {
+              "calc": "initial_colour_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_green",
+            "value": {
+              "calc": "initial_colour_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_yellow",
+            "value": {
+              "calc": "initial_colour_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_purple",
+            "value": {
+              "calc": "initial_colour_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "status_red",
+            "value": "not played yet"
+          }
+        },
+        {
+          "set": {
+            "key": "status_blue",
+            "value": "not played yet"
+          }
+        },
+        {
+          "set": {
+            "key": "status_green",
+            "value": "not played yet"
+          }
+        },
+        {
+          "set": {
+            "key": "status_yellow",
+            "value": "not played yet"
+          }
+        },
+        {
+          "set": {
+            "key": "status_purple",
+            "value": "not played yet"
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "set scores and round",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "initial_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "message",
+            "value": "(none yet)"
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "choice",
+            "value": "(not chosen yet)"
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal favourites",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "colour_pool[min(len(colour_pool) - 1, int(uniform(0, len(colour_pool))))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 1"
+            },
+            "key": "favourite",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "colour_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "colour_pool[min(len(colour_pool) - 1, int(uniform(0, len(colour_pool))))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 2"
+            },
+            "key": "favourite",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "colour_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "colour_pool[min(len(colour_pool) - 1, int(uniform(0, len(colour_pool))))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 3"
+            },
+            "key": "favourite",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "colour_pool",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "colour_pool[min(len(colour_pool) - 1, int(uniform(0, len(colour_pool))))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 4"
+            },
+            "key": "favourite",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "colour_pool",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "your favourite",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "favourite",
+        "score"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "round begins",
+      "to": "all",
+      "text": "Round {round} of {rounds}. Values: Red {value_red}, Blue {value_blue}, Green {value_green}, Yellow {value_yellow}, Purple {value_purple}."
+    },
+    {
+      "use": "update",
+      "phase": "announce",
+      "label": "clear last round",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "message",
+            "value": "(none yet)"
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "choice",
+            "value": "(not chosen yet)"
+          }
+        }
+      ]
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "store": "message",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table. Everyone writes at the same time; all messages are shown once all are in. Talk binds no one."
+    },
+    {
+      "use": "poll",
+      "phase": "choice",
+      "label": "pick a hat",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Red",
+          "Blue",
+          "Green",
+          "Yellow",
+          "Purple",
+          "Black"
+        ]
+      },
+      "store": "choice",
+      "text": "Secretly choose one of Red, Blue, Green, Yellow, Purple or Black. A colour only you choose pays its value (plus the favourite bonus if it is your favourite); a colour chosen by two or more pays nothing; Black always pays {black_points}."
+    },
+    {
+      "use": "update",
+      "phase": "collect",
+      "label": "count choices",
+      "do": [
+        {
+          "set": {
+            "key": "count_red",
+            "value": {
+              "calc": "count(p.choice == 'Red' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_blue",
+            "value": {
+              "calc": "count(p.choice == 'Blue' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_green",
+            "value": {
+              "calc": "count(p.choice == 'Green' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_yellow",
+            "value": {
+              "calc": "count(p.choice == 'Yellow' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_purple",
+            "value": {
+              "calc": "count(p.choice == 'Purple' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "black_count",
+            "value": {
+              "calc": "count(p.choice == 'Black' for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "collect",
+      "label": "collect",
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "(black_points if you.choice == 'Black' else 0) + ((((value_red + (favourite_bonus if you.favourite == 'Red' else 0)) if count_red == 1 else contested_gain)) if you.choice == 'Red' else 0) + ((((value_blue + (favourite_bonus if you.favourite == 'Blue' else 0)) if count_blue == 1 else contested_gain)) if you.choice == 'Blue' else 0) + ((((value_green + (favourite_bonus if you.favourite == 'Green' else 0)) if count_green == 1 else contested_gain)) if you.choice == 'Green' else 0) + ((((value_yellow + (favourite_bonus if you.favourite == 'Yellow' else 0)) if count_yellow == 1 else contested_gain)) if you.choice == 'Yellow' else 0) + ((((value_purple + (favourite_bonus if you.favourite == 'Purple' else 0)) if count_purple == 1 else contested_gain)) if you.choice == 'Purple' else 0)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "collect",
+      "label": "colour results",
+      "do": [
+        {
+          "set": {
+            "key": "status_red",
+            "value": {
+              "calc": "'COLLECTED' if count_red == 1 else ('CONTESTED' if count_red >= 2 else 'UNTOUCHED')"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "status_blue",
+            "value": {
+              "calc": "'COLLECTED' if count_blue == 1 else ('CONTESTED' if count_blue >= 2 else 'UNTOUCHED')"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "status_green",
+            "value": {
+              "calc": "'COLLECTED' if count_green == 1 else ('CONTESTED' if count_green >= 2 else 'UNTOUCHED')"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "status_yellow",
+            "value": {
+              "calc": "'COLLECTED' if count_yellow == 1 else ('CONTESTED' if count_yellow >= 2 else 'UNTOUCHED')"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "status_purple",
+            "value": {
+              "calc": "'COLLECTED' if count_purple == 1 else ('CONTESTED' if count_purple >= 2 else 'UNTOUCHED')"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "collect",
+      "label": "results",
+      "to": "all",
+      "text": "Red {status_red}, Blue {status_blue}, Green {status_green}, Yellow {status_yellow}, Purple {status_purple}. Black chosen by {black_count}."
+    },
+    {
+      "use": "update",
+      "phase": "ripen",
+      "label": "value update",
+      "do": [
+        {
+          "set": {
+            "key": "value_red",
+            "value": {
+              "calc": "reset_value if count_red == 1 else min(max_colour_value, value_red + value_increment)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_blue",
+            "value": {
+              "calc": "reset_value if count_blue == 1 else min(max_colour_value, value_blue + value_increment)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_green",
+            "value": {
+              "calc": "reset_value if count_green == 1 else min(max_colour_value, value_green + value_increment)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_yellow",
+            "value": {
+              "calc": "reset_value if count_yellow == 1 else min(max_colour_value, value_yellow + value_increment)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "value_purple",
+            "value": {
+              "calc": "reset_value if count_purple == 1 else min(max_colour_value, value_purple + value_increment)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "ripen",
+      "label": "your standing",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "score",
+        "favourite"
+      ],
+      "text": "Where you stand:"
+    },
+    {
+      "use": "update",
+      "phase": "ripen",
+      "label": "next round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "ripen",
+      "label": "after the last round",
+      "when": {
+        "calc": "round > rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round > rounds"
+      },
+      "rank_by": "you.score",
+      "reveal": [
+        "favourite",
+        "score"
+      ],
+      "text": "Winner: {result}. Final [seat, score, favourite]: {[[p.seat, p.score, p.favourite] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 12,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "There are {num_colours} hat colours, in this fixed order: Red, Blue, Green, Yellow, Purple. Each colour has a public value, and all five start at {initial_colour_value}. Each player is dealt a secret favourite colour at random, all different; only that player knows it. Every player has a private score starting at {initial_score}, which only that player can see.\n\nThe game lasts {rounds} rounds. Each round:\n1. Everyone is told the round number and the current value of each of the 5 colours.\n2. Talk: everyone writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Talk binds no one.\n3. Choice: everyone simultaneously and secretly chooses one of Red, Blue, Green, Yellow, Purple or Black.\n4. Collection. A player who chose Black adds {black_points} to their score. A player who chose a colour that no other player chose this round collects it: they add that colour's current value to their score, plus {favourite_bonus} more if it is their favourite; if it is not their favourite, they add only the colour's value. A colour chosen by two or more players is contested, and none of them gains anything ({contested_gain}).\n5. Everyone is told, without naming players: for each colour, whether it was COLLECTED (exactly one chooser), CONTESTED (two or more) or UNTOUCHED (no one), and how many players chose Black. Individual choices and scores are never announced.\n6. Value update. Each colour that was collected this round resets to {reset_value}. Each colour that was contested or untouched gains +{value_increment}, to a maximum of {max_colour_value} (a colour at {max_colour_value} stays there).\n\nAfter round {rounds} the game ends and all favourites and scores are revealed. The player with the highest final score wins. If two or more players tie for the highest score, the game is a draw among them (they share the result)."
+}

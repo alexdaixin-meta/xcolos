@@ -277,6 +277,46 @@ def test_the_rater_is_told_spatial_games_are_out():
     assert "spatial_board" not in system.split("The engine cannot express:")[1].split("Out of scope")[0]
 
 
+# -- what the inventory holds ---------------------------------------------------
+
+
+def test_kept_counts_ready_blocked_and_later_games_and_not_rejects_or_duplicates():
+    inv = inventory()
+    inv.add(make())
+    own = lambda word: " ".join(f"{word}{i}" for i in range(60))  # noqa: E731 - near-identical rules would be duplicates
+    inv.add(make(id="blocked", name="Blocked", rules_text=own("trade"), needs=["trading_between_players"]))
+    inv.add(make(id="board", name="Board", rules_text=own("grid"), needs=["spatial_board"]))
+    inv.add(make(id="twin", name="Race to Fifty"))
+    assert sorted(r.id for r in inv.kept()) == ["blocked", "race"]
+
+
+def test_the_inventory_reached_through_a_link_writes_the_shipped_index():
+    from gen_inventory.inventory import DEFAULT_DIR, DEFAULT_INDEX
+
+    link = Path(tempfile.mkdtemp()) / "inventory"
+    link.symlink_to(DEFAULT_DIR)  # a pinned copy of the code reaches the shared records this way
+    assert Inventory(link).index_path == DEFAULT_INDEX
+
+
+def test_remove_takes_a_game_out_of_the_store_and_the_index():
+    inv = inventory()
+    inv.add(make())
+    inv.remove("race")
+    assert inv.all() == [] and "`race`" not in inv.index_path.read_text()
+    try:
+        inv.remove("race")
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("removing a game that is not there should fail")
+
+
+def test_saving_leaves_no_temporary_file_behind():
+    inv = inventory()
+    inv.add(make())
+    assert sorted(p.name for p in inv.root.iterdir()) == ["INDEX.json", "INDEX.md", "race.json"]
+
+
 # -- dropped games ------------------------------------------------------------
 
 
@@ -294,6 +334,16 @@ def test_a_dropped_game_stays_dropped_through_every_recheck_until_the_reason_is_
     assert "| dropped |" in row and "too complex" in row
     inv.save(__import__("dataclasses").replace(inv.get("race"), dropped=""))
     assert inv.check("race").status == "ready"
+
+
+def test_a_game_that_did_not_pass_keeps_its_status_and_the_index_says_why():
+    inv = inventory()
+    rec = inv.add(make())
+    inv.save(__import__("dataclasses").replace(rec, not_passed="needs_review: 25/27 scenarios"))
+    inv.recheck()
+    assert inv.get("race").status == "ready" and inv.get("race").not_passed == "needs_review: 25/27 scenarios"  # still converted again
+    row = next(l for l in inv.index_path.read_text().splitlines() if "`race`" in l)
+    assert "| not passed |" in row and "needs_review: 25/27 scenarios" in row
 
 
 # -- verifiability and value -----------------------------------------------

@@ -1,0 +1,374 @@
+{
+  "game": "for_sale",
+  "attempts": [],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "R1: at setup no seat holds any property and the game is at round 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R2: at setup property_deck holds 30 cards and cheque_deck holds 30 cheques",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R3: a buying round draws 3 properties, so the deck shrinks by 3 and each seat gains one card (which cards is chance)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R4: bid options run from 0 to the seat's current coins and no higher",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R5: the highest bid takes HIGH, the next takes MIDDLE and the lowest takes LOW",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R6: in round 2, tied bids give priority in the order 2, 3, 1",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R6: in round 1, tied bids give priority in the order 1, 2, 3",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R7: the top bidder pays the full bid of 7; all cheques are 0, so final money is the coins left",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R8: second and third place pay floor(bid/2), so a bid of 5 costs 2 and a bid of 3 costs 1; all cheques are 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R9: after a buying round the public hands show who took LOW, MIDDLE and HIGH",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R10: after round 8 each seat holds 8 properties and 6 cards stay in property_deck",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R11: a selling round draws 3 cheques from cheque_deck (which cheques is chance)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R12: in a selling round a seat is offered only the cards in its own hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R13: in the last round the highest property takes cheque 15, the middle takes 9 and the lowest takes 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R14: a played property is removed from its owner's hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R15: after a selling round the public hands show which property each seat played",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R16: after round 16 the game ends with final_money = cheques + coins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R17: equal final money is won by the seat with more remaining coins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R17: seats level on both money and coins share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        3
+      ],
+      "results": {
+        "seat 2": 11,
+        "seat 3": 4,
+        "seat 1": 5
+      },
+      "turns_min": 45,
+      "turns_max": 45
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 2": 33,
+      "seat 3": 11,
+      "seat 1": 15,
+      "seats 2 and 3": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 15,
+        "loss": 45,
+        "draw": 0,
+        "win_rate": 0.25
+      },
+      "first@seat2": {
+        "win": 20,
+        "loss": 40,
+        "draw": 0,
+        "win_rate": 0.33
+      },
+      "last@seat1": {
+        "win": 0,
+        "loss": 59,
+        "draw": 1,
+        "win_rate": 0.0
+      },
+      "last@seat2": {
+        "win": 2,
+        "loss": 57,
+        "draw": 1,
+        "win_rate": 0.03
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 48.0,
+      "prompt_chars_avg": 263,
+      "prompt_chars_max": 325
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 3 players (min 3, max 3, suggested 3)",
+      "why": "The designer fixed 3. The 3-card reveals, the 3-way priority rotation and the LOW/MIDDLE/HIGH payment tiers are all built for exactly 3 seats."
+    },
+    {
+      "what": "No talk step before bids or plays",
+      "why": "The source has no communication phase, and talk would add a mechanic. Strategy comes from reading public hands and the inferable coin spending: bid low when the top card is weak, keep coins for the tie-break, and time high properties against strong cheques."
+    },
+    {
+      "what": "Tie-break computed as bid*10 + priority weight (3, 2, 1)",
+      "why": "This puts the rotating priority rule into one arithmetic key. Bids are at most 18, so the weight never outranks a higher bid."
+    },
+    {
+      "what": "bid_key is visible to its owner only (ally)",
+      "why": "It is engine scratch derived from the player's own private bid, and a player attribute cannot be fully hidden."
+    },
+    {
+      "what": "Cheque values described by numeric parameters (min 0, max 15, value 1 missing, 2 copies each)",
+      "why": "Parameters must be numbers, so the value list is given as its bounds and the one skipped value."
+    },
+    {
+      "what": "rank_by = final_money*100 + final_coins",
+      "why": "This encodes the remaining-coins tie-break in one expression. Coins never exceed 18, so the x100 weighting keeps final money first."
+    },
+    {
+      "what": "Separate public final_coins attribute",
+      "why": "Remaining coins decide ties and are revealed at the end, so they are made public then. Coins stay private during play."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "Shuffling and taking the top of a deck are done as random draws from the deck list",
+      "why": "Drawing at random is equivalent to drawing from the top of a shuffled deck. The 6 never-drawn cards and cheques simply remain in the hidden lists."
+    },
+    {
+      "what": "Buying and selling steps share one flat round list, gated by 'when round <= 8' and 'when round >= 9'",
+      "why": "The engine has one repeating step list. Per-step arithmetic conditions select the phase without needing conditional blocks."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 12,
+    "choice_steps_per_round": 2,
+    "attributes": 40,
+    "hidden_elements": 7
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "For Sale is a two-phase money game for 3 to 6 players. In the first phase players buy property cards (1-30) through open ascending auctions, where passing early gets a cheap, low property at half your bid. In the second phase they sell those properties in simultaneous blind rounds for currency cards, and the most money (currency plus leftover coins) wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "No simple policy dominates. Always passing first keeps all 18k coins but collects the worst properties, and those win the worst cheques. Always raising spends the coins on a few top properties. Always playing your highest property in phase 2 wastes it on weak cheque sets. One flaw: in the auction the starting player and the clockwise order give positional edges, because a later bidder sees more before committing."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "Card order is random but shared by everyone. Skill decides the outcome: valuing each property relative to the others on offer, knowing when to drop out, and timing which property to sell into which cheque set. Experienced players beat novices reliably."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "There is no solved line. Bidding depends on rivals' remaining coins and the spread of the offer, and selling depends on predicting rivals' plays. A weak player can still collect cheques by bidding cheaply."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "weak",
+        "evidence": "Little is hidden. Bids are public, so every coin total is known, and every property won is public. Phase 2 is therefore close to perfect information plus a simultaneous guess. Inference about how much rivals can still spend is trivial."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "The final score is currency plus coins, compared arithmetically, with a coin tiebreak. No judging is needed."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "The game is text-only and arithmetic. However, the open clockwise auction is an unbounded loop of raise-or-pass turns. The engine cannot express a loop of indefinite length inside one round, and the number of steps would exceed the limits. The variable player count also multiplies the ranking steps."
+      }
+    ],
+    "problems": [
+      "The open ascending auction is an indefinite loop of sequential raise/pass turns. The engine cannot express it inside one round within 20 steps.",
+      "Seat order matters in the auction: the starting player and the clockwise position change what each bidder knows when deciding.",
+      "Too little is hidden. All bids, and therefore all coin totals, are public, so there is almost nothing to infer about rivals' spending power.",
+      "With 3 to 6 players, ranking bids and properties takes many steps, and the deck and coin rules change with player count. That pushes the game past the complexity limits.",
+      "Two separate deck shuffles plus per-round reveals risk more than one random draw in a single round."
+    ],
+    "changes": [
+      {
+        "what": "Replace the open auction with one simultaneous sealed bid per round. The highest bidder takes the highest property and pays the full bid. The second and third bidders take the middle and lowest properties and each pay half their bid, rounded down.",
+        "why": "This keeps the original's tension: a winner pays full, a loser pays half and takes a worse card. It fits in a single poll step.",
+        "fixes": "The open ascending auction is an indefinite loop of sequential raise/pass turns. The engine cannot express it inside one round within 20 steps."
+      },
+      {
+        "what": "Break bid ties by a priority order that rotates each round (player 1 first in round 1, player 2 in round 2, player 3 in round 3, and so on).",
+        "why": "Simultaneous bids plus a rotating tiebreak remove any fixed positional advantage.",
+        "fixes": "Seat order matters in the auction: the starting player and the clockwise position change what each bidder knows when deciding."
+      },
+      {
+        "what": "Keep bid amounts and coin totals private. Only who took which property is announced.",
+        "why": "Players must infer rivals' remaining coins from the order in which properties were won. Bidding high against a rival who is secretly broke wastes money, so reading spending power becomes the core inference.",
+        "fixes": "Too little is hidden. All bids, and therefore all coin totals, are public, so there is almost nothing to infer about rivals' spending power."
+      },
+      {
+        "what": "Fix the player count at 3, using the original 3-player setup: 18 coins each, 24 properties and 24 cheques in play, 8 auction rounds and 8 selling rounds.",
+        "why": "Three ranks keep the ranking and award steps within limits. Three players also avoid the two-player difference trap, because one rival's loss is not automatically your gain.",
+        "fixes": "With 3 to 6 players, ranking bids and properties takes many steps, and the deck and coin rules change with player count. That pushes the game past the complexity limits."
+      },
+      {
+        "what": "Shuffle the property deck only at the start of round 1 and the cheque deck only at the start of round 9. Every other reveal takes the top cards in order.",
+        "why": "This keeps every round at no more than one random draw.",
+        "fixes": "Two separate deck shuffles plus per-round reveals risk more than one random draw in a single round."
+      }
+    ],
+    "keeps": [
+      "The two-phase structure: buy properties with coins, then sell properties for cheques.",
+      "The original 3-player numbers: property cards 1-30, cheques 0 and 2-15 (two of each), 18 coins each, 6 cards of each deck left out.",
+      "The auction pricing: the top buyer pays full and takes the best card, while the others pay half rounded down and take worse cards.",
+      "The simultaneous blind selling phase, where the highest property takes the highest cheque.",
+      "Final score is cheques plus leftover coins, with the coin tiebreak."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The game's skill core, relative valuation in a buy phase and timing in a blind sell phase, survives intact. Converting the open auction to sealed bids with hidden coin totals makes it buildable and adds real inference."
+    },
+    "variation": {
+      "name": "For Sale: Sealed Bids",
+      "summary": "Three players buy properties in 8 sealed-bid rounds with secret coin totals, then sell them in 8 blind rounds for cheques. Most money wins.",
+      "players": {
+        "min": 3,
+        "max": 3,
+        "suggested": 3
+      },
+      "rules": "SETUP. There are exactly 3 players, numbered 1, 2 and 3.\n- Each player starts with 18 coins. A player's coin total is private: only that player sees it.\n- The property deck holds the cards 1 to 30, one of each.\n- The cheque deck holds the values 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 and 15, two of each, for 30 cheques.\n- Each player has a cheque total starting at 0. It is private.\n- Each player has a property hand starting empty. Hands are public.\n\nThe game lasts 16 rounds. Rounds 1-8 are BUYING rounds and rounds 9-16 are SELLING rounds.\n\nBUYING ROUND (rounds 1-8):\n1. In round 1 only, shuffle the property deck. Only the top 24 cards will ever be used; the bottom 6 stay unseen.\n2. Reveal the next 3 cards from the top of the property deck. Call them LOW, MIDDLE and HIGH by value.\n3. All players at the same moment secretly submit a bid: a whole number from 0 up to their current coins.\n4. Rank the bids from highest to lowest. Break ties by this round's priority order. In round r, priority goes first to player ((r-1) mod 3)+1, then to the next player number, wrapping 3 to 1.\n5. The first-ranked player takes HIGH and pays their full bid.\n6. The second-ranked player takes MIDDLE and pays half their bid, rounded down.\n7. The third-ranked player takes LOW and pays half their bid, rounded down.\n8. Payments go to the bank and come out of each player's private coins.\n9. Announce publicly which player took LOW, MIDDLE and HIGH. Bid amounts and coin totals are NOT announced.\nAfter round 8 each player holds exactly 8 properties.\n\nSELLING ROUND (rounds 9-16):\n1. In round 9 only, shuffle the cheque deck. Only the top 24 cheques will ever be used.\n2. Reveal the next 3 cheques from the top of the cheque deck.\n3. All players at the same moment secretly choose one property from their own hand.\n4. Reveal the chosen properties. Properties are all different, so there are no ties.\n5. The player who played the highest property adds the highest cheque to their cheque total. The middle property gets the middle cheque, and the lowest property gets the lowest cheque.\n6. Played properties are discarded from hands.\n7. Announce publicly who played which property and who took which cheque. Running cheque totals stay private.\n\nEND. After round 16, each player's final money is their cheque total plus their remaining coins. These are revealed.",
+      "objective": "The player with the most final money (cheques plus remaining coins) wins. If two or more tie for most, the tied player with more remaining coins wins. If they are still tied, the game is a draw among them.",
+      "expected_effect": "Sealed bids with private coin totals turn the buy phase into inference. Players read how much a rival has left from the properties they won: taking HIGH several times probably drained them, while taking LOW repeatedly suggests a hoard. They then bid just above what the rivals can afford. Overbidding is punished twice, because second place still pays half. Simple policies all lose to reasoned play. Always bidding 0 keeps 18 coins but takes the worst properties and therefore the worst cheques. Bidding everything spends the coins on one card. Always selling your highest property wastes it on weak cheque sets. The selling phase stays a mind-game of timing your big properties against rivals' known hands. Talk is left out. Bids are never revealed, so promises about bidding can never be checked, and the messages would add steps without giving players anything to verify or reason about."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 18,
+      "choice_steps_per_round": 2,
+      "attributes": 12,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 16
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Scale of money: the 30 cheques sum to 2 x (0+2+...+15) = 2 x 119 = 238, a mean of 7.93. The 24 used cheques average about 190, roughly 63 per player. All three players together start with 54 coins. Cheques decide the game, and coins only matter at the margin, as in the original.\n\nThoughtless policies, under the winner rule:\n(a) ALWAYS BID 0. The player keeps all 18 coins but takes LOW in nearly every triple (unless an opponent also bids 0 and has higher priority). In selling they hold the eight lowest cards of their triples. Opponents can see this because hands are public. They can usually beat that card with a mid card on rich rounds and dump their own low cards on poor rounds. The bidder then mostly collects the lowest of 3 cheques, an expected value of about 3.5 each, about 28 in total, giving 18 + 28 = 46. Opponents share the remaining ~162 in cheques, about 81 each. Even after spending 10-15 coins each they finish around 84-89, so the policy loses.\n(b) ALWAYS BID ALL COINS. In round 1 the player pays 18 for one HIGH card and is then forced to bid 0 for 7 rounds. That is policy (a) with no coins left, about 0 + 30-40, which loses badly.\n(c) ALWAYS BID A SMALL FIXED AMOUNT, e.g. 1. Against sensible bidders this usually ranks third, the same as (a), but it pays 0 (half of 1 rounded down). Against two 0-bidders it takes HIGH for 1 coin each round. That is exploitable, so it is not a never-lose policy.\n(d) SELLING: ALWAYS PLAY THE HIGHEST CARD. This wastes top cards on 0/2/3 cheque triples. A player who keeps high cards for high cheque rounds beats it.\n\nWorked buying decision: triple LOW 5, MIDDLE 17, HIGH 26.\n- Winning with bid b costs b.\n- Second place costs floor(b/2).\n- Third place costs floor(b/2), so for a player expecting third the only sensible bid is 0.\nA bid trades coins against card rank under uncertainty about rival bids. No bid is best whatever the opponents do: the best bid is just above the expected second-highest rival bid, or 0 if HIGH is not worth it.\n\nNo strictly dominant option and no never-lose policy was found. The tie-break priority rotates 1, 2, 3 over rounds 1-8, so priority is roughly even: players 1 and 2 hold first priority three times, player 3 twice. Choices are simultaneous and information is symmetric. All three players can realistically win."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Rules cover every case:\n- bids are limited to 0..current coins;\n- bid ties are broken by a defined rotating priority;\n- property ties cannot happen because all cards are distinct;\n- payments are stated, including the rounding rule;\n- end and tie-breaks are defined: most money, then most coins, then a draw.\n\nThe deck arithmetic checks out: 24 properties = 8 rounds x 3, and 24 cheques = 8 rounds x 3. Each player holds exactly 8 cards for 8 selling rounds. The game is finite at 16 rounds and decided by arithmetic.\n\nPlatform limits:\n- steps 18/20;\n- choice steps 2/4 (one simultaneous bid, one simultaneous card choice);\n- attributes 12/20;\n- hidden elements 2/3 (coins, cheque totals);\n- random draws: 1 per round (shuffle-then-reveal from a game list);\n- rounds 16/40.\n\nNo board, judge, clock, trading or binding agreement is needed. All simultaneous choices are polls.\n\nNo talk for 3 players is sensible. It is a sealed-bid auction where public outcomes and public hands already provide the information. Talk would be unenforceable bluff noise, and players are not reduced to pure guessing.\n\nIt is not a repeated cooperation game, so the late-round betrayal check does not apply."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Chance comes from the order of the 24 property cards and 24 cheques, plus 6 unseen of each.\n- Every triple is contested by all three players at once, so the deal does not favour any seat.\n- Luck affects how valuable individual rounds are, not who gets the good cards.\n\nSkill enters in three ways:\n- Bidding: estimating rivals' hidden coin totals from public card awards. A player who took HIGH twice is likely low on coins. A player who always took LOW still holds about 18.\n- Selling: allocating cards across cheque triples using fully public hands to predict rival plays, since only relative rank matters.\n- Coin pacing across 8 auctions.\n\nWith equally good play by all, the result depends on fine bidding and allocation choices, not on a hidden type dealt at the start. The sizable residual variance comes from which cheque triples happen to arrive. Estimated chance share is about 25-35%: a stronger reasoner is clearly favoured, but luck adds variety."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 18,
+      "choice_steps_per_round": 2,
+      "attributes": 12,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 16
+    },
+    "measured": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 2,
+      "attributes": 40,
+      "hidden_elements": 7
+    }
+  },
+  "verdict": "ready_for_review"
+}

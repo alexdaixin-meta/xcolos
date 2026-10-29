@@ -1,0 +1,123 @@
+{
+  "original_summary": "Greek hold 'em is a community-card poker variant. Each player holds two private hole cards, and five shared board cards are revealed in stages with betting rounds between them. At showdown a hand must use exactly both hole cards plus exactly three board cards, and the best standard poker hand takes the pot unless everyone else has folded.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No simple policy wins. Always-fold bleeds blinds. Always-raise is beaten by calling it with above-average hands. Always-call is beaten by value betting without bluffing. Position (the dealer button) gives a real seat edge within a hand, but it rotates, so it evens out over many hands."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Over many hands, skill dominates poker. Over the short session a platform can run, the card deal swings single results heavily. Unlimited raising also lets one big all-in pot decide everything."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Hand reading, bluffing, sizing and opponent profiling leave a very high ceiling. A weak player still wins pots with good cards."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hole cards are hidden. Players must infer opponents' holdings from their bets and the board texture, and plan across betting streets."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "weak",
+      "evidence": "The result is arithmetic in principle. But best-five-card poker evaluation under the exactly-2-plus-exactly-3 constraint (straights, flushes, kickers) is a long rule chain the engine cannot evaluate cheaply. It would lean on a referee to rank hands."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "bad",
+      "evidence": "Betting is open-ended sequential raising with a variable number of actions per street, which a flat step list cannot express. There are four betting streets, more than the 4 choice steps allowed per round. Poker hand ranking needs dozens of steps, and side pots add more state."
+    }
+  ],
+  "problems": [
+    "P1: Open-ended sequential raise/re-raise loops cannot be built in a flat step list, and four betting streets exceed the 4-choice-step limit.",
+    "P2: Standard poker hand ranking (suits, straights, flushes, kickers, best 5 of 7 with the Greek constraint) is far too long a rule chain to compute arithmetically. It would need a referee to decide the winner.",
+    "P3: Unlimited bet sizes let one all-in pot decide a short session, so luck swamps skill in the number of hands the platform can play.",
+    "P4: Acting position within a betting round gives a seat-based edge in any single hand.",
+    "P5: Side pots and all-in handling add state and steps without adding much reasoning."
+  ],
+  "changes": [
+    {
+      "what": "Two betting stages per hand instead of four: one after the 3-card flop and one after the last 2 board cards. Each stage is a simultaneous sealed bet of 0\u20134 chips, followed by a simultaneous call-or-fold for everyone who bet less than the highest bet.",
+      "why": "This gives a fixed 4 choice steps per hand while keeping betting, raising (bidding high), calling and folding.",
+      "fixes": "P1: Open-ended sequential raise/re-raise loops cannot be built in a flat step list, and four betting streets exceed the 4-choice-step limit."
+    },
+    {
+      "what": "The 52-card deck is replaced by 32 numbered cards (values 1\u20138, four copies each). Hand strength becomes a single formula: Strength = 20 \u00d7 min(matches, 3) + 30 \u00d7 (hole pair ? 1 : 0) + hole1 + hole2, where 'matches' counts board cards equal in value to either hole card.",
+      "why": "This keeps the Greek rule that both hole cards always play and at most three board cards count. Pairing the board with your hole cards is what makes a hand strong. It is computable in one calculation.",
+      "fixes": "P2: Standard poker hand ranking (suits, straights, flushes, kickers, best 5 of 7 with the Greek constraint) is far too long a rule chain to compute arithmetically. It would need a referee to decide the winner."
+    },
+    {
+      "what": "Bets are capped at 4 chips per stage and the ante is 1. Stacks start at 40. The session is 15 hands, and the winner is the highest stack.",
+      "why": "Each hand can move at most 9 chips per player. Many hands decide the game, so consistent reading and betting beats one lucky deal.",
+      "fixes": "P3: Unlimited bet sizes let one all-in pot decide a short session, so luck swamps skill in the number of hands the platform can play."
+    },
+    {
+      "what": "All betting decisions are simultaneous polls, so there is no button or acting order.",
+      "why": "No seat ever acts with more information than another.",
+      "fixes": "P4: Acting position within a betting round gives a seat-based edge in any single hand."
+    },
+    {
+      "what": "There are no side pots. A player who cannot cover a call puts in their whole stack and stays in for the whole pot. A player with 0 chips is eliminated.",
+      "why": "This removes side-pot bookkeeping. With a 4-chip cap and 40-chip stacks the case is rare and late.",
+      "fixes": "P5: Side pots and all-in handling add state and steps without adding much reasoning."
+    }
+  ],
+  "keeps": [
+    "Two private hole cards per player and a shared five-card board revealed in stages.",
+    "The Greek constraint: both hole cards always play, and exactly three board cards are used (at most three matches count).",
+    "Betting rounds between board reveals, with folding, calling and raising (bidding above others).",
+    "Winning a pot either at showdown or when everyone else folds, and bluffing and hand-reading as the core skill."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The hidden-information betting core is excellent for reasoning. Only the open raise loops and poker hand ranking need replacing with fixed simultaneous betting stages and an arithmetic hand score."
+  },
+  "variation": {
+    "name": "Greek Hold 'em Lite",
+    "summary": "A fixed-structure poker game for 3\u20135 players. Each hand has two private cards, a five-card board revealed 3 then 2, and two simultaneous sealed betting stages with call-or-fold. Hand strength is an arithmetic score built from pairing your two hole cards with the board.",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "rules": "SETUP: Each player starts with 40 chips. The deck has 32 cards: values 1 to 8, four copies of each value. The game lasts 15 hands (rounds). There is no dealer or acting order; every decision is made simultaneously.\n\nEACH HAND:\n1. Ante and deal. Every player still in the game puts 1 chip into the pot (a player with only 1 chip is then all-in). The deck is shuffled. Each player is dealt 2 hole cards, seen only by that player, and 5 board cards are set face down. Any pot left over from the previous hand stays in the pot.\n\n2. Flop. The first 3 board cards are revealed to everyone.\n\n3. Flop bet. Every player in the hand secretly chooses a bet of 0, 1, 2, 3 or 4 chips (never more than their stack). All bets are revealed together and paid into the pot. Call the largest bet H.\n\n4. Flop call or fold. Each player whose bet was less than H chooses simultaneously:\n   - CALL: pay the difference so their bet equals H. If they have fewer chips, they pay their whole stack and stay in.\n   - FOLD: they are out of this hand, and chips already put in stay in the pot.\n   Players who bet H stay in automatically.\n\n5. If only one player remains in the hand, they take the whole pot and the hand ends (skip to step 10).\n\n6. Turn and river. Board cards 4 and 5 are revealed.\n\n7. River bet. This is the same as step 3: a simultaneous secret bet of 0\u20134 chips by every player still in the hand.\n\n8. River call or fold. This is the same as step 4.\n\n9. Showdown. If only one player remains, they take the pot. Otherwise every remaining player reveals their hole cards and their Strength is computed:\n   - matches = the number of the 5 board cards whose value equals either of the player's hole card values. If both hole cards share a value, a board card of that value counts once.\n   - matches counts at most 3, because a hand uses exactly three board cards.\n   - pair = 1 if the two hole cards have the same value, else 0.\n   - Strength = 20 \u00d7 min(matches, 3) + 30 \u00d7 pair + (hole card 1 value) + (hole card 2 value).\n   The highest Strength takes the pot. If several players tie for highest, the pot is split equally among them in whole chips, and any leftover chip stays in the pot for the next hand.\n\n10. Elimination. Any player with 0 chips is eliminated and takes no further part.\n\nEND: The game ends after hand 15, or earlier if only one player has chips left.",
+    "objective": "When the game ends, the player with the most chips wins. If two or more players tie for the most chips, those players draw. If only one player has chips left before hand 15, that player wins.",
+    "expected_effect": "Play becomes a compact poker duel of inference. A large flop bet after a 6 appears suggests a 6 in hand. A small bet that then calls may be a drawing hand or a trap. Players must size bets to extract value from weaker hands without revealing strength, bluff on boards that look like they hit someone, and fold well. Simple policies all lose to adaptive play: always-4 is called down by better hands, calling stations are value-bet, and always-fold bleeds antes. Capped bets over 15 hands make the deal matter per hand but not for the match, so the stronger reader wins most matches. Simultaneous betting removes positional edge. Talk is deliberately left out. Bets already serve as the signalling and bluffing channel, and a talk phase would cost a choice step beyond the limit without adding a new conflict to reason about."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 4,
+    "attributes": 16,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 15
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Hand values. A pair in the hole has probability 3/31 \u2248 9.7%. For a non-pair hand, 6 copies of its two values remain among 30 unseen cards. The expected number of matches on a 5-card board is 5\u00d76/30 = 1. Strength is about 20\u00d7matches + sum, ranging from 3 (1+2 with no matches) up to 75 (8+7 with 3 matches). A paired hand can match at most the 2 remaining copies: 40+30+2v, at most 86 for 8-8. So matches dominate, the hole sum breaks ties, and the flop reveals 3 of the 5 board cards, which is real partial information.\n\nCost per hand. One player can put in at most ante 1 + 4 + 4 = 9 chips per hand, against a 40-chip stack, so no single hand is decisive.\n\nPot odds. With 4 players the pot is 4. Facing a single 4-bet when you bet 0, you pay 4 to win 8, so you need about 33% equity.\n\nThoughtless policies, judged by the winner rule:\n(a) Always bet 4 and always call. This shows down with a random hand every time. Sensible opponents fold below-median hands, conceding only about 1 ante each, and call with above-median hands, which win more than 50% against a random hand. The maniac loses about 9 chips to each strong caller and gains about N-1 antes when everyone folds. The net is negative against sensible play. Against random play it often wins, but it does not 'never lose'.\n(b) Always bet 0 and always call. This is a calling station with no fold equity. It loses its antes and calls to selective bettors, so it loses.\n(c) Always bet 0 and always fold. This loses 1 chip per hand, about 15 over the game, and the opponents who win the antes finish ahead. It loses.\n(d) Always bet the highest and fold when facing a raise. This is impossible to face a raise, since betting 4 means you stay in automatically, so it reduces to (a).\n\nNo option is strictly better whatever opponents do. Calling or folding depends on pot size, H, and hand strength.\n\nSeats. Every decision is simultaneous and there is no dealer, so no seat has a move-order or information edge.\n\nThe game is not a cooperation dilemma, so the 'safe option never behind' trap does not apply. Any player can win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Edge cases resolve from the text:\n- If H = 0, nobody is below H and nobody acts.\n- A player who bet H always remains, so a hand can never end with everyone folded.\n- A player who went all-in on the ante (stack 0) bets 0. If they face H > 0, they 'call' by paying their whole stack of 0 and stay in.\n- There are no side pots, and the rule says 'highest Strength takes the pot', which is defined if generous to short stacks.\n- A paired hand counts each board card once.\n- Tie remainders carry over to the next hand.\n- Elimination happens at 0 chips. Chips left in the pot after hand 15 are not counted. A tie for most chips is a draw.\n\nThe game is finite at 15 rounds. Strength and chip totals are pure arithmetic on stored numbers.\n\nLimits: 16 steps (at most 20); 4 choice steps (flop bet, flop call/fold, river bet, river call/fold; at most 4); 16 attributes (chips, bet and in-hand for each of 5 players, plus pot; at most 20); hidden elements 2 (hole cards, unrevealed board; at most 3); 1 shuffle per round; 15 rounds (at most 40). These are all within limits. The 16 attributes hold only if Strength is computed in a calc step rather than stored for each player.\n\nCapabilities:\n- Hidden hands, simultaneous choice, numeric bids and elimination are all supported.\n- The deal uses the shared-deck workaround.\n- No board, judge or clock is needed.\n- Every simultaneous decision is a poll.\n\nNo talk phase is defensible. The bets are the signalling channel, and free talk in poker would only add cheap bluff text, so players are not left purely guessing."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Inference and its use:\n- A player infers opponents' hole values from the flop, from the 3 board values already seen, and from opponents' simultaneous bet sizes.\n- They act on it through bet sizing and the call/fold decision at stated pot odds (about 33% equity needed to call a 4-bet into a pot of 4).\n- Opponent modelling matters. A habitual 4-bettor should be called wider, and a tight player's 4-bet should be respected.\n\nChance. Within one hand the deal largely decides the showdown. However, each hand risks at most 9 of 40 chips across 15 hands, so the edge from fold discipline compounds: avoiding a -9 loss with a weak hand is worth about a hand's pot each time. My rough estimate is 40\u201350% chance, 50\u201360% decision quality, over 15 hands.\n\nEqual skill. When all players play well, the outcome among equals is close to random, as in any symmetric poker game. Against weaker policies such as (a) to (c) above, the sound player is clearly favoured, so good play overcomes the deal rather than the deal alone deciding."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

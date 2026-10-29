@@ -1,0 +1,448 @@
+{
+  "game": "skull_king",
+  "attempts": [
+    "an option is offered and then refused (see the offer-only-what-is-allowed pattern): refused: seat 1 was offered 31 in `play_a_card`, picked it, and was asked again without it (round 1): the first offer held an option that was not allowed. Offer each seat only what it may do, from its own state, instead of refusing afterwards | refused: seat 2 was offered 4 in `play_a_card`, picked it, and was asked again without it (round 1): the first offer held an option that was not allowed. Offer each seat only what it may do, from its own state, instead of refusing afterwards",
+    "it plays, but part of it does nothing: game attribute `full_deck` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [
+    "the spec uses `repeat` but the game file does not"
+  ],
+  "scenarios": [
+    {
+      "name": "R1: at the start every score is 0 and no round has been played",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R2: after one round the round counter is 1 (the dealt cards are random, so they are not asserted)",
+      "passed": false,
+      "failures": [
+        "rule R2 is broken: When a round starts, then the full 18-card deck (numbers 1-12, two Escapes of power 0, Mermaid 20, Pirate A 30, Pirate B 31, Skull King 40) is shuffled and each player receives exactly 3 cards in their private hand.",
+        "seat 1 bid: expected 1, got 0",
+        "Ada: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 0; r1 seat 2: 11; r1 seat 3: 20; r1 seat 4: 5; r1 seat 1: 6; r1 seat 2: 0; r1 seat 3: 12; r1 seat 4: 3. First attribute changes: table round: 0 -> 1; seat 1 hand: [] -> [0]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 0 -> 11; seat 2 hand: [] -> [11]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 20, 30, 31, 40]; table pick: 11 -> 20; seat 3 hand: [] -> [20]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 30, 31, 40]; table pick: 20 -> 5; seat 4 hand: [] -> [5]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 30, 31, 40] -> [1, 2, 3, 4, 6, 7, 8, 9, 10, 12, 0, 30, 31, 40]; table pick: 5 -> 6; seat 1 hand: [0] -> [0, 6] .... Final: players {\"seat 1\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 30, \"round_points\": -30, \"card_choice\": 6}, \"seat 2\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 7, \"round_points\": 30, \"card_choice\": 0}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 8, \"round_points\": -30, \"card_choice\": 12}, \"seat 4\": {\"score\": 30, \"hand\": ; table {\"deck\": [1, 2, 4, 10, 31, 40, 0, 11, 20, 5, 6, 0, 12, 3, 30, 7, 8, 9], \"pick\": 9, \"winner_card\": 30, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 1, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R3: a 5-player round deals and plays through (the undealt cards are hidden, so they are not asserted)",
+      "passed": false,
+      "failures": [
+        "rule R3 is broken: When cards are dealt, then the undealt cards stay in deck and are never revealed that round.",
+        "seat 5 bid: expected 2, got 0",
+        "Eli: the rule for 2 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 5: 0; r1 seat 1: 0; r1 seat 2: 40; r1 seat 3: 8; r1 seat 4: 7; r1 seat 5: 0; r1 seat 1: 30; r1 seat 2: 9; r1 seat 3: 4; r1 seat 4: 12; r1 seat 5: 5. First attribute changes: table round: 0 -> 1; seat 1 hand: [] -> [0]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 0 -> 40; seat 2 hand: [] -> [40]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31]; table pick: 40 -> 8; seat 3 hand: [] -> [8]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31] -> [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 0, 20, 30, 31]; table pick: 8 -> 7; seat 4 hand: [] -> [7]; table deck: [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 0, 20, 30, 31] -> [1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 0, 20, 30, 31]; table pick: 7 -> 0; seat 5 hand: [] -> [0] .... Final: players {\"seat 1\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 10, \"round_points\": -30, \"card_choice\": 30}, \"seat 2\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 6, \"round_points\": -30, \"card_choice\": 9}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 11, \"round_points\": -30, \"card_choice\": 4}, \"seat 4\": {\"score\": 30, \"hand; table {\"deck\": [2, 20, 31, 0, 40, 8, 7, 0, 30, 9, 4, 12, 5, 10, 6, 11, 3, 1], \"pick\": 1, \"winner_card\": 11, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 3, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R4: each seat's bid is recorded as entered and the bid range 0 to 3 is offered",
+      "passed": false,
+      "failures": [
+        "rule R4 is broken: When players bid, then each chooses simultaneously a whole number from 0 to 3, and all bids are revealed only after all are in.",
+        "seat 2 bid: expected 1, got 0",
+        "seat 3 bid: expected 2, got 0",
+        "seat 4 bid: expected 3, got 0",
+        "seat 1 was never offered 0, but should have been",
+        "seat 2 was never offered 0, but should have been",
+        "seat 4 was never offered 3, but should have been",
+        "Cleo: the rule for 2 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 20; r1 seat 2: 10; r1 seat 3: 1; r1 seat 4: 31; r1 seat 1: 9; r1 seat 2: 6; r1 seat 3: 4; r1 seat 4: 5. First attribute changes: table round: 0 -> 1; table pick: 0 -> 20; seat 1 hand: [] -> [20]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 30, 31, 40]; table pick: 20 -> 6; seat 2 hand: [] -> [6]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 30, 31, 40] -> [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 0, 0, 30, 31, 40]; table pick: 6 -> 1; seat 3 hand: [] -> [1]; table deck: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 0, 0, 30, 31, 40] -> [2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 0, 0, 30, 31, 40]; table pick: 1 -> 31; seat 4 hand: [] -> [31]; table deck: [2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 0, 0, 30, 31, 40] -> [2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 0, 0, 30, 40]; table pick: 31 -> 9 .... Final: players {\"seat 1\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 3, \"round_points\": -30, \"card_choice\": 9}, \"seat 2\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 2, \"round_points\": 30, \"card_choice\": 6}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 40, \"round_points\": -30, \"card_choice\": 4}, \"seat 4\": {\"score\": -30, \"hand\": ; table {\"deck\": [7, 8, 11, 12, 0, 30, 20, 10, 1, 31, 9, 6, 4, 5, 3, 2, 40, 0], \"pick\": 0, \"winner_card\": 40, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 3, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R5: the three tricks are played from a random hand (only the bids and the round counter are asserted)",
+      "passed": false,
+      "failures": [
+        "rule R5 is broken: When a trick is played, then each player simultaneously plays one card from their own hand, and that card is removed from the hand and revealed to all.",
+        "seat 1 bid: expected 2, got 0",
+        "seat 2 bid: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 12; r1 seat 2: 31; r1 seat 3: 20; r1 seat 1: 11; r1 seat 2: 2; r1 seat 3: 30. First attribute changes: table round: 0 -> 1; table pick: 0 -> 11; seat 1 hand: [] -> [11]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 0, 20, 30, 31, 40]; table pick: 11 -> 31; seat 2 hand: [] -> [31]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 0, 20, 30, 40]; table pick: 31 -> 20; seat 3 hand: [] -> [20]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 0, 20, 30, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 0, 30, 40]; table pick: 20 -> 12; seat 1 hand: [11] -> [11, 12]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0, 0, 30, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0, 30, 40]; table pick: 12 -> 2 .... Final: players {\"seat 1\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 8, \"round_points\": 30, \"card_choice\": 11}, \"seat 2\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 9, \"round_points\": -30, \"card_choice\": 2}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 1, \"round_points\": -30, \"card_choice\": 30}}; table {\"deck\": [3, 4, 5, 6, 7, 10, 0, 0, 40, 12, 31, 20, 11, 2, 30, 8, 9, 1], \"pick\": 30, \"winner_card\": 9, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 2, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R6: a round with Mermaid/Skull King resolution plays through (the deal is random, so only deal-independent facts are asserted)",
+      "passed": false,
+      "failures": [
+        "rule R6 is broken: When both the Mermaid (20) and the Skull King (40) are played in a trick, then the Mermaid's player wins the trick.",
+        "seat 1 bid: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 5: 0; r1 seat 1: 31; r1 seat 2: 20; r1 seat 3: 2; r1 seat 4: 9; r1 seat 5: 30; r1 seat 1: 0; r1 seat 2: 3; r1 seat 3: 4; r1 seat 4: 5; r1 seat 5: 6. First attribute changes: table round: 0 -> 1; seat 1 hand: [] -> [0]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 0 -> 20; seat 2 hand: [] -> [20]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 30, 31, 40]; table pick: 20 -> 2; seat 3 hand: [] -> [2]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 30, 31, 40] -> [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 30, 31, 40]; table pick: 2 -> 9; seat 4 hand: [] -> [9]; table deck: [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 30, 31, 40] -> [1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 0, 30, 31, 40]; table pick: 9 -> 30; seat 5 hand: [] -> [30] .... Final: players {\"seat 1\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 40, \"round_points\": -30, \"card_choice\": 0}, \"seat 2\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 10, \"round_points\": 30, \"card_choice\": 3}, \"seat 3\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 11, \"round_points\": 30, \"card_choice\": 4}, \"seat 4\": {\"score\": 30, \"hand\": [; table {\"deck\": [7, 12, 0, 31, 20, 2, 9, 30, 0, 3, 4, 5, 6, 40, 10, 11, 1, 8], \"pick\": 8, \"winner_card\": 40, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 1, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R7: a highest-card trick round plays through (the deal is random, so only deal-independent facts are asserted)",
+      "passed": false,
+      "failures": [
+        "rule R7 is broken: When the Mermaid and the Skull King are not both in a trick and some card has power above 0, then the player of the highest-power card wins the trick.",
+        "seat 2 bid: expected 3, got 0",
+        "Blaise: the rule for 3 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 31; r1 seat 2: 40; r1 seat 3: 7; r1 seat 4: 3; r1 seat 1: 1; r1 seat 2: 10; r1 seat 3: 20; r1 seat 4: 6. First attribute changes: table round: 0 -> 1; table pick: 0 -> 31; seat 1 hand: [] -> [31]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 40]; table pick: 31 -> 40; seat 2 hand: [] -> [40]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30]; table pick: 40 -> 7; seat 3 hand: [] -> [7]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30] -> [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 0, 0, 20, 30]; table pick: 7 -> 3; seat 4 hand: [] -> [3]; table deck: [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 0, 0, 20, 30] -> [1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 0, 0, 20, 30]; table pick: 3 -> 1 .... Final: players {\"seat 1\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 8, \"round_points\": 30, \"card_choice\": 1}, \"seat 2\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 11, \"round_points\": -30, \"card_choice\": 10}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 12, \"round_points\": -30, \"card_choice\": 20}, \"seat 4\": {\"score\": 30, \"hand\"; table {\"deck\": [4, 5, 9, 0, 0, 30, 31, 40, 7, 3, 1, 10, 20, 6, 8, 11, 12, 2], \"pick\": 2, \"winner_card\": 12, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 3, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R8: a 3-player round plays through (with only 2 Escapes every trick has a winner; only deal-independent facts are asserted)",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When every card played in a trick has power 0, then nobody wins the trick and no tricks_won changes.",
+        "seat 3 bid: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 12; r1 seat 2: 0; r1 seat 3: 10; r1 seat 1: 1; r1 seat 2: 7; r1 seat 3: 9. First attribute changes: table round: 0 -> 1; table pick: 0 -> 12; seat 1 hand: [] -> [12]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 0, 20, 30, 31, 40]; table pick: 12 -> 0; seat 2 hand: [] -> [0]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 20, 30, 31, 40]; table pick: 0 -> 9; seat 3 hand: [] -> [9]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 0, 20, 30, 31, 40]; table pick: 9 -> 1; seat 1 hand: [12] -> [12, 1]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 0, 20, 30, 31, 40] -> [2, 3, 4, 5, 6, 7, 8, 10, 11, 0, 20, 30, 31, 40]; table pick: 1 -> 7 .... Final: players {\"seat 1\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 6, \"round_points\": -30, \"card_choice\": 1}, \"seat 2\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 2, \"round_points\": 30, \"card_choice\": 7}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 40, \"round_points\": -30, \"card_choice\": 9}}; table {\"deck\": [3, 4, 5, 8, 11, 0, 20, 30, 31, 12, 0, 10, 1, 7, 9, 6, 2, 40], \"pick\": 10, \"winner_card\": 40, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 3, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirat"
+    },
+    {
+      "name": "R9: tricks are won during the round and tricks_won is back to 0 after scoring (deal-independent)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R10: a Skull King capture round plays through (the deal is random, so only deal-independent facts are asserted)",
+      "passed": false,
+      "failures": [
+        "rule R10 is broken: When the Skull King wins a trick, then its player records a bonus of +20 for each Pirate (30 or 31) in that trick.",
+        "seat 3 bid: expected 2, got 0",
+        "Cleo: the rule for 2 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 5: 0; r1 seat 1: 0; r1 seat 2: 3; r1 seat 3: 30; r1 seat 4: 20; r1 seat 5: 40; r1 seat 1: 12; r1 seat 2: 11; r1 seat 3: 31; r1 seat 4: 4; r1 seat 5: 5. First attribute changes: table round: 0 -> 1; seat 1 hand: [] -> [0]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 0 -> 3; seat 2 hand: [] -> [3]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 3 -> 30; seat 3 hand: [] -> [30]; table deck: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 31, 40]; table pick: 30 -> 20; seat 4 hand: [] -> [20]; table deck: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 31, 40] -> [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 31, 40]; table pick: 20 -> 40; seat 5 hand: [] -> [40] .... Final: players {\"seat 1\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 6, \"round_points\": 30, \"card_choice\": 12}, \"seat 2\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 1, \"round_points\": 30, \"card_choice\": 11}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 0, \"round_points\": -30, \"card_choice\": 31}, \"seat 4\": {\"score\": -30, \"hand\": ; table {\"deck\": [7, 9, 10, 0, 3, 30, 20, 40, 12, 11, 31, 4, 5, 6, 1, 0, 2, 8], \"pick\": 8, \"winner_card\": 8, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 5, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate_"
+    },
+    {
+      "name": "R11: a Mermaid capture round plays through (the deal is random, so only deal-independent facts are asserted)",
+      "passed": false,
+      "failures": [
+        "rule R11 is broken: When the Mermaid wins a trick containing the Skull King, then its player records a +40 bonus.",
+        "seat 4 bid: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 5: 0; r1 seat 1: 0; r1 seat 2: 5; r1 seat 3: 20; r1 seat 4: 11; r1 seat 5: 2; r1 seat 1: 12; r1 seat 2: 40; r1 seat 3: 6; r1 seat 4: 4; r1 seat 5: 10. First attribute changes: table round: 0 -> 1; seat 1 hand: [] -> [0]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 0 -> 5; seat 2 hand: [] -> [5]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 5 -> 20; seat 3 hand: [] -> [20]; table deck: [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 0, 30, 31, 40]; table pick: 20 -> 4; seat 4 hand: [] -> [4]; table deck: [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 0, 30, 31, 40] -> [1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 0, 30, 31, 40]; table pick: 4 -> 2; seat 5 hand: [] -> [2] .... Final: players {\"seat 1\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 3, \"round_points\": 30, \"card_choice\": 12}, \"seat 2\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 31, \"round_points\": -30, \"card_choice\": 40}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 7, \"round_points\": -30, \"card_choice\": 6}, \"seat 4\": {\"score\": 30, \"hand\":; table {\"deck\": [1, 8, 9, 0, 5, 20, 11, 2, 12, 40, 6, 4, 10, 3, 31, 7, 0, 30], \"pick\": 30, \"winner_card\": 31, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 2, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirat"
+    },
+    {
+      "name": "R12: a zero bid is recorded and tricks_won resets after scoring (the trick outcome is random, so it is not asserted)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R13: all seats bid 0 and the bids are recorded (the trick outcome is random, so it is not asserted)",
+      "passed": false,
+      "failures": [
+        "rule R13 is broken: When a player bid 0 and won 1 or more tricks, then they score -30 for the round.",
+        "Blaise: the rule for 0 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "R14: a bid of 1 is recorded (whether it is made depends on the deal, so the score is not asserted)",
+      "passed": false,
+      "failures": [
+        "rule R14 is broken: When a player bid k >= 1 and won exactly k tricks, then they score 20*k plus all bonuses recorded that round.",
+        "seat 2 bid: expected 1, got 0"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 4: 0; r1 seat 1: 9; r1 seat 2: 1; r1 seat 3: 3; r1 seat 4: 12; r1 seat 1: 30; r1 seat 2: 5; r1 seat 3: 6; r1 seat 4: 4. First attribute changes: table round: 0 -> 1; table pick: 0 -> 9; seat 1 hand: [] -> [9]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 0, 0, 20, 30, 31, 40]; table pick: 9 -> 1; seat 2 hand: [] -> [1]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 0, 0, 20, 30, 31, 40]; table pick: 1 -> 3; seat 3 hand: [] -> [3]; table deck: [2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [2, 4, 5, 6, 7, 8, 10, 11, 12, 0, 0, 20, 30, 31, 40]; table pick: 3 -> 12; seat 4 hand: [] -> [12]; table deck: [2, 4, 5, 6, 7, 8, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [2, 4, 5, 6, 7, 8, 10, 11, 0, 0, 20, 30, 31, 40]; table pick: 12 -> 30 .... Final: players {\"seat 1\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 40, \"round_points\": -30, \"card_choice\": 30}, \"seat 2\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 7, \"round_points\": 30, \"card_choice\": 5}, \"seat 3\": {\"score\": 30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 11, \"round_points\": 30, \"card_choice\": 6}, \"seat 4\": {\"score\": -30, \"hand\": ; table {\"deck\": [2, 10, 0, 0, 20, 31, 9, 1, 3, 12, 30, 5, 6, 4, 40, 7, 11, 8], \"pick\": 8, \"winner_card\": 40, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 1, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R15: all seats bid 3 and the bids are recorded (the deal decides who makes it, so the score is not asserted)",
+      "passed": false,
+      "failures": [
+        "rule R15 is broken: When a player bid k >= 1 and won a different number of tricks t, then they score -10*|k - t| and no bonuses.",
+        "seat 1 bid: expected 3, got 0",
+        "seat 2 bid: expected 3, got 0",
+        "seat 3 bid: expected 3, got 0",
+        "Ada: the rule for 3 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 3 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 3 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 4; r1 seat 3: 2; r1 seat 1: 5; r1 seat 2: 9; r1 seat 3: 40. First attribute changes: table round: 0 -> 1; seat 1 hand: [] -> [0]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 20, 30, 31, 40] -> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 0 -> 4; seat 2 hand: [] -> [4]; table deck: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 4 -> 2; seat 3 hand: [] -> [2]; table deck: [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 2 -> 5; seat 1 hand: [0] -> [0, 5]; table deck: [1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40] -> [1, 3, 6, 7, 8, 9, 10, 11, 12, 0, 20, 30, 31, 40]; table pick: 5 -> 9; seat 2 hand: [4] -> [4, 9] .... Final: players {\"seat 1\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 11, \"round_points\": -30, \"card_choice\": 5}, \"seat 2\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 8, \"round_points\": -30, \"card_choice\": 9}, \"seat 3\": {\"score\": -30, \"hand\": [], \"bid\": 0, \"tricks_won\": 0, \"bonus\": 0, \"played\": 0, \"round_points\": -30, \"card_choice\": 40}}; table {\"deck\": [1, 3, 6, 7, 10, 12, 20, 30, 31, 0, 4, 2, 5, 9, 40, 11, 8, 0], \"pick\": 0, \"winner_card\": 11, \"trick_bonus\": 0, \"round\": 1, \"trick_number\": 3, \"trick_winner\": 1, \"deck_size\": 18, \"hand_size\": 3, \"tricks_per_round\": 3, \"rounds\": 8, \"bid_min\": 0, \"bid_max\": 3, \"number_card_min\": 1, \"number_card_max\": 12, \"escape_count\": 2, \"escape_power\": 0, \"mermaid_count\": 1, \"mermaid_power\": 20, \"pirate_a_power\": 30, \"pirate"
+    },
+    {
+      "name": "R16: after a round's scoring every tricks_won is reset to 0",
+      "passed": false,
+      "failures": [
+        "rule R16 is broken: When a round's scoring ends, then each player's tricks_won, round points and score are announced, and tricks_won and bonus reset to 0.",
+        "Blaise: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "R17: round 8 ends the game and a seat 1000 points ahead wins (one round can change a score by at most +100/-30)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R17: the game ends after round 8 even with one seat far behind, and the leader wins",
+      "passed": false,
+      "failures": [
+        "rule R17 is broken: When round 8 has been scored, then the game ends and the highest score wins; players tied for the highest score share the result (a draw).",
+        "Blaise: the rule for 1 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "R18: a round runs bid and tricks with no talk phase (the round completes)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        5
+      ],
+      "results": {
+        "seat 2": 11,
+        "seat 1": 14,
+        "seat 3": 5,
+        "seat 5": 4,
+        "seat 4": 5,
+        "seats 1 and 4": 1
+      },
+      "turns_min": 70,
+      "turns_max": 120
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 2": 18,
+      "seat 1": 25,
+      "seat 3": 16,
+      "seats 1 and 2": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 11,
+        "loss": 46,
+        "draw": 3,
+        "win_rate": 0.19
+      },
+      "first@seat2": {
+        "win": 8,
+        "loss": 50,
+        "draw": 2,
+        "win_rate": 0.14
+      },
+      "last@seat1": {
+        "win": 5,
+        "loss": 55,
+        "draw": 0,
+        "win_rate": 0.08
+      },
+      "last@seat2": {
+        "win": 2,
+        "loss": 57,
+        "draw": 1,
+        "win_rate": 0.03
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 96.0,
+      "prompt_chars_avg": 126,
+      "prompt_chars_max": 162
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "The designer chose 4. Three is the smallest table where tricks are contested enough for bidding to be hard. Five is the cap because 15 of the 18 cards are dealt, and more seats would exhaust the deck."
+    },
+    {
+      "what": "Cards are stored as their power values",
+      "why": "Every card except the two Escapes has a unique power, so the value identifies the card, and resolving a trick is plain arithmetic on played."
+    },
+    {
+      "what": "Trick steps are written once and run again with repeat until trick_number == 3",
+      "why": "The three tricks are identical in the source."
+    },
+    {
+      "what": "No talk step",
+      "why": "The source states there is no talk phase."
+    },
+    {
+      "what": "Strategy at the table",
+      "why": "A thoughtful player bids from hand strength and from what others' bids imply. During tricks they dump Escapes or low cards to hit a bid exactly, or hold the Mermaid back to catch the Skull King."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for the highest total is a shared win rather than a separate 'draw' outcome",
+      "why": "The engine has no separate draw; players level at the top share the win, which is equivalent."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 17,
+    "choice_steps_per_round": 3,
+    "attributes": 39,
+    "hidden_elements": 6
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Skull King is a trick-taking game for 2 to 8 players played over 10 hands of growing size. Each hand, players bid at the same time how many tricks they will win, then play tricks with follow-suit rules, a black trump suit and special cards (Pirates, Mermaids, Skull King, Escapes). Exact bids score well, missed bids lose points, and the highest total wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "No simple policy wins. Always bidding 0 fails whenever forced high cards win tricks, and the failed zero bid costs a lot. Always bidding high misses most hands. Seat order matters a little, because the lead player and the last player have different information, but the lead rotates."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "Exact bidding rewards reading your hand and anticipating others. But with hands of 1 to 10 cards, a 70-card deck and big special-card bonuses (+50 for a Mermaid capturing the Skull King), the deal swings single hands heavily. Skill shows over many games more than within one."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Calibrating bids, dumping cards to hit a bid, timing specials and forcing opponents to miss give deep play. A novice still scores by bidding plainly."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Hands are hidden, and the bids made at the same moment reveal partial information. Players must infer who holds the specials and plan card use across the tricks of a hand."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Trick winners and scores follow from fixed rules and arithmetic."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "bad",
+        "evidence": "Ten hands of up to 10 sequential tricks with follow-suit checks need far more than 4 choice steps and 20 steps per round. The 70-card deck with suits and lead rules makes a very large state. Rounds grow to 10 tricks each."
+      }
+    ],
+    "problems": [
+      "Too long and too many choices per round: a hand of i cards needs i sequential trick turns per player, far over 4 choice steps and 20 steps per round.",
+      "Follow-suit, lead-suit and trump rules plus the Scary Mary declaration create long rule chains that are hard to build and check.",
+      "Large deck and growing hand sizes give a big hidden state, and hand-to-hand luck swings (large special bonuses) can swamp skill within one game.",
+      "Trick-winner resolution with special-card exceptions needs to be expressible as arithmetic to be built reliably."
+    ],
+    "changes": [
+      {
+        "what": "Every round is one hand of exactly 3 cards: one bid poll then 3 tricks, each played as a poll where everyone plays at the same time.",
+        "why": "Gives 4 choice steps per round and about 12 steps in total. Playing at the same time keeps the core tension of guessing what others will commit, without turn order.",
+        "fixes": "Too long and too many choices per round: a hand of i cards needs i sequential trick turns per player, far over 4 choice steps and 20 steps per round."
+      },
+      {
+        "what": "Remove suits, follow-suit, trump and Scary Mary. Use an 18-card deck where each card has a power number (Escape 0, numbers 1-12, Mermaid 20, Pirates 30 and 31, Skull King 40), with one exception: the Mermaid wins any trick containing the Skull King.",
+        "why": "The trick winner becomes a single max-and-one-exception calculation while keeping the signature Pirate, Mermaid and Skull King cycle.",
+        "fixes": "Follow-suit, lead-suit and trump rules plus the Scary Mary declaration create long rule chains that are hard to build and check."
+      },
+      {
+        "what": "Trick winner rule written as arithmetic on power values, with distinct values for the two Pirates so there are no ties among cards that can win.",
+        "why": "The engine can compute the winner directly, and no judge is needed.",
+        "fixes": "Trick-winner resolution with special-card exceptions needs to be expressible as arithmetic to be built reliably."
+      },
+      {
+        "what": "Fixed 3-card hands over 8 rounds with a small deck. All played cards are public, and 3 to 6 cards stay unseen each round depending on player count. Bonuses are moderate (+20 per Pirate captured by the Skull King, +40 for the Skull King captured by the Mermaid) and paid only on an exact bid.",
+        "why": "Smaller, repeated, comparable hands average out deal luck. Card counting and reading bids become the decisive skill, and the bonuses stay flavourful without dominating.",
+        "fixes": "Large deck and growing hand sizes give a big hidden state, and hand-to-hand luck swings (large special bonuses) can swamp skill within one game."
+      }
+    ],
+    "keeps": [
+      "Bidding at the same time on exactly how many tricks you will win, then trying to hit it exactly.",
+      "Exact-bid scoring of 20 per trick, a risky zero bid, and penalties for missing.",
+      "The Escape, number, Mermaid, Pirate and Skull King hierarchy, including the Mermaid beating the Skull King.",
+      "Capture bonuses for the Skull King taking Pirates and the Mermaid taking the Skull King.",
+      "Several players, highest total wins."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The bid-then-hit-it-exactly core with hidden hands is excellent strategic material. It fits the limits once hands are fixed at 3 cards, tricks are played at the same time, and suits are removed."
+    },
+    "variation": {
+      "name": "Skull King: Three-Card Raids",
+      "summary": "3 to 5 players, 8 rounds. Each round everyone is dealt 3 cards from an 18-card deck, bids at the same time how many of the 3 tricks they will win, then plays 3 tricks with everyone playing at the same time. Exact bids score, misses cost, and the highest total wins.",
+      "players": {
+        "min": 3,
+        "max": 5,
+        "suggested": 4
+      },
+      "rules": "DECK (18 cards, each with a power value): number cards 1 through 12 (power equals the number); Escape x2 (power 0); Mermaid x1 (power 20); Pirate A (power 30); Pirate B (power 31); Skull King x1 (power 40).\n\nSETUP: Every player starts at 0 points. The game lasts exactly 8 rounds.\n\nEACH ROUND:\n1. DEAL (the round's only random event): Shuffle all 18 cards and deal 3 to each player, privately. The remaining cards stay face down and unseen for the whole round.\n2. BID: All players at the same time secretly choose a bid of 0, 1, 2 or 3 (how many tricks they will win this round).\n3. REVEAL BIDS: All bids are announced to everyone.\n4. TRICK 1: All players at the same time choose one card from their hand to play. All played cards are revealed together and removed from hands.\n5. RESOLVE TRICK 1: If the Mermaid and the Skull King were both played, the Mermaid's player wins the trick. Otherwise the card with the highest power wins the trick. If every card played has power 0 (all Escapes), nobody wins the trick. Add 1 to the winner's tricks-won count. Capture bonuses are recorded for the winner: if the Skull King won, count the Pirates in the trick (each is worth a +20 bonus); if the Mermaid won and the Skull King is in the trick, record a +40 bonus. Announce the winner.\n6. TRICK 2 and RESOLVE TRICK 2: same as steps 4 and 5.\n7. TRICK 3 and RESOLVE TRICK 3: same as steps 4 and 5 (each player plays their last card).\n8. SCORING, for each player:\n   - Bid 0 and won 0 tricks: +30.\n   - Bid 0 and won 1 or more tricks: -30.\n   - Bid k of 1 or more and won exactly k tricks: +20 times k, plus all capture bonuses that player recorded this round.\n   - Bid k of 1 or more and won a different number: -10 times the absolute difference between bid and tricks won. No bonuses.\n   - Capture bonuses are paid only on an exact bid (zero bids cannot have bonuses, since bonuses require winning a trick).\n9. ANNOUNCE: Each player's tricks won, points this round and running total are announced. Reset tricks won and bonuses to 0.\n10. END CHECK: After round 8 the game ends.\n\nINFORMATION: Your own hand is private. Bids, every played card, trick winners and scores are public. There is no talk phase.",
+      "objective": "After 8 rounds, the player with the highest total points wins. If two or more players tie for the highest total, the game is a draw.",
+      "expected_effect": "Players must judge their hand's strength against unseen cards (3 to 6 of 18 stay hidden), read opponents' public bids to infer who holds the specials, and time their plays: dump a high card when a stronger special is likely to come out, save the Mermaid to ambush the Skull King, or throw an Escape to avoid an unwanted trick. Because tricks are played at the same time, every trick is a small guessing game about when opponents will commit their strong cards. Breaking another player's bid by stealing or refusing a trick is a real tactic. Deal luck is limited: a weak hand can bid 0 for +30, close to a strong hand's 2-trick +40, and 8 short hands average out. Simple policies lose. Always bidding 0 fails whenever a forced high card wins (-30). Always bidding 3 misses most hands. Random bids and plays lose to calibrated players. Talk is left out: bids already serve as public, costly signals. With one winner, free talk would mostly add cheap bluffs about which trick a player will spend the Skull King on, and the extra steps are not worth it."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 4,
+      "attributes": 10,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 8
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Exact-bid payoffs: bid 0 = +30; bid 1 = +20; bid 2 = +40; bid 3 = +60, plus capture bonuses. A miss costs -30 on a zero bid and -10 per trick of difference otherwise. No bid is strictly best, because the right bid depends on the hand. Weak hands favour 0 (+30). Strong hands favour 2-3 (+40/+60). A missed zero bid swings 60 points, which deters bidding 0 on a strong hand.\n\nThoughtless policies (3 players, 9 of 18 cards dealt):\n(a) Always bid 0. P(holding at least one of SK/PB/PA/Mermaid) = 1 - C(14,3)/C(18,3) = 1 - 364/816 = 0.55. The Skull King wins its trick unless the Mermaid lands on the same trick, and Pirate B wins unless the Skull King or Mermaid conflict does. So a zero bid fails on most of these hands, plus some hands of high numbers. EV is roughly 0.45*30 - 0.55*30 = about -3 per round. A sensible bidder bids 0 on weak hands (about 45% of deals, nearly +30 each) and 1-2 on strong hands (+20/+40 when exact). That is roughly +20 to +25 per round. Always-0 therefore loses to sensible play. Against uniformly random bidders, whose EV is negative because they often miss, it can win. That is acceptable: it is not a 'never loses' policy.\n(b) Always bid 3. This needs three winning cards; holding SK+PB+PA has probability 1/816. It usually misses by 2-3 (-20 to -30) and loses to everyone.\n(c) Always play the highest card first. This is exploitable: a Mermaid holder times their play against the Skull King, and zero-bidders shed cards behind the high card. It is not a dominant line.\n\nThe winner rule (highest total, ties draw) gives no policy that never loses.\n\nSeat symmetry: all bids and plays are simultaneous and there is no lead order, so no seat has a move-order or information edge.\n\nTie-breaking inside a trick: all powers are distinct except the two Escapes. With 3+ players at least one played card has power \u22651, so the trick winner is always unique and the 'all Escapes' case is unreachable. The labels match the numbers: Mermaid (20) < Pirates (30/31) < Skull King (40), with the stated Mermaid-over-SK exception. Every player can realistically win."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules are complete:\n- the deal, the bid range 0-3, the simultaneous reveal and the 3 simultaneous tricks are all defined;\n- trick resolution is fully specified, including Mermaid+SK+Pirate together, where Mermaid wins and earns +40;\n- SK capture bonuses (+20 per Pirate) are defined;\n- scoring covers every bid/result combination;\n- the game ends after a fixed 8 rounds;\n- the winner comes from arithmetic on kept totals.\n\nThe declared step count of 12 matches the list exactly: deal, bid, reveal, 3 x (play + resolve), score, announce, end check. There are 4 choice steps (bid + 3 plays), which is within the limit of 4. Attributes 10 \u2264 20, hidden elements 1 \u2264 3, random draws 1 \u2264 1, rounds 8 \u2264 40.\n\nEngine support: the deal uses the shared_deck_draw workaround (supported). Simultaneous polls are used for every joint choice. Trick resolution is calc and conditional operations. No board, clock, judge, trading or binding agreements are needed.\n\nTalk: omitting it is sensible. Bids are a public, costly signal, and every played card is revealed, so players reason from real information rather than guessing. Free talk would add only cheap claims. This is not a cooperation game, so the late-round betrayal check does not apply."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Luck comes only from the deal. Its influence is limited:\n- The per-round ceiling is +60 (+bonuses) for strong hands and +30 for weak hands, and a weak hand can almost guarantee +30 by bidding 0. For example, holding 1-2-3, your 1 wins only if both opponents play Escapes.\n- I estimate the deal-driven standard deviation at about 15 points per player per round, about 42 over 8 rounds.\n\nThe skill gap is much larger. Poor bidding (wrong bid half the time, or zero-bidding a Skull King) costs about 20-30 points per round, roughly 160-240 over the game.\n\nThere is real material to infer and act on:\n- Public bids reveal who holds the power cards.\n- The Mermaid holder must time their play to meet the Skull King, and the SK holder must avoid that trick.\n- Zero-bidders must shed mid cards on tricks where a higher card is likely.\n- Mid cards (7-12) win or lose depending on which of the 9 undealt cards are out. That is inferred from bids and from cards already seen.\n\nUnder equal good play the deal matters: whoever gets the SK, Pirates and Mermaid can score more. But timing and bidding accuracy can overcome it across 8 rounds, so the deal adds variety rather than deciding the winner. I estimate chance at about 30-40% of outcomes, comparable to the original Skull King."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_tests",
+      "reason": "The failing assertions check `deck` and `hand`, which are the coder's own bookkeeping and not part of the interface. The deck is legitimately refilled to 18 for the next round's shuffle, so expecting 9 or 3 left after the round misreads the rules. The bid and 'rule never matched' failures come from the tests' choice scripting: they expect bids to be offered as a fixed menu containing 1, the game never offered such a menu, so the default choice of 0 was entered and the bid checks failed.",
+      "guidance": "Assert only on interface attributes: `score`, `bid`, `tricks_won`, `played`, `round_points`, `round` and `trick_winner`. Drop the `deck` and `hand` length checks, or at least never check the undealt pile after the round ends, because the game refills and reshuffles the deck for the next round. Drive bids with whatever input form the game actually presents, such as a numeric entry from bid_min to bid_max, rather than relying on 'options_include 1' menus. Then check that the bids recorded in `bid` match what each seat entered and are revealed together. Card plays depend on the random deal, so either assert only deal-independent facts or pick cards by a rule that works for any hand (for example 'play the first card offered'). Then check the trick and score outcome from the `played` values the game reports, using the scoring rule: 0 bid and 0 tricks gives +30; 0 bid with any trick gives -30; an exact bid of k gives 20k plus capture bonuses; a missed bid gives -10 times the difference.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The trace shows only 12 moves in round 1. That is exactly three simultaneous card plays of 4 seats, so the game never polls a bid: `bid` stays at its starting 0, and seats are never offered 0-3. The tests correctly expect the bid each seat enters to be recorded, and the rules do not reset bids at round end.",
+      "guidance": "Add the BID step to each round, after the deal and before trick 1. It must be a simultaneous poll of all players. Offer the whole numbers from `bid_min` to `bid_max` (0, 1, 2, 3), building the options from those parameter attributes rather than literal numbers. Store each choice in that player's `bid`, keep it hidden until all bids are in, then reveal it publicly. Do not reset `bid` in the end-of-round announce/reset step: the rules reset only tricks won and bonuses, and the new bid overwrites it next round. Make sure scoring reads this real `bid` value. Bid 0 gives \u00b130. Bid k\u22651 gives +20k plus bonuses on an exact hit, or -10 \u00d7 |bid \u2212 tricks won| otherwise. Keep the card-play polls offering only the cards in the player's own hand."
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "The tests correctly expect each player to be offered the bids 0, 1, 2 and 3 and to have the chosen value recorded in `bid`. In the game file, the bid step never offered those options (not even 0), so every seat's bid stayed at the default 0 and the bid-0 scoring followed from that.",
+      "guidance": "Make the bid step a simultaneous poll of all players. Its options must be exactly the whole numbers from `bid_min` to `bid_max` (0, 1, 2, 3), built from those parameter attributes rather than typed in as literal numbers. Store each player's chosen option in their `bid` attribute, and reveal the bids only after everyone has chosen. Check that scoring reads the stored `bid`. With a recorded bid of 1 or more, a player who wins exactly that many tricks should get +20 per trick plus capture bonuses, and a miss should cost -10 per trick off. Keep the deal, trick resolution and round counter as they are, since those already behaved correctly.",
+      "missing": ""
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 4,
+      "attributes": 10,
+      "hidden_elements": 1,
+      "random_draws_per_round": 1,
+      "rounds": 8
+    },
+    "measured": {
+      "steps_per_round": 17,
+      "choice_steps_per_round": 3,
+      "attributes": 39,
+      "hidden_elements": 6
+    }
+  },
+  "verdict": "needs_review"
+}

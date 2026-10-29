@@ -1,0 +1,1621 @@
+[
+  {
+    "name": "R1: the recorded shuffle holds all 30 cards",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "match_order": 30
+        }
+      }
+    },
+    "rule_text": "The deck has 30 cards: in each of Red, Green and Blue, the numbers 2 to 10 and one Wager."
+  },
+  {
+    "name": "R2: round 1 deals 5 cards to each seat and leaves 20 in the draw pile (19 after seat 1 draws); chance-independent counts only",
+    "rule": "R2",
+    "players": 2,
+    "seed": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "match_order": 30,
+          "deck": 19
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 5
+          }
+        }
+      }
+    },
+    "rule_text": "In round 1 the deck is shuffled once into match_order. Seat 1 gets cards 1-5, Seat 2 gets cards 6-10, and cards 11-30 form the draw pile with card 11 on top (draw_count = 20)."
+  },
+  {
+    "name": "R3: round 21 clears the columns, deals the mirrored hands from match_order and does not reshuffle",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "red_col": [
+            "R5"
+          ],
+          "green_col": [
+            "G4",
+            "G7"
+          ],
+          "blue_col": [],
+          "total": 30,
+          "hand": [
+            "B2"
+          ]
+        },
+        "2": {
+          "red_col": [],
+          "green_col": [],
+          "blue_col": [
+            "B3",
+            "B6"
+          ],
+          "total": 12,
+          "hand": [
+            "G2"
+          ]
+        }
+      },
+      "game": {
+        "round": 21,
+        "hand_number": 1,
+        "match_order": [
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7",
+          "R8",
+          "R9",
+          "R10",
+          "RW",
+          "G2",
+          "G3",
+          "G4",
+          "G5",
+          "G6",
+          "G7",
+          "G8",
+          "G9",
+          "G10",
+          "GW",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "BW"
+        ],
+        "deck": [],
+        "draw_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PLAY slot 1 (R2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_col": [],
+          "green_col": [],
+          "blue_col": [],
+          "total": 30
+        },
+        "2": {
+          "red_col": [
+            "R2"
+          ],
+          "green_col": [],
+          "blue_col": [],
+          "total": 12
+        }
+      },
+      "lens": {
+        "game": {
+          "deck": 19
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 5
+          }
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Red"
+        }
+      ]
+    },
+    "rule_text": "In round 21 all columns, discard piles and penalties are cleared and there is no reshuffle. Seat 2 gets match_order cards 1-5, Seat 1 gets cards 6-10, and cards 11-30 form the draw pile in the same order."
+  },
+  {
+    "name": "R4: in round 1 both seats are asked for an embargo colour",
+    "rule": "R4",
+    "players": 2,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Green"
+      },
+      {
+        "seat": 2,
+        "options_include": "Blue"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Green"
+        },
+        {
+          "seat": 1,
+          "option": "Blue"
+        },
+        {
+          "seat": 2,
+          "option": "Red"
+        },
+        {
+          "seat": 2,
+          "option": "Blue"
+        }
+      ]
+    },
+    "rule_text": "In rounds 1 and 21, both players simultaneously and secretly name an embargo colour (Red, Green or Blue), revealed only at end-of-hand scoring."
+  },
+  {
+    "name": "R5: in hand 2, seat 1 acts on even round 22 and seat 2 does not",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 22,
+        "hand_number": 2,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY slot 1 (R5)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_col": [
+            "R5"
+          ]
+        },
+        "2": {
+          "red_col": [],
+          "green_col": [],
+          "blue_col": []
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "draw pile"
+        }
+      ]
+    },
+    "rule_text": "In hand 1, Seat 1 acts on odd rounds and Seat 2 on even rounds. In hand 2 (rounds 21-40), Seat 2 acts on odd rounds and Seat 1 on even rounds."
+  },
+  {
+    "name": "R5: in hand 1, seat 2 acts on even round 4 and seat 1 does not",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 4,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PLAY slot 3 (B2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "blue_col": [
+            "B2"
+          ]
+        },
+        "1": {
+          "red_col": [],
+          "green_col": [],
+          "blue_col": []
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "draw pile"
+        }
+      ]
+    },
+    "rule_text": "In hand 1, Seat 1 acts on odd rounds and Seat 2 on even rounds. In hand 2 (rounds 21-40), Seat 2 acts on odd rounds and Seat 1 on even rounds."
+  },
+  {
+    "name": "R6: a discard goes onto its colour's pile at no cost",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD slot 2 (G3)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_col": [],
+          "green_col": [],
+          "blue_col": [],
+          "total": 0
+        }
+      },
+      "lens": {
+        "game": {
+          "green_pile": 1,
+          "deck": 4
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          }
+        }
+      }
+    },
+    "rule_text": "When a player discards a card, it goes onto its colour's discard pile at no cost."
+  },
+  {
+    "name": "R7: a higher number card is added to the column",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "R3"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY slot 1 (R5)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_col": [
+            "R3",
+            "R5"
+          ]
+        }
+      },
+      "lens": {
+        "game": {
+          "red_pile": 0
+        }
+      }
+    },
+    "rule_text": "When a player plays a number card higher than every number in that colour's column, it is added to the column."
+  },
+  {
+    "name": "R8: a lower number play is discarded and costs 1 point at scoring",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "embargo": "Blue",
+          "penalty": 0,
+          "total": 0
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "red_col": [
+            "R8"
+          ],
+          "embargo": "Blue",
+          "penalty": 0,
+          "total": 0
+        }
+      },
+      "game": {
+        "round": 20,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "PLAY slot 1 (R2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "red_col": [
+            "R8"
+          ],
+          "hand_score": -1,
+          "total": -1
+        },
+        "1": {
+          "hand_score": 0,
+          "total": 0
+        }
+      },
+      "lens": {
+        "game": {
+          "red_pile": 1
+        }
+      }
+    },
+    "rule_text": "When a player plays a number card not higher than every number in that colour's column, it goes onto its colour's discard pile and the player's penalty rises by 1."
+  },
+  {
+    "name": "R9: a Wager played to a column with no number card is added",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY slot 4 (RW)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_col": [
+            "RW"
+          ]
+        }
+      }
+    },
+    "rule_text": "When a player plays a Wager to a column with no number card, it is added to the column. If the column already has a number card, the play is illegal: the Wager is discarded and penalty rises by 1."
+  },
+  {
+    "name": "R9: a Wager played to a column that has a number card is discarded",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "R3"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY slot 4 (RW)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_col": [
+            "R3"
+          ]
+        }
+      },
+      "lens": {
+        "game": {
+          "red_pile": 1
+        }
+      }
+    },
+    "rule_text": "When a player plays a Wager to a column with no number card, it is added to the column. If the column already has a number card, the play is illegal: the Wager is discarded and penalty rises by 1."
+  },
+  {
+    "name": "R10: drawing from an empty pile takes from the draw pile",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD slot 2 (G3)"
+      },
+      {
+        "seat": 1,
+        "options_include": "Blue pile"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 4,
+          "blue_pile": 0,
+          "green_pile": 1
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          }
+        }
+      }
+    },
+    "rule_text": "When a player draws from a discard pile that is empty, or whose top is the card that player sent to a discard pile this turn, they take the top card of the draw pile instead."
+  },
+  {
+    "name": "R10: drawing from the pile topped by this turn's discard takes from the draw pile",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD slot 2 (G3)"
+      },
+      {
+        "seat": 1,
+        "options_include": "Green pile"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 4,
+          "green_pile": 1
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          }
+        }
+      }
+    },
+    "rule_text": "When a player draws from a discard pile that is empty, or whose top is the card that player sent to a discard pile this turn, they take the top card of the draw pile instead."
+  },
+  {
+    "name": "R10: drawing from a non-empty pile topped by an older card takes that card",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5,
+        "green_pile": [
+          "G6"
+        ],
+        "green_top": "G6"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD slot 3 (B4)"
+      },
+      {
+        "seat": 1,
+        "options_include": "Green pile"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 5,
+          "green_pile": 0,
+          "blue_pile": 1
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          }
+        }
+      }
+    },
+    "rule_text": "When a player draws from a discard pile that is empty, or whose top is the card that player sent to a discard pile this turn, they take the top card of the draw pile instead."
+  },
+  {
+    "name": "R11: the drawn card goes to slot 5 and is offered there next turn",
+    "rule": "R11",
+    "players": 2,
+    "seed": 1,
+    "rounds": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY slot 1 (R5)"
+      },
+      {
+        "seat": 1,
+        "options_include": "PLAY slot 5 (R8)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile",
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "DISCARD slot 1 (R2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_col": [
+            "R5",
+            "R8"
+          ]
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "DISCARD slot 1 (G3)"
+        },
+        {
+          "seat": 1,
+          "option": "DISCARD slot 4 (G9)"
+        }
+      ]
+    },
+    "rule_text": "When a card is drawn it goes into hand slot 5, and the other cards close up so slot 1 stays the oldest."
+  },
+  {
+    "name": "R12: each turn adds one announcement",
+    "rule": "R12",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ]
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ]
+        }
+      },
+      "game": {
+        "round": 3,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5,
+        "announcements": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PLAY slot 1 (R5)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "announcements": 1
+        }
+      }
+    },
+    "rule_text": "Each turn's announcement says either 'Seat X played [card] to their [colour] column' or 'Seat X discarded [card]', never distinguishing an illegal play from a voluntary discard. It also gives the pile drawn from, and the card taken if it came from a discard pile."
+  },
+  {
+    "name": "R13: a column of R4, R9 scores 5 and empty columns score 0",
+    "rule": "R13",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "R4",
+            "R9"
+          ],
+          "embargo": "Green",
+          "penalty": 0,
+          "total": 0
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "embargo": "Green",
+          "penalty": 0,
+          "total": 0
+        }
+      },
+      "game": {
+        "round": 20,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "DISCARD slot 1 (R2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_score": 5,
+          "total": 5
+        },
+        "2": {
+          "hand_score": 0,
+          "total": 0
+        }
+      }
+    },
+    "rule_text": "When a hand is scored, an empty column scores 0. Otherwise S = sum of number cards - 8; for example R4, R9 gives 5."
+  },
+  {
+    "name": "R14: a Wager multiplies a positive score (5 becomes 7) and leaves a negative one unchanged",
+    "rule": "R14",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "RW",
+            "R4",
+            "R9"
+          ],
+          "green_col": [
+            "GW",
+            "G3"
+          ],
+          "embargo": "Blue",
+          "penalty": 0,
+          "total": 0
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "embargo": "Blue",
+          "penalty": 0,
+          "total": 0
+        }
+      },
+      "game": {
+        "round": 20,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "DISCARD slot 1 (R2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_score": 2,
+          "total": 2
+        }
+      }
+    },
+    "rule_text": "When a column with S > 0 holds the Wager, S becomes floor(1.5 * S); for example S = 5 becomes 7. When S <= 0 the Wager has no effect."
+  },
+  {
+    "name": "R15: a column of 5 or more cards, Wager included, gains 10",
+    "rule": "R15",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "blue_col": [
+            "BW",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "green_col": [
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6"
+          ],
+          "embargo": "Red",
+          "penalty": 0,
+          "total": 0
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "embargo": "Red",
+          "penalty": 0,
+          "total": 0
+        }
+      },
+      "game": {
+        "round": 20,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "DISCARD slot 1 (R2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_score": 41,
+          "total": 41
+        }
+      }
+    },
+    "rule_text": "When a column has 5 or more cards, Wager included, it gains +10."
+  },
+  {
+    "name": "R16: the opponent's embargo halves a positive score (17 becomes 8) and leaves a negative one unchanged",
+    "rule": "R16",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "R7",
+            "R8",
+            "R10"
+          ],
+          "green_col": [
+            "G9"
+          ],
+          "embargo": "Green",
+          "penalty": 0,
+          "total": 0
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "green_col": [
+            "G3"
+          ],
+          "embargo": "Red",
+          "penalty": 0,
+          "total": 0
+        }
+      },
+      "game": {
+        "round": 20,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "DISCARD slot 5 (B9)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_score": 9,
+          "total": 9
+        },
+        "2": {
+          "hand_score": -5,
+          "total": -5
+        }
+      }
+    },
+    "rule_text": "When a column's colour is the opponent's embargo and its score so far is positive, it is halved rounding down (for example 17 becomes 8). A zero or negative score is unchanged."
+  },
+  {
+    "name": "R17: hand score subtracts penalties and is added to the total",
+    "rule": "R17",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "R9",
+            "R10"
+          ],
+          "embargo": "Green",
+          "penalty": 2,
+          "total": 20
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "embargo": "Blue",
+          "penalty": 0,
+          "total": 15
+        }
+      },
+      "game": {
+        "round": 20,
+        "hand_number": 1,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "DISCARD slot 1 (R2)"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_score": 9,
+          "total": 29
+        },
+        "2": {
+          "hand_score": 0,
+          "total": 15
+        }
+      }
+    },
+    "rule_text": "Hand score = the sum of the three column scores - illegal-play penalties that hand. It is added to total, then both embargoes, hand scores and totals are announced."
+  },
+  {
+    "name": "R18: after round 40 is scored the higher total wins",
+    "rule": "R18",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "R10"
+          ],
+          "embargo": "Green",
+          "penalty": 0,
+          "total": 10
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "blue_col": [
+            "B9"
+          ],
+          "embargo": "Green",
+          "penalty": 0,
+          "total": 5
+        }
+      },
+      "game": {
+        "round": 40,
+        "hand_number": 2,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD slot 2 (G3)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 12,
+        "2": 6
+      },
+      "players": {
+        "1": {
+          "hand_score": 2,
+          "total": 12
+        },
+        "2": {
+          "hand_score": 1,
+          "total": 6
+        }
+      }
+    },
+    "rule_text": "After round 40 is scored the match ends. The higher total wins, and equal totals are a draw."
+  },
+  {
+    "name": "R18: equal totals after round 40 share the win",
+    "rule": "R18",
+    "players": 2,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "R5",
+            "G3",
+            "B4",
+            "RW",
+            "G9"
+          ],
+          "red_col": [
+            "R10"
+          ],
+          "embargo": "Green",
+          "penalty": 0,
+          "total": 5
+        },
+        "2": {
+          "hand": [
+            "R2",
+            "G2",
+            "B2",
+            "BW",
+            "B9"
+          ],
+          "blue_col": [
+            "B9"
+          ],
+          "embargo": "Green",
+          "penalty": 0,
+          "total": 6
+        }
+      },
+      "game": {
+        "round": 40,
+        "hand_number": 2,
+        "deck": [
+          "R8",
+          "G8",
+          "B8",
+          "R10",
+          "G10"
+        ],
+        "draw_count": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DISCARD slot 2 (G3)"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw pile"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 7,
+        "2": 7
+      },
+      "players": {
+        "1": {
+          "total": 7
+        },
+        "2": {
+          "total": 7
+        }
+      }
+    },
+    "rule_text": "After round 40 is scored the match ends. The higher total wins, and equal totals are a draw."
+  }
+]

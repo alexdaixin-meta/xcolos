@@ -1,0 +1,54 @@
+# 04 critic
+
+- time: 2026-10-28T02:34:45+00:00 (47.6s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 75b8c6af077756da, reply sha256 1c2c0a7ab4ba8ee4
+
+## Sent
+
+````
+ORIGINAL GAME: Brusquembille
+Played with 32-card piquet pack, 2-5 players. If 3 or 5 play, remove two Sevens so cards divide evenly. Each player antes to pot and receives 3 cards. Top stock card face-up under stock sets trump and is last card drawn. Eldest leads first trick; any card may be played, no need to follow suit. Highest trump wins trick, otherwise highest of led suit. Trick winner draws first from stock to refill to 3, others follow. Winner leads next. When stock empty, last three tricks require following suit, later rule adds winner of first trick may exchange trump in hand for turned-up trump. After all cards played, count points: Ace 11, Ten 10, King 4, Queen 3, Jack 2, rest 0, plus 1 for a pointless trick in later rules. Most points wins pot. Side-payments: winning a trick containing own Ace gains 2 chips from each opponent, losing own Ace costs 2 chips to each; Ten is 1 chip same way; adjusted for partnerships.
+
+PROPOSED VARIATION: Mirror Brusquembille
+Players: 2 to 2
+Rules: CARDS. There are four suits (Spades, Hearts, Diamonds, Clubs) and four ranks. From highest to lowest the ranks are Ace (11 points), Ten (10 points), King (4 points) and Seven (0 points). Each player owns a private 16-card pile containing exactly one Ace, Ten, King and Seven of every suit, worth 100 points. Both piles have this same composition, and both players are told it.
+
+HIDDEN INFORMATION. There are exactly three hidden elements.
+(1) Player 1's hand: seen only by Player 1.
+(2) Player 2's hand: seen only by Player 2.
+(3) The order of the cards in both piles: hidden from BOTH players, fixed by the setup shuffles.
+Everything else is public: the trump suit, the leader, the trick number, both scores, the NUMBER of cards left in each pile, and every card played face up so far. No player ever sees the cards in either pile. Because the starting composition is known, each player can work out which cards the opponent still has in hand and pile combined, but not which of them are in hand.
+
+SETUP.
+1) Shuffle each player's pile separately.
+2) Each player takes the top 3 cards of their own pile as their hand, leaving 13 cards in each pile.
+3) Draw one suit at random as the trump suit and announce it.
+4) Choose the first leader at random and announce it.
+5) Both scores start at 0.
+
+EACH TRICK (16 tricks, numbered 1 to 16):
+1. Each player sees their own hand. Both players see the trump suit, both scores, the trick number, the number of cards left in each pile (13 minus the number of tricks already completed in tricks 1 to 13, then 0), and every card played so far. Neither sees the cards inside any pile.
+2. The leader chooses one card from their hand and plays it face up. Any card may be played.
+3. The follower chooses one card from their hand and plays it face up. In tricks 1 to 13 any card may be played. In tricks 14, 15 and 16 the follower must play a card of the led suit if they hold one; otherwise any card.
+4. Decide the winner in this order:
+(a) If exactly one card is a trump, that card wins.
+(b) If both cards are of the same suit, the higher rank wins. If they are identical in suit and rank, the leader wins.
+(c) Otherwise (different suits, neither a trump), the leader wins.
+5. The winner adds the point values of both cards to their score. In trick 16 the winner also adds 1 bonus point.
+6. The winner leads the next trick.
+7. In tricks 1 to 13, the winner draws the top card of their own pile, then the loser draws the top card of their own pile, so both again hold 3 cards. After trick 13 both piles are empty and no more cards are drawn.
+8. After trick 16 the game ends.
+
+The points total 201 (200 card points plus the 1 bonus point), so the scores cannot be equal.
+How the winner is decided: After 16 tricks, the player with the higher score wins. Since 201 points are shared, a draw is impossible.
+The designer's stated complexity: {"steps_per_round": 12, "choice_steps_per_round": 2, "attributes": 11, "hidden_elements": 3, "random_draws_per_round": 0, "rounds": 16}
+````
+
+## Reply
+
+````
+```json
+{"balanced": {"verdict": "pass", "evidence": "ARITHMETIC: each suit is 11+10+4+0 = 25, so a pile is 4×25 = 100. Two piles give 200, plus the 1-point last-trick bonus gives 201. The total is odd, so the higher-total WINNER RULE can never draw. The game is zero-sum, so there is no cooperation and no 'safe option' problem.\n\nSEATS: the piles are identical in composition. Each player plays exactly their own 16 cards (all 4 trumps, all 4 Aces, and so on), so total resources are equal. Only arrival order differs. The first leader is random. Leading wins every off-suit, non-trump clash. Following has the information advantage of seeing the led card. Neither seat is structurally favoured.\n\nFOLLOWER TABLE against a led NON-TRUMP card X (value v):\n- Same suit, higher rank: follower wins v + own card.\n- Same suit, identical rank: leader wins.\n- Same suit, lower rank: leader wins.\n- Any trump: follower wins v + trump value.\n- Off-suit, non-trump: leader wins v + follower's card.\n\nAgainst a led TRUMP, only a higher trump wins. The opponent's Ace of the same suit ties, and the leader wins ties. So a non-trump Ace lead (11) loses only to a trump. A Seven lead (0) risks almost nothing. No option is strictly better: each card's value depends on the opponent's unknown hand.\n\nTHOUGHTLESS POLICIES, judged by the winner rule:\n- Always play highest: it leads Aces and Tens into trumps and, when following, throws Aces and Tens off-suit to the leader. A sensible player counting trumps (4 per side, tracked publicly) collects these. Highest-play loses most games.\n- Always play lowest: it must still play all its high cards eventually, because every card is played. When those are forced out as the follower, off-suit, they go to the leader. When it leads a Seven, the sensible follower wins it cheaply with a higher same-suit card or a low trump. It does not avoid losing.\n- Always first card: equivalent to random play. It loses to sensible play and is roughly 50/50 against random play.\n\nNo policy never loses. Both players can realistically win.", "playable": {"verdict": "pass", "evidence": "RULES COMPLETE: the winner order (a)-(c) covers every case:\n- one trump;\n- same suit, including trump vs trump and identical cards, where the leader wins;\n- different suits with no trump, where the leader wins.\n\nDRAW COUNT: 13 cards per pile are drawn after tricks 1-13, so the piles empty exactly after trick 13. Tricks 14-16 use the remaining 3 cards each, for 16 tricks and 32 cards in total. Follow-suit in tricks 14-16 is a single legality check the referee can rule on. Scoring and the winner are pure arithmetic on kept numbers.\n\nFINITE: exactly 16 rounds.\n\nLIMITS:\n- steps 12 ≤ 20;\n- choice steps 2 ≤ 4;\n- attributes 11 ≤ 20;\n- hidden elements 3 ≤ 3 (two hands plus pile order);\n- random draws per round 0 ≤ 1, since the shuffles, trump and leader are setup draws and the per-trick draws are list pops from pre-shuffled piles;\n- rounds 16 ≤ 40.\n\nNo board, clock, trading or conditional blocks are needed. Own-pile draws map to remove/append on game lists. The leader moves first and then the follower, which is a genuine sequential choice, not a simultaneous one. With two players and pure zero-sum play, no talk phase is needed.\n\nMinor note: 'winner draws first' has no effect, because each player draws from their own pile. It is harmless.", "reasoning_over_luck": {"verdict": "pass", "evidence": "THE MIRROR DESIGN REMOVES THE ORIGINAL'S BIGGEST LUCK SOURCE. There is no competition for a shared stock, and both players hold identical 100-point resources over the game. Chance remains in two places:\n- Arrival timing: for example, drawing trumps late, or holding Aces when you have no trump cover.\n- Who leads first.\n\nI estimate chance accounts for about 30-40% of results. That is significant, but good play can overcome it.\n\nWHAT CAN BE INFERRED: the opponent's remaining hand-plus-pile is exactly their 16-card set minus the cards they have played. So card counting gives live probabilities of whether the opponent holds a trump or a higher same-suit card. After trick 13 the endgame is perfect information: each player knows the opponent's exact 3 cards and can calculate tricks 14-16 under the follow-suit rule.\n\nDECISIONS THAT REWARD REASONING:\n- conserving trumps for Ace and Ten leads;\n- leading Sevens to probe;\n- dumping zero-point cards when you cannot win;\n- timing high leads for when the opponent's trumps are exhausted.\n\nWITH BOTH PLAYERS PLAYING WELL: the result turns on draw timing plus small edges, not on a hidden type that decides alone. Against a weaker player, the counting player is clearly favoured.", "required_changes": []}
+```
+````

@@ -656,7 +656,30 @@ name or `continue`.
 `against` is the check's input: a check after the night need not ask about an
 ending only a vote can reach.
 
-An ending names its winner with `result`, or says in words who wins:
+An ending names its winner with `result`, ranks the players with `rank_by`,
+or says in words who wins.
+
+`rank_by` is a calc worked out for every seat, `you` being the seat ranked.
+The highest value wins and seats level at the top share the win:
+
+```json
+"over": {"when": {"calc": "rounds_left == 0"}, "rank_by": "you.score",
+         "text": "Winner: {result}. Final scores: seat 1 {players[0].score}, seat 2 {players[1].score}."}
+```
+
+No model is involved. One ending ranks every seat, so there is no draw ending
+and no ending per seat: a tie at the top is a shared win, named `seats 1 and 3`
+in `{result}`. A tie-break
+goes into the expression (`you.hidden_count * 1000 + you.coins` ranks by cards,
+then coins). Every seat's value is logged with the end of the game as its
+`standings`. The expression is checked at load like any calc; a value that is
+not a number when the game ends stops the match with an error.
+
+`min_to_win` (a number, or a calc for the table with no `you`) sets a bar on
+`rank_by`: a seat below it cannot win, and when no seat reaches it the game ends
+with no winner (`no winner decided (...)`), its standings still logged.
+
+`winner` says it in words:
 
 ```json
 "richest": {"when": {"calc": "item >= items"},
@@ -672,7 +695,8 @@ figures it compared. The engine computes no score, so the same field ranks by
 wealth, votes, territory or anything else a game can state.
 
 With no model, or an answer naming no real seat, the game still ends, with
-`no winner decided` and why. Exactly one of `result` and `winner` is required.
+`no winner decided` and why. Exactly one of `result`, `rank_by` and `winner`
+is required.
 
 An unanswered ending is declined. A match that overruns hits the round cap and
 says so; a match that ended on a question nobody answered is indistinguishable
@@ -709,7 +733,7 @@ naming the key and listing what is accepted.
   a nested `repeat`
 - `players` together with `player`, or on `disclose`
 - an `if` written as prose
-- an ending with both `result` and `winner`, or neither
+- an ending with more than one of `result`, `rank_by` and `winner`, or none
 
 The third from last is the pattern: `"options": "$hand"` became five
 one-character choices, because `tuple()` of a string splits it. A loader that

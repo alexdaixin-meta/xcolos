@@ -1,0 +1,159 @@
+{
+  "original_summary": "Decrypto is a team word game. Each team has four secret numbered keywords, and each round an Encryptor gives clues to a secret 3-digit code. Teammates try to decode it while the opposing team tries to intercept it, using the growing public record of past clues. Two Interceptions win the game; two Miscommunications lose it.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Every simple policy loses. A Decoder who always guesses 1-2-3 is right 1 time in 24 and picks up Miscommunications within two rounds. An Encryptor who always gives the most obvious clue gets intercepted once the history builds, because opponents map clue to number. One who gives obscure clues gets miscommunicated. One who repeats the same code pattern gets intercepted. In the original, White reading first is a small edge. The previous variation removed it by revealing both teams' clues at once, and that is kept."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "The core decision is to pitch a clue clear enough for a teammate but not for opponents who see every past clue. Its quality depends on modelling both audiences. The only luck is which keywords are dealt; codes are chosen, not drawn. A shared list of comparable concrete nouns keeps the deal roughly even."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A weak team can still decode plain clues and score correct decodes. A strong team plans across rounds: it rotates clue angles per keyword so the public history stays ambiguous, and it exploits patterns in the opponent's history to intercept. No fixed clue policy is optimal."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "The opposing keywords are hidden. Interception means inferring them from accumulated clue-to-number pairs and the opponent's habits. Encrypting means predicting what the opponent has already inferred. This is inference from limited information plus planning over several rounds."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "weak",
+      "evidence": "Token counting is arithmetic, but clue validity needs a ruling. That is allowed as a referee rule check. The previous variation's text was still ambiguous: an invalid clue could cost one or two Miscommunications, which can decide the game. 'Private information' was undefined, and the word list was missing."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "The game is turn-based and text-only, with no board. Hidden team hands and simultaneous polls are supported. Eight rounds at most. Fits within 13 steps, 2 choice steps and about 16 attributes once the rules are made unambiguous."
+    }
+  ],
+  "problems": [
+    "Invalid-clue penalty was double-counted or unclear: step 3 gave 1 Miscommunication and also said the decode 'counts as failed', which step 6 might penalise again. Two Miscommunications end the game.",
+    "It was unclear whether a team with an invalid answer still gains a correct decode if its Decoder guesses right. That count is a tiebreaker.",
+    "It was unclear whether an invalid team's true code can still be intercepted.",
+    "Guesses were not required to use three different digits, and a malformed guess had no defined outcome.",
+    "The shared word list was never given, so the deal could not be built.",
+    "'Private information' was undefined in a game whose keywords are themselves private, so the clue rule could not be applied consistently.",
+    "In round 1, Encryptors are asked for interception guesses that are not scored; whether they must answer was unclear."
+  ],
+  "changes": [
+    {
+      "what": "An invalid Encryptor answer costs exactly 1 Miscommunication in total. That team's Decoder guess is ignored, its decode is not scored in step 6, and its correct-decode count does not change.",
+      "why": "Removes the one-or-two-token ambiguity that could decide the game.",
+      "fixes": "Invalid-clue penalty was double-counted or unclear: step 3 gave 1 Miscommunication and also said the decode 'counts as failed', which step 6 might penalise again. Two Miscommunications end the game."
+    },
+    {
+      "what": "State explicitly that an invalid team's decode is skipped entirely, so a correct guess by its Decoder earns nothing.",
+      "why": "Makes the tiebreaker count well defined.",
+      "fixes": "It was unclear whether a team with an invalid answer still gains a correct decode if its Decoder guesses right. That count is a tiebreaker."
+    },
+    {
+      "what": "From round 2 on, an invalid team's true code can still be intercepted normally. If the code itself is malformed, it cannot be matched, so no interception is possible.",
+      "why": "Defines the interaction, and keeps an invalid clue costly without giving opponents a free token.",
+      "fixes": "It was unclear whether an invalid team's true code can still be intercepted."
+    },
+    {
+      "what": "Every guess must be three different digits from 1 to 4. Any other guess, or no answer, counts as a wrong guess.",
+      "why": "Gives every possible answer a defined result.",
+      "fixes": "Guesses were not required to use three different digits, and a malformed guess had no defined outcome."
+    },
+    {
+      "what": "Supply a fixed list of 40 concrete nouns. At setup, 8 different words are dealt at random, 4 per team.",
+      "why": "The deal becomes buildable with list operations. Comparable nouns keep teams roughly even.",
+      "fixes": "The shared word list was never given, so the deal could not be built."
+    },
+    {
+      "what": "Define forbidden clue content precisely. A clue may not use personal or shared experience between teammates, refer to the game itself (seats, rounds, codes, numbers, earlier clues), or refer to the other team's words. Only the general-knowledge meaning of the team's own keyword is allowed.",
+      "why": "Gives the referee a clear test.",
+      "fixes": "'Private information' was undefined in a game whose keywords are themselves private, so the clue rule could not be applied consistently."
+    },
+    {
+      "what": "In round 1, Encryptors still answer the guess poll, but their interception guesses are ignored.",
+      "why": "Keeps the step list flat and the same every round.",
+      "fixes": "In round 1, Encryptors are asked for interception guesses that are not scored; whether they must answer was unclear."
+    }
+  ],
+  "keeps": [
+    "Two teams with four secret numbered keywords that stay the same all game.",
+    "An Encryptor gives one meaning-only clue per digit of a 3-digit code; no clue may be reused.",
+    "Teammates decode while opponents intercept, using the public history of clues and true codes.",
+    "Two Interceptions win and two Miscommunications lose; Encryptors rotate.",
+    "No interception in round 1.",
+    "From the previous variation: simultaneous clue reveal (no seat edge), an 8-round cap and the tiebreak ladder."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The game is strong reasoning material: inference about hidden keywords from public history, plus pitching clues to two audiences. It only needed its rules made fully unambiguous."
+  },
+  "variation": {
+    "name": "Decrypto Duel",
+    "summary": "Two teams of two each hold four secret keywords. Each round both Encryptors secretly choose a code and give meaning-only clues, which are revealed at the same time. Every player then guesses at once: Decoders decode their own team's code, and Encryptors try to intercept the other team's. Two Interceptions win, two Miscommunications lose, and the game lasts at most 8 rounds.",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "SETUP. There are four players. Seats 1 and 2 form Team White; seats 3 and 4 form Team Black.\n\nThe word list is these 40 words: apple, anchor, bridge, candle, castle, cloud, crown, desert, diamond, dragon, drum, eagle, engine, feather, forest, ghost, glacier, hammer, island, jungle, key, ladder, lantern, mirror, moon, needle, ocean, piano, pirate, pyramid, rocket, saddle, shadow, ship, snake, spider, sword, tiger, volcano, whistle.\n\nAt the start, the engine shuffles the list and deals 8 different words: the first 4 to White as keywords 1, 2, 3, 4 and the next 4 to Black as keywords 1, 2, 3, 4. A team's keywords are shown only to its two members and never change.\n\nThe engine tracks for each team: Interceptions (start 0), Miscommunications (start 0) and Correct Decodes (start 0). It also keeps a public history listing, for every finished round, each team's three clues and true code. All counters are public.\n\nROLES. In odd rounds (1, 3, 5, 7), seats 1 and 3 are Encryptors and seats 2 and 4 are Decoders. In even rounds (2, 4, 6, 8), seats 2 and 4 are Encryptors and seats 1 and 3 are Decoders.\n\nCLUE RULES. A clue is one word or a short phrase. It must point to the matching keyword of the clue-giver's own team by its general meaning only. A clue may NOT:\n(1) point to the keyword by spelling, letters, sound, rhyme, length or alphabetical position;\n(2) contain the keyword, a part of it, or a word with the same root;\n(3) repeat, word for word, a clue the same team used in an earlier round;\n(4) refer to the game itself: seats, rounds, codes, digits or keyword numbers, earlier clues, or the other team's words;\n(5) refer to private information, meaning anything not available from general knowledge, such as personal experiences, in-jokes or anything known only to the teammates.\n\nEACH ROUND:\n1. ANNOUNCE. The engine announces the round number and who is Encryptor and Decoder on each team.\n2. ENCRYPT (simultaneous; Encryptors only). Each Encryptor privately submits a secret code and three clues. The code is three different digits from 1 to 4, in any order (for example 3-1-4). The three clues are given in code order: the first clue for the first digit's keyword, and so on.\n3. CHECK. For each team, a referee rules the Encryptor's answer valid or invalid. It is valid only if the code is three different digits from 1 to 4 and all three clues obey the clue rules. If it is invalid, that team gains exactly 1 Miscommunication now. Its Decoder's guess this round will be ignored: step 6 does not score that team's decode at all, gives no further Miscommunication and adds no Correct Decode.\n4. REVEAL. Both teams' clues are shown to all four players at once. Codes stay secret.\n5. GUESS (simultaneous; all four players). Each Decoder submits a guess of their own team's code. Each Encryptor submits a guess of the opposing team's code. A guess must be three different digits from 1 to 4. Any other answer, or no answer, counts as a wrong guess. In round 1, Encryptors still answer, but their guesses are ignored.\n6. SCORE.\n   (a) DECODE, only for a team whose answer was valid in step 3. If the Decoder's guess equals the team's true code digit by digit in order, the team gains 1 Correct Decode. Otherwise it gains 1 Miscommunication.\n   (b) INTERCEPT, from round 2 on, for both teams, whether or not the opposing answer was valid. If an Encryptor's guess equals the opposing team's true code digit by digit in order, the Encryptor's team gains 1 Interception. A code with repeated or out-of-range digits can never be matched.\n7. HISTORY. Both true codes are shown to everyone and added to the public history beside that round's clues.\n8. END CHECK. The game ends now if any team has 2 or more Interceptions or 2 or more Miscommunications, or if round 8 has just finished. Otherwise the next round begins.\n\nThere is no discussion phase. Teammates may communicate only through official clues.",
+    "objective": "When the game ends, apply these rules in order:\n1. If exactly one team has 2 or more Interceptions together with fewer than 2 Miscommunications, that team wins.\n2. Otherwise, if exactly one team has 2 or more Miscommunications, the other team wins.\n3. Otherwise (both teams triggered an end condition in the same round, or round 8 ended):\n   (a) the team with the higher net score (Interceptions minus Miscommunications) wins;\n   (b) if tied, the team with more Interceptions wins;\n   (c) if still tied, the team with more Correct Decodes wins;\n   (d) if still tied, the game is a draw.",
+    "expected_effect": "Every penalty and edge case now has exactly one outcome, so the game can be built and played without interpretation. Play centres on two-audience clue pitching. Early rounds favour clear clues; as the history accumulates, Encryptors must vary their angle on each keyword while opponents piece together the hidden words to intercept. An invalid clue costs exactly one token, which makes rule-bending a real but bounded risk. Talk is left out: the only conflict is between the teams, there is nothing to negotiate in this zero-sum duel, and talk between teammates would bypass the clue channel that is the whole game."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 2,
+    "attributes": 16,
+    "hidden_elements": 2,
+    "random_draws_per_round": 0,
+    "rounds": 8
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Main decision space: a code is an ordered triple of distinct digits from 1-4, so there are 4x3x2 = 24 codes. A blind guess matches with probability 1/24, about 4.2%.\n\nThoughtless policies, judged by the WINNER RULE:\n(1) Decoder always guesses 1-2-3, or guesses at random. The team decodes about 4% of rounds, so it gains a Miscommunication in about 96% of rounds. P(2 Miscommunications by round 2) is about 0.92. Under ladder step 2, that team loses against sensible play and against random play. It fails, so it is not dominant.\n(2) Encryptor always picks code 1-2-3. Interception is scored from round 2. After one public history entry, a sensible opposing Encryptor predicts 1-2-3 and intercepts with near certainty in rounds 2 and 3. That gives 2 Interceptions, and ladder step 1 means the policy loses. Against a random opponent (4% intercept per round) it survives, but that is not 'never loses'.\n(3) Encryptor gives maximally obvious clues. Decode chance is about 100%. But by round 2 the history maps clues to numbers, so obvious synonyms let the opponent intercept often. Two intercepts end the game as a loss, so this is not safe.\n(4) Encryptor gives maximally cryptic clues. Interception risk is about 0, but the own Decoder fails, giving 2 Miscommunications and a loss.\n(5) Interceptor always guesses 1-2-3. It scores only about 4%, which is harmless but never wins on its own.\n(6) Deliberately invalid clues. Each one gives an automatic Miscommunication, so the policy loses.\n\nTrade-off table per Encryptor clue style (P(own decode) / P(opponent intercept), from round 2):\n- obvious: about 0.95 / high, about 0.5+\n- moderate: about 0.8 / about 0.15\n- cryptic: about 0.3 / about 0.02\nNo row is strictly best whatever the opponent does. The best row depends on how much history the opponent has gathered and how well it reads clues. That is the intended tension.\n\nSeat edge: the original game's White-reads-first ordering is removed. Encrypt and Guess are simultaneous polls, and roles rotate identically for both teams. There is no move-order or information asymmetry.\n\nWinner ladder arithmetic checked:\n- A has 2 Interceptions and B has 2 Miscommunications in the same round: step 1 gives the win to A.\n- A has 2 Interceptions and 2 Miscommunications, B has 0: step 1 fails, step 2 gives the win to B.\n- Both teams have 2 Miscommunications: steps 1 and 2 fail, so step 3 compares net scores.\nThe ladder is consistent. Both teams can realistically win, and the draw at step 3d is rare. There is no cooperation element to undermine, because this is a zero-sum team contest."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Limits check:\n- steps_per_round 13 (at most 20): OK.\n- choice_steps_per_round 2 (at most 4): OK.\n- attributes 16: about 8 keywords + 4 counters + 2 decode counts + history, so plausible (at most 20).\n- hidden_elements 2 (the team hands; codes are private poll answers): OK.\n- random draws 0 per round; the setup deal is outside the per-round limit: OK.\n- rounds 8 (at most 40): OK.\n\nThe game is finite: it lasts at most 8 rounds and the winner ladder always resolves. Clue validity is a complex rule check that a referee may rule on, which is allowed. No board or clock is needed. Hidden hands are supported, and both choices are simultaneous polls.\n\nTalk: correctly omitted. Teammates must not leak codes, and opponents have nothing to negotiate in a zero-sum duel.\n\nAmbiguities a model cannot resolve from the text alone:\n(a) Invalid clues. Step 3 gives the team 1 Miscommunication and says its 'decode counts as failed'. Step 6 separately says a non-matching decode, or by implication a failed one, gains 1 Miscommunication. It is unclear whether an invalid answer costs 1 or 2 Miscommunications. That difference alone ends the game, because 2 Miscommunications is a loss. It is also unclear whether a Decoder who still guesses the true code exactly raises the correct-decode count, which is a tiebreaker.\n(b) Whether an invalid team's code can still be intercepted. Presumably yes, but this is not stated.\n(c) Whether guesses must use three different digits.\n(d) The 'shared word list' is never given. Its size and contents are needed for the deal, and the deal needs remove/append operations as a workaround.\n(e) 'Refer to private information' is undefined in a game where the team keywords are themselves private.\n\nBecause (a) can decide the outcome, the rules are not complete."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance enters only through the setup keyword deal. Some deals produce semantically close keywords that are harder to clue. Codes are chosen, not drawn, so there is no per-round luck. I estimate chance at about 10-15% of the outcome, coming from deal difficulty and from a 1/24 lucky blind intercept.\n\nThere is plenty to infer and act on:\n- The opponent's keyword meanings, from the growing public clue-to-number history.\n- The opponent Encryptor's code-selection habits, which is opponent modelling.\n- The teammate's associative style.\n- How much the opponent has already learned, which is planning: each Encryptor must pace how much it reveals across 8 rounds.\n\nWhen all four players play well, the result turns on relative clue calibration and interception inference, not on a draw. The deal can be overcome by careful cluing. A player who reasons well clearly beats one who does not: a random Decoder loses in about 2 rounds, and a predictable Encryptor is intercepted."
+        },
+        "required_changes": [
+          "Rewrite steps 3 and 6 so an invalid Encryptor answer costs exactly 1 Miscommunication in total. For example: 'If invalid, the team gains 1 Miscommunication, its Decoder's guess is ignored this round, and the correct-decode count does not change; step 6's decode scoring is skipped for that team.'",
+          "State that an invalid team's true code can still be intercepted by the opposing Encryptor from round 2 on.",
+          "State whether guesses must use three different digits from 1-4, and what happens to a malformed guess (for example, it counts as a wrong guess).",
+          "Specify the shared word list, or at least its size and source (for example, a fixed list of 40 concrete nouns), and that the 8 dealt keywords are all different.",
+          "Define 'private information' for clues. For example: anything not derivable from general knowledge, such as personal experiences or references to the game's hidden state, other than the meaning of the team's own keywords."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SEAT SYMMETRY: Both Encryptors submit at the same time and all four clues are revealed at once. Intercepts start in round 2 for both teams. Roles rotate the same way on both teams (seats 1/3 encrypt in odd rounds, seats 2/4 in even rounds). Neither seat has an edge from move order or information.\n\nMAIN DECISION: the Encryptor chooses how clear to make the clues, and the Decoder and the opponent then guess one of the 24 possible codes (4x3x2).\nPer-team, per-round outcomes, with D = probability the team decodes correctly and I = probability the opponent intercepts:\n- Clear clues: D about 1.0. I rises with each round of history (round 2: 3 of 4 keyword numbers already linked to a clue, so I is about 0.3 to 0.5; by round 4, I is about 0.7 or more).\n- Vague clues: D about 0.5 to 0.7. I is about 1/24 to 0.1.\n- Invalid answer: exactly 1 Miscommunication, no decode. A malformed code (for example 1-1-1) blocks interception, but this costs the same as a failed decode, so it is never strictly better.\nNo clue style dominates: clarity trades Miscommunication risk against Interception risk. That is the intended tension.\n\nTHOUGHTLESS POLICIES, judged by the winner rule:\n(a) Always code 1-2-3. From round 2 the opponent guesses 1-2-3 and intercepts with probability about 1. After rounds 2 and 3 that is 2 Interceptions, and by Rule 1 the opponent wins. This loses to sensible play and also to any opponent who simply repeats the shown code.\n(b) Decoder always guesses the first option (1-2-3). Correct with probability 1/24 per round when codes are random, so the team reaches 2 Miscommunications by round 2 or 3 and loses by Rule 2.\n(c) Always pass or give no answer. Every answer counts as wrong: 1 Miscommunication per round, so the team loses after round 2.\n(d) Uniform random guessing as Encryptor-interceptor. Intercept chance is 1/24, about 0.04, per round. A sensible opponent decodes reliably and intercepts within a few rounds, so random play loses most games.\nNo policy never loses. Every thoughtless policy loses to sensible play.\n\nWINNER RULE ARITHMETIC CHECKED:\n- A has 2 Interceptions and 2 Miscommunications, B has 0/0: Rule 1 does not apply (A has 2 Miscommunications), Rule 2 gives B the win. Consistent.\n- A has 2 Interceptions and 1 Miscommunication, B has 2 Miscommunications: Rule 1 gives A the win.\n- Both teams have 2 Interceptions and 0 Miscommunications: falls to Rule 3. Net score ties at 2-2, Interceptions tie, so Correct Decodes decide, then a draw.\n\nBoth teams can realistically win. There is no labelled payoff ordering that contradicts the numbers."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS:\n- Setup is fully specified: a fixed 40-word list, an engine shuffle, and 8 distinct words dealt.\n- Code format, clue order and guess format are defined. Malformed or missing guesses count as wrong.\n- Invalid Encryptor answers have an exact consequence: +1 Miscommunication, decode ignored, intercept still scored, and malformed codes can never be matched.\n- Round 1 interception is explicitly ignored.\n- The game always ends by round 8, and the end check plus the 3-tier tiebreak (with a final draw) covers every case.\n\nCLUE VALIDITY: judging meaning-only clues needs a referee ruling, which the platform allows for a step's complex rule check. Scores and the winner are pure arithmetic on tracked counters.\n\nMINOR AMBIGUITY, not blocking: rule (4) bans referring to the other team's words, which the Encryptor does not know. In practice it only bans references to visible game material, and \"earlier clues\" already covers the other team's clue history.\n\nLIMITS:\n- steps_per_round: 13 (limit 20).\n- choice_steps_per_round: 2, the ENCRYPT and GUESS polls, both simultaneous (limit 4).\n- attributes: 16, covering 8 keywords, 6 counters, history and roles (limit 20).\n- hidden_elements: 2 categories, team keyword sets and secret codes (limit 3).\n- random_draws_per_round: 0. The single shuffle happens at setup.\n- rounds: 8 (limit 40).\n\nUnsupported features: no board, no real-time element, no trading, no binding agreements.\n\nTALK: with 4 players in 2 teams, omitting talk is correct. Open teammate talk would bypass the clue channel and break the inference core. Opponents gain nothing to negotiate, since both teams want opposite outcomes on every code.\n\nLATE ROUNDS: this is not a cooperate/betray repeated game, so the 'safe option wins late rounds' concern does not apply. In round 8 a leading team still risks Interceptions with clear clues and Miscommunications with vague ones, so there is no safe late-round policy."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE SOURCES:\n(1) The initial 8-word deal. Some keyword sets are easier to clue than others, but all 40 words are concrete nouns of similar clueability. Both teams face the same distribution, so this is a modest, non-decisive edge.\n(2) Intercept guesses under partial knowledge. In round 2, three keyword numbers are linked to one clue each. If the opponent's 3 clues each clearly match a known keyword, the intercept probability is about 1, otherwise about 1/2 to 1/6.\nEstimated share of results decided by chance: roughly 20-30%.\n\nWHEN BOTH TEAMS PLAY WELL: Encryptors choose random codes and clues that are associative for the teammate but avoid echoing earlier clues. Decoders score D of about 0.9 or more, and intercepts come from accumulating the opponent's clue history. The winner is then decided by who better models the shared associations and the opponent's clue patterns. It is not decided by the deal alone, because the deal is symmetric in kind and good clueing overcomes a hard word set.\n\nWHAT CAN BE INFERRED, AND HOW TO ACT ON IT:\n- Inferences: the opponent's hidden keywords from the public clue and code history, the teammate's likely associations, and the opponent's clueing style.\n- Actions: choosing which code to guess, and choosing how far to obscure one's own clues given what the opponent has already linked.\n\nA reasoning player clearly beats a non-reasoning one: random intercept is 1/24, whereas inferred intercept reaches 0.5 or more by round 3. Skill dominates the outcome."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

@@ -1,0 +1,1359 @@
+[
+  {
+    "name": "Deal start: each seat gets 6 cards and 2 go to the talon (one trick later each hand holds 5; random cards not asserted)",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 2
+      },
+      "lens": {
+        "game": {
+          "talon": 2
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 5
+          },
+          "3": {
+            "hand": 5
+          }
+        }
+      }
+    },
+    "rule_text": "When a deal starts (round 1, 7, 13, 19, 25, 31), then each player receives 6 hidden cards and 2 cards go to the talon, which is out of play."
+  },
+  {
+    "name": "A new deal starts at round 7: hands and talon are dealt again (random cards and points not asserted)",
+    "rule": "R2",
+    "players": 3,
+    "seed": 2,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 7,
+        "declarer_points": 500,
+        "defender_points": 500,
+        "declarer_tricks": 6,
+        "trick_cards": []
+      },
+      "players": {
+        "1": {
+          "hand": []
+        },
+        "2": {
+          "hand": []
+        },
+        "3": {
+          "hand": []
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "60 Leaves"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 8,
+        "declarer": 2,
+        "contract": 60,
+        "trump": "Leaves"
+      },
+      "lens": {
+        "game": {
+          "talon": 2
+        },
+        "players": {
+          "1": {
+            "hand": 5
+          },
+          "2": {
+            "hand": 5
+          },
+          "3": {
+            "hand": 5
+          }
+        }
+      }
+    },
+    "rule_text": "When a deal starts, then declarer_points, defender_points and declarer_tricks are reset to 0."
+  },
+  {
+    "name": "Deal 2: P2 is eldest, cannot pass and wins a three-way tie",
+    "rule": "R3",
+    "players": 3,
+    "seed": 3,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 7
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "80 Acorns"
+      },
+      {
+        "seat": 2,
+        "options_include": "80 Acorns"
+      },
+      {
+        "seat": 3,
+        "options_include": "80 Acorns"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 2,
+        "contract": 80,
+        "trump": "Acorns"
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "PASS Hearts"
+        }
+      ],
+      "offered": [
+        {
+          "seat": 1,
+          "option": "PASS Hearts"
+        },
+        {
+          "seat": 3,
+          "option": "PASS Hearts"
+        }
+      ]
+    },
+    "rule_text": "When the deal is d, then the eldest is seat ((d-1)%3)+1: P1 in deals 1 and 4, P2 in deals 2 and 5, P3 in deals 3 and 6."
+  },
+  {
+    "name": "Deal 3: P3 is eldest and becomes declarer when the others pass",
+    "rule": "R3",
+    "players": 3,
+    "seed": 4,
+    "default": "decline",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "round": 13
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "60 Leaves"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 3,
+        "contract": 60,
+        "trump": "Leaves"
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "PASS Hearts"
+        }
+      ]
+    },
+    "rule_text": "When the deal is d, then the eldest is seat ((d-1)%3)+1: P1 in deals 1 and 4, P2 in deals 2 and 5, P3 in deals 3 and 6."
+  },
+  {
+    "name": "Simultaneous bids are revealed together and the highest bid declares",
+    "rule": "R4",
+    "players": 3,
+    "seed": 5,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "50 Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "70 Bells"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS Leaves"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 2,
+        "contract": 70,
+        "trump": "Bells"
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "PASS Hearts"
+        }
+      ]
+    },
+    "rule_text": "When bidding, then all players submit a bid and suit simultaneously and all are revealed together."
+  },
+  {
+    "name": "PASS bids count as no bid, so the eldest's 50 declares",
+    "rule": "R5",
+    "players": 3,
+    "seed": 6,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "50 Leaves"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS Bells"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS Bells"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 1,
+        "contract": 50,
+        "trump": "Leaves"
+      }
+    },
+    "rule_text": "When a bid is not one of PASS, 50, 60, ..., 150, then it counts as PASS."
+  },
+  {
+    "name": "The eldest is never offered PASS and declares when the others pass",
+    "rule": "R6",
+    "players": 3,
+    "seed": 7,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer": 1
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "PASS Hearts"
+        },
+        {
+          "seat": 1,
+          "option": "PASS Bells"
+        },
+        {
+          "seat": 1,
+          "option": "PASS Leaves"
+        },
+        {
+          "seat": 1,
+          "option": "PASS Acorns"
+        }
+      ]
+    },
+    "rule_text": "When the eldest passes or bids invalidly, then the eldest's bid counts as 50."
+  },
+  {
+    "name": "Tie between non-eldest seats goes to the seat after the eldest",
+    "rule": "R8",
+    "players": 3,
+    "seed": 8,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "50 Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "90 Leaves"
+      },
+      {
+        "seat": 3,
+        "options_include": "90 Acorns"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 2,
+        "contract": 90,
+        "trump": "Leaves"
+      }
+    },
+    "rule_text": "When bids are compared, then the highest bid wins; on a tie the eldest wins, then the next seat after the eldest."
+  },
+  {
+    "name": "Tie with the eldest goes to the eldest",
+    "rule": "R8",
+    "players": 3,
+    "seed": 9,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "100 Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS Bells"
+      },
+      {
+        "seat": 3,
+        "options_include": "100 Bells"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 1,
+        "contract": 100,
+        "trump": "Hearts"
+      }
+    },
+    "rule_text": "When bids are compared, then the highest bid wins; on a tie the eldest wins, then the next seat after the eldest."
+  },
+  {
+    "name": "Contract and trump are the declarer's bid and suit",
+    "rule": "R9",
+    "players": 3,
+    "seed": 10,
+    "default": "decline",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "60 Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "80 Bells"
+      },
+      {
+        "seat": 3,
+        "options_include": "120 Acorns"
+      }
+    ],
+    "expect": {
+      "game": {
+        "declarer": 3,
+        "contract": 120,
+        "trump": "Acorns"
+      }
+    },
+    "rule_text": "When the declarer is set, then contract equals the declarer's bid, trump equals the declarer's suit, and the declarer leads trick 1."
+  },
+  {
+    "name": "A trump marriage of 40 is credited to the declarer's tally (Hearts 60 made, S=2 doubled)",
+    "rule": "R10",
+    "players": 3,
+    "seed": 11,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 1,
+        "contract": 60,
+        "trump": "Hearts",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 20,
+        "defender_points": 20,
+        "declarer_tricks": 2,
+        "declarer_marriages": 40,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ],
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            9
+          ],
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            8
+          ],
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 7,
+        "declarer_points": 50
+      },
+      "players": {
+        "1": {
+          "score": 8
+        },
+        "2": {
+          "score": -4
+        },
+        "3": {
+          "score": -4
+        }
+      }
+    },
+    "rule_text": "When a player holds the K and O of one suit, then that is a marriage worth 40 in trump and 20 otherwise, credited to the holder's side and publicly announced."
+  },
+  {
+    "name": "Must follow the led suit and beat it: Ace of Leaves forced, off-suit cards not offered",
+    "rule": "R11",
+    "players": 3,
+    "seed": 12,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 2,
+        "declarer": 1,
+        "contract": 50,
+        "trump": "Acorns",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 0,
+        "defender_points": 0,
+        "declarer_tricks": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            12
+          ]
+        },
+        "2": {
+          "hand": [
+            14,
+            3
+          ]
+        },
+        "3": {
+          "hand": [
+            13,
+            4
+          ]
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 3,
+        "declarer_points": 0,
+        "defender_points": 20
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Ten of Hearts"
+        },
+        {
+          "seat": 3,
+          "option": "Ace of Hearts"
+        }
+      ]
+    },
+    "rule_text": "When a later player holds a card of the led suit, then they must play that suit and beat the highest led-suit card in the trick if they can, unless the led suit is not trump and a trump is already in the trick."
+  },
+  {
+    "name": "The beating duty is lifted when a trump is already on a non-trump lead",
+    "rule": "R11",
+    "players": 3,
+    "seed": 13,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 2,
+        "declarer": 1,
+        "contract": 50,
+        "trump": "Acorns",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 0,
+        "defender_points": 0,
+        "declarer_tricks": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            12
+          ]
+        },
+        "2": {
+          "hand": [
+            15
+          ]
+        },
+        "3": {
+          "hand": [
+            14,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 0,
+        "defender_points": 10
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "Ten of Leaves"
+        },
+        {
+          "seat": 3,
+          "option": "Ace of Leaves"
+        }
+      ]
+    },
+    "rule_text": "When a later player holds a card of the led suit, then they must play that suit and beat the highest led-suit card in the trick if they can, unless the led suit is not trump and a trump is already in the trick."
+  },
+  {
+    "name": "Void in the led suit: must trump and overtrump the highest trump",
+    "rule": "R12",
+    "players": 3,
+    "seed": 14,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 2,
+        "declarer": 3,
+        "contract": 50,
+        "trump": "Acorns",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 0,
+        "defender_points": 0,
+        "declarer_tricks": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            14
+          ]
+        },
+        "2": {
+          "hand": [
+            18,
+            4
+          ]
+        },
+        "3": {
+          "hand": [
+            19,
+            15,
+            3
+          ]
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 30,
+        "defender_points": 0
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Ace of Hearts"
+        },
+        {
+          "seat": 3,
+          "option": "Ten of Hearts"
+        }
+      ]
+    },
+    "rule_text": "When a later player has no card of the led suit but holds a trump, then they must play a trump that beats the highest trump in the trick if they can."
+  },
+  {
+    "name": "With neither the led suit nor a trump, any card may be played",
+    "rule": "R13",
+    "players": 3,
+    "seed": 15,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 2,
+        "declarer": 2,
+        "contract": 50,
+        "trump": "Acorns",
+        "leader": 2,
+        "trick_cards": [],
+        "declarer_points": 0,
+        "defender_points": 0,
+        "declarer_tricks": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ]
+        },
+        "2": {
+          "hand": [
+            14
+          ]
+        },
+        "3": {
+          "hand": [
+            3,
+            9
+          ]
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 30,
+        "defender_points": 0
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "Ten of Hearts"
+        },
+        {
+          "seat": 3,
+          "option": "Ace of Bells"
+        }
+      ]
+    },
+    "rule_text": "When a later player has neither the led suit nor a trump, then they may play any card."
+  },
+  {
+    "name": "A low trump beats the Ace of the led suit (highest key wins)",
+    "rule": "R15",
+    "players": 3,
+    "seed": 16,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 2,
+        "declarer": 1,
+        "contract": 50,
+        "trump": "Acorns",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 0,
+        "defender_points": 0,
+        "declarer_tricks": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            14
+          ]
+        },
+        "2": {
+          "hand": [
+            15
+          ]
+        },
+        "3": {
+          "hand": [
+            13
+          ]
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 0,
+        "defender_points": 20
+      }
+    },
+    "rule_text": "When a trick is complete, then the card with the highest key (rank + 10 if trump + 5 if of the led suit) wins."
+  },
+  {
+    "name": "Last trick scores its Aces and Tens plus the 10 bonus; 50 Bells made",
+    "rule": "R16",
+    "players": 3,
+    "seed": 17,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 1,
+        "contract": 50,
+        "trump": "Bells",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 40,
+        "defender_points": 30,
+        "declarer_tricks": 3,
+        "declarer_marriages": 0,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            14
+          ],
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            3
+          ],
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            10
+          ],
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 7,
+        "declarer_points": 70,
+        "defender_points": 30
+      },
+      "players": {
+        "1": {
+          "score": 2
+        },
+        "2": {
+          "score": -1
+        },
+        "3": {
+          "score": -1
+        }
+      }
+    },
+    "rule_text": "When a trick is won, then its Aces and Tens score 10 each to the winner's side, plus 10 if it is the 6th trick of the deal."
+  },
+  {
+    "name": "The trick winner leads the next trick",
+    "rule": "R17",
+    "players": 3,
+    "seed": 18,
+    "default": "decline",
+    "rounds": 2,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 2,
+        "declarer": 2,
+        "contract": 50,
+        "trump": "Acorns",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 0,
+        "defender_points": 0,
+        "declarer_tricks": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            14,
+            8
+          ]
+        },
+        "2": {
+          "hand": [
+            15,
+            3
+          ]
+        },
+        "3": {
+          "hand": [
+            13,
+            9
+          ]
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 4,
+        "declarer_points": 50,
+        "defender_points": 0
+      }
+    },
+    "rule_text": "When a trick is won, then the winner leads the next trick."
+  },
+  {
+    "name": "Tally adds the declarer's marriages and subtracts the defenders' (90 Leaves made exactly)",
+    "rule": "R18",
+    "players": 3,
+    "seed": 19,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 2,
+        "contract": 90,
+        "trump": "Leaves",
+        "leader": 2,
+        "trick_cards": [],
+        "declarer_points": 50,
+        "defender_points": 20,
+        "declarer_tricks": 2,
+        "declarer_marriages": 40,
+        "defender_marriages": 20
+      },
+      "players": {
+        "1": {
+          "hand": [
+            5
+          ],
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            4
+          ],
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            0
+          ],
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 70
+      },
+      "players": {
+        "1": {
+          "score": -5
+        },
+        "2": {
+          "score": 10
+        },
+        "3": {
+          "score": -5
+        }
+      }
+    },
+    "rule_text": "When a deal ends, then tally = declarer_points + declarer_marriages (if the declarer won at least 1 trick) - defender_marriages (if the defenders won at least 1 trick)."
+  },
+  {
+    "name": "Defenders with no trick do not subtract their marriage (110 Acorns made)",
+    "rule": "R18",
+    "players": 3,
+    "seed": 20,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 1,
+        "contract": 110,
+        "trump": "Acorns",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 70,
+        "defender_points": 0,
+        "declarer_tricks": 5,
+        "declarer_marriages": 20,
+        "defender_marriages": 20
+      },
+      "players": {
+        "1": {
+          "hand": [
+            4
+          ],
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            1
+          ],
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            6
+          ],
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 90
+      },
+      "players": {
+        "1": {
+          "score": 14
+        },
+        "2": {
+          "score": -7
+        },
+        "3": {
+          "score": -7
+        }
+      }
+    },
+    "rule_text": "When a deal ends, then tally = declarer_points + declarer_marriages (if the declarer won at least 1 trick) - defender_marriages (if the defenders won at least 1 trick)."
+  },
+  {
+    "name": "A made 70 contract gives S=3",
+    "rule": "R19",
+    "players": 3,
+    "seed": 21,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 3,
+        "contract": 70,
+        "trump": "Leaves",
+        "leader": 3,
+        "trick_cards": [],
+        "declarer_points": 60,
+        "defender_points": 0,
+        "declarer_tricks": 3,
+        "declarer_marriages": 0,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            18
+          ],
+          "score": 10
+        },
+        "2": {
+          "hand": [
+            5
+          ],
+          "score": 5
+        },
+        "3": {
+          "hand": [
+            19
+          ],
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 90
+      },
+      "players": {
+        "1": {
+          "score": 7
+        },
+        "2": {
+          "score": 2
+        },
+        "3": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "When a deal ends with tally >= contract, then S = (contract-40)/10. For example, a 50 contract that is made gives S = 1."
+  },
+  {
+    "name": "A failed 50 contract gives S=-2",
+    "rule": "R20",
+    "players": 3,
+    "seed": 22,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 1,
+        "contract": 50,
+        "trump": "Bells",
+        "leader": 2,
+        "trick_cards": [],
+        "declarer_points": 20,
+        "defender_points": 40,
+        "declarer_tricks": 1,
+        "declarer_marriages": 0,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            0
+          ],
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            4
+          ],
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            3
+          ],
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 20,
+        "defender_points": 70
+      },
+      "players": {
+        "1": {
+          "score": -4
+        },
+        "2": {
+          "score": 2
+        },
+        "3": {
+          "score": 2
+        }
+      }
+    },
+    "rule_text": "When a deal ends with tally < contract, then S = -((contract-40)/10 + 1). For example, a failed 50 contract gives S = -2."
+  },
+  {
+    "name": "Hearts trump doubles S: a made 70 gives S=6",
+    "rule": "R21",
+    "players": 3,
+    "seed": 23,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 3,
+        "contract": 70,
+        "trump": "Hearts",
+        "leader": 3,
+        "trick_cards": [],
+        "declarer_points": 60,
+        "defender_points": 0,
+        "declarer_tricks": 3,
+        "declarer_marriages": 0,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            18
+          ],
+          "score": 0
+        },
+        "2": {
+          "hand": [
+            5
+          ],
+          "score": 0
+        },
+        "3": {
+          "hand": [
+            19
+          ],
+          "score": 0
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "score": -6
+        },
+        "2": {
+          "score": -6
+        },
+        "3": {
+          "score": 12
+        }
+      }
+    },
+    "rule_text": "When trump is Hearts, then S is doubled."
+  },
+  {
+    "name": "Settlement: the declarer gains 2*S and each defender loses S, added to existing scores",
+    "rule": "R22",
+    "players": 3,
+    "seed": 24,
+    "default": "decline",
+    "rounds": 1,
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 6,
+        "declarer": 2,
+        "contract": 60,
+        "trump": "Acorns",
+        "leader": 1,
+        "trick_cards": [],
+        "declarer_points": 50,
+        "defender_points": 20,
+        "declarer_tricks": 2,
+        "declarer_marriages": 0,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            12
+          ],
+          "score": 3
+        },
+        "2": {
+          "hand": [
+            14
+          ],
+          "score": -2
+        },
+        "3": {
+          "hand": [
+            11
+          ],
+          "score": 5
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "declarer_points": 70
+      },
+      "players": {
+        "1": {
+          "score": 1
+        },
+        "2": {
+          "score": 2
+        },
+        "3": {
+          "score": 3
+        }
+      }
+    },
+    "rule_text": "When a deal is settled, then the declarer's score changes by 2*S and each defender's score changes by -S."
+  },
+  {
+    "name": "After round 36 the match ends and the highest score wins",
+    "rule": "R23",
+    "players": 3,
+    "seed": 25,
+    "default": "decline",
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 36,
+        "declarer": 2,
+        "contract": 50,
+        "trump": "Bells",
+        "leader": 2,
+        "trick_cards": [],
+        "declarer_points": 60,
+        "defender_points": 10,
+        "declarer_tricks": 3,
+        "declarer_marriages": 0,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            6
+          ],
+          "score": 5
+        },
+        "2": {
+          "hand": [
+            9
+          ],
+          "score": 8
+        },
+        "3": {
+          "hand": [
+            5
+          ],
+          "score": 6
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 4,
+        "2": 10,
+        "3": 5
+      },
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 10
+        },
+        "3": {
+          "score": 5
+        }
+      }
+    },
+    "rule_text": "When round 36 is complete, then the match ends and the highest score wins; a tie at the top is shared."
+  },
+  {
+    "name": "Seats tied at the top after round 36 share the win",
+    "rule": "R23",
+    "players": 3,
+    "seed": 26,
+    "default": "decline",
+    "judge": {
+      "The named card is in the player's hand and obeys the rules": true
+    },
+    "given": {
+      "game": {
+        "round": 36,
+        "declarer": 2,
+        "contract": 50,
+        "trump": "Bells",
+        "leader": 2,
+        "trick_cards": [],
+        "declarer_points": 60,
+        "defender_points": 10,
+        "declarer_tricks": 3,
+        "declarer_marriages": 0,
+        "defender_marriages": 0
+      },
+      "players": {
+        "1": {
+          "hand": [
+            6
+          ],
+          "score": 11
+        },
+        "2": {
+          "hand": [
+            9
+          ],
+          "score": 8
+        },
+        "3": {
+          "hand": [
+            5
+          ],
+          "score": 6
+        }
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 10,
+        "2": 10,
+        "3": 5
+      },
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 10
+        },
+        "3": {
+          "score": 5
+        }
+      }
+    },
+    "rule_text": "When round 36 is complete, then the match ends and the highest score wins; a tie at the top is shared."
+  }
+]

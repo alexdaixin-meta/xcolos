@@ -23,6 +23,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import zlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Protocol
@@ -55,9 +56,11 @@ class Lead:
 # ----------------------------------------------------------------------
 
 
-def http_get(url: str, timeout: float = 20, tries: int = 5) -> str:
+def http_get(url: str, timeout: float = 20, tries: int = 8) -> str:
     """GET with the politeness a public API asks for: wait out a 429 or 503,
-    for as long as the server says, instead of failing the crawl."""
+    for as long as the server says, instead of failing the crawl. Wikipedia
+    answers a busy client with 429 and `Retry-After: 30` for minutes at a time,
+    so it is asked patiently rather than a few times quickly."""
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     for attempt in range(1, tries + 1):
         try:
@@ -70,7 +73,7 @@ def http_get(url: str, timeout: float = 20, tries: int = 5) -> str:
                 wait = float(exc.headers.get("Retry-After", ""))
             except ValueError:
                 wait = 2.0 ** attempt
-            time.sleep(min(wait, 60))
+            time.sleep(min(max(wait, 2.0 ** attempt), 120))
     raise AssertionError("unreachable")
 
 
@@ -85,7 +88,7 @@ class Wikipedia:
     host = "en.wikipedia.org"
     licence = "rules_only"
 
-    def __init__(self, config: dict, get: Callable[[str], str] = http_get, pause: float = 0.5):
+    def __init__(self, config: dict, get: Callable[[str], str] = http_get, pause: float = 1.0):
         self.config = config
         self.get = get
         self.pause = pause
@@ -352,6 +355,8 @@ def crawl(
     min_rating: int = 3,
     rate_only: bool = False,
     rate_budget: int | None = None,
+    rerate: bool = False,
+    shard: tuple[int, int] | None = None,
     on_event: Callable[[str, Lead, str], None] = lambda *_: None,
 ) -> dict[str, int]:
     """Find every lead on `source`, rate them, and extract the best.
@@ -361,13 +366,22 @@ def crawl(
       3 extract    read the leads rated at least `min_rating` in full, best first,
                    and admit what passes the gates
 
-    Stops extracting after `limit` pages this run, or once the log holds
-    `target` admitted games from this source. `rate_budget` caps how many new
-    leads are rated this run, in the order the source listed them, which is what
-    keeps a large site affordable. A rating is kept in the log, so lowering
-    `min_rating` later reads the leads that were rated below it, without asking
-    again. With no rater every lead is eligible; with no extractor and no rater
-    it only lists leads. Returns a count per outcome.
+    Stops extracting after `limit` pages this run, or once the inventory holds
+    `target` games, from any site (`Inventory.kept`: duplicates and rejects do
+    not count). `rate_budget` caps how many new leads are rated this run, in the
+    order the source listed them; by default there is no cap. A rating is kept
+    in the log, so lowering `min_rating` later reads the leads that were rated
+    below it, without asking again; `rerate` asks again for every lead that was
+    rated but never read, for when the scale has changed. With no rater every
+    lead is eligible; with no extractor and no rater it only lists leads.
+    `shard=(i, n)` takes only the i-th of n disjoint shares of the site's leads,
+    so n processes can read one large site together.
+
+    A game is never filed twice. A lead whose title names a game already here is
+    dropped before it is read, and again just before it would be read, since
+    another lead may have brought the game in meanwhile. A page whose record the
+    duplicate gate stops is noted in the log against the game it repeats, and
+    its record is not kept. Returns a count per outcome.
     """
     counts: dict[str, int] = {}
 
@@ -379,10 +393,13 @@ def crawl(
     fresh: list[Lead] = []
     queue: list[tuple[int, int, Lead]] = []  # (rating, order, lead) to extract
     order = 0
+    records = inventory.all()  # nothing is admitted while leads are listed
     for lead in source.discover():
         order += 1
+        if shard is not None and zlib.crc32(lead.url.encode()) % shard[1] != shard[0]:
+            continue  # another process's share
         before = log.entries.get(lead.url)
-        if before:
+        if before and not (rerate and before["outcome"] in ("rated", "below")):
             rating = before.get("rating")
             if before["outcome"] in ("rated", "below") and rating is not None:
                 if rating >= min_rating:
@@ -390,7 +407,7 @@ def crawl(
             elif before["outcome"] == "failed" and retry_failed:
                 queue.append((rating or 0, order, lead))
             continue
-        if (dup := known(lead.title, inventory.all())) is not None:
+        if (dup := known(lead.title, records)) is not None:
             log.write(lead, "known", dup.id)
             done("known", lead, dup.id)
             continue
@@ -398,25 +415,29 @@ def crawl(
         if rater is None:
             queue.append((0, order, lead))
 
-    # 2. rate
+    # 2. rate, a few batches at a time, each logged before the next is fetched: a
+    # large site takes an hour to rate, and a run stopped halfway keeps what it did
     if rater is not None and fresh:
         fresh = fresh[:rate_budget] if rate_budget is not None else fresh
-        snippets = source.snippets(fresh)
-        for lead in [l for l in fresh if not snippets.get(l.url, "").strip()]:
-            log.write(lead, "filtered", "no text to read")  # unreadable: nothing to rate
-            done("filtered", lead, "no text")
-        fresh = [l for l in fresh if snippets.get(l.url, "").strip()]
-        rated = rater.rate([(lead, snippets[lead.url]) for lead in fresh])
-        for n, lead in enumerate(fresh):
-            got = rated.get(lead.url)
-            if got is None:  # no valid answer: leave it unlogged, it is asked again next run
-                done("unrated", lead)
-                continue
-            keep = got.rating >= min_rating
-            log.write(lead, "rated" if keep else "below", got.reason, rating=got.rating)
-            done(f"rated:{got.rating}", lead, got.reason)
-            if keep:
-                queue.append((got.rating, 10_000 + n, lead))
+        step = 2 * getattr(rater, "batch", 10)
+        for start in range(0, len(fresh), step):
+            chunk = fresh[start : start + step]
+            snippets = source.snippets(chunk)
+            for lead in [l for l in chunk if not snippets.get(l.url, "").strip()]:
+                log.write(lead, "filtered", "no text to read")  # unreadable: nothing to rate
+                done("filtered", lead, "no text")
+            chunk = [l for l in chunk if snippets.get(l.url, "").strip()]
+            rated = rater.rate([(lead, snippets[lead.url]) for lead in chunk])
+            for n, lead in enumerate(chunk, start):
+                got = rated.get(lead.url)
+                if got is None:  # no valid answer: leave it unlogged, it is asked again next run
+                    done("unrated", lead)
+                    continue
+                keep = got.rating >= min_rating
+                log.write(lead, "rated" if keep else "below", got.reason, rating=got.rating)
+                done(f"rated:{got.rating}", lead, got.reason)
+                if keep:
+                    queue.append((got.rating, 10_000 + n, lead))
 
     if rate_only:
         return counts
@@ -431,8 +452,12 @@ def crawl(
     for rating, _, lead in sorted(queue, key=lambda q: (-q[0], q[1])):
         if outages >= 3:
             break
-        if (limit is not None and spent >= limit) or (target is not None and log.added(source.host) >= target):
+        if (limit is not None and spent >= limit) or (target is not None and len(inventory.kept()) >= target):
             break
+        if (dup := known(lead.title, inventory.all())) is not None:  # came in since the leads were listed
+            log.write(lead, "known", dup.id)
+            done("known", lead, dup.id)
+            continue
         try:
             text = source.page(lead)
         except OSError as exc:  # a page that cannot be fetched is a failed lead, not a failed crawl
@@ -470,6 +495,11 @@ def crawl(
             except RecordError as exc:  # an id already taken by a different game
                 log.write(lead, "failed", str(exc))
                 done("failed", lead, str(exc))
+                continue
+            if rec.status == "duplicate":  # a game already here under its name or its rules: noted, not kept
+                inventory.remove(rec.id)
+                log.write(lead, "duplicate", rec.duplicate_of or "")
+                done("duplicate", lead, rec.duplicate_of or "")
                 continue
             log.write(lead, "added", rec.status)
             done(f"added:{rec.status}", lead, rec.reasons[0] if rec.reasons else "")

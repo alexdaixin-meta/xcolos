@@ -1,0 +1,123 @@
+{
+  "original_summary": "Skull King is a trick-taking game for 2 to 8 players played over 10 hands of growing size. Before each hand, players bid simultaneously on exactly how many tricks they will win. Exact bids score well and misses are penalised, and special cards (Pirates, Mermaids, the Skull King, Escapes) can override suits and earn capture bonuses.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Bidding exactly is the whole game, so no fixed bid policy wins. Always bidding 0 fails whenever you hold strong cards. Always bidding high fails whenever your hand is weak. Bids are simultaneous and the lead rotates, so there is little built-in seat edge."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Good players judge how strong a hand is, count which special cards are still out, and play to land exactly on their bid or to push a rival off theirs. The card deal adds luck to any single hand, but over 10 hands accurate bidding dominates."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A weak player still scores on easy small hands. A strong player keeps improving on card counting, reading rivals' bids and deliberate sabotage."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden. A player must infer opponents' holdings from their bids and the cards already played, and must plan a sequence of plays to hit an exact count."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Trick winners and scores follow mechanically from the cards played and the bids."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "bad",
+      "evidence": "Ten hands of up to 10 cards each, follow-suit legality, a lead suit defined by the first coloured card, Scary Mary declarations and clockwise sequential play together need far more than 20 steps and 4 choices per round. A 70-card deck is also costly to manage."
+    }
+  ],
+  "problems": [
+    "Too big for the engine: 10 hands of growing size, up to 10 tricks per hand, follow-suit rules and an 8-player turn order far exceed the steps-per-round and choice limits.",
+    "Suits and the lead-suit rule add long chains of legality checks that the flat step list cannot express cheaply.",
+    "Scary Mary needs an extra declaration choice, which adds a choice step for one card.",
+    "The previous build never actually put the bid to players. Every bid was recorded as 0 and options 0 to 3 were never offered, so the scoring read a bid nobody had made.",
+    "In the previous scoring, a successful zero bid paid 30 against 20 for one trick. That made 'always bid 0 and dump your lowest card' too attractive for a thoughtless policy."
+  ],
+  "changes": [
+    {
+      "what": "Use a fixed 3-card hand, 3 tricks per round, 8 rounds, and 3 to 5 players.",
+      "why": "This keeps every round inside 18 steps and 4 choices while preserving the bid-then-play structure.",
+      "fixes": "Too big for the engine: 10 hands of growing size, up to 10 tricks per hand, follow-suit rules and an 8-player turn order far exceed the steps-per-round and choice limits."
+    },
+    {
+      "what": "Replace suits with one suitless 18-card deck: numbers 1-12, two Escapes (power 0), a Mermaid (20), Pirate A (30), Pirate B (31) and the Skull King (40). Each trick is played as a simultaneous poll and won by the highest power, except that the Mermaid beats the Skull King.",
+      "why": "This removes follow-suit legality entirely while keeping the special-card hierarchy and its rock-paper-scissors twist.",
+      "fixes": "Suits and the lead-suit rule add long chains of legality checks that the flat step list cannot express cheaply."
+    },
+    {
+      "what": "Drop Scary Mary.",
+      "why": "Saves a choice step. The two Pirates and two Escapes already supply both of her roles.",
+      "fixes": "Scary Mary needs an extra declaration choice, which adds a choice step for one card."
+    },
+    {
+      "what": "Specify the bid step exactly. It is one simultaneous poll of all players whose options are the whole numbers from table attribute bid_min to table attribute bid_max (0, 1, 2, 3), generated from those attributes rather than typed as literals. Each player's chosen option is written into their own bid attribute, all bids are revealed only after everyone has chosen, and the scoring step reads that stored bid. tricks_won and bonus are reset to 0 at round start; bid is not reset to a literal, because the poll writes it.",
+      "why": "The tests were right: the rules require players to choose 0 to 3, and the build never asked them.",
+      "fixes": "The previous build never actually put the bid to players. Every bid was recorded as 0 and options 0 to 3 were never offered, so the scoring read a bid nobody had made."
+    },
+    {
+      "what": "A successful zero bid now scores +20 and a failed zero bid -20, instead of \u00b130.",
+      "why": "A safe zero bid should be worth no more than one exact trick, so ducking every hand stops being the best thoughtless policy.",
+      "fixes": "In the previous scoring, a successful zero bid paid 30 against 20 for one trick. That made 'always bid 0 and dump your lowest card' too attractive for a thoughtless policy."
+    }
+  ],
+  "keeps": [
+    "Simultaneous secret bidding on an exact number of tricks, then playing to hit that number.",
+    "The special-card hierarchy: Escapes lose, Pirates beat numbers and the Mermaid, the Skull King beats Pirates, and the Mermaid beats the Skull King.",
+    "The original scoring shape: +20 per trick when exact, -10 per trick of error when missed, a separate zero-bid payoff, a +30 bonus per Pirate captured by the Skull King and a +50 bonus for capturing the Skull King with the Mermaid.",
+    "Highest total after a fixed number of hands wins, with several players so one rival's loss is not automatically your gain."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core of Skull King (hidden hands, exact simultaneous bids, special-card captures) survives in a 3-card suitless form inside the limits. The previous build only failed because its bid poll was miswired."
+  },
+  "variation": {
+    "name": "Skull King: Three-Card Bids",
+    "summary": "3 to 5 players each receive 3 hidden cards from an 18-card deck and secretly bid how many of the 3 tricks they will win. All bids are then revealed and the tricks are played as simultaneous card reveals. Exact bids score; misses cost. Highest total after 8 rounds wins.",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "rules": "SETUP\n- Every player's score starts at 0. The round counter starts at 0.\n- Table parameters: hand_size = 3, tricks_per_round = 3, rounds = 8, bid_min = 0, bid_max = 3.\n- The deck has 18 cards, each identified by its power:\n  - number cards 1 to 12 (one of each);\n  - two Escapes, each of power 0;\n  - one Mermaid, power 20;\n  - Pirate A, power 30;\n  - Pirate B, power 31;\n  - the Skull King, power 40.\n\nEACH ROUND (8 rounds)\n1. Add 1 to the round counter. Set every player's tricks_won to 0 and bonus to 0. Empty every hand.\n2. Gather all 18 cards into the deck and shuffle it. This is the round's only random event.\n3. Deal 3 cards from the deck to each player, one at a time in seat order. Each hand is private: only its owner sees it. The undealt cards stay in the deck and are never revealed that round.\n4. BID, as one simultaneous poll of all players:\n   - The options are exactly the whole numbers from bid_min to bid_max, which are 0, 1, 2 and 3.\n   - Each player picks one option without seeing anyone else's choice.\n   - Each player's chosen number is stored as that player's bid.\n5. Once every bid is in, announce all bids to everyone.\n6. Play three tricks. For each trick:\n   a. PLAY, as a simultaneous poll. Each player chooses one card from their own current hand. The chosen card is removed from that hand, and all played cards are then revealed to everyone.\n   b. RESOLVE the trick:\n      - If both the Mermaid and the Skull King were played, the player of the Mermaid wins the trick.\n      - Otherwise the player of the highest-power card wins.\n      - Ties cannot occur: the only equal cards are the two Escapes, and with at least 3 players at least one non-Escape card is always played.\n   c. AWARD:\n      - Add 1 to the winner's tricks_won.\n      - If the Skull King won the trick, add 30 to its player's bonus for each Pirate played in that trick.\n      - If the Mermaid won the trick and the Skull King was played in it, add 50 to the Mermaid player's bonus.\n7. SCORE each player, reading their stored bid:\n   - If bid is 1, 2 or 3 and tricks_won equals bid: gain 20 \u00d7 bid + bonus.\n   - If bid is 1, 2 or 3 and tricks_won differs from bid: lose 10 \u00d7 |tricks_won \u2212 bid|. The bonus is not scored.\n   - If bid is 0 and tricks_won is 0: gain 20.\n   - If bid is 0 and tricks_won is 1 or more: lose 20.\n8. If the round counter equals 8, the game ends. Otherwise start the next round.\n\nThere is no discussion phase.",
+    "objective": "After round 8, the player with the highest total score wins. If two or more players tie for the highest total, the game is a draw among them.",
+    "expected_effect": "Each round becomes a small exact-prediction puzzle.\n- Bidding: players must judge how strong their 3 cards are against the unseen ones. Special cards are double-edged: the Skull King usually wins, but loses to the Mermaid.\n- Play: bids are revealed before any card is played, so players can model rivals. They can try to push a tied leader off an exact bid, or avoid winning a trick they cannot afford.\n- Thoughtless policies: always bidding 0 loses whenever strong cards force a win. Always bidding 3 rarely succeeds. Always bidding 1 is exposed to sabotage. All of these lose to accurate bidders.\n- Luck: over 8 rounds, bidding accuracy and play outweigh hand quality, because a weak hand bid exactly still scores while a strong hand bid wrong loses.\n- Why no talk: the only conflict is that just one player can win, and claims about hidden hands are free and unverifiable. Talk would add words but no plan anyone could commit to, so it is left out."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 4,
+    "attributes": 18,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 8
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SEATS: Bidding and every trick are simultaneous polls. Deal order is irrelevant because the deck is uniformly shuffled. No seat leads, so neither move order nor information gives any seat an edge.\n\nBID PAYOFF TABLE (rows = bid, columns = tricks won 0/1/2/3, bonus ignored):\n- bid 0: +20 / -20 / -20 / -20\n- bid 1: -10 / +20 / -10 / -20\n- bid 2: -20 / -10 / +40 / -10\n- bid 3: -30 / -20 / -10 / +60\n\nEach row is best in exactly one column, so no bid is strictly better whatever happens. The right bid depends on reading your hand and the likely play.\n\nCHANCE OF WINNING A TRICK: With n players, a random card wins a given trick with probability about 1/n.\n- n=3: P(0 tricks) \u2248 0.30, P(1) \u2248 0.44, P(2) \u2248 0.22, P(3) \u2248 0.04.\n- n=5: P(0 tricks) \u2248 0.51.\n\nTHOUGHTLESS POLICIES, per-round expected value:\n- Always bid 0 (lowest option): 3p: 0.30\u00d720 \u2212 0.70\u00d720 = \u22128. 5p: about +0.4. It loses whenever the hand holds the Skull King or a Pirate, which win almost surely and must be played.\n- Always bid 1: 3p: 8.8 \u2212 3 \u2212 2.2 \u2212 0.8 \u2248 +2.8.\n- Always bid 3 (highest): about \u221220 or worse.\n- Random bidding: roughly \u221210.\n- Sensible bidding: count sure winners (SK; Pirate B unless SK is out; Pirate A; Mermaid against numbers) and bid that number. Example: SK+PB+PA is a guaranteed 3 tricks for +60, while three low numbers give bid 0 for +20. This yields roughly +15 to +25 per round.\n\nWINNER RULE: Each thoughtless policy loses to a sensible player in most games, because the gap of 100+ points over 8 rounds exceeds luck noise. No policy never loses.\n\nLABELLED ORDERINGS: The power order is consistent with the rules: Escape 0 < numbers 1\u201312 < Mermaid 20 < Pirates 30/31 < SK 40, with the single Mermaid-over-SK exception stated explicitly.\n\nBoth or all players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS: The rules are complete and unambiguous.\n- The 18-card deck covers 5 players (15 cards dealt).\n- Ties are impossible: only the two Escapes share a power, and n \u2265 3 guarantees a non-Escape card in every trick.\n- The Mermaid\u2013SK override is stated explicitly and applies even if a Pirate is also played.\n- Bonuses and the scoring of every bid/trick combination are defined.\n\nFINITE AND ARITHMETIC: The game lasts a fixed 8 rounds. The winner is the highest total, with ties declared a draw. Every result is computed by arithmetic on numbers the game keeps (power max, a conditional override, a pirate count).\n\nLIMITS:\n- steps 18 \u2264 20\n- choice steps 4 \u2264 4 (bid + 3 plays)\n- attributes 18 \u2264 20\n- hidden elements 2 \u2264 3\n- random draws 1 \u2264 1\n- rounds 8 \u2264 40\n\nENGINE FIT: It uses hidden hands, simultaneous polls and a shared deck draw (workaround). It needs no board, clock or judge, and every simultaneous choice is a poll.\n\nTALK: Omitting talk is sensible for 3\u20135 players. Interests conflict, but cheap, nonbinding talk about hands would add only words. Players are not left only guessing: announced bids and revealed tricks give them real information to reason about.\n\nREPEATED-GAME CHECK: There is no cooperation dilemma, so the late-round betrayal check does not apply."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE: The deal matters. A hand of specials has a ceiling of 60 plus bonuses, while a hand of low numbers is capped at +20 from bid 0. The 50-point Mermaid capture is close to a 1-in-3 timing guess. Estimated luck SD is about 20 per round per player, about 57 over 8 rounds, or about 80 for the difference between two players.\n\nSKILL: The gap between sensible and random bidding is about 30 per round, about 240 over the game. That is well above the luck noise, so a reasoning player is clearly favoured.\n\nWHAT CAN BE INFERRED AND ACTED ON:\n- Announced bids reveal opponents' hand strength. For example, a bid of 3 strongly suggests the SK or Pirates.\n- Revealed cards after each trick update which specials remain in other hands versus the undealt pool.\n- Card timing is a real lever: play a Pirate when the SK is likely spent, dump a high number when an opponent's bid implies a special, and time the Mermaid against the SK holder's likely trick.\n\nPLAY AMONG EQUALS: When all players play well, the result depends on the deal plus mixed-strategy timing reads across 8 independent deals. It is not decided by the deal alone, and good bidding neutralises weak hands (bid 0 still scores)."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

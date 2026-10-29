@@ -1,0 +1,149 @@
+{
+  "original_summary": "3Up 3Down is a shedding race for 2 to 6 players. Each player plays cards equal to or higher than the top of a shared discard pile, uses Clear cards and runs of three equal ranks to wipe the pile, takes the whole pile when unable to play, and finally sheds a face-up pile and then a blind face-down pile. The first player to run out of cards wins. This revision fixes the previously tested 3-player adaptation, '3Up Clear Race'.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "In the tested variation, a seat that always plays its lowest legal single never builds a run, rarely forces a pickup and is beaten by players who hold back. A seat that always plays C first has no defence left when a high pile builds, and takes the pile. A seat that always plays its highest card jams opponents briefly, but is then left with low cards it cannot play on high piles. Each of these policies can lose. The lead rotates every round, so no seat always moves first."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "The deal is stratified: every hand holds 3 Low, 3 Mid, 3 High and 1 C. Starting hands are therefore close in quality. Outcomes then turn on decisions: when to spend the C, when to play a pair or triple to finish a run of three, which 3 cards to lock face-up, and when to dump a high card to force a pickup."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A weak player who plays legal cards still sheds most of the hand. A strong player keeps improving by tracking which ranks are gone, inferring opponents' holdings from their plays and pickups, and timing clears. There is no fixed solution."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are private. Each player knows its own 9 numbered cards, so the other 18 are split between the two opponents in an unknown way, and every play or pickup refines the estimate. Face-up piles are public commitments that opponents can plan against. Play is a sequence of turns, so a player must anticipate the next two seats."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "The winner is the first seat whose cards_left reaches 0, or else the fewest cards_left after 30 rounds. Both are arithmetic on tracked counts."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "bad",
+      "evidence": "The previous build FAILED playability. It used 33 attributes against a limit of 20, counting a 15-entry PARAMETERS block. Hidden elements were understated (it claimed 1; there were 2). The position of C in the option list was ambiguous, so a default answer could waste C. The face-up selection was one poll of up to 120 three-card sets."
+    }
+  ],
+  "problems": [
+    "Attribute count was 33, over the limit of 20, mainly because of a 15-entry read-only PARAMETERS block and four separate deal stacks.",
+    "The hidden-element count was misreported. The private up_offer list existed only to support a huge poll.",
+    "The position of C in the turn option list and in the face-up set ordering was unspecified, so the 'first option' default could burn C on an empty pile.",
+    "The face-up choice was a single poll over up to 120 three-card sets, which is too heavy for a text choice.",
+    "The 'out' and 'picked_up' attributes were redundant: game_over already ends play, and picked_up is never used in scoring."
+  ],
+  "changes": [
+    {
+      "what": "Removed the PARAMETERS block entirely. All constants (ranks 1-9, 3 copies, 3 C, 10-card hands, run of 3, 30 rounds) are written directly in the rule text.",
+      "why": "Constants do not need to be attributes.",
+      "fixes": "Attribute count was 33, over the limit of 20, mainly because of a 15-entry read-only PARAMETERS block and four separate deal stacks."
+    },
+    {
+      "what": "Dropped clear_stack. Each seat simply receives one C during the deal. Kept only three number stacks (low, mid, high) for the stratified deal.",
+      "why": "This saves an attribute and keeps hands balanced.",
+      "fixes": "Attribute count was 33, over the limit of 20, mainly because of a 15-entry read-only PARAMETERS block and four separate deal stacks."
+    },
+    {
+      "what": "Deleted the out, picked_up and up_offer attributes.",
+      "why": "Reaching 0 cards sets game_over directly. Pickups are not scored. up_offer is no longer needed with sequential picks.",
+      "fixes": "The 'out' and 'picked_up' attributes were redundant: game_over already ends play, and picked_up is never used in scoring."
+    },
+    {
+      "what": "The face-up selection is now three simultaneous setup polls. Each poll lists the seat's own hand cards, numbers ascending with C last, and each pick moves one card to the face-up pile. A missing answer takes the first (lowest) card.",
+      "why": "Each poll has at most 10 options, and the default is unambiguous.",
+      "fixes": "The face-up choice was a single poll over up to 120 three-card sets, which is too heavy for a text choice."
+    },
+    {
+      "what": "Fixed the option order. Rank options come first, ascending by rank and then by count. 'C' is always listed last. 'take' appears only when nothing else is legal.",
+      "why": "A default answer now plays the lowest single and never wastes C.",
+      "fixes": "The position of C in the turn option list and in the face-up set ordering was unspecified, so the 'first option' default could burn C on an empty pile."
+    },
+    {
+      "what": "Restated complexity honestly: 14 attributes in total, 1 hidden element (private hands).",
+      "why": "The report must match the build.",
+      "fixes": "The hidden-element count was misreported. The private up_offer list existed only to support a huge poll."
+    }
+  ],
+  "keeps": [
+    "Shedding race: play equal or higher than the top of the pile, or take the whole pile.",
+    "Multiple copies of one rank may be played together.",
+    "Clear cards wipe the pile; three of the same rank in a row (by any players) also clear it.",
+    "A face-up pile chosen at the start, played only once the hand is empty.",
+    "The first player to empty all cards wins."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The game plays well as a 3-player hidden-hand shedding race. Its only failures were build-size and ambiguity problems, and these changes fix them within the limits."
+  },
+  "variation": {
+    "name": "3Up Clear Race",
+    "summary": "Three players each hold a balanced private hand of 10 cards, lock 3 of them face-up, and race to shed everything. Each play must be equal to or higher than the top of the pile. Clear cards and runs of three equal ranks wipe the pile, and a player who cannot play takes it.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "CARDS: Ranks 1 to 9, three copies of each (27 cards), plus three Clear cards written 'C'. Low = 1-3, Mid = 4-6, High = 7-9.\n\nATTRIBUTES. Table: low_stack, mid_stack, high_stack (setup lists), pile (list), top_rank (number, 0 means empty), run_count (number), round (number, starts 0), lead (number), game_over (true/false, starts false). Each seat: hand (PRIVATE list), up_pile (public list), hand_count, up_count, cards_left (public numbers).\n\nSETUP (before round 1):\nS1. low_stack = the nine cards 1,1,1,2,2,2,3,3,3; mid_stack = the nine cards 4-6; high_stack = the nine cards 7-9. Shuffle each stack.\nS2. Deal to seats 1, 2, 3 in turn: 3 cards from low_stack, 3 from mid_stack, 3 from high_stack, then add one 'C'. Every hand has 10 cards and all stacks end empty.\nS3. Face-up pick, done three times (picks 1, 2, 3). Each pick is a simultaneous poll: every seat chooses one card from its own hand. Options are listed numbers ascending, then C last. The chosen card moves from hand to up_pile, which is visible to all. A missing or invalid answer takes the first listed card.\nS4. For every seat: hand_count = 7, up_count = 3, cards_left = 10. Set pile = empty, top_rank = 0, run_count = 0.\n\nROUND (repeat while game_over is false and round < 30):\nR1. round = round + 1. lead = ((round - 1) mod 3) + 1.\nR2. Seats take one turn each in the order lead, lead+1, lead+2 (seat 3 wraps to seat 1). A turn is skipped if game_over is true.\n\nA TURN (steps T1 to T5):\nT1. Options. The source is the hand if hand_count > 0, otherwise the up_pile. For each rank r in the source with r >= top_rank, and for each k from 1 up to the number of copies of r in the source, add the option 'r xk' (for example '5 x2'). List these by rank ascending, then by k ascending. If the source holds a C, add the option 'C', which is ALWAYS listed last and is always legal. If there are no options, the only option is 'take'.\nT2. The seat chooses one option (seen only by that seat; the result is announced to all). A missing or invalid answer takes the first option.\nT3. Apply the option:\n- 'r xk': move k cards of rank r from the source to the pile. If top_rank == r, run_count = run_count + k; otherwise run_count = k. Then top_rank = r.\n- 'C': remove that C from the game and clear the pile (T4).\n- 'take': move every pile card into the seat's hand, then set top_rank = 0 and run_count = 0.\nT4. Clear: if C was played or run_count >= 3, remove all pile cards from the game, and set top_rank = 0 and run_count = 0. The turn then ends; the next seat plays onto the empty pile.\nT5. Update hand_count and up_count. Set cards_left = hand_count + up_count. If cards_left == 0, set game_over = true.\n\nEND OF ROUND:\nE1. If round == 30, set game_over = true.\n\nThere is no talk phase. All plays and pickups are announced publicly; hands stay private.",
+    "objective": "The first seat whose cards_left reaches 0 wins immediately. If 30 rounds pass with no seat at 0, the seat with the fewest cards_left wins. If two or more seats tie for fewest, the game is a draw.",
+    "expected_effect": "The game plays like the previous variation, but it can now be built. Players reason about which 3 cards to lock face-up (strong public cards versus flexible private ones) and when to spend their single C. They choose between playing a pair or triple to finish a run of three and holding back, and they infer opponents' remaining ranks from the public plays and from the known 3 Low / 3 Mid / 3 High / 1 C structure of each hand. Talk is left out. All three players want the same thing, to be first out, so any proposal amounts to 'gang up on the leader'. Every play is already public, so non-binding talk would add words without information or a real bargain, while the hidden hands and turn order already supply the conflict."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 17,
+    "choice_steps_per_round": 3,
+    "attributes": 14,
+    "hidden_elements": 1,
+    "random_draws_per_round": 0,
+    "rounds": 30
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "DEAL: there are 27 number cards and 3 Cs. Each seat gets 3 Low, 3 Mid, 3 High and 1 C. All 30 cards are dealt, so there is no draw pile. The deal is stratified, so starting hands differ only in which ranks fall inside each band.\n\nNO STRICTLY DOMINANT OPTION: whether a move is good depends on top_rank and on what opponents can follow.\n- Playing high (e.g. 9) gains tempo if the next seat must take. It costs you if they hold C or another 9, because you are then left holding lows that cannot follow a high pile.\n- Playing a low single keeps you flexible but sheds slowly.\n- Playing C is always legal. It is wasted on a small pile and decisive on a large one.\n\nTHOUGHTLESS POLICIES, using the WINNER RULE (first to 0 cards wins):\n(a) Always-first (lowest rank, x1). It sheds exactly 1 card per turn, so it needs at least 10 non-take turns. A sensible player who plays pairs and triples, and uses C to dump a loaded pile, needs about 6-8 turns.\n  - Pair frequency: a seat holds 3 of the 9 cards in each band. P(no pair in a band) = 27/C(9,3) = 27/84, so P(at least one pair) = 57/84 \u2248 0.68. That is about 2 bands per seat with a pair.\n  - Against two sensible opponents, always-first therefore runs about 2-4 turns behind and should lose most games.\n  - Against random play it is roughly even, because random play also wastes C and splits sets.\n  - Verdict: it loses often, so it is not a never-lose policy.\n(b) Always-last (highest rank, max copies, or C if C is listed last).\n  - It burns C on an empty pile on turn 1, which sheds 1 card and clears nothing.\n  - It then dumps highs. After a take the pile resets to 0, so the pile it forces opponents to take is only 1-3 cards.\n  - It is then stuck holding 1-3s on rising piles and becomes the seat that takes big piles. It loses to sensible play.\n(c) Always-take is impossible unless forced, because C is always legal and 'must play' applies.\n\nSEAT EDGE: lead rotates each round (orders 1-2-3, then 2-3-1, then 3-1-2). After any prefix of turns, seats differ by at most 1 turn, and the seat with the extra turn rotates. With equal tempo, the winner is the lead of the finishing round, which depends on N mod 3. This is a small, non-fixed edge, not a structural one.\n\nKINGMAKING: a seat that cannot win can choose whom to block (play high before the near-out seat). This is legitimate opponent modelling, not a balance break.\n\nAll three seats can realistically win. No policy never loses."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "1. ATTRIBUTE LIMIT EXCEEDED.\n- The PARAMETERS block declares 15 read-only table attributes: min_rank, max_rank, copies_per_rank, clear_cards, deck_size, low/mid/high/clear_stack_size (4), cards_dealt_per_stack, clears_dealt_per_seat, starting_hand_size, up_pile_size, hand_after_up, run_to_clear, max_rounds.\n- Table state adds 10: low_stack, mid_stack, high_stack, clear_stack, pile, top_rank, run_count, round, lead, game_over.\n- Seat state adds 8: hand, up_pile, up_offer, hand_count, up_count, cards_left, out, picked_up.\n- Total = 33, against a limit of 20. The stated 18 counts only the state attributes and omits the parameters that the rules themselves call table attributes.\n\n2. HIDDEN ELEMENTS are understated: hand and up_offer are both private, so the count is 2, not 1. This is still within the limit of 3.\n\n3. AMBIGUITY in the position of C in the option list.\n- T1 orders 'r xk' options by rank and k but never says where 'C' sits.\n- The default rule 'missing answer takes the first option' therefore has two readings: it either burns C on an empty pile or plays the lowest single.\n- The 'sorted order' in S3 of 3-card sets that contain C is ambiguous in the same way.\n\n4. up_offer SIZE. A 10-card hand gives up to C(10,3) = 120 listed sets in a single poll (fewer when ranks repeat). This is technically finite but very heavy for a text choice. Choosing 3 cards one at a time, or by a canonical code, would be simpler.\n\n5. THINGS THAT ARE FINE:\n- Steps: R1 plus 3 x (T1-T5) plus E1 \u2248 17-18, within 20.\n- Choice steps: 3. Random draws per round: 0 (the shuffle is in setup). Rounds: 30. All within limits.\n- The game is finite (30-round cap) and decided by arithmetic on cards_left.\n- No board, judge or clock is needed.\n- Having no talk with 3 players is acceptable: this is a public-play shedding race where actions are fully observed, and non-binding talk would add little."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "THE ONLY RANDOMNESS is the setup shuffle, and it is stratified (3 Low, 3 Mid, 3 High, 1 C per seat).\n\nLUCKY HANDS:\n- P(a seat holds a specific rank's triple within a band) = 1/C(9,3) = 1/84.\n- P(any triple in a band) = 3/84. Across 3 bands, 1-(81/84)^3 \u2248 10%.\n- A triple self-clears 3 cards.\n- Pairs are common (\u2248 0.68 per band) and equal across seats in expectation.\n\nWHAT THERE IS TO INFER AND ACT ON:\n- Each seat knows its own 10 cards, all up_piles and every play and pickup. So it knows the exact multiset held by the two opponents combined; only the split between them is hidden.\n- That split is narrowed by who could or could not follow and by what was taken.\n- Decisions where reasoning matters:\n  - up-pile selection (keeping C or a pair for the endgame);\n  - when to spend the single C;\n  - whether to split or dump a pair;\n  - whom to block when a seat is near out.\n\nUNDER EQUAL GOOD PLAY the deal shifts the edge, but decisions over roughly 8-15 rounds dominate. The winner is not decided by the deal alone.\n\nESTIMATE: chance (deal plus rotation position) \u2248 25-35% of the result. A reasoning player is clearly favoured over a careless one (see the always-first and always-last analysis)."
+        },
+        "required_changes": [
+          "Bring attributes to 20 or fewer. Delete the 15-entry PARAMETERS block and hard-code those constants in the step text (or keep at most 2 of them). Drop low_stack/mid_stack/high_stack/clear_stack as persistent attributes by dealing from one setup list. Drop picked_up if it is unused in scoring. Restate the complexity so it counts all attributes and 2 hidden elements.",
+          "Specify that 'C' is listed LAST in the T1 option list, and that in the S3 sorting C ranks after 9. This makes the default 'first option' unambiguous and stops a missing answer from wasting C.",
+          "Replace the up-to-120-entry up_offer poll with a compact pick: either three sequential single-card picks from the seat's own hand, or a poll over the 10 card positions choosing 3. Give an explicit default (the three lowest numbered cards)."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SEAT ORDER. The lead rotates each round, so the turn sequence repeats every 9 turns: 1,2,3 | 2,3,1 | 3,1,2. Nth turn per seat: s1 = 1,6,8,10,15,17,19,24,26,28; s2 = 2,4,9,11,13,18,20,22,27,29; s3 = 3,5,7,12,14,16,21,23,25,30. Who reaches turn n first depends on n mod 3 (1: s1, 2: s2, 0: s3). The 'who plays after whom' counts per 9-turn cycle are 1\u21922:2, 2\u21923:2, 3\u21921:2, 3\u21922:1, 1\u21923:1, 2\u21921:1. Relabelling 1\u21922\u21923\u21921 leaves these unchanged, so they are symmetric. Seat 1's only extra is opening onto an empty pile in round 1, which is worth about one card. No seat has a structural edge. The deal is stratified (each seat gets 3 Low, 3 Mid, 3 High and 1 C), so starting strength is roughly equal.\n\nDECISION TABLE (per turn): you must play if able. You choose rank r \u2265 top and copies k, or C. Effect of the choice on the next seat:\n- Low single: the next seat almost always follows; you shed 1.\n- Highest rank, max k: you shed k, and the next seat takes unless it holds that rank or a C.\n- Pair or triple: you shed 2\u20133. If the pile already shows the same rank, the run reaches 3 and clears.\n- C: you shed 1 and the pile leaves the game.\n\nTHOUGHTLESS POLICIES under the winner rule:\n(a) ALWAYS FIRST = lowest legal single, C only when nothing else is legal. This is a decent textbook shedding heuristic. It never plays pairs, so with no takes it needs 10 turns. A sensible player who plays lowest pairs needs about 6\u20138 turns: per stack, P(1+1+1) = 27/84 = 0.32, P(2+1) = 0.64, P(triple) = 3/84 = 0.04. So (a) loses the race to sensible play whenever takes are similar. Against random play it usually wins but not always: random sometimes dumps high cards that force (a) to take. Not a never-lose policy.\n(b) ALWAYS LAST = C at the first chance (in the picks it even puts C, 9 and 8 face-up), then highest rank with max copies. Worked example: A holds 1,2,2,4,5,5,7 in hand and plays 7. B and C answer \u22657. A is left with 5,5,4,2,2,1 against a top of 7+ and has to take. Dumping high strands the low cards and wastes C, so it loses to sensible play.\n(c) ALWAYS PASS is impossible: 'take' appears only when no play is legal.\n\nNo option is strictly better whatever opponents do. Max k is not dominant, because holding a copy back can complete a run-clear later or let you follow a rank. High dumps are not dominant, as (b) shows. All three seats can realistically win. There is no labelled payoff ordering to contradict."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules are complete enough to play every situation:\n- Options are fully specified: ordered rank-ascending, then k-ascending, with C last. 'take' appears only when nothing is legal. Note that with top_rank = 0 every rank is legal, so a take onto an empty pile cannot occur.\n- The run counter is defined across players and resets on clear and on take.\n- A clear ends the turn.\n- The source switches from hand to up_pile only when the hand is empty, and switches back after a take.\n- Default answers exist for every choice.\n- The game is finite (30-round cap). The winner is arithmetic: first to cards_left = 0, else fewest cards_left, with ties drawn.\n\nLimits:\n- steps 17 = R1 + 3 turns \u00d7 5 + E1, within 20.\n- choice steps 3, within 4.\n- attributes 14: 9 table + 5 seat, within 20.\n- hidden elements 1 (hands), within 3.\n- random draws 0 per round (shuffle at setup only), within 1.\n- rounds 30, within 40.\nNo board, judge or clock is needed. The setup picks are simultaneous polls, as required. Option lists are built from game lists, which is a supported workaround.\n\nTalk: the designer chose no talk. Every play and pickup is public, and the full 30-card universe is known, so players reason from the record rather than guessing. Plays are forced ('must play if able'), and the only lever is which rank to play. Proposals like 'gang up on the leader' could not bind and would mostly be noise. This decision is defensible.\n\nThe repeated-game betrayal test does not apply: this is a race, not a cooperation game.\n\nMinor wording issue (not failing): in S3, duplicate ranks presumably appear as separate identical options."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "SOMETHING TO INFER: all 30 cards are dealt, so each player knows the exact multiset the two opponents hold together. Only the split between them is hidden. That split narrows with every public play or take, the public up_piles, and the known 3/3/3/1 structure of each hand. The key question is 'does the next seat hold another 9 or its C?'. Example: if I hold one 9, the other two 9s lie among the 6 other High cards. P(a given opponent holds neither) = C(4,3)/C(6,3) = 4/20 = 0.20, and that probability updates as plays reveal holdings.\n\nWAYS TO ACT ON IT:\n- Choose ranks the next seat cannot follow, forcing a take.\n- Hold a copy back to complete a run-clear.\n- Save C to dump a large pile.\n- Choose which 3 cards to expose as the up_pile, a planning decision about the endgame.\n\nCHANCE: the deal varies in pairs and triples (triple 4% per stack, 1+1+1 32%) and in who holds the top ranks within each band. Stratification caps the swing: everyone has exactly 3 High and 1 C. Turn order is symmetric. There are no random draws after setup.\n\nUNDER EQUAL GOOD PLAY: the result is a deterministic function of the deal and the choices. However, the forced-take dynamic and the choice of rank and k create many swing points, so a weaker deal can be overcome by better tracking and timing. A careful player repeatedly beats both thoughtless heuristics, as shown under balanced.\n\nEstimate: about 30\u201340% of outcomes are driven by the deal. Skill clearly dominates."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

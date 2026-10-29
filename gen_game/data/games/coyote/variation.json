@@ -1,0 +1,168 @@
+{
+  "original_summary": "Coyote is a bluff-and-bid elimination game. Each player sees every feather card except their own. Players take turns raising a declared total of all cards in play until someone calls 'Coyote'. If the true total falls short of the last declaration, the declarer loses; otherwise the caller loses. Three losses eliminate a player, and the last survivor wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Simple policies can lose. 'Always call at once' loses whenever the opening bid is at or below the true total, and a low opening bid usually is. 'Always raise by 1' eventually overshoots the true total and loses as declarer. 'Always open high' loses when it is called. The opener seat rotates, so no seat keeps an edge. Winning means surviving, not having the highest total, so there is no safe option that cannot lose."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Each player sees all cards but one, so a good player can estimate the total tightly from the known deck composition and from other players' bids. A weak player who ignores the distribution of their own unseen card, or who reads nothing from the bids, overshoots or calls too early. The deal randomises information, not advantage. Everyone has exactly one unknown card."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A basic player can survive by bidding near the visible sum plus the expected value of their own card. Strong play adds several layers: inferring one's own card from what others bid, pushing a dangerous bid onto the next player, and timing calls. The Max\u21920 card makes totals uncertain in a way that needs real reasoning. The game is not solved and not hopeless."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Every player has hidden information, their own card. Bids leak information about that card because other players can see it. Doing well requires inference from limited information and modelling opponents."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "The true total, the comparison with the last declaration, token counts and elimination are all arithmetic. No judge is needed."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is turn-based, text-only and has no board. However, the original has an open-ended deck with chained blue specials, and the reviewed variation had two build defects. First, its 15-turn cap could cut off the forced 16th call and leave a round with no caller. Second, its open 'lap after lap' turn loop gave no bounded repetition and no exit condition."
+    }
+  ],
+  "problems": [
+    "The original's blue special cards (draw from the deck, discard the highest, negate, double, reshuffle) form a long chain of rules that the engine cannot build reliably.",
+    "The original's deck has no fixed composition here, so players cannot reason about the distribution of their unseen card.",
+    "Turn cap defect: the reviewed variation capped a round at 15 turns. Declarations 1 to 15 can use all 15 turns, so the forced Coyote call on turn 16 could be cut off. That leaves caller = none and a round with no loser, which breaks the token rule.",
+    "Turn loop defect: the reviewed variation's 'lap after lap' loop was not specified as a bounded counted repetition of one choice step with an exit condition. The build is ambiguous and the claim of one choice step per round was unsupported."
+  ],
+  "changes": [
+    {
+      "what": "Keep a fixed 15-card deck that is reset and shuffled every round, with a single special card, Max\u21920, whose effect is fully specified with tie rules and examples.",
+      "why": "This replaces the chained blue specials with one buildable rule. It also gives players a known distribution to reason about.",
+      "fixes": "The original's blue special cards (draw from the deck, discard the highest, negate, double, reshuffle) form a long chain of rules that the engine cannot build reliably."
+    },
+    {
+      "what": "Publish the deck list in the rules, so every player knows which cards could be their own.",
+      "why": "This allows probabilistic inference about one's own card.",
+      "fixes": "The original's deck has no fixed composition here, so players cannot reason about the distribution of their unseen card."
+    },
+    {
+      "what": "Raise the cap to at most 16 turns per round: up to 15 declarations (1 to 15), then a forced Coyote call. Add a safety fallback: if 16 turns pass with no call, the next alive player after the current declarer is recorded as the caller and the round resolves normally.",
+      "why": "Every round now always has exactly one declarer, one caller and one loser.",
+      "fixes": "Turn cap defect: the reviewed variation capped a round at 15 turns. Declarations 1 to 15 can use all 15 turns, so the forced Coyote call on turn 16 could be cut off. That leaves caller = none and a round with no loser, which breaks the token rule."
+    },
+    {
+      "what": "Specify the turns as a counted repetition of ONE choice step, at most 16 iterations, with a turn counter that picks the acting player. The repetition exits as soon as coyote_called = yes. When current_declaration = 15, the only legal option is Coyote. The first turn of a round may not call.",
+      "why": "This makes the loop buildable on a flat step list and justifies counting one choice step per round.",
+      "fixes": "Turn loop defect: the reviewed variation's 'lap after lap' loop was not specified as a bounded counted repetition of one choice step with an exit condition. The build is ambiguous and the claim of one choice step per round was unsupported."
+    }
+  ],
+  "keeps": [
+    "Each player sees every card but their own.",
+    "Declarations must strictly rise until someone calls Coyote.",
+    "Resolution: the declarer loses if the true total is below the declaration, otherwise the caller loses.",
+    "One token per loss, three tokens eliminate, and the last player alive wins.",
+    "A special card that alters the total (Max\u21920, the descendant of the blue cards).",
+    "No talk phase: declarations are the only communication, because interests already conflict and the bids carry the information."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The game already rewards inference about hidden information and reading opponents. Only the build defects in the turn cap and turn loop needed fixing."
+  },
+  "variation": {
+    "name": "Coyote: Open Circle",
+    "summary": "Each player sees every card but their own and bids on the total of all cards. Bids strictly rise until someone calls Coyote. The loser of each round takes a token, three tokens eliminate a player, and the last player alive wins. Each round's turns run as a bounded loop of at most 16 turns that always ends in a call.",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "SETUP. Seats are numbered 1 to N clockwise, with N = 3 or 4. Every player starts with tokens = 0 and alive = yes. Set opener_seat = 1 and round = 1.\n\nDECK. At the start of every round the deck is reset to exactly these 15 cards and shuffled:\n- one -2;\n- two -1;\n- three 0;\n- two 1;\n- two 2;\n- two 3;\n- one 4;\n- one 5;\n- one Max\u21920 card.\nEvery player knows this list.\n\nEACH ROUND:\n\n1. RESET AND ORDER. Set current_declaration = none, current_declarer = none, coyote_called = no, caller = none and turn_count = 0. The turn order starts at opener_seat and goes clockwise through the alive seats, skipping eliminated seats. After the last alive seat it wraps around to opener_seat again.\n\n2. DEAL. Deal one card face down to each alive player.\n\n3. PRIVATE VIEW. Each alive player is told privately the card of every other alive player, but never their own card.\n\n4. TURNS (one choice step, repeated at most 16 times). Repeat the following until coyote_called = yes, or until it has been done 16 times:\n- Add 1 to turn_count. The acting player is the player in position turn_count of the turn order: position 1 is the opener, position 2 is the next alive seat clockwise, and so on, wrapping around.\n- If current_declaration is none, the acting player must declare a whole number from 1 to 15. Calling Coyote is not allowed on the first turn.\n- If current_declaration is a number d from 1 to 14, the acting player either declares a whole number from d+1 to 15 or calls Coyote.\n- If current_declaration is 15, the acting player's only option is to call Coyote.\n- A declaration is announced to all players at once. It sets current_declaration to that number and current_declarer to the acting player.\n- Calling Coyote sets caller to the acting player and coyote_called = yes, which ends the repetition.\nA player may declare again on each of their later turns. Because declarations strictly rise from at least 1 to at most 15, there are at most 15 declarations, and the call comes on turn 16 at the latest. Safety fallback: if the repetition ends with coyote_called = no, the next alive player in the turn order after current_declarer becomes the caller.\n\n5. TRUE TOTAL.\n- If the Max\u21920 card was dealt, it counts 0. Exactly one other dealt card with the highest positive value also counts 0. If two or more cards tie for highest, only one of them counts 0. If no other dealt card is positive, nothing further changes. All remaining dealt cards are added.\n- If the Max\u21920 card was not dealt, the true total is the plain sum of the dealt cards.\nExamples:\n- {1, 2, -1}, no Max\u21920: total 2.\n- {Max\u21920, 5, 2, -1}: the 5 counts 0, total 1.\n- {Max\u21920, 3, 3, 0}: one 3 counts 0, total 3.\n- {Max\u21920, -1, 0}: total -1.\n\n6. RESOLUTION. If the true total is less than current_declaration, the current_declarer loses. Otherwise, when the total is equal to or greater than the declaration, the caller loses.\n\n7. TOKENS. The loser gains 1 token. A player who reaches 3 tokens is eliminated (alive = no) and takes no further part.\n\n8. NEXT OPENER. opener_seat becomes the next alive seat clockwise after the seat number of the current opener_seat, whoever lost. This works even if the current opener was just eliminated.\n\n9. ANNOUNCEMENT. Reveal to everyone: all dealt cards, the true total, the final declaration, the declarer, the caller, the loser and everyone's tokens.\n\n10. END CHECK. If only one player is alive, the game ends. Otherwise round increases by 1 and a new round begins. Exactly one player loses each round, so the game ends within 8 rounds with 3 players (3+3+2) and within 11 rounds with 4 players (3+3+3+2).\n\nThere is no talk phase. Declarations are the only communication.",
+    "objective": "The last player still alive, with fewer than 3 tokens, wins. Exactly one token is given out every round, so the game always ends with a single survivor and there are no draws.",
+    "expected_effect": "Play is unchanged from the reviewed variation, but every round now resolves cleanly with exactly one caller and one loser. Players estimate the total from the visible cards plus the known distribution of their own card, which has an expected value of about 1.2, and adjust for the Max\u21920 risk. They also infer their own card from others' bids and try to leave a dangerous bid to the next player. No talk is added. Interests conflict, since exactly one player loses each round, and the bids already carry the information worth reasoning about."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 1,
+    "attributes": 14,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 11
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "WORST-CASE TRUE TOTAL. The lowest cards are -2, -1, -1, then 0s. R8 only ever zeroes a positive card, so it can raise a negative total but never lower it. Minimum T is -2-1 = -3 with 2 alive, -2-1-1 = -4 with 3 alive, and -2-1-1+0 = -4 with 4 alive.\n\nOPENER POLICY 'always declare the lowest number (-5)'. The opener can lose only if someone calls coyote while T < -5, and T >= -4 always. So with 3 or 4 alive the opener never loses, whatever the cards and whatever the others do. Coyote on -5 always loses (T >= -5), so the next player is forced to raise. With 3 or more alive the opener can never be previous_declarer at an automatic check, so the auto-check cannot reach them either. Any other opening carries some risk, so -5 weakly dominates, and the opener's only decision is trivial.\n\n4 ALIVE, worse still. Seat 2 can declare -4 (T >= -4 always). Seat 3 then cannot profitably call: coyote loses whenever T >= -4, which is always. So seats 1 and 2 are both immune, and the round is a duel between seats 3 and 4 only.\n\n3 ALIVE (A opens -5, then B and C), winner-rule table:\n- C calls coyote on B's x: B loses if T < x, else C loses.\n- C raises to y: auto-check; C loses if T < y, else B loses.\n- A loses in 0% of cases.\n\nSEAT EDGE FROM MOVE ORDER. R11 makes the previous loser the opener, so the previous loser is immune next round while 3 or more are alive. That is a large move-order effect: it hands immunity to the trailing player and pushes token counts toward equality. A plausible 3-player line is losses landing B, C, B, C and so on. With 12 rounds and ties for fewest tokens declared a draw, draws are likely.\n\n2 ALIVE. The immunity reverses. If A opens -5, B declares -4 (T >= -3), is safe at the auto-check, and A loses. So the opener must take a real risk only in the endgame.\n\nVERDICT. One thoughtless policy, opening at the minimum, never loses for most of the game. That fails the never-loses test."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "R8 ambiguity. It says: 'Add the values of all dealt cards except the Max\u21920 card. If the Max\u21920 card was dealt, it counts 0. In addition, the single highest positive card among the other dealt cards counts 0.' It is unclear whether 'In addition' applies only when Max\u21920 was dealt, as in the original Coyote, or always.\n- If always: the Max\u21920 card is just a 0 and the 'code 100' is pointless.\n- If only with Max\u21920: the sentence 'If no positive card was dealt, nothing else changes' is misplaced.\n- The two readings give different totals. Example: cards {1, 2, -1} give T = 0 under the 'always' reading and T = 2 under the conditional reading.\n- Different referees, or a player and the engine, would disagree, and every loss is decided by this number.\n\nThe rest is complete and within limits:\n- steps 15 <= 20, choice steps 4 <= 4, attributes 15 <= 20, hidden 1 <= 3, random draws 1 <= 1, rounds 12 <= 40;\n- the game is finite;\n- it needs no board or clock;\n- turns are legitimately sequential, because the order is the point.\n\nTalk absent: acceptable, since declarations are the communication channel."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "WHAT IS UNKNOWN. Each player's only unknown is their own card, and others' declarations leak a little about it.\n\nWORKED CASE, 3 alive (A opens -5; B sees a=1 and c=2). B's own card b comes from the 18 remaining cards. Under the 'always zero highest positive' reading, T is distributed:\n\n| T | Count (of 18) |\n|---|---|\n| -1 | 1 (b=-2) |\n| 0 | 2 (b=-1) |\n| 1 | 4 (b=0 x3, b=Max\u21920 x1) |\n| 2 | 2 (b=1) |\n| 3 | 9 (b=2,3,4,5) |\n\nB's best declaration, x=3, is true only 50% of the time. Whatever B does, C (who sees a and b) chooses call or raise with a similar near-coin-flip about c. So the exposed players lose with probability around 35-50%, decided by the deal.\n\nINTENDED GOOD STRATEGY BY ALL:\n- the opener plays -5 and is immune;\n- the remaining two (or the last two of four) face a guess about their own hidden card;\n- the outcome of each round is mostly the deal;\n- the long-run winner is mostly the deal plus R11's rotation of immunity, with frequent draws.\n\nINFERENCE FROM DECLARATIONS. This exists only for the last mover in each duel, and the opener's forced -5 carries no information. Reasoning matters only marginally next to the draw."
+        },
+        "required_changes": [
+          "Remove the safe opening. Restrict the opening declaration to a range that can be false, e.g. the opener must declare at least the true minimum + 3 (from -1 up to 20), or score the opener as a loser whenever the final auto-check is true and no coyote was called. Show by table that no seat is immune.",
+          "Make loss exposure symmetric: a full repeating lap until someone calls coyote, capped at 20 declarations, so every declarer can be challenged by the next player, instead of one lap with an auto-check against the previous declarer.",
+          "Change R11 so the loser does not gain a protected opening seat. For example, the opener rotates clockwise each round regardless of who lost, to remove the move-order edge.",
+          "Rewrite R8 unambiguously, e.g. 'If and only if the Max\u21920 card was dealt: it counts 0 and the single highest positive other card counts 0. Otherwise sum all cards.' Give a worked example.",
+          "Reduce luck. Either give each player 2 cards, one visible to all and one hidden from themselves, or narrow the deck spread so own-card uncertainty is smaller and declarations carry more inferable information. Show that a reasoning player beats a random-declaring one in a clear majority of rounds.",
+          "Add a tie-break for the round-12 ending (e.g. fewest coyote calls lost, or most correct declarations) to cut the draw rate."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Deck (15): -2 x1, -1 x2, 0 x3, 1 x2, 2 x2, 3 x2, 4 x1, 5 x1, Max\u21920 x1. The 14 numeric cards sum to 17, a mean of about 1.21 per card. A 3-card total is therefore around 3.6 on average, and a 4-card total around 4.8. Each player i knows S_i = (sum of the others' cards), and the true total is S_i plus their own unknown card. Own-card distribution, viewed from the player: P(own <= -1) = 3/15, P(own = 0) = 3/15 (4/15 counting Max\u21920 as 0, before its side effect), P(own >= 3) = 4/15. The Max\u21920 card also cancels the highest other positive card, which lowers the total by up to 5.\n\nThoughtless policies under the WINNER RULE (one token per round, 3 tokens eliminate):\n(a) Always call Coyote as soon as allowed. The opener can safely declare about S-2, and often just 1. With 3 cards, P(total <= 0) is roughly 15-25% (it needs negatives, or Max\u21920 cancelling a high card). So the caller loses roughly 75-85% of the rounds it calls in. It is eliminated quickly and does not win.\n(b) Always raise by exactly 1. Declarations climb past the true total of about 3-5. A sensible opponent who sees all cards but its own calls once d exceeds S_opp plus a likely own card. The always-raiser is then the declarer who loses, and it loses most of its contested rounds.\n(c) Always declare 15 (highest bid). The true total can reach 15 only with near-impossible hands (3-card maximum 5+4+3 = 12). It is called and loses every time.\n(d) Always open with the minimum, 1. This is safe as opener about 80% of the time, but it gives no protection on later turns, so it is not a whole policy.\n\nNo single option is right whatever the opponents do. Raising is safe or unsafe depending on the unseen card. Calling is right or wrong depending on the declarer's hidden-card risk. Opener duty rotates clockwise every round, so no seat keeps a move-order edge. The opener's forced declaration of at least 1 is a small cost that rotates. Information is symmetric: everyone sees all cards but their own. There is no labelled payoff ordering to check, and the elimination rule gives no 'never-behind' option. Every player can realistically survive.",
+          "verdict_note": "pass"
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Most of the game is complete. Deck reset each round, the deal, the private views, the legal declarations, the Max\u21920 tie rule with examples, resolution, tokens, opener rotation and the end check are all specified. The round bounds are correct: 3 players give 3+3+2 = 8 rounds, and 4 players give 3+3+3+2 = 11 rounds. Stated complexity is within limits: 13 steps, 1 random draw, 1 hidden element, 11 rounds.\n\nDefect 1, the turn cap. Rule 4 says 'A round has at most 15 turns'. But declarations can run 1, 2, ..., 15, which is 15 declaration turns, followed by a forced 16th turn that calls Coyote. If the engine enforces a 15-turn cap, a round can end with caller = none. Rule 6 ('otherwise the caller loses') then has no loser, the token rule breaks, and so does the claim that 'exactly one player loses each round'. The rules give no fallback for reaching the cap.\n\nDefect 2, the turn loop. The turn loop ('lap after lap' until Coyote) is a variable-length repeated sequential choice. The engine's step list is flat, so this has to be counted_repetition of one choice step with an exit condition. The design does not say how the repetition is bounded or exited (call = stop). Its 'choice_steps_per_round: 1' is only valid if the repeated choice counts once.\n\nTalk: having no talk phase in a 3-4 player game is acceptable. Interests conflict (exactly one loser per round), declarations already carry information to reason about, and cheap talk would only add words.",
+          "verdict_note": "fail"
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Hidden information: each player's only unknown is their own card, out of 15 possibilities. The key inference is from the others' declarations. A declarer who sees your card and still raises high is signalling something. A player who calls reveals that their view (which includes your card) makes the declaration look too high. This allows Bayesian updating on your own card, and both bluffing and opponent modelling.\n\nPlanning: choose a declaration that is safe given S plus your worst plausible card, while forcing the next player into an uncomfortable raise-or-call choice. Track the Max\u21920 risk: if no visible card is Max\u21920, you might hold it, which cancels the highest visible positive card.\n\nChance: a single unseen card can swing the total by up to 7, or more via Max\u21920. Close calls are partly coin-flips, so I estimate roughly 35-45% of individual rounds are decided by the draw when both sides play well.\n\nWith equal good play the winner is not set by one draw. Elimination needs 3 losses over 8-11 rounds, and opener duty rotates, so per-round luck averages out. Players who call at d > S + E[own card | declarations] and raise only when the risk is low clearly beat the thoughtless policies (a)-(c), which lose most of their contested rounds.",
+          "verdict_note": "pass"
+        },
+        "required_changes": [
+          "Fix the turn cap. Change 'A round has at most 15 turns' to 'A round has at most 16 turns: 15 possible declarations (1 to 15) and then a forced Coyote call.' Alternatively, add an explicit fallback: if the cap is reached with no call, the current_declarer is resolved against the total as if the next player called. Either way, every round must produce exactly one caller and one loser.",
+          "Specify the turn loop as counted_repetition of a single choice step. Give it a maximum of 16 iterations and an exit condition: stop when coyote_called = yes, or force the call when current_declaration = 15. Confirm that choice_steps_per_round stays at 1 under that implementation."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Deck values: -2, -1, -1, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, plus Max\u21920. Over the 14 numeric cards, the mean is 17/14 \u2248 1.21, E[x\u00b2] = 75/14 \u2248 5.36, variance \u2248 3.89 and sd \u2248 1.97. Ignoring Max\u21920, a 3-card total has mean \u2248 3.6 and sd \u2248 3.2. A 4-card total has mean \u2248 4.9 and sd \u2248 3.5. The highest possible total is 12 with 3 players (5+4+3) and 15 with 4 players (5+4+3+3, no Max\u21920).\n\nThoughtless policies, judged by the WINNER RULE (who takes the token):\n(a) ALWAYS CALL COYOTE (declare the minimum, 1, when forced to open). When this player acts second, they lose whenever the true total \u2265 the opener's declaration. A sensible opener declares a value at or below the expected total, so the always-caller loses about 70\u201380% of these rounds. When they act third, a sensible second player raises to a safe value and the always-caller again loses most rounds. Over 3 tokens this player is eliminated first in almost every game.\n(b) ALWAYS RAISE BY 1. Bids climb until they pass the true total, and a sensible next player calls at d greater than their estimate. This player loses whenever they hold the bid that crosses the total. That is frequent, so the policy loses.\n(c) ALWAYS DECLARE 15. With 3 players the total can never reach 15. With 4 players it needs exactly {5, 4, 3, 3} and no Max\u21920, which is under 0.5%. This player loses nearly every round in which they declare.\n(d) RANDOM legal action. It overbids or calls blindly and loses to sensible play.\nNo option is strictly better whatever opponents do: calling is right only when d exceeds the total, and raising only when d+1 \u2264 total.\n\nSeat edge: the opener has a structural handicap, because they must declare and cannot call. Opener_seat rotates clockwise every round whoever loses, so over the 8 or 11 rounds this handicap is spread roughly evenly. No fixed seat is favoured. Information is symmetric: each player sees N\u22121 cards and not their own. Every player can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules are complete. The deck is reset each round. The turn order wraps over alive seats. The declaration range is 1\u201315 with strict raises, and opening calls are forbidden. Ties for the highest card under Max\u21920 are resolved, and worked examples are given. Resolution is explicit for both total < d and total \u2265 d. The next opener is defined even if the opener was just eliminated. There is a fallback caller.\n\nThe game is finite: exactly one token is given per round, so it lasts at most 8 rounds with 3 players and 11 with 4. The winner is decided by arithmetic on tracked numbers.\n\nLimits: 13 steps per round (\u226420), 1 choice step repeated via counted_repetition (\u22644), 14 attributes (\u226420), 1 hidden element (\u22643), 1 random draw per round (\u22641), 11 rounds (\u226440). The pieces map onto supported features:\n- 'see others, not your own' is hidden_hands;\n- the bids are sequential_choice and numeric_bids;\n- elimination is supported;\n- the Max\u21920 adjustment is a calc of max(positive) with a conditional subtraction.\nNo judge, board or clock is needed. One caveat: this assumes the engine counts the 16-times repeated turn step as one step and one choice step, as counted_repetition implies.\n\nTalk: there is no free talk with 3\u20134 players. Here this is defensible, because the rising declarations are themselves the public channel: each declaration signals what the declarer sees on the other players' heads. Players also have conflicting interests (each wants a neighbour to lose), so the bids carry inferential content. Players are not left to pure guessing. All public reveals are simultaneous announcements."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "The forced opening bid creates rounds decided by the deal alone. Declarations must be at least 1, but the true total can be as low as -4 (3 players: -2, -1, -1; 4 players: -2, -1, -1, 0), and Max\u21920 often pushes totals to 0 or below.\n\nWith 3 players, ignoring Max\u21920, P(total \u2264 0) \u2248 P(Z \u2264 (0.5 \u2212 3.64)/3.16) \u2248 16%. Max\u21920 is dealt in 3/15 = 20% of rounds and removes the top card, which raises this to roughly 20%. With 4 players it is roughly 10\u201312%.\n\nIn those rounds the opener must declare at least 1, which is false. The second player sees the opener's card and the third card. For example, with visible -2 and -1, the own card must be 4 or 5 (about 2 in 12) for the total to reach 1, so the second player calls and wins about 10/12 of the time. The opener therefore loses about 80\u201390% of these rounds, whatever their skill. That is about 1 round in 5 (3 players) handed out by the shuffle alone, and each such loss is a third of an elimination.\n\nThe remaining rounds also carry heavy one-card uncertainty, with a spread of -2 to 5 plus Max\u21920 wiping the top card. The deck reset each round removes card-counting inference between rounds. Real inference exists: opponents see your card, so their bids leak its value, and you can bluff the next seat. But with sensible play the boundary loser is often set by whose hidden card is extreme: the holder of the highest card underestimates the total and tends to be the caller who loses. I estimate chance at roughly 50% or more of who takes each token. Together with the forced-loss rounds, a strong reasoner is not clearly favoured enough."
+        },
+        "required_changes": [
+          "Let declarations range from -4 up to the maximum (opener declares any whole number from -4 to 15), so the opener is never forced into a bid the visible cards already show to be false; this removes the deal-decided opener losses.",
+          "Add a skill lever that reduces single-card variance: e.g. each player privately sees the deck's discard (the undealt cards are not shown, but one random undealt card is revealed publicly each round), or keep the deck un-reset between rounds (reshuffle only when exhausted) so card counting across rounds is possible.",
+          "Optionally soften the cost of one bad deal by eliminating at 4 tokens with 3 players (state the new maximum round count, still \u226440) so that inference across more rounds outweighs individual draws."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

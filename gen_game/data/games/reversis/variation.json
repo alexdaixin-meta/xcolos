@@ -1,0 +1,125 @@
+{
+  "original_summary": "Reversis is an 18th-century 4-player trick-taking game without trumps, and the aim is to avoid winning points. Players must follow suit, and the highest card of the led suit takes the trick. Aces, Kings, Queens and Jacks carry penalty points, and the Jack of Hearts (Quinola) is special. The fewest points wins, unless one player takes every trick (the reversis), which reverses the aim and wins outright.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Neither 'always play the highest legal card' nor 'always the lowest' is safe. Leading high takes the point cards, and ducking every time leaves you holding high cards late in the hand. The reversis threat punishes others' blind dumping. In the tested variation, simple policies lost about 65-85% of games (first@seat1 lost 44 of 60, last@seat2 lost 50 of 60). The one real flaw was seat bias: seat 4 won 21 of 60 games against random seats, against 10 for seat 2."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "A single 13-trick deal is strongly shaped by the cards you hold: a hand full of high cards in long suits cannot avoid points. Skill shows only over many deals. The original settles one deal with side payments and pools, so luck dominates any single game."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Several skills keep paying off: counting cards, inferring voids from discards, timing when to shed the Quinola and the Aces, and deciding whether to try a reversis or block one. Beginners still score, because the points spread across everyone."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden. Players must infer who is void in a suit from failures to follow, and judge which opponent is trying for a reversis. They also plan which card to lead several tricks ahead."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Trick winners and point totals are pure arithmetic on the cards played."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The original is too long: 13 tricks with 4 sequential plays each is 52 choices per hand. It uses anticlockwise turn order, pools, side payments and later bonus variants. The previous adaptation still had 6 choice steps per round against a limit of 4, because of the passing round and per-player turns."
+    }
+  ],
+  "problems": [
+    "P1: The built game had 6 choice steps per round, over the limit of 4. Passing and individual follow turns were still separate choice steps.",
+    "P2: Seat imbalance. Seat 4 won 21 of 60 games against random seats and seat 2 only 10. The cause is information from playing later in a trick and an uneven pattern of who leads the first trick.",
+    "P3: Luck of the deal is large in a single long hand. The fix is several short hands with a rotating first leader.",
+    "P4: The original's pools, side payments and bonus variants are not arithmetic the engine needs. They add rules without adding reasoning.",
+    "P5: Too many attributes would be needed to track hand points and trick counts per player for the reversis check."
+  ],
+  "changes": [
+    {
+      "what": "Each round is exactly one trick with two choice steps. First the leader plays one card. Then the other three players choose their cards at the same moment in a single simultaneous poll. There is no passing round and there are no individual follow turns.",
+      "why": "This brings choice steps per round to 2, well under 4.",
+      "fixes": "P1: The built game had 6 choice steps per round, over the limit of 4."
+    },
+    {
+      "what": "Followers commit at the same moment, so no follower sees another follower's card before choosing. Each of the 4 hands begins with a different player leading (player h leads trick 1 of hand h), so every seat leads the opening trick exactly once.",
+      "why": "This removes the last-to-play information edge and evens out opening leads across seats.",
+      "fixes": "P2: Seat imbalance."
+    },
+    {
+      "what": "The deck is 24 cards (A K Q J 9 8 in four suits) dealt 6 to each player. Each hand is 6 tricks, and there are 4 hands, so 24 rounds. There is one shuffle-and-deal per hand, in that hand's first round.",
+      "why": "Four short hands average out the luck of the deal and keep the game short. There is at most one random draw per round.",
+      "fixes": "P3: Luck of the deal is large in a single long hand."
+    },
+    {
+      "what": "Pools, side payments and bonus variants are dropped. The only scoring is penalty points and the reversis adjustment. The Quinola is kept as the single heaviest card (5 points).",
+      "why": "This keeps the game's identity while making the winner pure arithmetic.",
+      "fixes": "P4: Pools, side payments and bonus variants add rules without adding reasoning."
+    },
+    {
+      "what": "The reversis is tracked with one table attribute, the sweeper: the player who has won every trick so far this hand, or none. At the end of a hand, if a sweeper remains, that player subtracts the 44 points they took and each other player adds 15.",
+      "why": "This avoids per-player trick counters and per-hand point totals.",
+      "fixes": "P5: Too many attributes would be needed for the reversis check."
+    }
+  ],
+  "keeps": [
+    "Trick-taking with no trumps: players must follow suit, and the highest card of the led suit wins.",
+    "Avoiding points is the aim, and the lowest total wins.",
+    "Point values A=4, K=3, Q=2, J=1.",
+    "The Jack of Hearts, the Quinola, is the most dangerous card.",
+    "The reversis: taking every trick of a hand turns your penalty into a win-swing against the others.",
+    "The trick winner leads the next trick."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core is sound: hidden hands, inference from voids, and the reversis bluff and block. Only the turn structure and seat balance needed fixing, and both fit inside the limits."
+  },
+  "variation": {
+    "name": "Quick Reversis",
+    "summary": "Four players play 4 hands of 6 tricks each with a 24-card deck. In each trick the leader plays first, then the other three play at the same moment. Players avoid penalty points, especially the 5-point Quinola, unless one player takes every trick of a hand (a reversis). The lowest total after 4 hands wins.",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "SETUP\n- Players are seats 1, 2, 3 and 4. Every player's total starts at 0.\n- The deck has 24 cards: A, K, Q, J, 9 and 8 in each of Spades, Hearts, Diamonds and Clubs.\n- Within a suit the ranking is A (highest), K, Q, J, 9, 8. There are no trumps.\n\nCARD POINTS\n- Each Ace counts 4, each King 3, each Queen 2 and each Jack 1. Nines and eights count 0.\n- The exception is the Jack of Hearts (the Quinola), which counts 5.\n- Each hand contains 44 points in total.\n\nSTRUCTURE\n- The game has 4 hands of 6 tricks each, so 24 rounds. Each round is one trick.\n\nSTART OF A HAND (rounds 1, 7, 13 and 19)\n- Shuffle the 24 cards and deal 6 face down to each player. Each player sees only their own hand.\n- The leader of the first trick of hand h is seat h.\n- Set the sweeper to 'none'.\n\nEACH ROUND (ONE TRICK)\n1. The leader plays any one card from their hand face up. Its suit is the led suit. Announce it.\n2. The other three players each choose one card at the same moment, without seeing each other's choices.\n   - A player who holds a card of the led suit must play one.\n   - A player who holds none may play any card.\n3. All cards are revealed together.\n4. The highest card of the led suit wins the trick.\n5. Add up the points of the 4 cards played. The trick winner adds them to their total.\n6. Played cards leave the game for the rest of the hand.\n7. Update the sweeper:\n   - On the first trick of a hand, the sweeper becomes the trick winner.\n   - On later tricks, if the trick winner is not the sweeper, the sweeper becomes 'none'.\n8. The trick winner leads the next trick.\n9. Announce every player's total.\n\nEND OF A HAND (after tricks 6, 12, 18 and 24)\n- If the sweeper is a player (that player took all 6 tricks, a reversis):\n  - that player subtracts 44 from their total, so the hand counts 0 for them;\n  - each other player adds 15 to their total.\n\nTALK\n- There is no table talk.\n\nEND OF GAME\n- After round 24 the game ends.",
+    "objective": "After 4 hands, the player with the lowest total wins. If two or more players tie for the lowest total, the game is a draw.",
+    "expected_effect": "Simultaneous following removes the edge of playing last within a trick, and rotating the opening lead gives every seat one first lead. Both should flatten the seat-4 bias. Four short hands reduce the luck of one bad deal. Play rewards several kinds of reasoning:\n- counting the 24 cards;\n- inferring voids from players who fail to follow, which shows who can shed the Quinola or the Aces;\n- deciding when to lead a low card to duck and when to cash a high card early;\n- watching the sweeper to judge whether a player who has won several tricks is attempting a reversis, and spending a cheap winning card to break it.\nSimple policies still lose:\n- Always playing the highest legal card collects the points.\n- Always playing the lowest legal card leaves you stuck with high cards in the last tricks. It can also hand a reversis-capable opponent the run, which costs you 15.\nTalk is left out. With hidden hands, talk would mainly let three players gang up on the leader or trade claims about card holdings that cannot be checked. That adds words without real reasoning, and the original game has no table talk."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 2,
+    "attributes": 14,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 24
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Point check: Aces 4x4=16, Kings 4x3=12, Queens 4x2=8, three non-heart Jacks 3x1=3, Quinola 5. Total 16+12+8+3+5=44, which matches the stated 44. So each hand distributes 44 points and a player's fair share is 11. Seat fairness: the first leader of hand h is seat h, so each of the 4 seats opens exactly one hand. Following is simultaneous, so the original edge of the last player to follow, who sees the trick before choosing, is removed. Thoughtless policies under the WINNER RULE (lowest total wins): (a) Always play the highest legal card. You win almost every trick of a suit you hold, collect about 11+ points a hand and usually lose; this is far worse than sensible play. (b) Always play the lowest legal card. This is decent against random play, but it is forced to take tricks whenever the dealt hand holds high cards in short suits. For example, holding only the A of spades when spades are led means taking up to A+K+Q+J = 10 or more points, so it loses to any player dealt a lower hand. It also never discards a dangerous card early, while a sensible player dumps the Quinola or Aces when void. It does not win or draw almost every time. (c) Always play the first-listed card is effectively random among legal cards; it loses to sensible play. (d) Always attempt a reversis (lead highest every trick). It fails unless the dealt hand holds all top cards of the suits it leads. A failed attempt gives a large total, and each success gives the others only +15. So it is not a dominant gamble: a success is a net swing of 59 relative to each opponent, but it is rarely achievable. Payoff for a hand: no reversis gives each player the points taken (0 to 44). A reversis gives the sweeper 0 and each other player +15. No option is strictly better whatever the others do, because which card is best depends on the unknown holdings of the other three. All 4 players can realistically win. A tie for lowest total over 4 hands is possible but uncommon, given the spread of point values."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "The rules are complete. The deck is 24 cards, all dealt (6x4), and there are 6 tricks per hand. The rules cover the leader's free lead, the must-follow constraint, free discard when void, the trick winner (highest card of the led suit is always unique), scoring, the sweeper tracking (set on trick 1, reset to 'none' when a different winner appears), and the end-of-hand reversis adjustment. Subtracting 44 is correct, because a sweeper has taken all 44 points. Totals never go negative. The game is finite: 24 rounds. The winner is decided by arithmetic on kept totals, and the draw rule is specified. Limits: steps 14 <= 20, choice steps 2 <= 4, attributes 14 <= 20, hidden elements 1 <= 3, random draws per round 1 <= 1 (one shuffle at the start of each hand, applied through a step with a `when` condition, which is allowed), rounds 24 <= 40. The followers' choice is correctly a simultaneous poll. It needs no board, clock or judge, apart from a legality check on following suit, which is arithmetic on hand contents. No table talk is a sensible choice. The game is every player for themselves, and talk would only add cheap-talk collusion. Players already get rich public information from cards played each trick, so they are not left only guessing each other. The repeated-cooperation concern does not apply, because there is no cooperate/defect dilemma."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "There is something to infer, and a way to act on it. The full deck is in play, so each player knows the 18 unseen cards exactly and can track them as they fall. Players can infer voids when an opponent discards off-suit. They can also judge whether the leader can be undercut: a follower sees the led card, so playing the highest card below it is safe whatever the others hold. Planning choices include: when to dump the Quinola (5) or Aces while void, which suit to lead to strand opponents with high cards, and whether a dealt hand justifies a reversis attempt (risk of about 44 points versus a 59-point relative swing). Chance estimate: the deal matters. A hand rich in Aces or Kings in short suits is costly, so a single hand might be about 50% luck. Over 4 hands with rotating deals and frequent free-choice discards, I estimate about 35-45% of the result is chance. With all players playing well, results still differ by how well each manages their deal, so the deal is not the sole decider. A careful player (counting cards, ducking under the led card, dumping when void) clearly beats a careless or random one. The deal adds variety but can be overcome."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

@@ -107,6 +107,10 @@ class Record:
     #: in words. Non-empty means dropped: the gates leave it alone, so a recheck cannot revive it.
     #: Clear it to put the game back through the gates.
     dropped: str = ""
+    #: Why gen_game's last run of this game did not pass (`needs_review: 25/27 scenarios`, a failed step or
+    #: play-test, a drop or a platform limit), in words; empty once it passes. The status is left as it was,
+    #: so a game that is not dropped or blocked is still converted again.
+    not_passed: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

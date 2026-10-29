@@ -1,0 +1,1156 @@
+[
+  {
+    "name": "Setup deals 6 cards to each seat and leaves 36 in the draw pile",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "draw_pile": 36,
+          "scrap": 0
+        },
+        "players": {
+          "1": {
+            "hand": 6,
+            "point_pile": 0,
+            "point_pile_view": 0
+          },
+          "2": {
+            "hand": 6,
+            "point_pile": 0,
+            "point_pile_view": 0
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "points": 0,
+          "king_count": 0,
+          "won": 0
+        },
+        "2": {
+          "points": 0,
+          "king_count": 0,
+          "won": 0
+        }
+      },
+      "game": {
+        "turn": 1
+      }
+    },
+    "rule_text": "When setup is done, each player has 6 cards in hand, draw_pile has 36 cards, and the deck had 40 point cards (ranks 1-10, four each), 4 Jacks and 4 Kings."
+  },
+  {
+    "name": "The First player acts on turn 1",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "5"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "acting_seat": 1,
+        "turn": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "points"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 5,
+          "point_pile_view": [
+            "Mid"
+          ],
+          "threshold": 32,
+          "shortfall": 27
+        },
+        "2": {
+          "points": 0,
+          "threshold": 30,
+          "shortfall": 30
+        }
+      },
+      "game": {
+        "turn": 2
+      }
+    },
+    "rule_text": "When the game starts, a random seat is First, and the First player takes turn 1."
+  },
+  {
+    "name": "The game stops after turn 40 and the smaller shortfall wins",
+    "rule": "R3",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "turn": 40,
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -32,
+        "2": -30
+      },
+      "players": {
+        "1": {
+          "won": 0,
+          "shortfall": 32
+        },
+        "2": {
+          "won": 0,
+          "shortfall": 30
+        }
+      },
+      "game": {
+        "turn": 41
+      }
+    },
+    "rule_text": "When the players alternate single turns, the game has at most 40 turns, numbered 1 to 40."
+  },
+  {
+    "name": "First player with 1 King has threshold 24",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 1,
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "threshold": 24,
+          "shortfall": 24
+        },
+        "2": {
+          "threshold": 30
+        }
+      }
+    },
+    "rule_text": "When the First player has 0, 1, 2, 3 or 4 Kings, then their threshold is 32, 24, 18, 14 or 11."
+  },
+  {
+    "name": "First player with 3 Kings has threshold 14",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 3,
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "threshold": 14,
+          "shortfall": 14
+        }
+      }
+    },
+    "rule_text": "When the First player has 0, 1, 2, 3 or 4 Kings, then their threshold is 32, 24, 18, 14 or 11."
+  },
+  {
+    "name": "First player with 4 Kings has threshold 11",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 4,
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "threshold": 11,
+          "shortfall": 11
+        }
+      }
+    },
+    "rule_text": "When the First player has 0, 1, 2, 3 or 4 Kings, then their threshold is 32, 24, 18, 14 or 11."
+  },
+  {
+    "name": "Second player with 2 Kings has threshold 16",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 0,
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 2
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "threshold": 32
+        },
+        "2": {
+          "threshold": 16,
+          "shortfall": 16
+        }
+      }
+    },
+    "rule_text": "When the second player has 0, 1, 2, 3 or 4 Kings, then their threshold is 30, 22, 16, 12 or 9."
+  },
+  {
+    "name": "Second player with 4 Kings has threshold 9",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 0,
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 4
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "threshold": 9,
+          "shortfall": 9
+        }
+      }
+    },
+    "rule_text": "When the second player has 0, 1, 2, 3 or 4 Kings, then their threshold is 30, 22, 16, 12 or 9."
+  },
+  {
+    "name": "Acting player at threshold at the start of the turn wins at once",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 2,
+          "threshold": 18,
+          "points": 20,
+          "shortfall": 0,
+          "point_pile": [
+            "D10",
+            "D10"
+          ],
+          "point_pile_view": [
+            "High",
+            "High"
+          ]
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0,
+          "threshold": 30,
+          "points": 0,
+          "shortfall": 30
+        }
+      },
+      "game": {
+        "acting_seat": 1,
+        "turn": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "draw",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 1000,
+        "2": -30
+      },
+      "players": {
+        "1": {
+          "won": 1,
+          "points": 20
+        },
+        "2": {
+          "won": 0
+        }
+      }
+    },
+    "rule_text": "When a turn starts and the acting player's points are at or above their threshold, then that player wins immediately."
+  },
+  {
+    "name": "Draw moves one card from draw pile to hand",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "3",
+            "4"
+          ],
+          "hand_count": 2
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "draw_pile": 35
+        },
+        "players": {
+          "1": {
+            "hand": 3
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "points": 0
+        }
+      }
+    },
+    "rule_text": "When a player chooses DRAW, then a card moves from draw_pile to their hand. DRAW is not allowed with 8 cards in hand or an empty draw_pile."
+  },
+  {
+    "name": "Draw is not offered with 8 cards in hand",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "1",
+            "1",
+            "2",
+            "2",
+            "3",
+            "3",
+            "4",
+            "4"
+          ],
+          "hand_count": 8
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "pass"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "draw"
+        }
+      ],
+      "lens": {
+        "game": {
+          "draw_pile": 36
+        },
+        "players": {
+          "1": {
+            "hand": 8
+          }
+        }
+      }
+    },
+    "rule_text": "When a player chooses DRAW, then a card moves from draw_pile to their hand. DRAW is not allowed with 8 cards in hand or an empty draw_pile."
+  },
+  {
+    "name": "Points card goes face down showing only its band",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 0,
+          "hand": [
+            "7"
+          ],
+          "hand_count": 1,
+          "points": 0
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "points"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 7,
+          "point_pile_view": [
+            "Mid"
+          ],
+          "shortfall": 25
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0,
+            "point_pile": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a player plays POINTS with a card of rank r, then it goes face down into their point pile, their points rise by r, and the opponent sees only its band (Low 1-4, Mid 5-7, High 8-10)."
+  },
+  {
+    "name": "Scuttle with a higher card removes the target and both go to scrap",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "8"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0,
+          "point_pile": [
+            "D6"
+          ],
+          "point_pile_view": [
+            "Mid"
+          ],
+          "points": 6
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "scuttle"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "points": 0,
+          "point_pile_view": [],
+          "shortfall": 30
+        },
+        "1": {
+          "points": 0
+        }
+      },
+      "lens": {
+        "game": {
+          "scrap": 2
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "point_pile": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a player scuttles with rank a against a target of rank t and a >= t, then both cards go to scrap and the opponent's points fall by t."
+  },
+  {
+    "name": "Scuttle with a lower card scraps the attacker and the target stays",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "3"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0,
+          "point_pile": [
+            "D9"
+          ],
+          "point_pile_view": [
+            "High"
+          ],
+          "points": 9
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "scuttle"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "points": 9,
+          "shortfall": 21
+        }
+      },
+      "lens": {
+        "game": {
+          "scrap": 1
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          },
+          "2": {
+            "point_pile": 1,
+            "point_pile_view": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a player scuttles with rank a against a target of rank t and a < t, then the attacking card goes to scrap and the target stays in place, now face up."
+  },
+  {
+    "name": "A 10 scuttles an opponent King and raises their threshold",
+    "rule": "R11",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "10"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 2,
+          "threshold": 16
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "king_scuttle"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "king_count": 1,
+          "threshold": 22,
+          "shortfall": 22
+        }
+      },
+      "lens": {
+        "game": {
+          "scrap": 2
+        },
+        "players": {
+          "1": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a player plays a 10 against an opponent who has at least one King, then the 10 and a King go to scrap and the opponent's king_count falls by 1."
+  },
+  {
+    "name": "A Jack steals an opponent point card",
+    "rule": "R12",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 0,
+          "hand": [
+            "J"
+          ],
+          "hand_count": 1,
+          "point_pile": [
+            "D3"
+          ],
+          "point_pile_view": [
+            "Low"
+          ],
+          "points": 3
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0,
+          "point_pile": [
+            "D8"
+          ],
+          "point_pile_view": [
+            "High"
+          ],
+          "points": 8
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "jack"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 11,
+          "shortfall": 21
+        },
+        "2": {
+          "points": 0,
+          "point_pile_view": [],
+          "shortfall": 30
+        }
+      },
+      "lens": {
+        "game": {
+          "scrap": 1
+        },
+        "players": {
+          "1": {
+            "hand": 0,
+            "point_pile": 2,
+            "point_pile_view": 2
+          },
+          "2": {
+            "point_pile": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a player plays a Jack on any card in the opponent's point pile, then that card moves face up into the player's point pile, both point totals change by its rank, and the Jack goes to scrap."
+  },
+  {
+    "name": "Placing a King lowers the threshold to the next table value",
+    "rule": "R13",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 0,
+          "hand": [
+            "K"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "king"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "king_count": 1,
+          "threshold": 24,
+          "shortfall": 24
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a player places a King, then their king_count rises by 1 and their threshold drops to the next table value."
+  },
+  {
+    "name": "With an empty draw pile pass is offered and draw is not",
+    "rule": "R14",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "5"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "acting_seat": 1,
+        "draw_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "pass"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "pass"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "draw"
+        }
+      ],
+      "players": {
+        "1": {
+          "points": 0
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a player cannot draw, then PASS is allowed."
+  },
+  {
+    "name": "An unparseable reply counts as pass and nothing changes",
+    "rule": "R15",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "hand": [
+            "5"
+          ],
+          "hand_count": 1
+        },
+        "2": {
+          "is_first": false
+        }
+      },
+      "game": {
+        "acting_seat": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "draw",
+        "answer": "fly to the moon"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "points": 0,
+          "point_pile_view": []
+        }
+      },
+      "lens": {
+        "game": {
+          "draw_pile": 36
+        },
+        "players": {
+          "1": {
+            "hand": 1
+          }
+        }
+      }
+    },
+    "rule_text": "When a reply is illegal or unparseable, then it counts as PASS and nothing changes."
+  },
+  {
+    "name": "After turn 40 the smaller shortfall wins",
+    "rule": "R16",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 0,
+          "points": 20,
+          "point_pile": [
+            "D10",
+            "D10"
+          ],
+          "point_pile_view": [
+            "High",
+            "High"
+          ]
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0,
+          "points": 25,
+          "point_pile": [
+            "D10",
+            "D10",
+            "D5"
+          ],
+          "point_pile_view": [
+            "High",
+            "High",
+            "Mid"
+          ],
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        }
+      },
+      "game": {
+        "turn": 40,
+        "acting_seat": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "draw",
+        "times": "all"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -12,
+        "2": -5
+      },
+      "players": {
+        "1": {
+          "shortfall": 12,
+          "won": 0
+        },
+        "2": {
+          "shortfall": 5,
+          "won": 0
+        }
+      }
+    },
+    "rule_text": "When turn 40 ends with no winner, then the player with the smaller max(threshold - points, 0) wins, and equal shortfalls are a draw."
+  },
+  {
+    "name": "After turn 40 equal shortfalls share the result",
+    "rule": "R16",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "is_first": true,
+          "king_count": 0,
+          "points": 27,
+          "point_pile": [
+            "D10",
+            "D10",
+            "D7"
+          ],
+          "point_pile_view": [
+            "High",
+            "High",
+            "Mid"
+          ]
+        },
+        "2": {
+          "is_first": false,
+          "king_count": 0,
+          "points": 25,
+          "point_pile": [
+            "D10",
+            "D10",
+            "D5"
+          ],
+          "point_pile_view": [
+            "High",
+            "High",
+            "Mid"
+          ],
+          "hand": [
+            "1"
+          ],
+          "hand_count": 1
+        }
+      },
+      "game": {
+        "turn": 40,
+        "acting_seat": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "draw",
+        "times": "all"
+      },
+      {
+        "seat": 1,
+        "options_include": "draw",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": -5,
+        "2": -5
+      },
+      "players": {
+        "1": {
+          "shortfall": 5
+        },
+        "2": {
+          "shortfall": 5
+        }
+      }
+    },
+    "rule_text": "When turn 40 ends with no winner, then the player with the smaller max(threshold - points, 0) wins, and equal shortfalls are a draw."
+  }
+]

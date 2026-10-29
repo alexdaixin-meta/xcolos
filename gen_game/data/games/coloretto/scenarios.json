@@ -1,0 +1,1140 @@
+[
+  {
+    "name": "Setup: 37 cards left in deck after turning up top_card, rows and closed_rows empty, cycle 1",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 37,
+          "row_1": 0,
+          "row_2": 0,
+          "row_3": 0,
+          "closed_rows": 0
+        }
+      },
+      "game": {
+        "cycle": 1
+      },
+      "players": {
+        "1": {
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0
+        },
+        "2": {
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0
+        },
+        "3": {
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0
+        }
+      }
+    },
+    "rule_text": "At setup, the deck holds 38 cards (7 each of Red, Blue, Green, Yellow, Purple and 3 '+2'), one is turned up as top_card leaving 37 in deck, all rows and closed_rows are empty, cycle = 1 and active_seat = 1."
+  },
+  {
+    "name": "Setup: 3 Favourites dealt, 2 colours left in pool, none revealed yet",
+    "rule": "R2",
+    "players": 3,
+    "seed": 2,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "favourite_pool": 2
+        }
+      },
+      "players": {
+        "1": {
+          "favourite_shown": ""
+        },
+        "2": {
+          "favourite_shown": ""
+        },
+        "3": {
+          "favourite_shown": ""
+        }
+      }
+    },
+    "rule_text": "At setup, each of the 3 players is dealt a different Favourite from the 5 colours, visible only to its owner, and the 2 undealt colours are never revealed."
+  },
+  {
+    "name": "Tableau counts are updated publicly when seat 2 takes a row",
+    "rule": "R3",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "taken": false
+        },
+        "2": {
+          "taken": false
+        },
+        "3": {
+          "taken": false
+        }
+      },
+      "game": {
+        "active_seat": 2,
+        "row_1": [
+          "Purple",
+          "Yellow"
+        ],
+        "row_2": [],
+        "row_3": [],
+        "closed_rows": [],
+        "top_card": "Red"
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "take_1"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "purple": 1,
+          "yellow": 1,
+          "red": 0
+        },
+        "1": {
+          "purple": 0
+        },
+        "3": {
+          "yellow": 0
+        }
+      },
+      "game": {
+        "cycle": 1
+      }
+    },
+    "rule_text": "Tableau counts (red, blue, green, yellow, purple, plus2) are public throughout the game."
+  },
+  {
+    "name": "Only the active seat is asked on a turn",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [],
+        "closed_rows": [],
+        "top_card": "Red"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "place_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "place_1"
+        },
+        {
+          "seat": 3,
+          "option": "place_1"
+        },
+        {
+          "seat": 2,
+          "option": "place_2"
+        },
+        {
+          "seat": 3,
+          "option": "place_3"
+        }
+      ]
+    },
+    "rule_text": "Only the player at active_seat is asked to act on a turn."
+  },
+  {
+    "name": "place_k is not offered for a full row",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "active_seat": 1,
+        "row_1": [
+          "Red",
+          "Red",
+          "Red"
+        ],
+        "row_2": [
+          "Blue"
+        ],
+        "row_3": [],
+        "closed_rows": [],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_2"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "place_2"
+        },
+        {
+          "seat": 1,
+          "option": "place_3"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "place_1"
+        }
+      ]
+    },
+    "rule_text": "When row k is not in closed_rows and holds fewer than 3 cards, then place_k is offered; otherwise it is not."
+  },
+  {
+    "name": "place_k is not offered for a closed row",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [],
+        "closed_rows": [
+          3
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "place_1"
+        },
+        {
+          "seat": 1,
+          "option": "place_2"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "place_3"
+        }
+      ]
+    },
+    "rule_text": "When row k is not in closed_rows and holds fewer than 3 cards, then place_k is offered; otherwise it is not."
+  },
+  {
+    "name": "take_k is offered only for an open row with at least one card",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "row_1": [
+          "Red"
+        ],
+        "row_2": [],
+        "row_3": [],
+        "closed_rows": [
+          3
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_2"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "take_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "take_2"
+        },
+        {
+          "seat": 1,
+          "option": "take_3"
+        }
+      ]
+    },
+    "rule_text": "When row k is not in closed_rows and holds at least 1 card, then take_k is offered; otherwise it is not."
+  },
+  {
+    "name": "place_1 adds top_card to row 1 and draws one card from the deck",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [],
+        "closed_rows": [],
+        "top_card": "Green",
+        "deck": [
+          "Red",
+          "Red",
+          "Red",
+          "Red",
+          "Red"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "row_1": 1,
+          "row_2": 0,
+          "row_3": 0,
+          "deck": 4
+        }
+      },
+      "players": {
+        "1": {
+          "green": 0,
+          "red": 0
+        }
+      }
+    },
+    "rule_text": "When the active player chooses place_k, then top_card is appended to row_k and a new top_card is drawn from deck, reducing deck by 1."
+  },
+  {
+    "name": "take_2 adds the row's cards to the tableau, empties and closes the row",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "taken": false
+        },
+        "2": {
+          "taken": false
+        },
+        "3": {
+          "taken": false
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [
+          "Red",
+          "Red",
+          "+2"
+        ],
+        "row_3": [],
+        "closed_rows": [],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_2"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red": 2,
+          "plus2": 1,
+          "green": 0
+        }
+      },
+      "lens": {
+        "game": {
+          "row_2": 0,
+          "closed_rows": 1
+        }
+      },
+      "game": {
+        "cycle": 1
+      }
+    },
+    "rule_text": "When the active player chooses take_k, then each card in row_k adds 1 to that player's matching colour count (or plus2 for a '+2'), row_k becomes empty, k is appended to closed_rows and the player's taken = true."
+  },
+  {
+    "name": "Last take of the cycle resets rows and increases cycle",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        },
+        "3": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Blue"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "blue": 1
+        }
+      },
+      "lens": {
+        "game": {
+          "row_1": 0,
+          "row_2": 0,
+          "row_3": 0,
+          "closed_rows": 0
+        }
+      },
+      "game": {
+        "cycle": 2
+      }
+    },
+    "rule_text": "When all 3 players have taken = true, then every taken resets to false, all rows and closed_rows are emptied, cycle increases by 1, and active_seat stays the player who just took."
+  },
+  {
+    "name": "After the cycle ends, the player who just took starts the next cycle",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        },
+        "3": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Blue"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      },
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      }
+    ],
+    "expect": {
+      "game": {
+        "cycle": 2
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "place_1"
+        },
+        {
+          "seat": 3,
+          "option": "place_1"
+        }
+      ]
+    },
+    "rule_text": "When all 3 players have taken = true, then every taken resets to false, all rows and closed_rows are emptied, cycle increases by 1, and active_seat stays the player who just took."
+  },
+  {
+    "name": "Turn passes over a seat that has already taken",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [],
+        "closed_rows": [
+          2
+        ],
+        "top_card": "Red"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_1"
+      },
+      {
+        "seat": 3,
+        "options_include": "place_3"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 3,
+          "option": "take_1"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "take_1"
+        },
+        {
+          "seat": 2,
+          "option": "place_1"
+        }
+      ]
+    },
+    "rule_text": "When the cycle does not end, then active_seat becomes the first seat among s+1, s+2, s (wrapping 1-2-3) with taken = false, which may be the same player."
+  },
+  {
+    "name": "The only player who has not taken acts again",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "2": {
+          "taken": true
+        },
+        "3": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Red"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "place_3"
+      },
+      {
+        "seat": 1,
+        "options_include": "place_3"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "take_3"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "place_3"
+        },
+        {
+          "seat": 3,
+          "option": "place_3"
+        }
+      ],
+      "lens": {
+        "game": {
+          "row_3": 2
+        }
+      }
+    },
+    "rule_text": "When the cycle does not end, then active_seat becomes the first seat among s+1, s+2, s (wrapping 1-2-3) with taken = false, which may be the same player."
+  },
+  {
+    "name": "Last player with a full open row can only take it",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "red": 0
+        },
+        "2": {
+          "taken": true
+        },
+        "3": {
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 1,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Red",
+          "Red",
+          "Red"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "take_3"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "place_3"
+        },
+        {
+          "seat": 1,
+          "option": "place_1"
+        },
+        {
+          "seat": 1,
+          "option": "take_1"
+        }
+      ],
+      "players": {
+        "1": {
+          "red": 3
+        }
+      },
+      "game": {
+        "cycle": 2
+      }
+    },
+    "rule_text": "When only one player has not taken and their open row is full, then their only option is to take that row."
+  },
+  {
+    "name": "Game ends when the third cycle closes",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": false
+        },
+        "2": {
+          "favourite": "Blue",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        },
+        "3": {
+          "favourite": "Green",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 3,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Red"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 1,
+        "2": 0,
+        "3": 0
+      },
+      "game": {
+        "cycle": 4
+      },
+      "players": {
+        "1": {
+          "red": 1,
+          "score": 1
+        }
+      }
+    },
+    "rule_text": "When cycle reaches 4 (after 3 cycles), then the game ends."
+  },
+  {
+    "name": "Favourites are revealed at game end",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": false
+        },
+        "2": {
+          "favourite": "Blue",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        },
+        "3": {
+          "favourite": "Green",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 3,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Red"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "favourite_shown": "Red"
+        },
+        "2": {
+          "favourite_shown": "Blue"
+        },
+        "3": {
+          "favourite_shown": "Green"
+        }
+      }
+    },
+    "rule_text": "At game end, every player's Favourite is announced publicly."
+  },
+  {
+    "name": "Score formula: favourite 4, others 3,1,0,0, one +2 gives 10+2*6-7+2 = 17",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red",
+          "red": 3,
+          "blue": 3,
+          "green": 1,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 1,
+          "taken": false
+        },
+        "2": {
+          "favourite": "Blue",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        },
+        "3": {
+          "favourite": "Green",
+          "red": 0,
+          "blue": 0,
+          "green": 2,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 3,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Red"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 17,
+        "2": 0,
+        "3": 3
+      },
+      "players": {
+        "1": {
+          "red": 4,
+          "score": 17
+        },
+        "2": {
+          "score": 0
+        },
+        "3": {
+          "score": 3
+        }
+      }
+    },
+    "rule_text": "At game end, score = T(F) + 2*max(T(o1..o4)) - sum(T(o1..o4)) + 2*plus2, where T(c) = c(c+1)/2; for example favourite 4, others 3,1,0,0 and plus2 1 gives 10 + 6 - 7 + 2 = 11."
+  },
+  {
+    "name": "Two tied largest other colours: only one scores positive",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red",
+          "red": 0,
+          "blue": 2,
+          "green": 2,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": false
+        },
+        "2": {
+          "favourite": "Blue",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        },
+        "3": {
+          "favourite": "Green",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 3,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Red"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 1,
+        "2": 0,
+        "3": 0
+      },
+      "players": {
+        "1": {
+          "red": 1,
+          "score": 1
+        }
+      }
+    },
+    "rule_text": "When two other colours tie for the largest count, then only one of them scores positive and the other scores negative."
+  },
+  {
+    "name": "Players tied for the highest score share the win",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "favourite": "Red",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": false
+        },
+        "2": {
+          "favourite": "Blue",
+          "red": 0,
+          "blue": 1,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        },
+        "3": {
+          "favourite": "Green",
+          "red": 0,
+          "blue": 0,
+          "green": 0,
+          "yellow": 0,
+          "purple": 0,
+          "plus2": 0,
+          "taken": true
+        }
+      },
+      "game": {
+        "active_seat": 1,
+        "cycle": 3,
+        "row_1": [],
+        "row_2": [],
+        "row_3": [
+          "Blue"
+        ],
+        "closed_rows": [
+          1,
+          2
+        ],
+        "top_card": "Green"
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "take_3"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 1,
+        "2": 1,
+        "3": 0
+      },
+      "players": {
+        "1": {
+          "blue": 1,
+          "score": 1
+        },
+        "2": {
+          "score": 1
+        },
+        "3": {
+          "score": 0
+        }
+      }
+    },
+    "rule_text": "The player with the highest score wins, and players tied for the highest score share the top (a draw)."
+  }
+]

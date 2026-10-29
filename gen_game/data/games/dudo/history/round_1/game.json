@@ -1,0 +1,730 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "dudo",
+    "name": "Open-Table Dudo",
+    "players": {
+      "min": 2,
+      "max": 4,
+      "suggested": 3
+    },
+    "blurb": "Roll hidden dice, raise bids on how many show a face (ones are wild), call Dudo to challenge; last player with dice wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "out",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "dice",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "faces",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "eliminated",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "round_no",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "total_dice",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "to_act",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "opener",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "current_qty",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_bidder",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bids",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "action",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "bid_qty",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bid_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "matching",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "loser",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "survivors",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "start_dice_2_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "start_dice_3_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "start_dice_4_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "die_sides",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "wild_face",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "bid_face_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "bid_face_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "opening_quantity_divisor",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "opening_quantity_floor",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "raise_quantity_step",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "dice_lost_per_challenge",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting dice",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "dice",
+            "value": {
+              "calc": "start_dice_2_players if len(players) == 2 else (start_dice_3_players if len(players) == 3 else start_dice_4_players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the first roll",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "faces",
+            "value": {
+              "calc": "[min(die_sides, int(uniform(wild_face, die_sides + 1))) for i in [1, 2, 3, 4] if i <= you.dice]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the table",
+      "do": [
+        {
+          "set": {
+            "key": "total_dice",
+            "value": {
+              "calc": "sum(p.dice for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "opener",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "to_act",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "current_qty",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "current_face",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "current_bidder",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "bids",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "survivors",
+            "value": {
+              "calc": "len(players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "your dice",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with (your faces are shown to you alone):"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "a new turn",
+      "do": [
+        {
+          "adjust": {
+            "key": "round_no",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "loser",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "action",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "bid_qty",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "bid_face",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "['bid', 'dudo'] if current_qty == 0 else (['raise', 'dudo'] if current_qty < total_dice else ['dudo'])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "turn",
+      "label": "the table state",
+      "to": "all",
+      "text": "Round {round_no}. Dice held [seat, dice]: {[[p.seat, p.dice] for p in players]}. Total dice T = {total_dice}. Current bid: {current_qty} x {current_face}s by seat {current_bidder} (0 means no bid yet). Bids this hand [seat, quantity, face]: {bids}. Seat {to_act} is to act."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "choose an action",
+      "to": {
+        "where": "you.seat == to_act"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "act_choice"
+      },
+      "text": "It is your turn. Current bid: {current_qty} x {current_face}s (0 means none), T = {total_dice}. Choose: 'bid' to open, 'raise' to beat the current bid, or 'dudo' to challenge it."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "record the action",
+      "do": [
+        {
+          "set": {
+            "key": "action",
+            "value": "$act_choice"
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "bid quantity",
+      "when": {
+        "calc": "action in ['bid', 'raise']"
+      },
+      "to": {
+        "where": "you.seat == to_act"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "max(opening_quantity_floor, int(total_dice / opening_quantity_divisor)) if action == 'bid' else current_qty + raise_quantity_step"
+        },
+        "max": {
+          "calc": "total_dice"
+        }
+      },
+      "verify": {
+        "bind": "q"
+      },
+      "text": "Name the quantity of your bid: how many dice on the whole table (ones wild) show your face."
+    },
+    {
+      "use": "ask",
+      "phase": "turn",
+      "label": "bid face",
+      "when": {
+        "calc": "action in ['bid', 'raise']"
+      },
+      "to": {
+        "where": "you.seat == to_act"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "bid_face_min"
+        },
+        "max": {
+          "calc": "bid_face_max"
+        }
+      },
+      "verify": {
+        "bind": "f"
+      },
+      "text": "Name the face of your bid, from {bid_face_min} to {bid_face_max} (ones are wild and cannot be named)."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "the new bid",
+      "when": {
+        "calc": "action in ['bid', 'raise']"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "bid_qty",
+            "value": "$q"
+          }
+        },
+        {
+          "set": {
+            "key": "bid_face",
+            "value": "$f"
+          }
+        },
+        {
+          "set": {
+            "key": "current_qty",
+            "value": {
+              "calc": "bid_qty"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_face",
+            "value": {
+              "calc": "bid_face"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_bidder",
+            "value": {
+              "calc": "to_act"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "bids",
+            "value": {
+              "calc": "[to_act, bid_qty, bid_face]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "to_act",
+            "value": {
+              "calc": "(sorted([p.seat for p in players if p.seat > to_act and not p.eliminated]) + sorted([p.seat for p in players if not p.eliminated]))[0]"
+            },
+            "text": "New bid: {current_qty} x {current_face}s by seat {current_bidder}. Seat {to_act} acts next."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "failed opening",
+      "when": {
+        "calc": "action == 'dudo' and current_qty == 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "loser",
+            "value": {
+              "calc": "to_act"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "loser"
+            },
+            "key": "dice",
+            "value": {
+              "calc": "-dice_lost_per_challenge"
+            },
+            "if": {
+              "calc": "loser > 0"
+            },
+            "text": "Seat {player} called Dudo with no bid to open and loses a die. The hand ends with no count."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "dudo",
+      "when": {
+        "calc": "action == 'dudo' and current_qty > 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "matching",
+            "value": {
+              "calc": "sum(count(x == current_face or x == wild_face for x in p.faces) for p in players if not p.eliminated)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "loser",
+            "value": {
+              "calc": "to_act if matching >= current_qty else current_bidder"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "loser"
+            },
+            "key": "dice",
+            "value": {
+              "calc": "-dice_lost_per_challenge"
+            },
+            "if": {
+              "calc": "loser > 0"
+            }
+          }
+        }
+      ],
+      "text": "Seat {to_act} calls Dudo on {current_qty} x {current_face}s by seat {current_bidder}. All dice revealed [seat, faces]: {[[p.seat, p.faces] for p in players if not p.eliminated]}. Dice showing {current_face} or 1: {matching}. Seat {loser} loses a die."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "eliminations",
+      "when": {
+        "calc": "loser > 0"
+      },
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.dice == 0 and not you.eliminated"
+            },
+            "key": "eliminated",
+            "value": true,
+            "text": "Seat {player} has no dice left and is eliminated."
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "you.dice == 0"
+            },
+            "to": "out"
+          }
+        },
+        {
+          "set": {
+            "key": "survivors",
+            "value": {
+              "calc": "count(p.dice >= 1 for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "last player standing",
+      "when": {
+        "calc": "survivors <= 1"
+      },
+      "against": [
+        "over"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the next hand",
+      "when": {
+        "calc": "loser > 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "opener",
+            "value": {
+              "calc": "loser if loser in [p.seat for p in players if not p.eliminated] else (sorted([p.seat for p in players if p.seat > loser and not p.eliminated]) + sorted([p.seat for p in players if not p.eliminated]))[0]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_qty",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "current_face",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "current_bidder",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "bids",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "not you.eliminated"
+            },
+            "key": "faces",
+            "value": {
+              "calc": "[min(die_sides, int(uniform(wild_face, die_sides + 1))) for i in [1, 2, 3, 4] if i <= you.dice]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "total_dice",
+            "value": {
+              "calc": "sum(p.dice for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "to_act",
+            "value": {
+              "calc": "opener"
+            }
+          }
+        }
+      ],
+      "text": "A new hand: everyone rerolls. Seat {opener} opens. T = {total_dice}."
+    },
+    {
+      "use": "sync",
+      "phase": "resolve",
+      "label": "your state",
+      "mode": "self",
+      "to": "all",
+      "text": "Where you stand:"
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "round cap",
+      "when": {
+        "calc": "round_no >= max_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "survivors <= 1 or round_no >= max_rounds"
+      },
+      "rank_by": "you.dice",
+      "text": "Winner: {result}. Dice left [seat, dice]: {[[p.seat, p.dice] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 40,
+    "rounds_max": 40,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Players sit in seats numbered from 1; clockwise means increasing seat number, wrapping from the last seat to seat 1. With 2 players each starts with {start_dice_2_players} dice, with 3 players {start_dice_3_players}, with 4 players {start_dice_4_players}. Every player rolls their dice (faces 1 to {die_sides}) and sees only their own faces. Seat 1 opens the first hand.\n\nAt every turn everyone is told how many dice each player holds, the total dice in play (T), the current bid and who made it, and the bids made so far this hand.\n\nA bid is a quantity and a face from {bid_face_min} to {bid_face_max}, e.g. 'three 5s'. It claims that at least that many dice on the whole table show that face. Ones are wild and count toward every face; ones cannot be named as a bid face.\n\nEach round is one turn by the player to act.\n(a) With no current bid, the player to act is the opener and must make an opening bid: quantity at least max({opening_quantity_floor}, floor(T / {opening_quantity_divisor})) and at most T. If the opener calls Dudo instead, the opener loses {dice_lost_per_challenge} die and the hand ends with no count.\n(b) With a current bid, the player to act either raises or calls Dudo. A raise has quantity at least the current quantity plus {raise_quantity_step} and at most T, with any face from {bid_face_min} to {bid_face_max}. If the current quantity already equals T, the player must call Dudo.\n(c) A bid or raise becomes the current bid and is added to the hand's bid list, and the next surviving player clockwise acts next round. Bidding wraps around the table as often as needed.\n(d) DUDO: all dice are revealed to everyone. Count the dice showing the bid face plus all ones. If the count is at least the bid quantity, the bid was true and the caller loses {dice_lost_per_challenge} die. Otherwise the bid was false and the bidder loses {dice_lost_per_challenge} die. The hand ends.\n\nAfter a hand ends (in the same round): a player with 0 dice is eliminated, and this is announced. The player who lost the die opens the next hand; if that player was eliminated, the next surviving player clockwise from them opens. The current bid is cleared, every surviving player rerolls all their remaining dice privately, and T is recomputed. The opener acts next round.\n\nThe game ends immediately when only one player has dice left; that player wins and everyone else loses. The game also ends after round {max_rounds}: any hand in progress is not resolved and its bids are ignored, and the player holding the most dice wins; players tied for the most share the win, and everyone else loses."
+}

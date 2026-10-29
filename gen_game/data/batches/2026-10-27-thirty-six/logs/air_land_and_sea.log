@@ -1,0 +1,42 @@
+
+$ gen_game convert air_land_and_sea --judge   (code e5a100032e, 10:21:43)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: After a withdrawal the game keeps offering deploy and improvise to the players. It also never clears `battle_over` when the next battle starts: the final state shows battle 2 with `battle_over` still true. As a result, no seat is ever offered 'withdraw' in later battles, which is what makes the R3 and R17 scenarios fail; these are implementation errors, and the rules are sound.
+step C: building the game file
+step D: evaluating
+triage: fix_game: The rules are sound and expressible, but the game file mishandles the end of a battle and the withdrawal. After a withdrawal it still offered seat 1 'deploy Air 1' in that battle. When it moved on to battle 2 it left battle_over true and never dealt: the deck still holds 18 cards, set_aside is empty and the old hands remain. So no seat was offered actions, including withdraw, in later scenarios.
+step C: building the game file
+step D: evaluating
+triage: fix_tests: The failing scenarios demand moves the rules forbid. Three tests start with battle_over true (or in a round where no action can occur) and still script 'withdraw' for both seats, which the game rightly never offers. The withdrawal test also forbids 'deploy' in the very round where seat 1 must be offered its normal options before it withdraws. As far as the trace shows, the game's withdrawal handling is correct: 2 VP to the opponent for 4 cards held, battle_over set, offers cleared.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_tests: The failures come from scripted moves for seats the rules never ask to act, or for cards a seat may not hold. In round 13 seat 1 withdraws, so seat 2 correctly never acts. In round 8 seat 2 withdraws first, so seat 1 correctly never acts. The game is behaving as the rules require.
+rewriting the independent tests
+step D: evaluating
+triage: fix_tests: Other scenarios do get a 'withdraw' option, such as the battle 2 test where seat 1 withdraws, so the game does offer it in normal play. Only this battle_over scenario fails, with neither seat ever offered 'withdraw', which is what the rules require while battle_over is true: the remaining rounds pass with no actions at all.
+rewriting the independent tests
+step D: evaluating
+triage: revise_rules: The game is built correctly, yet a thoughtless policy (always the first option) wins every decided match from either seat and always taking the last option loses every match. Play is decided by one mechanical habit, not by decisions: deploying face-up beats improvising for almost every card, and withdrawing only gives points away.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: revise_rules: The game works as built, but one option dominates: always Fight (the first option) wins every decided match and always Withdraw loses every one. Withdrawing only hands the opponent VP and protects nothing, and a withdraw poll every battle round lets anyone who never withdraws farm points from an opponent who sometimes does.
+
+air_land_and_sea: dropped
+  too simple: it is still degenerate or luck-driven: always taking the first option as seat 1 wins 100% of decided matches against random seats (after 3 variation(s))
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/air_land_and_sea
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/e5a100032e/gen_game/data/games/air_land_and_sea/VERIFIED.md

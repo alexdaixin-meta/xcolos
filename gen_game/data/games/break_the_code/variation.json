@@ -1,0 +1,134 @@
+{
+  "original_summary": "Break the Code is a deduction game. Each player hides a sorted row of numbered, coloured tiles. On a turn a player either asks one of six face-up question cards, which opponents must answer truthfully, or tries to name a hidden code exactly; the first correct full guess wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "The original has no dominant simple policy: never guessing cannot win, and guessing blind almost never succeeds. Seat order matters, though. The first player to guess correctly wins, and the 2-player rule that gives the opponent one last guess only partly offsets that. The previous scored variation degenerated completely. Always-first and always-last won 60 of 60 matches from either seat, because random play lost points on wrong guesses while the passive policies never risked anything."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "In the original, choosing questions that split the remaining possibilities well, and knowing when to commit to a guess, beats asking at random. The shuffled question cards add some luck: one player may be offered sharper cards than the other."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Adaptive question choice and judging how risky a guess is leave plenty of room to improve. A weak player still eventually narrows the code down."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "The core of the game is inference about a hidden code from partial, truthful answers. In the original there is no opponent modelling, because codes are dealt at random."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Every answer to a question card is a mechanical fact about the hidden tiles, and a guess is either exactly right or not."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The game is text and turn-based, but it has some awkward features. There are 21 different question cards with varied answer formats such as positions and adjacency. A 20-tile deal and a 21-card deck need many draws. The code space of 5 tiles from 20 is large, so games run long. The 3-4 player central-pool and elimination rules add a second hidden structure."
+    }
+  ],
+  "problems": [
+    "P1: In the previous variation, wrong guesses cost points or handed points to the code's owner, so random play lost by self-destruction and any never-guessing policy (first or last option) won every match.",
+    "P2: There was a reward for an unsolved leg (or no price on passing), so not guessing was a safe way to bank the result.",
+    "P3: The code space was too large to deduce within a leg, so careful play rarely reached a guess and the result came from the opponent's mistakes, not one's own deduction.",
+    "P4: Codes were dealt at random, so nothing could be learned about the opponent. There was no opponent modelling, and the deal could favour a player.",
+    "P5: Turn order gives the first guesser an edge, and the original's many card types, deck draws and position-based answers exceed what the engine builds reliably.",
+    "P6: Under highest-total-wins, a wrong guess that gave no information was pure loss, so the guess-or-ask tension disappeared."
+  ],
+  "changes": [
+    {
+      "what": "A wrong guess costs no points and gives the guessed code's owner nothing. Its only cost is the turn, and it still returns a little information (whether the guess shares a tile with the code).",
+      "why": "Guessing must never be self-destructive. Random play then no longer feeds points to passive players, and an informed early guess becomes a real option.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Points come only from correct guesses: 7 minus the turn number within the leg (6 down to 1). Nothing is scored for an unsolved leg.",
+      "why": "Passivity scores zero, so an always-ask policy loses to anyone who ever guesses right. Guessing earlier pays more, so committing under uncertainty is rewarded.",
+      "fixes": "P2"
+    },
+    {
+      "what": "The code shrinks to two tiles valued 0-5, sorted low-high (21 possible codes). There are five fixed coarse questions with three possible answers each, and a leg lasts 6 turns.",
+      "why": "A code can now be pinned down in about three good questions, so deduction decides the leg. Each answer has only three values, so one cannot solve a code in two questions and guessing at turn 3 versus turn 4 is a real gamble.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Each player chooses their own secret code at the start of every leg instead of having it dealt.",
+      "why": "This adds opponent modelling. Setters try to pick codes that stay ambiguous under the questions, and guessers can exploit an opponent's habits over four legs. It also removes deal luck and the need for random draws.",
+      "fixes": "P4"
+    },
+    {
+      "what": "Both players act simultaneously each turn, using the same fixed menu of questions. Answers are announced publicly. Draws and discards are removed.",
+      "why": "Simultaneous play removes the seat advantage. A fixed menu keeps the step count and attributes within the platform's limits.",
+      "fixes": "P5"
+    },
+    {
+      "what": "A wrong guess reveals whether 0 or 1 of the guessed tiles appear in the code.",
+      "why": "A guess becomes a weak question as well as a gamble. Choosing between a sharp question and a rewarding but risky guess is then a real decision.",
+      "fixes": "P6"
+    },
+    {
+      "what": "The winner is the higher total after 4 legs. If totals are tied, the player who solved more legs wins; if that is also tied, the match is a draw.",
+      "why": "The winner rule is simple arithmetic. The only way to gain on the opponent is to solve faster, so risk-free passivity cannot win.",
+      "fixes": "P1"
+    }
+  ],
+  "keeps": [
+    "A hidden code of numbered tiles, kept in ascending order",
+    "Truthful answers to question cards about properties of the code (sums, odd tiles, gaps, high tiles)",
+    "Each turn, the choice between asking a question and attempting a full guess",
+    "Winning by naming the opponent's exact code sooner than they name yours"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The deduction core is strong and fits the platform once the code space is shrunk, the questions are fixed and wrong guesses become free. Those changes fix the passivity exploit the previous variation showed."
+  },
+  "variation": {
+    "name": "Break the Code: Duel of Two Tiles",
+    "summary": "Two players each set a secret two-tile code. Over four legs of six simultaneous turns, each player either asks one of five truthful questions about the opponent's code or guesses it. A correct guess earlier in the leg scores more.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "SETUP. The match is 4 legs of 6 turns each (24 turns). Scores start at 0.\n\nCODES. At the start of each leg, both players at the same moment secretly choose a code of two tiles. Each tile is a whole number from 0 to 5. A code is written low tile then high tile, with low no greater than high; equal tiles are allowed, for example 3-3. There are 21 possible codes. A code cannot be changed during the leg.\n\nTURNS. On each turn of a leg, both players choose at the same moment. Each picks exactly one of the following actions, about the opponent's code:\n- Question A (Sum): is the sum of the two tiles LOW (0-3), MIDDLE (4-6) or HIGH (7-10)?\n- Question B (Odd): how many tiles are odd: 0, 1 or 2?\n- Question C (Gap): is high minus low 0 (PAIR), 1 (ADJACENT) or 2 or more (APART)?\n- Question D (Big): how many tiles are 3 or more: 0, 1 or 2?\n- Question E (Edge): how many tiles are 0 or 5: 0, 1 or 2?\n- Guess: name a full code (low, high).\nRepeating a question is allowed, but it gives the same answer again.\n\nANSWERS. After both have chosen, the engine announces to both players each player's action and its truthful answer, computed from the opponent's code.\n- If a guess equals the opponent's code exactly, it is CORRECT. The guesser scores 7 minus the turn number within the leg: 6 points on turn 1, 5 on turn 2, 4 on turn 3, 3 on turn 4, 2 on turn 5 and 1 on turn 6.\n- If a guess is wrong, it scores 0 and costs nothing else. The engine announces how many of the guessed tiles appear in the code, which is 0 or 1. Each code tile can match at most one guessed tile.\n\nSOLVED. A player who guesses correctly has solved the leg. For the rest of that leg their choices are ignored and they score nothing more. The other player keeps playing normally.\n\nEND OF LEG. After turn 6 of a leg, both codes are revealed to both players. Unsolved legs score nothing for anyone. The next leg starts with new codes.\n\nEND OF MATCH. After 4 legs the match ends.",
+    "objective": "After 4 legs, the player with the higher total score wins. If totals are equal, the player who solved more legs wins. If that is also equal, the match is a draw.",
+    "expected_effect": "Never guessing scores zero and loses to any player who guesses right even once, including a random player who stumbles onto a code. Fixed guessing, such as always naming 0-0 or 5-5, scores only when the opponent happens to set that code, so it also loses. Strong play asks the question that best splits the remaining codes given earlier answers. It then decides whether to gamble a guess on turn 3 among two or three candidates for 4 points, or to ask once more and guess safely on turn 4 for 3 points. Setters choose codes that stay ambiguous under the five questions and vary them so the opponent cannot exploit a habit. Guessers break near-ties by reading the opponent's past code choices, revealed at the end of each leg. Play is simultaneous and the rules are symmetric, so no seat has an edge. There is no random deal, so the result reflects deduction, risk judgement and opponent modelling. Talk is omitted: there are only two players, and every statement would be cheap talk about a code."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 11,
+    "choice_steps_per_round": 2,
+    "attributes": 15,
+    "hidden_elements": 1,
+    "random_draws_per_round": 0,
+    "rounds": 24
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "The two seats are fully symmetric. Codes are chosen at the same moment, actions are chosen at the same moment, and both players see the same announcements, so neither seat gains from move order or information.\n\nCode partitions over the 21 codes, from my enumeration:\n| Question | Answer counts |\n|---|---|\n| Sum | LOW 6 / MID 9 / HIGH 6 |\n| Odd | 0: 6 / 1: 9 / 2: 6 |\n| Gap | PAIR 6 / ADJ 5 / APART 10 |\n| Big | 0: 6 / 1: 9 / 2: 6 |\n| Edge | 0: 10 / 1: 8 / 2: 3 |\n\nThe full signatures of (Sum, Odd, Gap, Big, Edge) are all distinct. Example: (1,4) = M, 1, APART, 1, 0 and (2,3) = M, 1, ADJ, 1, 0. So the five questions always identify the code, and the solve is guaranteed by turn 6.\n- Three 3-way answers give at most 27 leaves, which is at least 21, so a turn-4 solve (3 points) is the realistic target.\n- Two answers give only 9 leaves, so a guaranteed turn-3 solve is impossible. Faster solves need luck or a read on the opponent.\n\nA guess is also a 3-way probe (correct / 1 match / 0 matches). Guessing 2-3 on turn 1 splits the codes 1/10/10 with an expected value of 6/21 \u2248 0.29 points. A Sum question splits them 6/9/6 with an expected value of 0. That gives a real trade-off between information and points.\n\nThoughtless policies under the WINNER RULE:\n- **Always Question A.** It never solves and scores 0. Against sensible play (about 3 points per leg) it loses every match. Against random play it draws about 83% of matches and loses the rest. A random player solves a given turn with probability 1/6 \u00d7 1/21 \u2248 0.8%, which is \u22484.7% per leg and \u224817% per match. It never wins.\n- **Always the same question (any of B to E).** Identical result: 0 points, never wins.\n- **Always guess 0-0** (the last option, fixed). It scores only if the opponent chose 0-0. It loses to sensible play almost always and wins only against an opponent who hides 0-0 and fails to solve.\n- **Always guess first, then ignore feedback.** It is dominated by guesses that use the feedback.\n\nNo action is strictly better whatever the opponent does. Code choice is a hide-and-seek game against the opponent's search tree with no dominant code. Both players can realistically win, because winning depends on solving faster on the opponent's code.\n\nThere is no labelled payoff ordering to check. The scoring 7 \u2212 turn is stated and consistent (6, 5, 4, 3, 2, 1)."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "**Completeness.** Every answer is a defined function of the opponent's code: sum bands cover 0-10, odd/big/edge counts are 0-2, and the gap bands cover every value. The wrong-guess feedback is well defined. Because codes are sorted, a wrong guess can match at most 1 tile, so the stated 0/1 holds: guess 2-2 against code 2-3 gives 1, and guess 2-3 against code 2-2 gives 1. Solved-player handling, leg end, reveal and the tie-break (more solved legs, then draw) are all specified.\n\n**Finite and arithmetic.** The game is finite at 24 turns and is decided by arithmetic on stored scores and solved counts. No judge, board or clock is needed.\n\n**Engine fit.**\n- Codes are chosen from a 21-item option list, so the low \u2264 high rule is enforced by the options.\n- The turn action is one simultaneous poll over 26 options (5 questions plus 21 codes).\n- The leg-start code choice is a single step carrying `when turn mod 6 == 1`.\n- Answers come from per-player calc steps with `if` operations. Scoring uses a `when` on correctness.\n\n**Limits.**\n- Stated complexity is 11 steps (\u226420), 2 choice steps (\u22644), 15 attributes (\u226420), 1 hidden element type (\u22643), 0 random draws, 24 rounds (\u226440). The counts are plausible: 2 polls, answer/match calc per player, score and solved flag per player, announce, leg-end reveal and reset.\n- No unsupported features are used: no conditional blocks, trading, binding agreements, real time or board.\n\n**Talk.** This is a two-player game, so the talk question does not arise.\n\n**Cooperation in late rounds.** Not applicable. This is not a cooperation dilemma, and late rounds still reward solving."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "**Deduction drives the score.** An optimal adaptive tree (questions, plus guesses used as probes) solves by about turn 4 for about 3-4 points per leg, roughly 12-16 per match. A poor deducer who repeats questions or ignores the 0/1 feedback solves on turn 5-6 or not at all, roughly 4-8 per match. Since the per-leg gap between good and poor play is about 2-3 points, a skilled player is clearly favoured.\n\n**No random draw.** The engine never deals or draws anything; all hidden information is chosen by the players.\n\n**Variance source.** The only variance is the strategic hide-and-seek over codes:\n- which code to hide;\n- whether to spend early turns on 6- or 5-point guesses aimed at codes the opponent is likely to favour (for example, models favouring 3-3 or 2-4);\n- risk-taking when the opponent's progress is visible. If you see the opponent narrowing in during leg 4 while you trail, gambling becomes right.\n\nI estimate chance-like variance from mixed code choices at about 20-30% of outcomes between equal players. It does not decide matches between unequal players.\n\n**Equal good play.** When both play well, the result depends on who reads the other's code preferences better. That is opponent modelling, not a dealt type. There is clear content to infer (the hidden code, the opponent's selection habits) and clear ways to act on it (question order, timing of guesses)."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

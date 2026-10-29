@@ -7,6 +7,7 @@ and edited by hand when a gate is wrong; none of that survives a database.
 from __future__ import annotations
 
 import json
+import os
 from collections import Counter
 from pathlib import Path
 
@@ -17,10 +18,18 @@ DEFAULT_DIR = Path(__file__).parent / "data" / "inventory"
 DEFAULT_INDEX = Path(__file__).parent / "INDEX.md"
 
 
+def _write(path: Path, text: str) -> None:
+    """Write beside the file and move it into place, so a crawl running alongside
+    never reads half a record. The temporary name does not end in `.json`."""
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(text)
+    os.replace(tmp, path)
+
+
 class Inventory:
     def __init__(self, root: Path = DEFAULT_DIR, manifest: dict | None = None):
         self.root = Path(root)
-        self.index_path = DEFAULT_INDEX if self.root == DEFAULT_DIR else self.root / "INDEX.md"
+        self.index_path = DEFAULT_INDEX if self.root.resolve() == DEFAULT_DIR.resolve() else self.root / "INDEX.md"
         self.root.mkdir(parents=True, exist_ok=True)
         self.manifest = manifest or gates.load_manifest()
 
@@ -47,13 +56,20 @@ class Inventory:
         return from_dict(json.loads(path.read_text()))
 
     def save(self, rec: Record) -> None:
-        self._path(rec.id).write_text(json.dumps(rec.to_dict(), indent=2) + "\n")
+        _write(self._path(rec.id), json.dumps(rec.to_dict(), indent=2) + "\n")
+        self.write_index()
+
+    def remove(self, game_id: str) -> None:
+        path = self._path(game_id)
+        if not path.exists():
+            raise KeyError(game_id)
+        path.unlink()
         self.write_index()
 
     def write_index(self) -> None:
         records = self.all()
-        self.index_path.write_text(index.render(records))
-        self.index_path.with_suffix(".json").write_text(index.render_json(records))
+        _write(self.index_path, index.render(records))
+        _write(self.index_path.with_suffix(".json"), index.render_json(records))
 
     def add(self, rec: Record) -> Record:
         """Store a new candidate and run it through the gates."""
@@ -90,6 +106,11 @@ class Inventory:
         return [(i, b, after[i]) for i, b in before.items() if after[i] != b]
 
     # -- what the inventory says ---------------------------------------
+
+    def kept(self) -> list[Record]:
+        """The games that count: past the gates, whether ready or blocked, or further on.
+        A duplicate, a reject or an incomplete record is not a game the inventory has."""
+        return [r for r in self.all() if r.status in gates.ESTABLISHED]
 
     def by_status(self) -> dict[str, list[Record]]:
         out: dict[str, list[Record]] = {}

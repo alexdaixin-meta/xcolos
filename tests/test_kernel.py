@@ -164,6 +164,15 @@ def test_turn_cap_abandons_rather_than_looping():
     assert "turn cap" in (result.reason or "")
 
 
+def test_time_cap_abandons_a_match_that_runs_too_long():
+    ticks = iter(range(0, 10_000, 10))  # a clock that moves ten seconds each time it is read
+
+    game, orch, registry = build(2)
+    result = Runner(game, orch, registry, max_seconds=15, clock=lambda: next(ticks)).run()
+    assert result.status == "abandoned"
+    assert "time cap of 15s" in (result.reason or "")
+
+
 def test_one_broken_seat_still_lets_the_match_finish():
     def factory(i, name):
         return BrokenAgent(name=name) if i == 0 else ScriptedAgent(name=name)

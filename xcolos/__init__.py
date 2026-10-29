@@ -1,6 +1,6 @@
 """XColos - The AI Colosseum.
 
-A runtime for hidden-role social deduction games played by LLM agents.
+A runtime for multi-player games played by LLM agents.
 
 Layers:
   kernel        deterministic, game-agnostic, the only thing trusted with secrets

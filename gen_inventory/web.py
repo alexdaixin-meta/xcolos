@@ -210,7 +210,7 @@ def html_to_text(html: str) -> tuple[str, str, list[str]]:
 # ----------------------------------------------------------------------
 
 
-def sitemap_urls(fetcher: Fetcher, url: str, limit: int = 5000, depth: int = 2, errors: list[str] | None = None) -> list[str]:
+def sitemap_urls(fetcher: Fetcher, url: str, limit: int = 100_000, depth: int = 2, errors: list[str] | None = None) -> list[str]:
     """Every page URL a sitemap lists, following sitemap indexes a little way.
     A sitemap that cannot be read is reported in `errors`, not raised."""
     try:
@@ -222,7 +222,7 @@ def sitemap_urls(fetcher: Fetcher, url: str, limit: int = 5000, depth: int = 2, 
     locs = re.findall(r"<loc>\s*(.*?)\s*</loc>", xml, re.S)
     if "<sitemapindex" in xml and depth > 0:
         out: list[str] = []
-        for child in locs[:20]:
+        for child in locs[:1000]:
             if child.endswith(".gz"):
                 continue
             out += sitemap_urls(fetcher, child, limit - len(out), depth - 1, errors)

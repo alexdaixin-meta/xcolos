@@ -16,7 +16,7 @@ import sys
 import time
 from pathlib import Path
 
-from gen_game import evaluate, flow
+from gen_game import evaluate, flow, marks
 from gen_inventory.inventory import DEFAULT_DIR, Inventory
 from xcolos.games.loader import load
 
@@ -64,8 +64,49 @@ class Patient:
 
 
 
+#: The pipeline's `--effort` (Muse's names) as the Claude API's `output_config.effort`, which has no `minimal`.
+GATEWAY_EFFORT = {"minimal": "low", "low": "low", "medium": "medium", "high": "high"}
+
+
+#: Where Meta's own Python finds the corporate CA bundle: its sitecustomize sets SSL_CERT_FILE to the first that exists.
+#: A virtualenv made without system site-packages (the .venv the gateway needs) skips that file, and then every HTTPS
+#: call, Muse's among them, fails certificate verification.
+CA_BUNDLES = ("/etc/ssl/certs/fb_certs.pem", "/System/Library/OpenSSL/certs/fb_certs.pem",
+              "/opt/facebook/certs/facebook-ca-bundle.cer", "/etc/ssl/cert.pem")
+
+
+def trust_corporate_ca(env=None, bundles: tuple[str, ...] = CA_BUNDLES) -> None:
+    """Do what Meta's Python does at start-up, for a virtualenv that skipped it. A bundle already chosen is kept."""
+    env = os.environ if env is None else env
+    if "SSL_CERT_FILE" not in env:
+        found = next((b for b in bundles if Path(b).is_file()), None)
+        if found:
+            env["SSL_CERT_FILE"] = found
+
+
 def completion_for(spec: str, effort: str):
-    """The model for a backend spec. Muse gets a reasoning effort and room for a whole game file:
+    """The model for a backend spec. `gateway|muse` is either, the first preferred: one that cannot be built here
+    (the gateway without the `anthropic` package) is left out, and one that cannot be reached (Muse off the corporate
+    network) is passed over at its first failed call, before any retry waits."""
+    from xcolos.flow.backends import FallbackCompletion, split_alternatives
+
+    alternatives = split_alternatives(spec)
+    if len(alternatives) == 1:
+        return _one_model(spec, effort)
+    built, missing = [], []
+    for part in alternatives:
+        try:
+            built.append(_one_model(part, effort))
+        except SystemExit as stop:
+            missing.append(str(stop))
+    if not built:
+        raise SystemExit("; ".join(missing))
+    bare = [m.inner if isinstance(m, Patient) else m for m in built]  # retried as a whole below, so a model that is down is skipped at once
+    return Patient(bare[0] if len(bare) == 1 else FallbackCompletion(bare))
+
+
+def _one_model(spec: str, effort: str):
+    """One model. Muse gets a reasoning effort and room for a whole game file:
     the platform's default (minimal effort, 8192 output tokens) suits a referee, not an author."""
     from xcolos.flow.backends import from_spec
 
@@ -77,12 +118,46 @@ def completion_for(spec: str, effort: str):
 
         model = rest.strip() or "claude-opus-5-5"
         return Patient(CommandCompletion(["claude", "-p", "--bare", "--model", model], timeout_s=1800))
+    if kind.strip().lower() == "gateway":
+        # Claude through Meta's AI Gateway: the pipeline's effort names, in the API's terms
+        from xcolos.flow.backends import GATEWAY_MODEL, gateway_completion
+
+        try:
+            import anthropic  # noqa: F401 - the gateway backend needs the SDK; say so now, not after the retry waits
+        except ImportError:
+            raise SystemExit("the default model is Claude through Meta's AI Gateway, which needs the `anthropic` package: "
+                             "run with .venv/bin/python (or `.venv/bin/pip install anthropic` from a normal terminal), "
+                             "or pass --model muse") from None
+        return Patient(gateway_completion(model=rest.strip() or GATEWAY_MODEL, effort=GATEWAY_EFFORT[effort]))
     if kind.strip().lower() == "muse":
         from gen_game.chat import MuseChat
 
         # a request that has not answered in 3 minutes is hung (a 10,000-character generation takes 25 to 45 seconds): cut it and ask again
         return Patient(MuseChat(model=rest.strip() or MUSE_MODEL, reasoning_effort=effort, max_output_tokens=16384, timeout_s=180))
     return from_spec(spec)
+
+
+def reasoning_hook(folder: Path, completion, say=print):
+    """The reasoning-and-planning check over a play-test's plays (`simulate`, each loop iteration, `reasoning`): writes REASONING.md
+    and returns the check, or None when it could not be made."""
+    from gen_game import reasoning
+
+    def run(paths) -> dict | None:
+        sims = [json.loads(Path(p).read_text()) for p in paths]
+        sims = [x for x in sims if (x.get("snapshot") or {}).get("status") == "ended"]
+        if not sims:
+            say("reasoning check: no finished plays to read")
+            return None
+        design = json.loads((folder / "variation.json").read_text())
+        out, error = reasoning.check(completion, sims, design)
+        if out is None:
+            say(f"reasoning check failed: {error}")
+            return None
+        path = reasoning.write(folder, out, reasoning.stats(sims), (design.get("variation") or design).get("name", folder.name))
+        say(f"reasoning check: {out['verdict']} (" + ", ".join(f"{a} {'-' if out[a]['score'] is None else out[a]['score']}" for a in reasoning.ASPECTS) + f"); {path}")
+        return out
+
+    return run
 
 
 def loop_command(args) -> int:
@@ -178,7 +253,8 @@ def loop_command(args) -> int:
         if not (folder / "game.json").exists():
             raise SystemExit("no game file was produced, so there is nothing to play: see the generation log above")
     install()
-    result = loopmod.run_loop(loopmod.Hooks(play, review, confirm, prepare_redesign, regenerate, append("LOOP_LOG.md"), append("ESCALATIONS.md"), say, judge), args.max_iterations)
+    result = loopmod.run_loop(loopmod.Hooks(play, review, confirm, prepare_redesign, regenerate, append("LOOP_LOG.md"), append("ESCALATIONS.md"), say, judge,
+                                            reasoning=reasoning_hook(folder, reviewer, say)), args.max_iterations)
     say(f"\nloop {result.status} after {result.iterations} iteration(s); log {folder / 'LOOP_LOG.md'}")
     if result.escalated:
         say(f"needs your review: {folder / 'ESCALATIONS.md'}")
@@ -217,7 +293,9 @@ def install_command(args) -> int:
         print(f"not installed: {target} already holds a different game with this id; remove it first with `uninstall`", file=sys.stderr)
         return 1
     existed = target.exists()
-    target.write_text(text)
+    tmp = target.with_name(f".{target.stem}.{os.getpid()}.tmp")  # written whole, then moved in: a loader never reads half a game
+    tmp.write_text(text)
+    os.replace(tmp, target)
     try:
         loaded = loader.available() if library == loader.LIBRARY else {p.stem: loader.load_file(p) for p in library.glob("*.json")}
     except Exception as exc:  # noqa: BLE001 - the library must keep loading, whatever this file did to it
@@ -230,14 +308,15 @@ def install_command(args) -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def parser() -> argparse.ArgumentParser:
+    """The command line, with its defaults."""
     ap = argparse.ArgumentParser(prog="gen_game", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--inventory", type=Path, default=DEFAULT_DIR, help="gen_inventory's directory")
     ap.add_argument("--root", type=Path, default=flow.DATA, help="where converted games are kept")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("convert")
     p.add_argument("id")
-    p.add_argument("--model", required=True, help="a backend spec: claude[:model], muse[:model], anthropic[:model], command:<program>, echo:<reply>")
+    p.add_argument("--model", default="gateway|muse", help="a backend spec: gateway[:model] (Claude through Meta's AI Gateway), muse[:model], claude[:model], anthropic[:model], command:<program>, echo:<reply>; several joined by | are tried in turn, and the default gateway|muse is Claude, or Muse when Claude cannot be reached")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"),
                    help="Muse reasoning effort for the conversion (default: medium)")
     p.add_argument("--encoder", default="completion",
@@ -270,36 +349,58 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--server", default=None, help="a running server's URL (default: start one on a free port for this run)")
     p.add_argument("--timeout", type=int, default=7200, help="seconds to wait for one match")
+    p.add_argument("--reasoning-model", default="gateway|muse", help="reads the plays afterwards for reasoning and planning (REASONING.md)")
+    p.add_argument("--no-reasoning", action="store_true", help="skip the reasoning-and-planning check after the plays")
     p = sub.add_parser("review", help="read a simulated play against the idea, the design, the spec and the prompt, and say what is aligned and what is not")
     p.add_argument("id")
     p.add_argument("--sim", type=Path, default=None, help="a saved play (default: the newest under <game>/sim/)")
-    p.add_argument("--model", default="muse", help="the reviewer: muse[:model], claude[:model], anthropic[:model]")
+    p.add_argument("--model", default="gateway|muse", help="the reviewer: gateway[:model], muse[:model], claude[:model], anthropic[:model], or several joined by |")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
+    p = sub.add_parser("batch", help="convert many games side by side on pinned code, play-test the ones that come out whole, and stop the line when a failure repeats")
+    p.add_argument("ids", nargs="*", help="game ids (or --ids-file)")
+    p.add_argument("--ids-file", type=Path, default=None, help="one game id a line; # starts a comment")
+    p.add_argument("--name", required=True, help="the batch's folder under gen_game/data/batches/; run again with the same name to resume")
+    p.add_argument("--jobs", type=int, default=8, help="games at a time")
+    p.add_argument("--plays", type=int, default=3, help="play-test matches for each game that comes out ready (0: none)")
+    p.add_argument("--stop-after", type=int, default=3, help="stop starting games when the same failure has ended this many")
+    p.add_argument("--pin", default=None, help="the commit the games run on (default: the batch's pin, or HEAD for a new batch)")
+    p.add_argument("--pin-only", action="store_true", help="pin and stop: deploys a fix to a running batch's next games")
+    p.add_argument("--replay", action="store_true", help="also play again the games that came out ready on older code or with other players (not converted again)")
+    p = sub.add_parser("reasoning", help="read every saved play and say whether winning took reasoning and planning, with quotes from the players")
+    p.add_argument("id")
+    p.add_argument("--model", default="gateway|muse", help="the reader: gateway[:model], muse[:model], ..., or several joined by |")
+    p.add_argument("--effort", default="high", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("revise", help="revise the spec from a play review's findings, so the coder is told what it got wrong")
     p.add_argument("id")
     p.add_argument("--review", type=Path, default=None, help="a saved review (default: the newest under <game>/sim/)")
     p.add_argument("--drop", default="", help="finding ids a person judged wrong, comma separated, e.g. F5")
-    p.add_argument("--model", default="muse")
+    p.add_argument("--model", default="gateway|muse", help="gateway[:model] (Claude), muse[:model], ..., or several joined by |")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("brief", help="check that the rules text players read says what the spec's numbered rules say")
     p.add_argument("id")
-    p.add_argument("--model", default="muse")
+    p.add_argument("--model", default="gateway|muse", help="gateway[:model] (Claude), muse[:model], ..., or several joined by |")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("loop", help="play the installed game with real models at its suggested size, review it, and loop back to the generator for confirmed critical and major findings")
     p.add_argument("id")
-    p.add_argument("--players", default="muse", help="the model for the seats: one name fills the table to the game's suggested size, or a comma-separated list (muse, claude, offline...)")
+    p.add_argument("--players", default="muse|gateway", help="the model for the seats: one name fills the table to the game's suggested size, or a comma-separated list (muse, claude, offline...); muse|gateway is Muse, or Claude when Muse cannot be reached")
     p.add_argument("--plays", type=int, default=2, help="plays per iteration, at different seeds")
     p.add_argument("--max-iterations", type=int, default=3)
     p.add_argument("--seed", type=int, default=1)
-    p.add_argument("--review-model", default="claude", help="reviews each play and verifies each finding")
-    p.add_argument("--model", default="claude", help="the generator's model (design, spec, scenarios, triage) when the loop goes back to it")
-    p.add_argument("--encoder", default="claude", help="who writes the game file when the loop goes back to the generator")
+    p.add_argument("--review-model", default="gateway|muse", help="reviews each play and verifies each finding")
+    p.add_argument("--model", default="gateway|muse", help="the generator's model (design, spec, scenarios, triage) when the loop goes back to it")
+    p.add_argument("--encoder", default="completion", help="who writes the game file when the loop goes back to the generator: completion (the --model), or an agent: claude, metacode, command:...")
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p.add_argument("--timeout", type=int, default=3600, help="seconds to wait for one play")
     sub.add_parser("status").add_argument("id")
     sub.add_parser("verified").add_argument("id")
     for name in ("evaluate", "show"):
         sub.add_parser(name).add_argument("id")
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    trust_corporate_ca()  # before any model call, and inherited by a server this run starts
+    ap = parser()
     args = ap.parse_args(argv)
 
     try:
@@ -325,8 +426,11 @@ def main(argv: list[str] | None = None) -> int:
                                    design_feedback=(Path(args.design_feedback[1:]).read_text() if args.design_feedback.startswith("@") else args.design_feedback))
             except BaseException as exc:
                 runstatus.ended(args.root / args.id / "logs", "crashed", f"{type(exc).__name__}: {str(exc)[:300]}")
+                if isinstance(exc, Exception):
+                    marks.mark(Inventory(args.inventory), args.id, args.root / args.id, "crashed", f"{type(exc).__name__}: {str(exc)[:300]}")
                 raise
             runstatus.ended(args.root / args.id / "logs", out.verdict, out.detail)
+            marks.mark(Inventory(args.inventory), args.id, args.root / args.id, out.verdict, out.detail)
             print(f"\n{args.id}: {out.verdict.replace('_', ' ')}" + (f"\n  {out.detail}" if out.detail else ""))
             print(f"  {args.root / args.id}")
             from gen_game import verified
@@ -433,11 +537,41 @@ def main(argv: list[str] | None = None) -> int:
             print(out_md.read_text())
             print(f"saved {out_md} and {out_json}")
             return 0
+        if args.cmd == "batch":
+            from gen_game import batch
+
+            repo = Path(__file__).resolve().parent.parent
+            out = repo / "gen_game" / "data" / "batches" / args.name
+            out.mkdir(parents=True, exist_ok=True)
+            if args.pin or not (out / "CODE").exists():
+                code = batch.pin(repo, args.pin or "HEAD", repo / ".pins")
+                (out / "CODE").write_text(f"{code}\n")
+                print(f"pinned {code}")
+            if args.pin_only:
+                return 0
+            ids = list(args.ids) + ([x.split("#")[0].strip() for x in args.ids_file.read_text().splitlines() if x.split("#")[0].strip()] if args.ids_file else [])
+            if not ids:
+                print("no games given: pass ids or --ids-file")
+                return 1
+            rows = batch.run_batch(list(dict.fromkeys(ids)), out, args.jobs, args.plays, args.stop_after, sys.executable, say=lambda m: print(m, flush=True),
+                                   replay=args.replay)
+            print(f"\n{out / 'BATCH.md'}")
+            return 0 if all(r["outcome"] in batch.FINISHED for r in rows) and len(rows) == len(set(ids)) else 2
+        if args.cmd == "reasoning":
+            from gen_game import reasoning
+
+            folder = args.root / args.id
+            if reasoning_hook(folder, completion_for(args.model, args.effort))(reasoning.play_logs(folder)) is None:
+                return 1
+            print((folder / "REASONING.md").read_text())
+            return 0
         if args.cmd == "simulate":
             from gen_game import simulate as sim
 
-            done = sim.simulate(args.id, [x.strip() for x in args.players.split(",") if x.strip()], args.root, args.matches, args.seed,
-                                args.server, args.timeout)
+            players = [x.strip() for x in args.players.split(",") if x.strip()]
+            done = sim.simulate(args.id, players, args.root, args.matches, args.seed, args.server, args.timeout)
+            if not args.no_reasoning and any(p.lower() != "offline" for p in players):  # after the play-test: did winning take reasoning and planning?
+                reasoning_hook(args.root / args.id, completion_for(args.reasoning_model, "high"))([d["file"] for d in done])
             return 0 if all(d["status"] == "ended" for d in done) else 1
         if args.cmd == "agent-command":
             import shlex

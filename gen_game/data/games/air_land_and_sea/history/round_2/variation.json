@@ -1,0 +1,131 @@
+{
+  "original_summary": "Air, Land and Sea is a two-player card duel fought over three theaters. Across several battles, players alternately deploy cards face-up to their matching theater or face-down anywhere at strength 2, and may withdraw early to give the opponent fewer victory points. Whoever controls more theaters wins a battle, and the first player to reach 12 VP wins the match.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Always withdrawing hands the opponent VP every battle and loses. Always improvising caps you at strength 2 per card and loses to sensible deploying. Always deploying your highest card spreads strength badly against a player who concentrates on two theaters. The first player wins ties within a battle, but first player alternates between battles, so neither seat has a built-in edge."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "The deal decides which hands are strong or weak. The real skill is choosing which two theaters to contest, when to spend face-down cards, and when to withdraw to save VP. A player who withdraws from losing battles cheaply and presses winning ones beats a player who plays every battle out."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Card-counting the 6 unseen set-aside cards, reading the opponent's hand from what they deploy, and timing withdrawals give a strong player room to improve. A weak player still wins battles with good deals."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden, 6 of the 18 cards are out of play unseen, and face-down cards hide their identity. Whether to fight or withdraw depends on inferring what the opponent still holds."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Theater control is a comparison of strength sums, and VP awards come from a fixed table."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The original has 18 distinct card abilities (flip, move, adjacency, ongoing modifiers) and an open-ended first-to-12 length. Both are far beyond the step limits. The previous built variation also had loose battle-boundary rules: a withdrawal advanced the battle counter mid-battle, and it was unclear whether the other seat still acted in the withdrawal round."
+    }
+  ],
+  "problems": [
+    "P1: The 18 unique card abilities (flip, move, draw, adjacency, ongoing effects) need far more steps and state than the platform allows.",
+    "P2: 'First to 12 VP' gives an open-ended length, and the battle count varies.",
+    "P3: In the previous build, a withdrawal moved the battle counter and round_in_battle mid-battle (the final state showed battle 2, round_in_battle 1, battle_over true right after a round-1 withdrawal). Battle boundaries were therefore driven by events instead of by the round number, which broke the first-player rotation (R3) and the withdrawal-pass rule (R11).",
+    "P4: The rules did not say clearly what happens to the second seat's action in the round where the first seat withdraws, or to the rounds left in a withdrawn battle.",
+    "P5: The end-of-game tie rule was ambiguous ('draw' in the rules, 'shared win' in a test).",
+    "P6: The withdrawal VP table differed by seat and hand size in ways that were hard to state and test."
+  ],
+  "changes": [
+    {
+      "what": "Remove all card abilities. Cards are Air/Land/Sea 1\u20136 with strength equal to the number. Deploy (matching theater, full strength) and improvise (any theater, face-down, strength 2) remain.",
+      "why": "This keeps the core decisions (which theaters to fight for, what to hide, when to quit) inside the step budget.",
+      "fixes": "P1"
+    },
+    {
+      "what": "The match is exactly 4 battles of 6 rounds (24 rounds). Each player acts once per round. The higher VP total after round 24 wins; equal VP is a draw.",
+      "why": "A fixed length makes the game easy to build, and the tie rule is now unambiguous.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Battle number, round-within-battle and first player are computed from the round number at the start of every round: battle = floor((round\u22121)/6)+1, round_in_battle = round \u2212 6\u00d7(battle\u22121), first player = seat 1 in battles 1 and 3, seat 2 in battles 2 and 4. Nothing else ever changes them, and a withdrawal never does.",
+      "why": "This makes battle boundaries fixed and testable.",
+      "fixes": "P3"
+    },
+    {
+      "what": "A withdrawal sets battle_over to true immediately. The other seat is not asked to act that round. Every remaining round of that battle has no choices, and the battle gets no end-of-battle scoring. battle_over resets to false only at round_in_battle 1.",
+      "why": "This gives one precise reading of what a withdrawal does to the rest of the battle.",
+      "fixes": "P4"
+    },
+    {
+      "what": "Use a single withdrawal table for both seats, based on the withdrawer's hand size after withdrawing: 4 or more cards gives the opponent 2 VP; 2\u20133 cards gives 3 VP; 1 card gives 4 VP. Playing a battle out gives the winner 6 VP.",
+      "why": "It is simple and symmetric, and it keeps the original 'quit early, lose less' tension.",
+      "fixes": "P6"
+    },
+    {
+      "what": "State that equal VP after round 24 is a draw (no shared win).",
+      "why": "This removes the ambiguity in the end-of-game result.",
+      "fixes": "P5"
+    }
+  ],
+  "keeps": [
+    "Three theaters (Air, Land, Sea) and 18 cards, each numbered 1\u20136 within its theater.",
+    "Hidden 6-card hands, with 6 cards set aside unseen each battle.",
+    "Deploy face-up to the matching theater, or improvise face-down anywhere at strength 2.",
+    "Withdrawal as damage control, conceding fewer VP the earlier you quit.",
+    "Winning a battle means controlling 2 of 3 theaters, and ties go to the battle's first player.",
+    "First player alternates between battles."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The hidden-hand bluffing and withdrawal timing survive without card abilities. The fix needed is precise, round-driven battle boundaries."
+  },
+  "variation": {
+    "name": "Air, Land and Sea: Four Battles",
+    "summary": "This is a two-player duel over four fixed 6-round battles. Players commit hidden hands to three theaters, read the opponent from what they reveal, and withdraw from bad battles to limit the VP they give up.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "CARDS. There are 18 cards: Air 1\u20136, Land 1\u20136 and Sea 1\u20136. A card's strength is its number.\n\nMATCH. The match has 24 rounds, grouped into 4 battles of 6 rounds:\n- Battle 1 is rounds 1\u20136.\n- Battle 2 is rounds 7\u201312.\n- Battle 3 is rounds 13\u201318.\n- Battle 4 is rounds 19\u201324.\n\nSTART OF EVERY ROUND (bookkeeping, no choices).\n- Set battle = floor((round\u22121)/6)+1.\n- Set round_in_battle = round \u2212 6\u00d7(battle\u22121).\n- Set first player = seat 1 if battle is 1 or 3, seat 2 if battle is 2 or 4.\n- These values come only from the round number. Nothing else changes them.\n\nBATTLE START (only when round_in_battle = 1).\n- Set battle_over to false.\n- Reset every player's Air, Land and Sea strength to 0 and clear all played cards.\n- Shuffle all 18 cards.\n- Deal 6 privately to each player's hand.\n- Put the remaining 6 aside unseen. They are out of play for this battle.\n- This is the only random event in a round.\n\nACTIONS. If battle_over is false, the first player takes one action. Then, if battle_over is still false, the second player takes one action. An action is exactly one of:\n(a) DEPLOY: play a card from your hand face-up to the theater named on it. Add its number to your strength there.\n(b) IMPROVISE: play a card from your hand face-down to any theater. Add 2 to your strength there. The opponent sees only the theater and the +2, not the card.\n(c) WITHDRAW: concede the battle.\n\nAll theater strengths and face-up cards are public. Hands, the set-aside cards and the identity of face-down cards are hidden.\n\nWITHDRAWAL.\n- When a player withdraws, count the cards left in their hand.\n- The opponent immediately gains VP as follows: 4 or more cards gives 2 VP; 2 or 3 cards gives 3 VP; 1 card gives 4 VP.\n- battle_over becomes true at once.\n- If the first player withdrew, the second player does not act that round.\n- Every remaining round of the battle passes with no actions and no scoring.\n- The next battle starts at its fixed round as usual.\n\nBATTLE END (only when round_in_battle = 6 and battle_over is false, after both actions).\n- Both hands are now empty.\n- In each theater, the player with the higher strength controls it. A tie goes to that battle's first player.\n- The player who controls 2 or more theaters wins the battle and gains 6 VP.\n- Set battle_over to true.\n\nEND.\n- After round 24 the game ends.",
+    "objective": "After round 24, the player with more VP wins. Equal VP is a draw.",
+    "expected_effect": "Without abilities, each battle becomes a hidden-allocation duel. You choose two theaters to win, decide which low cards to spend face-down, and use what the opponent deploys (and the 6 unseen cards) to estimate their hand. The 2-versus-6 VP gap makes early withdrawal from a weak deal the key judgement, and bluffing strength can push an opponent into withdrawing. The fixed, round-driven boundaries make first-player rotation, withdrawal passing and the final tie result deterministic and testable. Simple policies lose: always-withdraw concedes 8 VP, always-improvise is capped at 12 strength, and always-play-out gives away 6-VP battles that could have cost only 2."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 2,
+    "attributes": 16,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 24
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "WITHDRAW PAYOFF (VP gained by the opponent, by cards left in the withdrawer's hand): 6 to 4 cards = 2; 3 or 2 cards = 3; 1 card = 4. Losing a played-out battle gives the opponent 6. As a zero-sum swing, withdrawing early costs -2, and playing on with win chance p is worth 6p - 6(1-p) = 12p - 6. Withdrawing is right only when p < 1/3. That is a real judgement, not a dominant option.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (higher VP after 4 battles):\n(1) Always withdraw (last option). It withdraws in round 1 of every battle with 6 cards, so the opponent gets 2 VP per battle. Final score 0-8. It loses to every opponent, including random.\n(2) Always deploy (first option). Every card goes face-up to its printed theater, so its allocation is fixed by the deal. Its 1s are worth 1 instead of the 2 an improvise would give. A typical hand such as Air 6, Land 1, Land 2, Sea 3, Sea 5, Air 1 spreads 7/3/8. A sensible opponent who moves later in the round sees this and concentrates on two theaters. For example, improvising its off-suit cards into Land and Air beats 3 and 7 with only about 12 strength. It loses most battles against sensible play. Against random play (which withdraws about 1/3 of the time per action), it often wins, but it does not survive skilled play.\n(3) Always improvise. The total is exactly 12, all hidden. An opponent hand averages a face value of about 21 (mean 3.5 x 6, sd about 3.5), and its deploys of 3 or more beat 2s in their theaters. It loses most battles to a sensible player.\nNo policy never loses, and no option is strictly better: deploy beats improvise only for cards of 3 or more and only in a fixed theater, while improvise gives flexibility and hides the card.\n\nSEAT EDGE: within a battle the second player acts last (it sees every opposing play before its final card), and the first player wins ties. Across the match the first player alternates (seat 1 in battles 1 and 3, seat 2 in battles 2 and 4), so each seat holds each role twice. The deck has no in-game asymmetry. Both players can realistically win. The stated framing (win a battle = 6, early concession = 2, late concession = 3 or 4) matches the numbers."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Complete and finite: exactly 24 rounds. The battle, round_in_battle and first player are derived from the round number alone. The withdrawal and battle-end rules cover every case: the first player withdrawing skips the second player, and dead rounds pass silently. Tied theaters go to the first player. With 3 theaters and 2 players, someone always controls at least 2, so the battle winner is always defined. A 2-card hand always plays out exactly over 6 rounds. Equal match VP is a declared draw. All of this is arithmetic on stored strengths and VP; no judge is needed.\n\nComplexity, from a step estimate: 3 bookkeeping steps, about 3 battle-start steps (reset, shuffle, deal), 2 choice steps plus 2 apply steps plus 2 conditional withdrawal-scoring steps, about 4 battle-end steps (3 control comparisons plus the VP award). That is roughly 13-17 steps, which is at most 20. Other limits: 2 choice steps (at most 4); 16 attributes (at most 20); 3 hidden elements (hands, set-aside cards, face-down card identity), at most 3; 1 random draw, the shuffle in round_in_battle 1 only (at most 1); 24 rounds (at most 40).\n\nUses only supported features: hidden_hands, sequential_choice, fixed_rounds, and conditional `when`/`if` scoring. There is no board; the theaters are just three numbers per player. Talk does not apply to 2 players in a zero-sum game. There is no repeated-cooperation issue, since the game is strictly competitive."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE: hand face value has sd of about 3.5, so the difference between the two hands has sd of about 5, and the split across theaters also varies. Raw deal quality is therefore a large factor in any single battle; I estimate it decides about 50-60% of battles between equal players.\n\nSKILL LEVERS that offset it:\n(a) Blotto-style concentration. Only 2 of 3 theaters matter, so a weaker hand that improvises low and off-suit cards into the two theaters the opponent neglects can beat a higher face total.\n(b) Sequential reveal. Each play responds to the public theater totals. The second mover in a round and the last mover in a battle can exploit commitments.\n(c) Hidden information. You know your 6 cards. The other 12 are split 6/6 between the opponent's hand and the set-aside pile, and face-up deploys narrow this further. Face-down improvises hide card identity, which allows bluffing and requires inference.\n(d) Withdrawal timing (withdraw when p < 1/3). A losing deal costs 2 VP instead of 6, which caps the luck swing at 2 per battle for a disciplined player.\n\nWHEN BOTH PLAY WELL: weaker deals are conceded cheaply and close deals are fought by allocation and reading the opponent. Four reshuffled battles with alternating seats average out deal variance. The winner is not set by the deal alone, because misjudging a withdrawal or misallocating swings 4-6 VP, which matches a whole battle. A reasoning player clearly beats always-deploy, always-improvise and random play."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

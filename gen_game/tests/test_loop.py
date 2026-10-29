@@ -156,3 +156,74 @@ def test_a_rebuild_that_did_not_produce_a_checked_game_stops_the_loop_instead_of
     res = loop.run_loop(w.hooks(), 3)
     assert res.status == "escalated" and res.iterations == 1 and w.calls.count("simulate") == 1
     assert w.escalations and "scenarios_failed" in w.escalations[0]
+
+
+def check(verdict, summary="Players mostly guess; hidden hands would make them infer."):
+    scores = {"strong": (3, 3, 1), "adequate": (3, 3, 2), "weak": (1, 2, 1)}[verdict]
+    return {"verdict": verdict, "summary": summary, **{a: {"score": s, "notes": "", "evidence": []} for a, s in zip(("reasoning", "planning", "luck"), scores)}}
+
+
+def with_reasoning(world, *verdicts):
+    """The world's hooks with a reasoning check that gives these verdicts, one per iteration (the last repeats); None is a check that could not be made."""
+    h, seen = world.hooks(), []
+
+    def reasoning(plays):
+        seen.append(plays)
+        v = verdicts[min(len(seen), len(verdicts)) - 1]
+        return None if v is None else check(v)
+
+    h.reasoning = reasoning
+    return h, seen
+
+
+def test_a_weak_reasoning_verdict_sends_the_design_back_without_asking_the_verifier():
+    w = World([[], []])
+    h, seen = with_reasoning(w, "weak", "strong")
+    r = loop.run_loop(h)
+    assert r.status == "clean" and r.iterations == 2 and w.calls.count("regenerate") == 1
+    assert "confirm" not in w.calls  # its quotes were already checked against the players' replies
+    sent = w.revised[0]
+    assert [(f["category"], f["severity"]) for f in sent] == [("design", "major")]
+    assert "reasoning 1, planning 2, luck 1" in sent[0]["observed"] and "hidden hands would make them infer" in sent[0]["fix"]
+    assert seen[0] == ["play-1a", "play-1b"]  # one check over all of the iteration's plays
+    assert "**Reasoning check:** weak" in w.log_text[0] and "**Reasoning check:** strong" in w.log_text[-1]
+    assert r.reasoning["verdict"] == "strong"
+
+
+def test_an_adequate_reasoning_verdict_is_carried_as_a_minor_and_never_starts_a_pass_alone():
+    w = World([[]])
+    h, _ = with_reasoning(w, "adequate")
+    r = loop.run_loop(h)
+    assert r.status == "clean" and "revise" not in w.calls
+    assert [(f["category"], f["severity"]) for f in r.carried] == [("design", "minor")]
+
+
+def test_a_strong_reasoning_verdict_adds_no_finding():
+    w = World([[]])
+    h, _ = with_reasoning(w, "strong")
+    r = loop.run_loop(h)
+    assert r.status == "clean" and r.carried == []
+
+
+def test_a_weak_reasoning_verdict_that_survives_a_redesign_is_escalated():
+    w = World([[], []])
+    h, _ = with_reasoning(w, "weak", "weak")
+    r = loop.run_loop(h)
+    assert r.status == "escalated" and w.calls.count("regenerate") == 1 and "came back" in w.escalations[0]
+
+
+def test_a_reasoning_check_that_cannot_be_made_changes_nothing_and_is_logged():
+    w = World([[]])
+    h, _ = with_reasoning(w, None)
+    r = loop.run_loop(h)
+    assert r.status == "clean" and r.carried == [] and r.reasoning is None
+    assert "**Reasoning check:** could not be made" in w.log_text[0]
+
+
+def test_an_unmeasured_reasoning_check_adds_no_finding():
+    w = World([[]])
+    h = w.hooks()
+    h.reasoning = lambda plays: {"verdict": "unmeasured", "summary": "only 2 of 249 choices came with a reason",
+                                 **{a: {"score": None, "notes": "", "evidence": []} for a in ("reasoning", "planning", "luck")}}
+    r = loop.run_loop(h)
+    assert r.status == "clean" and r.carried == [] and "**Reasoning check:** unmeasured" in w.log_text[0]

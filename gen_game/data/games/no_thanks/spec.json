@@ -1,0 +1,301 @@
+{
+  "name": "No Thanks! (Two-Lap)",
+  "summary": "Players pay chips to refuse unwanted numbered cards or take the card with its chip pot. A card nobody takes in two full laps is burned. The lowest card points minus chips wins.",
+  "players": {
+    "min": 3,
+    "max": 4,
+    "suggested": 4
+  },
+  "parameters": {
+    "card_min": 3,
+    "card_max": 35,
+    "total_cards": 33,
+    "deck_size": 20,
+    "removed_count": 13,
+    "starting_chips": 11,
+    "pay_cost": 1,
+    "burn_laps": 2,
+    "max_rounds": 40,
+    "no_card": 0
+  },
+  "attributes": {
+    "player": [
+      {
+        "key": "chips",
+        "type": "number",
+        "visible": "ally",
+        "initial": 11,
+        "meaning": "Chips the player holds. Only the owner sees them during play; they are revealed at the end.",
+        "observable": true
+      },
+      {
+        "key": "tableau",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "Cards the player has taken, face up.",
+        "observable": true
+      },
+      {
+        "key": "card_points",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Sum of the lowest card of each run of consecutive numbers in the tableau.",
+        "observable": true
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "type": "list",
+        "visible": "none",
+        "initial": "20 random cards from 3..35",
+        "meaning": "Face-down draw deck.",
+        "observable": false
+      },
+      {
+        "key": "removed",
+        "type": "list",
+        "visible": "none",
+        "initial": "the other 13 cards from 3..35",
+        "meaning": "Cards set aside at setup. No player ever sees them.",
+        "observable": false
+      },
+      {
+        "key": "current_card",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "The card on offer; 0 means no card is on offer.",
+        "observable": true
+      },
+      {
+        "key": "pot",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Chips paid onto the table, won by whoever takes a card.",
+        "observable": true
+      },
+      {
+        "key": "lap_count",
+        "type": "number",
+        "visible": "public",
+        "initial": 0,
+        "meaning": "Full laps the current card has gone without being taken.",
+        "observable": false
+      },
+      {
+        "key": "lead_seat",
+        "type": "number",
+        "visible": "public",
+        "initial": 1,
+        "meaning": "The seat that receives the first offer in a lap.",
+        "observable": false
+      },
+      {
+        "key": "burned",
+        "type": "list",
+        "visible": "public",
+        "initial": [],
+        "meaning": "Cards burned after two untaken laps.",
+        "observable": true
+      },
+      {
+        "key": "round_count",
+        "type": "number",
+        "visible": "none",
+        "initial": 0,
+        "meaning": "Scratch counter of rounds played, used for the 40-round cap.",
+        "observable": false
+      }
+    ]
+  },
+  "setup": [
+    "Seats are numbered 1 to N (N = 3 or 4); clockwise means seat s is followed by seat s+1, and seat N is followed by seat 1.",
+    "Shuffle the 33 cards numbered 3 to 35. Put 20 of them, in random order, into the hidden deck and the other 13 into the hidden removed list.",
+    "Each player gets chips = 11 (seen only by its owner), an empty public tableau and card_points = 0.",
+    "Set current_card = 0, pot = 0, lap_count = 0, lead_seat = 1, an empty public burned list and round_count = 0.",
+    "Sync each player's own state."
+  ],
+  "round": [
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "Set round_count += 1. When current_card = 0 and deck is not empty, draw one card at random from deck and set current_card to it, removing it from deck. The pot is not reset."
+    },
+    {
+      "action": "tell",
+      "who": "all players",
+      "answer": null,
+      "effect": "Announce current_card, pot, every tableau and the burned list."
+    },
+    {
+      "action": "ask",
+      "who": "seat ((lead_seat - 1 + 0) mod N) + 1 (offer k=1); runs only when current_card != 0",
+      "answer": "TAKE, or PAY if that seat has chips >= 1",
+      "effect": "PAY: that seat's chips -= 1 and pot += 1. TAKE: c = current_card; card_points += c; if c+1 is in tableau, card_points -= c+1; if c-1 is in tableau, card_points -= c; append c to tableau; chips += pot; pot = 0; current_card = 0; lap_count = 0; lead_seat = this seat."
+    },
+    {
+      "action": "ask",
+      "who": "seat ((lead_seat - 1 + 1) mod N) + 1 (offer k=2); runs only when current_card != 0",
+      "answer": "TAKE, or PAY if that seat has chips >= 1",
+      "effect": "Same as offer k=1."
+    },
+    {
+      "action": "ask",
+      "who": "seat ((lead_seat - 1 + 2) mod N) + 1 (offer k=3); runs only when current_card != 0",
+      "answer": "TAKE, or PAY if that seat has chips >= 1",
+      "effect": "Same as offer k=1."
+    },
+    {
+      "action": "ask",
+      "who": "seat ((lead_seat - 1 + 3) mod N) + 1 (offer k=4); runs only when N = 4 and current_card != 0",
+      "answer": "TAKE, or PAY if that seat has chips >= 1",
+      "effect": "Same as offer k=1."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "LAP: when current_card != 0, lap_count += 1."
+    },
+    {
+      "action": "update",
+      "who": "all players",
+      "answer": null,
+      "effect": "BURN: when current_card != 0 and lap_count >= 2, append current_card to burned, then set current_card = 0 and lap_count = 0. pot and lead_seat are unchanged."
+    },
+    {
+      "action": "sync",
+      "who": "all players",
+      "answer": null,
+      "effect": "Send each player its own chips and the public state."
+    },
+    {
+      "action": "check",
+      "who": "all players",
+      "answer": null,
+      "effect": "End the game when (current_card = 0 and deck is empty) or round_count >= 40. Otherwise continue."
+    },
+    {
+      "action": "repeat",
+      "who": "all players",
+      "answer": null,
+      "effect": "Run the round steps again until the check ends the game. At the end, reveal every player's chips and tableau to all players."
+    }
+  ],
+  "ending": {
+    "condition": "(current_card = 0 and count(deck) = 0) or round_count >= 40",
+    "rank_by": "you.chips - you.card_points",
+    "decided_by": "A player's final score is card_points minus chips, and the lowest score wins. The ranking uses chips minus card_points, so the highest value wins, and players tied for the lowest score share the win (a draw among them)."
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "At setup, the deck holds 20 cards drawn at random from 3..35, removed holds the other 13 (never shown to any player), each player has chips = 11, an empty tableau and card_points = 0, and the table has current_card = 0, pot = 0, lap_count = 0, lead_seat = 1 and an empty burned list."
+    },
+    {
+      "id": "R2",
+      "text": "When a round starts with current_card = 0 and the deck not empty, then one card moves from the deck to current_card, and the deck shrinks by 1."
+    },
+    {
+      "id": "R3",
+      "text": "When a new card is drawn, then the pot keeps any chips already in it."
+    },
+    {
+      "id": "R4",
+      "text": "When offers are made, then offer k goes to seat ((lead_seat - 1 + k - 1) mod N) + 1, for k = 1..N; with lead_seat = 3 and N = 4 the order is 3, 4, 1, 2, and with N = 3 it is 3, 1, 2."
+    },
+    {
+      "id": "R5",
+      "text": "When current_card = 0, then an offer step is skipped."
+    },
+    {
+      "id": "R6",
+      "text": "When an offered seat has chips >= 1, then it is offered TAKE and PAY; when it has 0 chips, then it is offered only TAKE."
+    },
+    {
+      "id": "R7",
+      "text": "When a seat PAYs, then its chips decrease by 1 and the pot increases by 1."
+    },
+    {
+      "id": "R8",
+      "text": "When a seat TAKEs card c, then its card_points rises by c, minus (c+1) if c+1 is already in its tableau, minus c if c-1 is already in its tableau, and c is appended to its tableau."
+    },
+    {
+      "id": "R9",
+      "text": "When a seat TAKEs, then it gains all the chips in the pot, and the pot becomes 0."
+    },
+    {
+      "id": "R10",
+      "text": "When a seat TAKEs, then current_card = 0, lap_count = 0 and lead_seat = that seat, and the remaining offers in that round are skipped."
+    },
+    {
+      "id": "R11",
+      "text": "When all offers in a round pass without a TAKE, then lap_count increases by 1."
+    },
+    {
+      "id": "R12",
+      "text": "When lap_count reaches 2 with the card still on offer, then current_card is appended to burned, current_card = 0 and lap_count = 0, while the pot and lead_seat are unchanged."
+    },
+    {
+      "id": "R13",
+      "text": "When current_card = 0 and the deck is empty at the end check, then the game ends."
+    },
+    {
+      "id": "R14",
+      "text": "When 40 rounds have been played, then the game ends."
+    },
+    {
+      "id": "R15",
+      "text": "When the game ends, then each player's score is card_points - chips, the lowest score wins, and players tied for lowest share the win."
+    },
+    {
+      "id": "R16",
+      "text": "When the game ends, then every player's chips and tableau are revealed to all players."
+    }
+  ],
+  "offers": [
+    {
+      "question": "Offer step: TAKE the current card or PAY 1 chip",
+      "who": "the offered seat ((lead_seat - 1 + k - 1) mod N) + 1, only while current_card != 0",
+      "options": "A seat with chips >= 1: TAKE, PAY. A seat with chips = 0: TAKE only."
+    }
+  ],
+  "choices": [
+    {
+      "what": "3 to 4 players, suggested 4",
+      "why": "The designer chose 4. At 3 the chip pressure and the pot-baiting still work; above 4 the source rules do not apply."
+    },
+    {
+      "what": "No talk phase",
+      "why": "The rules say there is no talk. The tension comes from reading the pot and the other players' tableaus."
+    },
+    {
+      "what": "card_points is public",
+      "why": "Tableaus are public, so card_points can be worked out by anyone anyway. Making it visible changes no information."
+    },
+    {
+      "what": "Ranking uses chips - card_points",
+      "why": "The engine treats the highest value as the winner, so the lowest score becomes the highest negated score."
+    },
+    {
+      "what": "A round_count scratch counter",
+      "why": "It is needed to enforce the 40-round cap."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The clockwise offer loop is written as up to N separate ask steps, each with a seat formula and a when condition",
+      "why": "The engine has a flat step list. The formula reproduces the clockwise order from lead_seat, and the condition skips offers once the card is taken."
+    },
+    {
+      "what": "Drawing the top deck card is a random draw from the deck list",
+      "why": "The deck is in random order, so drawing at random is equivalent."
+    }
+  ],
+  "unsupported": []
+}

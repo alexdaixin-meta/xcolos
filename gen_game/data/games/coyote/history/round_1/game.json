@@ -1,0 +1,1052 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "coyote",
+    "name": "Coyote Lap",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "See every card but your own, bid upward on the true total, call Coyote when it is too high; after 12 hands the fewest tokens wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "tokens",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card",
+        "visible": "others",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          -10,
+          -5,
+          -5,
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          10,
+          10,
+          10,
+          15,
+          15,
+          20,
+          100
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "opener_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "current_declaration",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_declarer",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "bidding_open",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "caller",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "true_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand_loser",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_cards",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "resp1",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "resp2",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "resp3",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "response",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 33
+      },
+      {
+        "key": "count_minus_10",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "count_minus_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "count_0",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "count_each_1_to_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "count_10",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "count_15",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "count_20",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "count_max_to_zero",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_to_zero_code",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      },
+      {
+        "key": "hands",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "declaration_min",
+        "visible": "public",
+        "type": "number",
+        "initial": -30
+      },
+      {
+        "key": "declaration_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 60
+      },
+      {
+        "key": "raise_min_step",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "tokens_per_loss",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "starting_tokens",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "seat the players",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "tokens",
+            "value": {
+              "calc": "starting_tokens"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "hand_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "opener_seat",
+            "value": 1
+          }
+        }
+      ],
+      "text": "Players are seated clockwise in seat order. Everyone starts with {starting_tokens} Coyote tokens. Seat {opener_seat} opens hand {hand_number}."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "the deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 4,
+            "key": "card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "resp1",
+            "value": {
+              "calc": "opener_seat % len(players) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "resp2",
+            "value": {
+              "calc": "(opener_seat + 1) % len(players) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "resp3",
+            "value": {
+              "calc": "(opener_seat + 2) % len(players) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "caller",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "current_declarer",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "current_declaration",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "hand_loser",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "true_total",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "response",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "bidding_open",
+            "value": true
+          }
+        }
+      ],
+      "text": "Hand {hand_number} of {hands}: the full deck is shuffled and one card is dealt face down to each player. Seat {opener_seat} opens."
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "the bandana",
+      "mode": "others",
+      "to": "all",
+      "fields": [
+        "card"
+      ],
+      "text": "This player's card (100 means the Max\u21920 card):"
+    },
+    {
+      "use": "ask",
+      "phase": "bidding",
+      "label": "opening declaration",
+      "to": {
+        "where": "you.seat == opener_seat"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "declaration_min"
+        },
+        "max": {
+          "calc": "declaration_max"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "current_declaration",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "current_declarer",
+              "value": "$seat"
+            }
+          },
+          {
+            "set": {
+              "key": "caller",
+              "value": {
+                "calc": "resp1"
+              },
+              "if": {
+                "calc": "current_declaration >= declaration_max"
+              },
+              "text": "The declaration is at the maximum {declaration_max}, so seat {resp1} can only call Coyote, and does."
+            }
+          },
+          {
+            "set": {
+              "key": "bidding_open",
+              "value": false,
+              "if": {
+                "calc": "current_declaration >= declaration_max"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} opens at {value}."
+      },
+      "text": "You open hand {hand_number}. You can see everyone's card but your own. Declare a whole number from {declaration_min} to {declaration_max}: your claim about the true total of all cards in play this hand."
+    },
+    {
+      "use": "ask",
+      "phase": "bidding",
+      "label": "responder 1 raises or calls",
+      "when": {
+        "calc": "bidding_open and current_declaration < declaration_max"
+      },
+      "to": {
+        "where": "you.seat == resp1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "raise",
+          "call_coyote"
+        ]
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "response",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "caller",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'call_coyote'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "bidding_open",
+              "value": false,
+              "if": {
+                "calc": "$answer == 'call_coyote'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} chooses {value} on the declaration of {current_declaration}."
+      },
+      "text": "The current declaration is {current_declaration} by seat {current_declarer}. Choose raise (declare a higher number, at most {declaration_max}) or call_coyote (challenge it; bidding stops)."
+    },
+    {
+      "use": "ask",
+      "phase": "bidding",
+      "label": "responder 1 raise amount",
+      "when": {
+        "calc": "bidding_open and response == 'raise'"
+      },
+      "to": {
+        "where": "you.seat == resp1"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "current_declaration + raise_min_step"
+        },
+        "max": {
+          "calc": "declaration_max"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "current_declaration",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "current_declarer",
+              "value": "$seat"
+            }
+          },
+          {
+            "set": {
+              "key": "response",
+              "value": ""
+            }
+          },
+          {
+            "set": {
+              "key": "caller",
+              "value": {
+                "calc": "resp2"
+              },
+              "if": {
+                "calc": "current_declaration >= declaration_max"
+              },
+              "text": "The declaration is at the maximum {declaration_max}, so seat {resp2} can only call Coyote, and does."
+            }
+          },
+          {
+            "set": {
+              "key": "bidding_open",
+              "value": false,
+              "if": {
+                "calc": "current_declaration >= declaration_max"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} raises to {value}."
+      },
+      "text": "Declare a whole number greater than {current_declaration} and at most {declaration_max}."
+    },
+    {
+      "use": "ask",
+      "phase": "bidding",
+      "label": "responder 2 raises or calls",
+      "when": {
+        "calc": "bidding_open and current_declaration < declaration_max"
+      },
+      "to": {
+        "where": "you.seat == resp2"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "raise",
+          "call_coyote"
+        ]
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "response",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "caller",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'call_coyote'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "bidding_open",
+              "value": false,
+              "if": {
+                "calc": "$answer == 'call_coyote'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} chooses {value} on the declaration of {current_declaration}."
+      },
+      "text": "The current declaration is {current_declaration} by seat {current_declarer}. Choose raise (declare a higher number, at most {declaration_max}) or call_coyote (challenge it; bidding stops)."
+    },
+    {
+      "use": "ask",
+      "phase": "bidding",
+      "label": "responder 2 raise amount",
+      "when": {
+        "calc": "bidding_open and response == 'raise'"
+      },
+      "to": {
+        "where": "you.seat == resp2"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "current_declaration + raise_min_step"
+        },
+        "max": {
+          "calc": "declaration_max"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "current_declaration",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "current_declarer",
+              "value": "$seat"
+            }
+          },
+          {
+            "set": {
+              "key": "response",
+              "value": ""
+            }
+          },
+          {
+            "set": {
+              "key": "caller",
+              "value": {
+                "calc": "resp3"
+              },
+              "if": {
+                "calc": "current_declaration >= declaration_max and len(players) >= 4"
+              },
+              "text": "The declaration is at the maximum {declaration_max}, so seat {resp3} can only call Coyote, and does."
+            }
+          },
+          {
+            "set": {
+              "key": "bidding_open",
+              "value": false,
+              "if": {
+                "calc": "current_declaration >= declaration_max and len(players) >= 4"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} raises to {value}."
+      },
+      "text": "Declare a whole number greater than {current_declaration} and at most {declaration_max}."
+    },
+    {
+      "use": "ask",
+      "phase": "bidding",
+      "label": "responder 3 raises or calls",
+      "when": {
+        "calc": "len(players) >= 4 and bidding_open and current_declaration < declaration_max"
+      },
+      "to": {
+        "where": "you.seat == resp3"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "raise",
+          "call_coyote"
+        ]
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "response",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "caller",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'call_coyote'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "bidding_open",
+              "value": false,
+              "if": {
+                "calc": "$answer == 'call_coyote'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} chooses {value} on the declaration of {current_declaration}."
+      },
+      "text": "The current declaration is {current_declaration} by seat {current_declarer}. Choose raise (declare a higher number, at most {declaration_max}) or call_coyote (challenge it; bidding stops)."
+    },
+    {
+      "use": "ask",
+      "phase": "bidding",
+      "label": "responder 3 raise amount",
+      "when": {
+        "calc": "len(players) >= 4 and bidding_open and response == 'raise'"
+      },
+      "to": {
+        "where": "you.seat == resp3"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "current_declaration + raise_min_step"
+        },
+        "max": {
+          "calc": "declaration_max"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "current_declaration",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "current_declarer",
+              "value": "$seat"
+            }
+          },
+          {
+            "set": {
+              "key": "response",
+              "value": ""
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} raises to {value}."
+      },
+      "text": "Declare a whole number greater than {current_declaration} and at most {declaration_max}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "automatic call",
+      "when": {
+        "calc": "bidding_open"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "caller",
+            "value": {
+              "calc": "opener_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "bidding_open",
+            "value": false
+          }
+        }
+      ],
+      "text": "Everyone raised; Seat {opener_seat} calls Coyote automatically on {current_declaration}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "true total",
+      "do": [
+        {
+          "set": {
+            "key": "true_total",
+            "value": {
+              "calc": "sum([p.card for p in players if p.card != max_to_zero_code]) - (max([p.card for p in players if p.card != max_to_zero_code]) if any(p.card == max_to_zero_code for p in players) else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_cards",
+            "value": {
+              "calc": "[[p.seat, ('Max\u21920' if p.card == max_to_zero_code else p.card)] for p in players]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the token",
+      "do": [
+        {
+          "set": {
+            "key": "hand_loser",
+            "value": {
+              "calc": "current_declarer if true_total < current_declaration else caller"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "hand_loser"
+            },
+            "key": "tokens",
+            "value": {
+              "calc": "tokens_per_loss"
+            },
+            "if": {
+              "calc": "hand_loser > 0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "the reveal",
+      "to": "all",
+      "text": "Cards [seat, card]: {last_cards}. True total {true_total} against a declaration of {current_declaration} (declared by seat {current_declarer}, called by seat {caller}). Seat {hand_loser} takes a Coyote token."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "collect the cards and rotate",
+      "do": [
+        {
+          "append": {
+            "key": "deck",
+            "value": {
+              "calc": "players[0].card"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "deck",
+            "value": {
+              "calc": "players[1].card"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "deck",
+            "value": {
+              "calc": "players[2].card"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "deck",
+            "value": {
+              "calc": "players[3].card"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "opener_seat",
+            "value": {
+              "calc": "opener_seat % len(players) + 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "hand_number",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "after the last hand",
+      "when": {
+        "calc": "hand_number > hands"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "hand_number > hands"
+      },
+      "rank_by": "0 - you.tokens",
+      "text": "Winner: {result} (fewest Coyote tokens). Final tokens [seat, tokens]: {[[p.seat, p.tokens] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 13,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Players sit in a fixed clockwise order, seats 1 to N. Everyone starts with {starting_tokens} Coyote tokens. Seat 1 opens hand 1, and the game lasts exactly {hands} hands.\n\nThe deck has {deck_size} cards: {count_minus_10} of -10, {count_minus_5} of -5, {count_0} of 0, {count_each_1_to_5} each of 1, 2, 3, 4 and 5, {count_10} of 10, {count_15} of 15, {count_20} of 20, and {count_max_to_zero} special card 'Max\u21920' (shown as {max_to_zero_code} on a player's card).\n\nEach hand:\n1. Deal: the full deck is shuffled and {cards_per_player} card is dealt face down to each player.\n2. Bandana: each player is told privately the cards of all other players, but never their own card.\n3. Opening declaration: the opener declares a whole number from {declaration_min} to {declaration_max}, a claim about the TRUE TOTAL of all cards in play this hand. The opener becomes the current declarer.\n4. Responses: each other player, one at a time in clockwise order from the opener, chooses one of two options: (a) raise: declare a whole number strictly higher than the current declaration, at most {declaration_max}; it becomes the current declaration and this player becomes the current declarer, and bidding passes to the next responder. (b) call_coyote: challenge the current declaration; bidding stops immediately and later players do not act this hand. Every declaration is announced to all players as it is made. When the current declaration is already {declaration_max}, raising is impossible, so the next responder can only call Coyote.\n5. Automatic call: if every responder raised, the opener is treated as having called Coyote on the final declaration.\n6. True total: add up the numbers on all cards in play. If the 'Max\u21920' card is in play, it counts as 0 itself, and the highest-valued other card in play also counts as 0. If several cards tie for highest, only one of them counts as 0. If the highest other card is negative, it still becomes 0.\n7. Resolution: if the true total is LESS than the current declaration, the current declarer takes {tokens_per_loss} Coyote token (the call was right). Otherwise (the true total is equal to or greater than the declaration) the caller, or the opener in the case of an automatic call, takes {tokens_per_loss} Coyote token (the call was wrong).\n8. Reveal: all cards, the true total and the token taken are announced to everyone.\n9. Rotate: the next player clockwise opens the next hand.\n\nAfter hand {hands}, the game ends. The player with the fewest Coyote tokens wins; players tied for the fewest share the result."
+}

@@ -1,0 +1,1085 @@
+[
+  {
+    "name": "Setup deals 7 cards to each seat and sets 3 aside (seat 1's hand after it sends one)",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "aside": 3,
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 7
+          },
+          "3": {
+            "hand": 7
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "hand_size": 6
+        },
+        "2": {
+          "hand_size": 7
+        },
+        "3": {
+          "hand_size": 7
+        }
+      }
+    },
+    "rule_text": "At setup, each of the 3 players holds 7 cards, 3 cards are set aside unseen, and the deck of 24 (6 of each of 4 creatures) is fully used."
+  },
+  {
+    "name": "Setup starts everyone with no face-up cards and not lost (uninvolved seat stays at 0)",
+    "rule": "R2",
+    "players": 3,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "3": {
+          "face_total": 0,
+          "max_face": 0,
+          "lost": 0,
+          "face_rat": 0,
+          "face_toad": 0,
+          "face_cockroach": 0,
+          "face_stinkbug": 0
+        },
+        "1": {
+          "lost": 0
+        },
+        "2": {
+          "lost": 0
+        }
+      },
+      "game": {
+        "round": 2,
+        "game_over": 0
+      }
+    },
+    "rule_text": "At setup, every player has 0 face-up cards and lost = 0, and the first sender is a random seat."
+  },
+  {
+    "name": "Sender passes one card and hand_size falls by 1",
+    "rule": "R3",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug",
+            "Toad"
+          ],
+          "hand_size": 3
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 2,
+          "face_rat": 1
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 2
+          }
+        }
+      }
+    },
+    "rule_text": "Each round, the sender passes one card from their own hand, and the sender's hand_size falls by 1."
+  },
+  {
+    "name": "Claim may differ from the card and any creature can be claimed",
+    "rule": "R4",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "claim": "Toad",
+        "revealed_card": "Rat"
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Cockroach"
+        }
+      ]
+    },
+    "rule_text": "The sender's claim is one of Cockroach, Rat, Stinkbug or Toad, and it may differ from the card."
+  },
+  {
+    "name": "Receiver is one of the other two seats, never the sender",
+    "rule": "R5",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "receiver": 3
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        },
+        {
+          "seat": 1,
+          "option": 3
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 1
+        },
+        {
+          "seat": 2,
+          "option": "TRUE"
+        },
+        {
+          "seat": 2,
+          "option": "FALSE"
+        }
+      ]
+    },
+    "rule_text": "The receiver must be one of the two seats other than the sender."
+  },
+  {
+    "name": "TRUE call on a true claim: sender takes the card",
+    "rule": "R6",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "taker": 1,
+        "call": "TRUE"
+      },
+      "players": {
+        "1": {
+          "face_rat": 1,
+          "face_total": 1
+        },
+        "2": {
+          "face_total": 0
+        }
+      }
+    },
+    "rule_text": "When the receiver calls TRUE and the card matches the claim, the sender takes the card face-up."
+  },
+  {
+    "name": "FALSE call on a bluff: sender takes the card",
+    "rule": "R7",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "taker": 1,
+        "call": "FALSE"
+      },
+      "players": {
+        "1": {
+          "face_rat": 1,
+          "face_total": 1
+        },
+        "2": {
+          "face_total": 0
+        }
+      }
+    },
+    "rule_text": "When the receiver calls FALSE and the card does not match the claim, the sender takes the card face-up."
+  },
+  {
+    "name": "TRUE call on a bluff: receiver takes the card",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "taker": 2
+      },
+      "players": {
+        "2": {
+          "face_rat": 1,
+          "face_total": 1
+        },
+        "1": {
+          "face_total": 0,
+          "hand_size": 1
+        }
+      }
+    },
+    "rule_text": "When the receiver calls TRUE and the card does not match, or calls FALSE and it matches, the receiver takes the card face-up."
+  },
+  {
+    "name": "FALSE call on a true claim: receiver takes the card",
+    "rule": "R8",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "taker": 3
+      },
+      "players": {
+        "3": {
+          "face_rat": 1,
+          "face_total": 1
+        },
+        "1": {
+          "face_total": 0
+        }
+      }
+    },
+    "rule_text": "When the receiver calls TRUE and the card does not match, or calls FALSE and it matches, the receiver takes the card face-up."
+  },
+  {
+    "name": "Card is revealed and taker's creature count and total rise by 1",
+    "rule": "R9",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Toad",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "face_toad": 1,
+          "face_total": 1,
+          "max_face": 1
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "revealed_card": "Toad",
+        "claim": "Rat"
+      },
+      "players": {
+        "2": {
+          "face_toad": 2,
+          "face_total": 2,
+          "max_face": 2
+        }
+      }
+    },
+    "rule_text": "The card is revealed to everyone after the call, and the taker's count for that creature and face_total rise by 1."
+  },
+  {
+    "name": "The taker becomes the next sender",
+    "rule": "R10",
+    "players": 3,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "game": {
+        "taker": 2,
+        "sender": 2
+      }
+    },
+    "rule_text": "The player who took the card face-up is the sender of the next round."
+  },
+  {
+    "name": "Third face-up Rat makes the taker lose and ends the game",
+    "rule": "R11",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "face_rat": 2,
+          "face_total": 2,
+          "max_face": 2,
+          "hand": [
+            "Toad"
+          ],
+          "hand_size": 1
+        },
+        "3": {
+          "hand": [
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Cockroach"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 1000001,
+        "2": -30299,
+        "3": 1000002
+      },
+      "players": {
+        "2": {
+          "lost": 1,
+          "face_rat": 3
+        },
+        "1": {
+          "lost": 0
+        },
+        "3": {
+          "lost": 0
+        }
+      },
+      "game": {
+        "game_over": 1
+      }
+    },
+    "rule_text": "When the taker reaches 3 face-up cards of one creature, the taker's lost becomes 1 and the game ends."
+  },
+  {
+    "name": "Next sender with an empty hand loses",
+    "rule": "R12",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat"
+          ],
+          "hand_size": 1
+        },
+        "2": {
+          "hand": [
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 2
+        },
+        "3": {
+          "hand": [
+            "Toad"
+          ],
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "sender": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -10100,
+        "2": 1000002,
+        "3": 1000001
+      },
+      "players": {
+        "1": {
+          "lost": 1,
+          "hand_size": 0,
+          "face_rat": 1
+        },
+        "2": {
+          "lost": 0
+        },
+        "3": {
+          "lost": 0
+        }
+      },
+      "game": {
+        "game_over": 1
+      }
+    },
+    "rule_text": "When the next sender has 0 cards in hand, that player's lost becomes 1 and the game ends."
+  },
+  {
+    "name": "Round 24 finishing ends the game with no loser",
+    "rule": "R13",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            "Toad",
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 3
+        },
+        "3": {
+          "hand": [
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "sender": 1,
+        "round": 24
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 989901,
+        "2": 1000003,
+        "3": 1000002
+      },
+      "players": {
+        "1": {
+          "lost": 0
+        },
+        "2": {
+          "lost": 0
+        },
+        "3": {
+          "lost": 0
+        }
+      },
+      "game": {
+        "game_over": 1
+      }
+    },
+    "rule_text": "When round 24 finishes without a loser, the game ends with no loser."
+  },
+  {
+    "name": "A seat that lost cannot win despite the fewest face-up cards",
+    "rule": "R14",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "2": {
+          "hand": [
+            "Rat"
+          ],
+          "hand_size": 1
+        },
+        "1": {
+          "hand": [
+            "Stinkbug"
+          ],
+          "hand_size": 1,
+          "face_cockroach": 2,
+          "face_toad": 2,
+          "face_total": 4,
+          "max_face": 2
+        },
+        "3": {
+          "hand": [
+            "Toad"
+          ],
+          "hand_size": 1,
+          "face_cockroach": 2,
+          "face_stinkbug": 2,
+          "face_toad": 1,
+          "face_total": 5,
+          "max_face": 2
+        }
+      },
+      "game": {
+        "sender": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 959801,
+        "2": -10100,
+        "3": 949801
+      },
+      "players": {
+        "2": {
+          "lost": 1
+        }
+      }
+    },
+    "rule_text": "A player with lost = 1 cannot win."
+  },
+  {
+    "name": "Fewest face-up cards wins over a bigger hand",
+    "rule": "R15",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            "Toad",
+            "Toad",
+            "Toad",
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 5,
+          "face_toad": 2,
+          "face_total": 2,
+          "max_face": 2
+        },
+        "3": {
+          "hand": [
+            "Toad"
+          ],
+          "hand_size": 1
+        }
+      },
+      "game": {
+        "sender": 1,
+        "round": 24
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 989901,
+        "2": 979805,
+        "3": 1000001
+      }
+    },
+    "rule_text": "Among the players who did not lose, the one with the fewest face_total wins."
+  },
+  {
+    "name": "Tied face_total: smaller max_face wins over larger hand",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2,
+          "face_rat": 1,
+          "face_total": 1,
+          "max_face": 1
+        },
+        "2": {
+          "hand": [
+            "Toad",
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 3,
+          "face_toad": 2,
+          "face_total": 2,
+          "max_face": 2
+        },
+        "3": {
+          "hand": [
+            "Toad"
+          ],
+          "hand_size": 1,
+          "face_cockroach": 1,
+          "face_toad": 1,
+          "face_total": 2,
+          "max_face": 1
+        }
+      },
+      "game": {
+        "sender": 1,
+        "round": 24
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 979801,
+        "2": 979803,
+        "3": 979901
+      }
+    },
+    "rule_text": "If face_total is tied, the smaller max_face wins. If that is still tied, the larger hand_size wins. If all three are tied, the tied players draw."
+  },
+  {
+    "name": "Tied face_total and max_face: larger hand wins, full tie shares the win",
+    "rule": "R16",
+    "players": 3,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Stinkbug"
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 2,
+          "face_toad": 1,
+          "face_total": 1,
+          "max_face": 1
+        },
+        "3": {
+          "hand": [
+            "Toad",
+            "Toad"
+          ],
+          "hand_size": 2,
+          "face_cockroach": 1,
+          "face_total": 1,
+          "max_face": 1
+        }
+      },
+      "game": {
+        "sender": 1,
+        "round": 24
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3
+      ],
+      "standings": {
+        "1": 989901,
+        "2": 989902,
+        "3": 989902
+      }
+    },
+    "rule_text": "If face_total is tied, the smaller max_face wins. If that is still tied, the larger hand_size wins. If all three are tied, the tied players draw."
+  }
+]

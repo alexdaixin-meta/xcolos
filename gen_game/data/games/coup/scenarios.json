@@ -1991,7 +1991,7 @@
       }
     ],
     "expect": {
-      "result": "seat 1",
+      "winner": 1,
       "players": {
         "1": {
           "alive": true
@@ -2000,9 +2000,6 @@
           "alive": false,
           "hidden_count": 0
         }
-      },
-      "game": {
-        "winner": "seat 1"
       }
     },
     "rule_text": "When only one player has hidden_count >= 1, then the game ends and that seat wins."
@@ -2043,13 +2040,12 @@
       }
     ],
     "expect": {
-      "result": "seat 1",
+      "winner": 1,
       "game": {
-        "winner": "seat 1",
         "turn_count": 40
       }
     },
-    "rule_text": "When 40 turns have been played and more than one player is alive, then the seat with the most hidden cards wins; a tie goes to the most coins; a remaining tie is a draw."
+    "rule_text": "When 40 turns have been played and more than one player is alive, then the seat with the most hidden cards wins; a tie goes to the most coins; seats still tied share the win."
   },
   {
     "name": "Reactions are polled: both challengers are offered challenge, first one loses",
@@ -2655,7 +2651,7 @@
       }
     ],
     "expect": {
-      "result": "seat 2",
+      "winner": 2,
       "players": {
         "1": {
           "alive": false,
@@ -2666,12 +2662,9 @@
           "alive": true,
           "coins": 0
         }
-      },
-      "game": {
-        "winner": "seat 2"
       }
     },
-    "rule_text": "When the game ends because living_count = 1, then winner = the seat number of the only player with alive = true. That seat is the single winner and every seat with alive = false has lost. Example: with 4 players, if seats 1, 3 and 4 are eliminated, then winner = 2 and seats 1, 3 and 4 have lost."
+    "rule_text": "When the game ends because living_count = 1, then the only player with alive = true is the single winner and every seat with alive = false has lost. Example: with 4 players, if seats 1, 3 and 4 are eliminated, then seat 2 wins and seats 1, 3 and 4 have lost."
   },
   {
     "name": "Turn 40, two seats tie on hidden cards: the one with more coins wins",
@@ -2707,20 +2700,17 @@
       }
     ],
     "expect": {
-      "result": "seat 1",
+      "winner": 1,
       "players": {
         "1": {
           "coins": 5
         }
-      },
-      "game": {
-        "winner": "seat 1"
       }
     },
-    "rule_text": "When the game ends because turn_count >= 40 and living_count > 1, then winner = the seat with alive = true and the highest hidden_count. A tie goes to the tied seat with the most coins. If seats are still tied, winner = draw and no seat wins. Every seat that is not the winner has lost."
+    "rule_text": "When the game ends because turn_count >= 40 and living_count > 1, then the seat with alive = true and the highest hidden_count wins. A tie goes to the tied seat with the most coins. If seats are still tied, they share the win. Every seat that is not a winner has lost."
   },
   {
-    "name": "Turn 40, tied on hidden cards and coins: draw",
+    "name": "Turn 40, tied on hidden cards and coins: the tied seats share the win",
     "rule": "R45",
     "players": 3,
     "given": {
@@ -2753,7 +2743,15 @@
       }
     ],
     "expect": {
-      "result": "draw",
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 2003,
+        "2": 2003,
+        "3": 1009
+      },
       "players": {
         "1": {
           "coins": 3
@@ -2761,12 +2759,9 @@
         "2": {
           "coins": 3
         }
-      },
-      "game": {
-        "winner": "draw"
       }
     },
-    "rule_text": "When the game ends because turn_count >= 40 and living_count > 1, then winner = the seat with alive = true and the highest hidden_count. A tie goes to the tied seat with the most coins. If seats are still tied, winner = draw and no seat wins. Every seat that is not the winner has lost."
+    "rule_text": "When the game ends because turn_count >= 40 and living_count > 1, then the seat with alive = true and the highest hidden_count wins. A tie goes to the tied seat with the most coins. If seats are still tied, they share the win. Every seat that is not a winner has lost."
   },
   {
     "name": "Challenged true Steal: claimant keeps 2 hidden cards and the deck keeps 9 (the drawn card is chance, not asserted)",

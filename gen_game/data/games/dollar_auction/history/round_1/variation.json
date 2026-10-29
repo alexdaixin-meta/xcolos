@@ -1,0 +1,128 @@
+{
+  "original_summary": "Shubik's dollar auction: two players take turns raising bids for a $1 bill. The highest bidder gets the dollar, and both the highest and second-highest bidders pay their bids. Because what is already spent is lost either way, bidding often escalates past the prize's value.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "bad",
+      "evidence": "Under 'higher total wins' with two players, only the difference counts. The final high bidder ends 1 - b1 and the other ends -b2. The difference is 1 - (b1 - b2), which is positive whenever the increment is below 1. So whoever holds the high bid when the auction stops always wins. 'Never drop out' cannot lose: it either wins or the auction never ends. Dropping out is always a loss, so there is no real choice."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "bad",
+      "evidence": "With the winner rule, the only sensible move is to keep raising, so a skilled player cannot outplay an unskilled one. The result depends on who blinks or on an arbitrary turn limit."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "bad",
+      "evidence": "Once 'never drop' is seen, the game is solved. There is no deeper plan to discover and nothing to improve on."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Information is perfect: the current bid and the high bidder are public, and the prize value is common. In the money version the interesting reasoning is the sunk-cost trap and guessing the opponent's resolve. Under the winner rule even that disappears, and nothing is hidden."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Payoffs are simple arithmetic on bids and the prize."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "It is text-only and arithmetic, but alternating raises have no fixed length, and the step list is flat and bounded. The auction could run forever under the winner rule."
+    }
+  ],
+  "problems": [
+    "P1: In a two-player 'higher total wins' contest the high bidder always ends ahead, so never dropping out cannot lose and the escalation choice is meaningless.",
+    "P2: There is no hidden information: prize value, bids and leader are all public, so there is nothing to infer.",
+    "P3: Open-ended alternating raises have no fixed length and do not fit a bounded, flat step list.",
+    "P4: A single auction gives no multi-round planning and no budget management.",
+    "P5: Two players means a bidding war only ever hurts the two people in it relative to each other. The real dollar-auction lesson, that the war enriches the bystanders, cannot appear."
+  ],
+  "changes": [
+    {
+      "what": "Use exactly 4 players, with the highest final score (coins plus prize points) winning.",
+      "why": "Two players locked in a war both fall behind the two who stayed out. Escalating 'to win' the auction can now lose the game, which brings back the dollar auction's real trap.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Make it a bystander game: every player pays whatever they bid (all-pay), and only the top bidder receives the prize.",
+      "why": "This keeps the original's 'losers pay too' and makes every coin spent a real cost against the players who did not spend.",
+      "fixes": "P5"
+    },
+    {
+      "what": "Give each player a hidden type, Red collector or Blue collector, with exactly two of each. Prizes alternate Red and Blue. A prize is worth 12 points to a matching player and 6 to the others. The points a winner earns are kept private.",
+      "why": "Players must infer who truly values the current prize and therefore who will fight hard. Every type faces exactly one same-type rival and an equal number of matching prizes, so the deal decides what to do, not who is ahead.",
+      "fixes": "P2"
+    },
+    {
+      "what": "Replace open-ended alternating raises with three fixed simultaneous stages per round: a sealed opening bid, then up to two raise stages open only to the leading contenders. Raising 0 means dropping out.",
+      "why": "This keeps the escalation dynamic, adding more on top of money already sunk while seeing the rival's commitment, inside a bounded number of steps.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Play 8 rounds from a shared starting purse of 40 coins, with bids limited by coins in hand.",
+      "why": "Spending in one war reduces your power later. Players must choose which prizes to contest and track rivals' remaining coins.",
+      "fixes": "P4"
+    },
+    {
+      "what": "Add one simultaneous message each round before bidding.",
+      "why": "Players can claim types, bluff, or propose splitting prizes. Same-type rivals and the winner rule (only one player wins) keep their interests in conflict, so promises must be tested against the bids they produce.",
+      "fixes": "P2"
+    }
+  ],
+  "keeps": [
+    "An auction for a prize where losing bidders still pay their bids.",
+    "The escalation trap: raising on top of money already sunk to avoid losing it, sometimes past the prize's worth.",
+    "Public bids and a visible leader during escalation, with each raise building on the previous commitment.",
+    "Dropping out by declining to raise."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The escalation-and-sunk-cost core is worth training on. Four players, all-pay bidding, hidden collector types and a fixed three-stage escalation fix the degenerate 'never drop' policy within platform limits."
+  },
+  "variation": {
+    "name": "Collector's Dollar Auction",
+    "summary": "Four players with hidden collector types contest 8 alternating Red and Blue prizes. Each prize goes through a sealed opening bid and up to two escalation raises between the leaders. Everyone pays what they bid, so bidding wars enrich the bystanders.",
+    "players": {
+      "min": 4,
+      "max": 4,
+      "suggested": 4
+    },
+    "rules": "SETUP: There are exactly 4 players. Each starts with 40 coins (public) and 0 prize points (private). At the start, two players are secretly dealt the type Red and two the type Blue, uniformly at random. Each player knows only their own type. The game lasts 8 rounds. Odd rounds (1, 3, 5, 7) offer a Red prize and even rounds (2, 4, 6, 8) offer a Blue prize. A prize is worth 12 prize points to a player whose type matches its colour and 6 prize points to a player whose type does not. Coins and all bids are public. Prize points are private until the end.\n\nEACH ROUND:\n1. Announce the round number and the prize colour.\n2. TALK: every player writes one short message at the same time, without seeing the others. All four messages are then shown to everyone. Messages are not binding.\n3. OPENING BID: every player at the same time secretly chooses a whole-number opening bid from 0 up to their current coins.\n4. Reveal all opening bids. The CONTENDERS are every player whose opening bid is greater than 0 and at least as large as the second-highest opening bid (ties included). If only one player bid more than 0, that player is the sole contender. If nobody bid more than 0, there are no contenders.\n5. RAISE 1: if there are at least two contenders, each contender at the same time chooses a whole-number raise from 0 up to (their current coins minus what they have already bid this round). A contender who raises 0 has dropped out and may not raise again this round.\n6. Reveal all Raise 1 amounts and each player's running total bid.\n7. RAISE 2: if at least two contenders raised more than 0 in Raise 1, each of those contenders at the same time chooses a further whole-number raise from 0 up to (current coins minus what they have already bid this round). Contenders who dropped out in Raise 1 add nothing.\n8. Reveal Raise 2 amounts and final total bids. A player's total bid is their opening bid plus their raises.\n9. The round winner is the single player with the highest total bid. If two or more players tie for the highest total bid, nobody wins the prize this round.\n10. PAYMENT: every player, winner or not, loses coins equal to their total bid.\n11. The round winner, if any, privately gains 12 prize points if the prize colour matches their type, otherwise 6. Everyone is told who won, but not how many points they gained.\n12. Go to the next round. After round 8 the game ends.\n\nEND: Each player's final score is their coins plus their prize points. All scores and types are revealed.",
+    "objective": "The player with the highest final score (coins plus prize points) wins. If two or more players tie for the highest score, the game is a draw.",
+    "expected_effect": "Players weigh whether a prize is worth contesting. Their own type sets the value (12 or 6), and they read rivals' types from claims and bidding history: who bid big on Red rounds? The real conflict is between the two same-type players, who both want the same four prizes. Opposite-type players can try to split prizes peacefully, but each also wants to grab cheap off-colour prizes. Everyone wants the others to fight. Talk lets players claim a type to scare off rivals or to bluff. A player who simply follows a proposal such as 'I take Red, you stay out' can lose: the proposer may be a Blue type pocketing cheap points, or may stop holding back once the follower has stood aside. Escalation recreates the dollar auction. Once two contenders have sunk coins, raising again is tempting, but every coin spent in a war is a coin the two bystanders keep. Simple policies all lose. Always bidding 0 ends at 40 and loses to anyone who wins prizes cheaply. Always bidding high burns coins well past prize value and loses. Random bids overpay. No seat has an edge because all choices are simultaneous, and every type has exactly one rival and four matching prizes."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 14,
+    "choice_steps_per_round": 4,
+    "attributes": 12,
+    "hidden_elements": 1,
+    "random_draws_per_round": 0,
+    "rounds": 8
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Payoff per round for the round winner is (12 or 6) minus their total bid. Every other player gets minus their total bid. Score is coins plus points, so the labels 'worth 12 if matching, 6 if not' agree with the arithmetic. Bids are all-pay, so there is no hidden overpay trap beyond the stated one.\n\nReference equilibrium, one round, values known. The two matching players (v=12) mix roughly uniformly on 0..12. The two non-matching players (v=6) mostly bid 0. Rents are dissipated, so expected net is about 0 for everyone, with variance: the winner nets 12-b and the loser nets -b'.\n\nThoughtless policies under the WINNER RULE (highest final total of 4):\n(a) Always 0 / pass (the first option). Final score is exactly 40.\n- Against sensible play, each other player's total is 40 plus a zero-mean random net over 4 contested rounds. Any opponent who once wins uncontested at bid 1 has +11 and beats the passer.\n- P(all three opponents end at or below 40) is about 0.5^3, roughly 1/8, plus some draws. The passer loses most games.\n- Against random play, random bidders spend on average about half their coins in round 1 and the passer usually wins. That is expected and acceptable, since it does not hold against sensible play.\n- Passing never guarantees 'not behind'. One cheap prize to anyone puts the passer behind.\n(b) Always all-in (the last option, the highest bid). Round 1 costs 40 coins, leaving a final score of at most 12. This loses almost always.\n(c) Always open 1, never raise. It wins only uncontested rounds and is beaten by anyone opening 2. Against sensible play it loses about 1 coin per contested round.\n\nNo option is strictly better. Bidding 0 loses to cheap wins, and big bids lose to 0 once the bid exceeds the prize value.\n\nCooperation (a rotation agreed in talk, each player taking their two colour prizes at bid 1, for 62 each) ends in a 4-way draw. Any single defector who bids 2 on someone else's prize pulls ahead. Cooperation is fragile but contestable, not trivially dominated, because a defector who is detected faces retaliatory bidding in their own colour rounds.\n\nSeat and order:\n- Types are a symmetric 2 Red / 2 Blue deal.\n- Blue holds the final-round prize, a small information edge because standings are nearly known in round 8. Red has four prizes too, including round 7, and can contest round 8 at value 6.\n- This is a minor asymmetry, not decisive.\n\nAll four players can realistically win."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Rules cover every case.\n- Contenders are defined for unique highest bids, ties, a single positive bidder, and no positive bidder.\n- Raise 1 runs only with at least 2 contenders. Raise 2 runs only with at least 2 contenders who raised more than 0.\n- Dropped contenders keep their opening bid in their total. Example: A opens 10, B opens 5, A raises 0, B raises 3, so A wins at 10. This is pure arithmetic.\n- A contender who opened with all their coins can only raise 0, which is consistent.\n- A tie for the highest total voids the prize, and payment still applies.\n\nThe game is finite (8 rounds, 3 bid steps per round) and decided entirely by arithmetic on coins and points the game keeps. No judge, board or clock is needed.\n\nLimits:\n- 14 steps (at most 20).\n- 4 choice steps: talk, open, raise 1, raise 2 (at most 4, at the limit).\n- Attributes: coins x4, points x4, type x4 = 12. Adding per-round bid totals x4 and active flags x4 would make 20, still within the limit of 20.\n- 1 hidden element (type, at most 3).\n- 0 random draws per round. The type deal is setup only.\n- 8 rounds (at most 40).\n\nAll choices are simultaneous polls, which is supported. Talk is simultaneous and appropriate: players genuinely disagree about who should take each prize. Proposals such as 'I'm Red, let me have it at 1' can cost a follower if the proposer lies about type or defects, and they give something to reason about (type claims, rotation deals).\n\nLate rounds: the safe option (0) does not win round 8. A trailing Blue player profits from bidding up to 11 for 12 points, and the leader must decide whether to block. Cooperation and contesting stay live to the end."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "The only random element is the setup deal of a 2/2 type split, which is symmetric. No player is advantaged by their type beyond the minor round-8 Blue edge.\n\nWhen all players play well (rotation or equilibrium bidding), the winner is decided by strategic choices:\n- mixing in all-pay bids;\n- who defects from a rotation;\n- reading which players value each prize at 12.\nThese are opponent-modelling outcomes, not the deal itself. Equal-skill outcomes vary the way rock-paper-scissors does, not by the draw.\n\nThere is something to infer and a way to act on it:\n- Hidden types are revealed only through talk claims and bidding behaviour. Bidding on a Red prize signals Red, but bluffing is possible.\n- Opponents' prize points are private but inferable from announced winners plus inferred types.\n- Inferences drive bid sizing (contest value-12 rivals or not), coalition talk, and final-round blocking based on estimated standings.\n\nA strong reasoner avoids all-pay escalation, grabs uncontested prizes cheaply, and spots defectors. A weak one overbids or leaves prizes free. The deal accounts for perhaps 10-15% of the result."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

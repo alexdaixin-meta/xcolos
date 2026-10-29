@@ -1,0 +1,38 @@
+
+$ gen_game convert big_two --judge   (code 66cb7d9b5d, 13:59:55)
+step A: designing the rules
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: fix_game: The game encodes multi-card combinations as concatenated numbers (the pair 13+14 is offered as 1314). That form is ambiguous (123 could be 1+23 or 12+3) and unreadable to the model players, and it is why every test's option for a pair, triple or run ('13 14', '4 5 6', '13 14 15', '10 13 16') was never matched. The rules and tests are consistent: 13 and 14 do form a pair, 4-5-6 is a rank-2 triple, and 10-13-16 is a run of ranks 4-5-6.
+step C: building the game file
+step D: evaluating
+triage: fix_tests: After seat 2 played 22, seats 3 and 1 both passed, so by the clearing rule the pile was cleared and seat 2 had to lead. Its lead of 3 was legal and emptied its hand, so the game correctly gave card_count 0 and ended the deal. The test wrongly assumed the pile still held 22, making '3' illegal and treating it as a pass.
+rewriting the independent tests
+step D: evaluating
+triage: fix_game: In R1 seat 1 sent the move '13 14', which the game itself offered as a pair. The game recorded 'played 13', removed only one card and set the pile to single 13. Multi-card combinations are being parsed or applied wrongly, and the same fault shows in the pair, triple and bomb scenarios (R5, R6, R7).
+step C: building the game file
+step D: evaluating
+triage: fix_game: In R1 the game offered '13 14' and seat 1 chose it, yet only card 13 left the hand and the pile became a single of 13. The file is resolving a multi-card answer to its first card. The same miscount (seat 1 keeps too many cards, so the pile and the later seats' plays are wrong) explains the R5, R6 and R7 failures, and the tests match the rules.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step B: writing the spec
+step C: writing independent scenarios from the spec
+step C: building the game file
+step D: evaluating
+triage: revise_rules: The game is built correctly, but a thoughtless policy (always take the last offered option, which is the biggest multi-card play or bomb) wins 77-90% of games. The rules make dumping the largest play dominant: a triple or run lead is almost never answerable, so shedding three cards at a time beats any real decision.
+sending the rules back to the designer
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+step A: designing the rules (revising)
+step A: the critic reviews the rules
+
+big_two: dropped
+  too complex: no design got past the critic in 3 rounds; still failing playable, reasoning_over_luck: The limits are met: steps 16 ≤ 20, choices 3 ≤ 4, rounds 39 ≤ 40, one shuffle per deal round, hidden elements 2 (hands and asides). About 18 attributes is plausible if each hand is stored as a list (3 hands, 4 asides, 3 penalties, play valu
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/big_two
+  /Users/alexdaixin/AAI_LAB/xcolos/.pins/66cb7d9b5d/gen_game/data/games/big_two/VERIFIED.md

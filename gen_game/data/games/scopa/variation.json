@@ -1,0 +1,137 @@
+{
+  "original_summary": "Scopa is an Italian fishing card game played with a 40-card deck. Players take turns playing one card from a three-card hand to capture table cards of equal rank or of ranks summing to it. Clearing the table scores a Scopa, and each hand ends with points for most cards, most Coins, the Seven of Coins and best Primera, with play continuing until someone reaches 11.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "No thoughtless policy wins. 'Always capture the most cards' gives away Scopas by leaving low single cards. 'Always play your lowest card' feeds the opponent. Choices clearly change the outcome. But the dealer plays last in every hand and takes all leftover table cards, which is a built-in seat edge in any single hand. The original evens this out only over many hands."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Expert players beat beginners over a full match, through card counting, refusing to leave capturable sums and protecting sevens. Within one hand the deal (who holds the sevens, which ranks reach the table) swings the result heavily. The original needs many hands to 11 before skill dominates."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "A beginner can still score by taking matches and Coins. Strong play keeps improving: tracking which ranks are gone, leaving tables whose sum exceeds 10, baiting captures, and planning the last capture."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Opponent hands and the deck order are hidden. A good player infers which ranks remain from the played cards and predicts what the opponent can capture from a given table. Planning across the hand matters for majorities, sevens and the last capture."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "All scoring is counting: cards, Coins, the Seven of Coins, Scopas. Primera is a table lookup and a sum. No judge is needed for the result. Only whether a capture is legal needs checking, which is a simple sum or match test."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "It is turn-based and text-only with no board. However, playing to 11 takes many hands (often 100+ plays), which exceeds 40 rounds. Primera needs a value lookup per suit, which is costly in steps. Team play for 4 or 6 players adds pooled piles and seating."
+    }
+  ],
+  "problems": [
+    "Playing to 11 points needs many hands, far more than 40 rounds.",
+    "The dealer plays last and collects the leftover table cards, a seat advantage in any single hand.",
+    "Each hand awards only about 5 points and ties award nothing, so short matches end tied or are decided by the deal.",
+    "Primera requires a per-suit lookup table of special values, which is too many steps for the engine.",
+    "Teams of 2 or 3 pairs add pooled piles and seating rules beyond the attribute budget.",
+    "Choosing an arbitrary subset of table cards is hard to resolve arithmetically, and illegal declarations need a defined outcome.",
+    "A Scopa on the very last play of a hand is pure luck for the last player."
+  ],
+  "changes": [
+    {
+      "what": "The match is exactly two hands (two full passes through the deck), 18 rounds each, 36 rounds total. A round is one card played by each player.",
+      "why": "Fits within 40 rounds while giving two deals, so the luck of one deal is partly averaged out.",
+      "fixes": "Playing to 11 points needs many hands, far more than 40 rounds."
+    },
+    {
+      "what": "Players swap leader and dealer roles for hand 2, so each player plays last in exactly one hand.",
+      "why": "The last-play and leftover-card advantage goes to each player once.",
+      "fixes": "The dealer plays last and collects the leftover table cards, a seat advantage in any single hand."
+    },
+    {
+      "what": "The winner is decided by total points over both hands. Ties are broken first by total captured cards, then by total Coins captured, then the result is a draw.",
+      "why": "Arithmetic tiebreaks reward the same skills as the main scoring and cut down draws.",
+      "fixes": "Each hand awards only about 5 points and ties award nothing, so short matches end tied or are decided by the deal."
+    },
+    {
+      "what": "Primera is replaced by 'most sevens', with ties broken by most sixes, otherwise no point.",
+      "why": "Keeps the strategic importance of sevens, which dominate Primera, using simple counts.",
+      "fixes": "Primera requires a per-suit lookup table of special values, which is too many steps for the engine."
+    },
+    {
+      "what": "The game is two players only.",
+      "why": "Removes team piles and seating while keeping the core duel.",
+      "fixes": "Teams of 2 or 3 pairs add pooled piles and seating rules beyond the attribute budget."
+    },
+    {
+      "what": "A player declares the played card and the exact table cards captured. A referee checks the legality rule (match precedence, or an exact sum). An illegal declaration means the card is added to the table and nothing is captured.",
+      "why": "Gives a clear yes/no check and a defined, mildly costly outcome for mistakes.",
+      "fixes": "Choosing an arbitrary subset of table cards is hard to resolve arithmetically, and illegal declarations need a defined outcome."
+    },
+    {
+      "what": "Clearing the table on the final play of a hand does not count as a Scopa (the traditional rule).",
+      "why": "Removes a free point that depends only on position.",
+      "fixes": "A Scopa on the very last play of a hand is pure luck for the last player."
+    }
+  ],
+  "keeps": [
+    "The 40-card Italian deck with ranks 1 to 10 and four suits including Coins.",
+    "Three-card hands, four cards dealt face up to the table, and redeals of three each until the deck is empty.",
+    "Capture by equal rank, with equal rank mandatory and taking precedence, or by a set of cards summing to the played card.",
+    "Scopa points for clearing the table.",
+    "The last capturer takes the leftover table cards.",
+    "End-of-hand points for most cards, most Coins, the Seven of Coins, and the importance of sevens."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The core of Scopa (hidden hands, card counting, sum captures, denying Scopas) fits a turn-based text engine. Only match length, Primera, teams and the seat edge need trimming."
+  },
+  "variation": {
+    "name": "Scopa Duel",
+    "summary": "A two-hand, two-player Scopa. Players alternate playing cards to capture by match or sum, avoid leaving Scopas, and fight for card, Coin and seven majorities. Each player plays last in one hand.",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "rules": "DECK: 40 cards in four suits: Coins, Cups, Swords, Clubs. Each suit has ranks 1 to 10: Ace=1, 2 to 7 at face value, Jack=8, Knight=9, King=10.\n\nSTRUCTURE: The match is 2 hands of 18 rounds each, 36 rounds in total. In each round both players play one card: first the Leader, then the Dealer. In hand 1 (rounds 1 to 18), Player A is Leader and Player B is Dealer. In hand 2 (rounds 19 to 36), the roles swap.\n\nDEALING: At the start of round 1 and round 19, the full 40-card deck is shuffled (the only random event that round). Four cards are dealt face up to the table, and three cards are dealt privately to each player. At the start of rounds 4, 7, 10, 13 and 16 (hand 1) and rounds 22, 25, 28, 31 and 34 (hand 2), both hands are empty and three more cards are dealt to each player from the deck. Each hand uses exactly 4 + 6x3 = 40 cards.\n\nINFORMATION: The table, all played cards and all captures are public. Each player sees only their own hand. The deck order is hidden.\n\nA PLAY: On your turn, choose one card from your hand and declare which table cards you capture: a list, possibly empty. The declaration is legal if:\n(a) some table card has the same rank as your card, and you declare exactly one such card; or\n(b) no table card has the same rank, and you declare either nothing or a set of table cards whose ranks add up exactly to your card's rank.\n\nIf legal, you take your card and the declared cards into your capture pile. If you declared nothing, your card goes face up onto the table. If the declaration is illegal, your card goes face up onto the table and you capture nothing.\n\nSCOPA: If your legal capture leaves the table empty, you score 1 Scopa point. The exception is the final play of a hand (the Dealer's play in round 18 or round 36), which never scores a Scopa.\n\nLAST CAPTURE: The engine records who made the most recent capture. After the Dealer's play in round 18 (and in round 36), every card left on the table goes to that player's capture pile. If nobody captured in that hand, the leftover cards are discarded.\n\nHAND SCORING (after rounds 18 and 36), using only that hand's capture piles:\n- 1 point to the player with more captured cards (none if 20-20).\n- 1 point to the player with more Coins (none if 5-5).\n- 1 point to the holder of the Seven of Coins.\n- 1 point to the player with more sevens. If tied, the player with more sixes gets it. If still tied, no point.\n- Plus each player's Scopa points.\n\nCapture piles are then cleared for hand 2, but each player's running totals of points, captured cards and captured Coins are kept.",
+    "objective": "After round 36, the player with more total points across both hands wins. If tied, the player who captured more cards in total across both hands wins. If still tied, the player who captured more Coins in total wins. If still tied, the match is a draw.",
+    "expected_effect": "Players must count played cards to infer the opponent's possible captures. They should avoid leaving tables summing to 10 or less, which invites a Scopa, and should weigh taking many cards against grabbing Coins and sevens. They also plan for the last capture. Swapping roles removes the dealer's edge, and two deals plus card-count tiebreaks reduce draws and the impact of a single lucky deal. Simple policies such as 'always capture the largest set' or 'always dump the lowest card' leave Scopas and sevens to a counting opponent and lose. Talk is omitted because there are only two players with strictly opposed interests."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 12,
+    "choice_steps_per_round": 2,
+    "attributes": 17,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 36
+  },
+  "critic": {
+    "rounds": 1,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SEAT EDGE: In each hand the Dealer plays second every round. That gives the Dealer two edges: it sees the Leader's card, and its play in round 18 sweeps the last-capture leftovers. In hand 2 the roles swap (A is Dealer in rounds 19-36), so over the match both edges are exactly symmetric.\n\nPOINTS PER HAND: Each hand has 4 contested base points (cards, Coins, 7 of Coins, sevens/sixes) plus Scopas. A 20-20 card split or 5-5 Coins split gives nobody that point. Expected match total is about 8-12 points. Ties on points fall to total cards, then total Coins, so draws are rare. Both players can realistically win.\n\nTHOUGHTLESS POLICIES, judged by the winner rule:\n(1) Always trail (declare nothing, or an illegal declaration): never captures. It loses cards, Coins, 7 of Coins and sevens to any capturing opponent, and feeds that opponent Scopas. It loses almost every match against sensible or random-capturing play.\n(2) Always make the largest legal capture (greedy): beats random play. Against sensible play it loses Scopa control. Example: greedy captures 3+4 with a 7 and leaves a lone 5, handing over a Scopa. It also cannot steer which sevens and Coins it takes. Not a never-lose policy.\n(3) Always play the first or last card in hand: hand order carries no meaning, so this is random play and loses to sensible capturing.\n\nDOMINANT OPTION: None. Capturing the 7 of Coins when possible is good but situational. A sum-capture can be worse than an equal-rank capture that leaves the table non-empty, and sometimes trailing a high card to block a Scopa is best.\n\nPAYOFF LABELS: The rules state no payoff ordering that the numbers could contradict. There is no cooperation dimension; this is a zero-sum card race, so the 'safe option wins late rounds' test does not apply."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "CARD COUNT: 4 + 6x3 = 40 per hand.\n\nDEAL TIMING: Each player plays one card per round, so both hands are empty after rounds 3, 6, 9, 12 and 15. That matches deals at the start of rounds 4, 7, 10, 13 and 16, and likewise for hand 2 (rounds 22-34).\n\nCAPTURE LEGALITY: Fully specified and checkable by arithmetic: an equal-rank match, or a declared set whose ranks sum exactly to the played card's rank. Table cards are public with rank and suit, so any declared set is identifiable.\n\nILLEGAL DECLARATIONS: These have a defined result (the card is trailed), so every situation resolves. This effectively lets a player decline a forced equal-rank capture. That is a deliberate variation, not a gap. An empty table forces a trail, which is covered.\n\nSPECIAL CASES: The Scopa exception for the final Dealer play, the last-capture leftovers, and the no-capture discard are all defined. All four hand-scoring rules and the three-level tiebreak are arithmetic on kept counters.\n\nLIMITS:\n- steps_per_round 12 (at most 20)\n- choice_steps_per_round 2, sequential Leader then Dealer, correctly not simultaneous (at most 4)\n- attributes 17 (at most 20)\n- hidden_elements 2 or 3 (two hands plus deck order; at most 3)\n- random_draws_per_round 1 (the shuffle in rounds 1 and 19 only; later deals are removals from the shuffled deck list)\n- rounds 36 (at most 40)\n\nSUPPORT: Uses only supported features (hidden_hands, sequential_choice, fixed_rounds, shared_deck_draw via workaround). No board, clock or judge is needed. Talk is correctly absent in this two-player zero-sum game."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT THERE IS TO INFER: All played and captured cards are public, so a player can count which sevens, sixes and Coins remain. From that, a player can infer which ranks the opponent can still hold.\n\nWAYS TO ACT ON IT:\n- Plan around Scopa denial (avoid leaving a table that sums to 10 or less, or a single capturable card).\n- Fish for the 7 of Coins.\n- Manage the last-capture sweep as Dealer.\n\nLUCK: The deal decides a good deal: who is dealt the sevens and the 7 of Coins, and which ranks appear on the table. Only 2 hands are played, which raises variance compared with a race to 11. Estimated chance share between equal players is about 40-50% per match. Between a counting, Scopa-denying player and a greedy or random one, skill should win clearly (roughly 70-85%).\n\nEQUAL GOOD PLAY: When both play well, the winner comes from deal quality combined with many tactical decisions, not from one hidden draw alone. The deal can be overcome, so it adds variety rather than deciding the game."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

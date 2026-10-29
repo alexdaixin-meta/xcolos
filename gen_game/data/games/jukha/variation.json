@@ -1,0 +1,176 @@
+{
+  "original_summary": "Jukha is a 3-13 player hidden-hand bluffing game. Each player holds 4 cards and the player holding 5 must pass a face-down card, with a claimed rank that may be false, to the next player, who may accept it or ask for another. A player who begins their turn holding exactly four of a kind exits safely, and the last two players left both lose.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "Choices matter: what to request, what to offer, what to claim, whether to accept. But the loss is shared by the last two players, so with many players most decisions barely change one player's fate. With 3 players the first exit decides that the other two lose, so the race is the whole game. A 'never believe, always take the third card' policy turns the exchange into a random draw. The original has no turn limit and no tiebreak, and the Joker can circulate forever."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "Card tracking and reading false claims help. With 13 players and 52+ cards, though, memory is overwhelmed and the deal dominates. A dealt four of a kind can exit on the first turn with no skill at all."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Several skills can improve: tracking which ranks each player collects from their requests, bluffing claims to keep a rival from completing a set, and timing when to pass on cards a rival needs. A weak player still exits sometimes by luck."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Hands are hidden and claims can be false. Requests leak what a player is collecting. The taker must infer from the giver's incentives whether a claim is likely true."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "weak",
+      "evidence": "An exit is checkable. But there is no turn limit and no rule for endless play, and 'last two lose' gives no single winner the engine can compute."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "It is text-only and turn-based. But it scales to 13 players with an unbounded length, and the option to reject twice adds extra branches. It needs a fixed small player count, a turn cap and an arithmetic fallback."
+    }
+  ],
+  "problems": [
+    "The original has no length limit, so it can loop forever, which the platform cannot run.",
+    "'Last two lose' does not give the engine a single winner. With many players, individual decisions barely matter.",
+    "With large player counts and big decks, card memory is overwhelmed and luck dominates.",
+    "A dealt four of a kind wins on the first exit check with no decision made. This is a pure lottery.",
+    "The previous variation's turn counter contradicted itself. Its starting value was unstated and 'reached 30' triggered after turn 29, while FALLBACK scored 'the taker of turn 30'. Implementations could end after 29 or 30 turns.",
+    "The previous variation did not say plainly that hand sizes and all requests, claims and choices are public, or exactly what the third player sees."
+  ],
+  "changes": [
+    {
+      "what": "Kept 3 players, a 13-card deck (four each of A, B and C plus one Joker) and a 30-turn cap with an arithmetic fallback score.",
+      "why": "This bounds the length. It makes hands trackable so that memory and inference pay. It gives a single computed winner.",
+      "fixes": "The original has no length limit, so it can loop forever, which the platform cannot run."
+    },
+    {
+      "what": "The first player to exit wins outright and the other two lose. If no one exits, there is a fallback score with one top scorer winning and any tie for top a draw.",
+      "why": "This gives one arithmetic winner. Each decision now affects one's own chance of winning, and blocking a rival who is close to a set matters.",
+      "fixes": "'Last two lose' does not give the engine a single winner. With many players, individual decisions barely matter."
+    },
+    {
+      "what": "Kept the small deck and the 3-player limit.",
+      "why": "Twelve rank cards plus one Joker can be tracked, so card counting and reading claims beat luck.",
+      "fixes": "With large player counts and big decks, card memory is overwhelmed and luck dominates."
+    },
+    {
+      "what": "Added a setup redeal: if either 4-card player is dealt four cards of one rank, the whole deck is reshuffled and redealt until neither is.",
+      "why": "No one can win before making a single decision. The 5-card first giver must still give a card and wait for a later taking turn.",
+      "fixes": "A dealt four of a kind wins on the first exit check with no decision made. This is a pure lottery."
+    },
+    {
+      "what": "Rewrote the counter. It starts at 1 on turn 1. In Advance, if the turn just completed was turn 30, go to FALLBACK; otherwise add 1 and begin the next turn.",
+      "why": "This makes it exactly 30 turns. The turn-30 taker is then the 5-card holder at FALLBACK, matching the FALLBACK wording.",
+      "fixes": "The previous variation's turn counter contradicted itself. Its starting value was unstated and 'reached 30' triggered after turn 29, while FALLBACK scored 'the taker of turn 30'. Implementations could end after 29 or 30 turns."
+    },
+    {
+      "what": "Stated an explicit information rule. Hand sizes, who gives and who takes, requests, claims and the taker's choice are all public. Only the giver and the taker know the identity of the passed card.",
+      "why": "This removes guesswork for both the implementer and the playing models.",
+      "fixes": "The previous variation did not say plainly that hand sizes and all requests, claims and choices are public, or exactly what the third player sees."
+    }
+  ],
+  "keeps": [
+    "A face-down card is passed from the 5-card holder to the next player, with a claimed rank that may be a lie.",
+    "The taker can refuse the first offer and seek another, ending with a forced blind take.",
+    "A non-binding request naming the rank the taker wants.",
+    "A player exits by holding exactly four of a kind at the start of their own turn; four of a kind plus an extra card does not count.",
+    "The Joker is a dead card that never completes a set and is a liability to hold.",
+    "Play passes clockwise, and the player who just took becomes the next giver."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The bluffing pass is a strong core for inference and opponent modelling. The only defect found in testing was the ambiguous turn counter, which is now fixed, along with a small anti-lottery setup rule."
+  },
+  "variation": {
+    "name": "Jukha Three (revised 2)",
+    "summary": "Three players pass cards face down around a circle, each with a claimed rank that may be false, racing to be first to start a taking turn holding four of a kind. The game is capped at 30 turns, after which an arithmetic score decides the winner.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "CARDS. 13 cards: four each of ranks A, B and C, plus one Joker. Suits do not exist.\n\nSETUP. Assign the 3 players at random to seats 1, 2 and 3. Play passes 1 -> 2 -> 3 -> 1. Pick one seat at random to be the first giver. Shuffle and deal 5 cards to the first giver and 4 to each of the other two. If either 4-card player holds four cards of one rank, collect all cards, reshuffle and redeal, repeating until neither 4-card player does. Hands are private.\n\nINFORMATION. Public: every player's hand size, who is giver and taker each turn, every request, every claim and every take choice. Private: a player's own hand. The giver knows which card left their hand; the taker sees the card they received. The third player never sees the passed card.\n\nTURN ORDER. Each turn has a giver, who holds 5 cards, and a taker, the next seat in play order, who holds 4. On turn 1 the giver is the first giver. After each turn, that turn's taker becomes the next giver and the seat after them becomes the next taker.\n\nTURN COUNTER. The turn counter starts at 1 on turn 1.\n\nEACH TURN:\n1. Exit check. If the taker's 4 cards are all the same rank (four A, four B or four C), the taker shows them and wins immediately, and the other two players lose. The Joker never counts toward a set.\n2. Request (public). The taker names one rank they want (A, B or C) or says 'none'. The request binds no one.\n3. Offer (public claims). The giver chooses two different cards from their 5-card hand; the two may be of the same rank. The giver places them face down as Offer 1 and Offer 2 and publicly claims a rank for each (A, B, C or Joker). Claims may be true or false.\n4. Take (public choice). The taker announces exactly one of 'Offer 1', 'Offer 2' or 'blind'. Blind gives the taker one card chosen uniformly at random from the giver's three cards that were not offered. Offered cards that are not taken return to the giver's hand unrevealed.\n5. Pass. The received card moves from the giver's hand to the taker's hand. Record it privately as the taker's 'last received' card. The taker now holds 5 cards and the giver holds 4.\n6. Advance. If the turn just completed was turn 30, go to FALLBACK. Otherwise add 1 to the turn counter and begin the next turn.\n\nFALLBACK (reached only after turn 30 is completed with no exit). Reveal all hands and score each player:\n- Group count: the largest number of cards of one rank (A, B or C) among that player's scored cards, at most 4. For the two players holding 4 cards, the scored cards are their whole hand. For the player holding 5 cards (the taker of turn 30), the scored cards are their 5 cards minus their 'last received' card, which are the 4 cards they held at turn 30's exit check.\n- Joker penalty: the player physically holding the Joker subtracts 2, even if it is their last received card.\n- Score = group count minus any Joker penalty.\nIf exactly one player has the highest score, that player wins and the other two lose. If two or three players tie for the highest score, the game is a draw.\n\nThere is no free talk. The only public statements are requests, claims and take choices.",
+    "objective": "The first player who, at the exit check of a turn in which they are the taker, holds exactly four cards of one rank (A, B or C) wins, and the other two lose. If no one has done so when turn 30 is completed, each player scores their largest same-rank group (at most 4) among their scored cards, minus 2 if they hold the Joker. The 5-card holder's scored cards exclude the card they received on turn 30. A single top scorer wins and the other two lose. Any tie for the top score is a draw.",
+    "expected_effect": "Players must infer which rank each rival is collecting from their requests and from which offers they take. Givers bluff claims to keep the next player from completing a set and to unload the Joker. Takers weigh whether a claim is credible given the giver's interest, and use 'blind' to escape suspected traps. The third player watches public choices to judge who is close to winning. The redeal removes instant dealt wins. The exact 30-turn counter makes the end, the 5-card holder at FALLBACK and the fallback score unambiguous. Talk is left out because the only player able to block a near-winner on a given turn is the giver, who already wants to; requests and claims already serve as the bluffing channel."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 11,
+    "choice_steps_per_round": 3,
+    "attributes": 16,
+    "hidden_elements": 1,
+    "random_draws_per_round": 1,
+    "rounds": 30
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "CORE DECISION. A giver holding AAAAX (four A plus one odd card) wins at their next exit check only if the taker takes X. The giver's hand does not change while they sit out the next turn. The giver has two kinds of offer: (XA) X and one A, which leaves AAA unoffered, so blind always gives the taker an A; or (AA) two A, which leaves A,A,X unoffered, so blind gives X with probability 1/3. Claims can be lies, so a taker choosing between the offers is effectively at 1/2.\n\nGiver win probability:\n| Giver offer | Taker picks an offer at random | Taker goes blind |\n|---|---|---|\n| XA | 1/2 | 0 |\n| AA | 0 | 1/3 |\n\nMixed equilibrium: (1-b)/2 = b/3 gives b = 0.6, value 0.2. No option is strictly better.\n\nTHOUGHTLESS POLICIES.\n- Always Offer 1: a giver puts X in slot 1 and wins every time. Exploitable, so it loses.\n- Always blind: the giver switches to AA and wins 1/3 per attempt. Blind still hands the taker whatever the giver left unoffered, so dumping the Joker reaches them 1/3 of the time. The policy also builds only at random. It loses whenever an opponent completes, so it does not never-lose.\n- Always request 'none' or always claim truthfully: these only leak information.\nNo policy wins or draws every time. All three players can realistically exit.\n\nSEAT EDGE (fails). After 30 turns the taker of turn 30 holds 5 cards. Taker of turn t = first giver + t (mod 3), so for t = 30 it is always the FIRST GIVER. Fallback counts the largest group from 5 cards against everyone else's 4. That player also gets the last free choice of which card to take.\n- Minimum scores: a 5-card hand without the Joker has max group at least 2 (5 cards into 3 ranks), and at least 2 with the Joker. A 4-card hand with the Joker has 3 ranked cards, so max group at least 1 and score at least -1.\n- Example: holding AAAAJ, the 5-card player scores 4-2 = 2, while a 4-card AAAJ holder scores 1.\nBlocking play (taker goes blind 60% when the giver looks near-complete) makes 30-turn fallbacks plausible. That turns this deterministic positional edge, fixed by the random first-giver pick, into a real factor.\n\nThe opening exit check is a negligible edge: P(4 dealt cards all one rank) = 3*C(4,4)/C(13,4) = 3/715."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Limits are met: 10 steps, 3 choice steps (request, offer+claims, take), 14 attributes, 1 hidden element (hidden hands are supported), 1 random draw per round (blind), 30 rounds. No board, clock or judge is needed. The game is finite: either an exit or 30 turns. Omitting free talk is defensible: requests and claims already give the giver and taker something to bluff about and infer from, and the third player has no decision that talk would coordinate.\n\nAmbiguities that block complete play:\n1. 'Two different cards' can be read as two different RANKS. Under that reading a giver with AAAAX is forced to offer X and A, and a giver with AAAA can never be asked for two. This changes the core block/complete dilemma.\n2. It is not stated whether the taker's choice (Offer 1, Offer 2 or blind) is announced to the third player. 'Every public announcement' does not say whether it counts, and card-counting inference depends on it.\n3. The fallback tie rule says 'the game is a draw' without saying whether a strictly lower third player also draws or loses.\n4. Fallback compares a 5-card hand with 4-card hands without acknowledging this (see balanced)."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance comes from the deal, the random first-giver/seat assignment, and blind draws. A blind draw is random only among cards the giver chose to leave unoffered, so the giver shapes it.\n\nThere is plenty to infer. You know your own hand, every card you gave and received, and every public request and claim. That leaves only 8 unseen cards split between two opponents, and requests and claims reveal targets and bluffs.\n\nWhen everyone plays well, the near-complete duel resolves at about 20% per attempt (see the table). That is equilibrium mixing, not a random deal. A player who exploits an opponent's bias (for example over-trusting claims, or never going blind) gains sharply: up to 1/2 or 1 against predictable takers. Chance does not decide the winner on its own. I estimate roughly 30-40% of the outcome is luck (deal, blind draws, equilibrium mixing), and reasoning about claims, card counting and timing clearly favours the better player. The fallback seat edge is a balance problem, not pure luck."
+        },
+        "required_changes": [
+          "Fix the fallback seat edge: the taker of turn 30 is scored on the 4 cards they held at that turn's exit check, excluding the card received on turn 30. All three players are then scored on 4 cards. Alternatively, end the game after turn 30's exit check, before any card passes, so the last giver's 5-card hand is the only special case and is scored on their best 4 with an explicit rule stated.",
+          "Reword the offer step to 'two distinct physical cards from your hand (they may be the same rank)', so a giver holding AAAAX may offer two A.",
+          "State that the taker's choice (Offer 1, Offer 2 or blind) is announced publicly to all players, while the card's identity stays private to the giver and taker.",
+          "Clarify the fallback tie: players tied for the top score draw, and any player with a strictly lower score loses."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Key invariant: a giver who is left with four of a kind wins for certain. With giver X, taker Y and third player Z, X's hand is untouched while Y gives to Z, and X then opens as taker. So every win comes from one moment: the giver holds 4 of a rank plus one junk card (or the Joker), and the taker must not take the junk. The giver has two useful offer patterns. J = junk plus a set card, which leaves 3 set cards unoffered. S = two set cards, which leaves 2 set cards and the junk unoffered. Chance that the giver wins, by taker action: Offer (picking between the two offers 50/50 because claims are cheap talk): J 1/2, S 0. Blind: J 0, S 1/3. No pure option dominates on either side. Mixed equilibrium: p/2 = (1-p)/3, so the giver plays J with p = 0.4 and wins about 20% of these moments. Thoughtless policies under the winner rule: (a) Always 'Offer 1': a sensible giver puts the junk in Offer 1 whenever holding 4+junk, so this player loses the first time an opponent assembles a set; against random givers it neither wins nor loses reliably. It loses to sensible play. (b) Always 'blind': the giver switches to S and wins 1/3 of each such moment. The blind player also collects at random, so it rarely builds its own set. It loses over 30 turns against sensible play and only roughly matches random play. (c) Always offering one's two least-wanted cards with true claims: the taker reads the claims and never takes the junk, so this giver never exits. (d) Always requesting the same rank: requests bind no one, so this has no effect. No policy never loses. Seats and the first giver are both random, so move-order edges such as the first exit check or being the 5-card holder at turn 30 average out. In the fallback, the turn-30 taker scores at most 3, because a set of 4 at its exit check would already have won. This is a known endgame feature, not a fixed seat bias. All three players can realistically win, and there is no mislabelled payoff ordering. Tied fallback tops are draws, which is acceptable."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Complexity is within limits: 11 steps of at most 20, 3 choice steps of at most 4, 16 attributes of at most 20, 1 hidden element of at most 3, 1 random draw per round (the blind draw; the shuffle is setup only), 30 rounds of at most 40. No board, clock, judge, trading or binding is needed. Scoring is arithmetic on recorded hands. Leaving out free talk is sensible. The only one who can block a near-winner is the taker, who already wants to block, so talk would mostly add words. Requests and claims already supply the bluff channel. Defect: the turn-counter rule contradicts itself. 'Turns are numbered from 1' implies the counter starts at 1. Step 6 then reads 'add 1; if the counter has reached 30, go to FALLBACK', which triggers after turn 29. But FALLBACK says 'only after 30 turns' and scores 'the taker of turn 30'. The counter's starting value is never stated. One implementer will end after 29 turns and another after 30. That changes who holds 5 cards at the end and therefore the fallback result. A model working only from these words cannot settle this."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "There are 13 cards and only 3 ranks. Each player knows its own hand, every card it gave and received, all public claims, and every take choice. Card counting therefore pins down much of the other hands. For example, a taker holding no A, who has seen A cards flow toward the giver, can infer that the giver probably holds 4A plus junk and shift toward blind. Givers must mix claims and offer patterns against what the taker can read. With all players at equilibrium, each decisive moment converts about 20% of the time, through the giver's bluff mix and the 1-in-3 blind draw. So chance takes part, but the winner is not set by the deal alone. Reaching a 4+junk position, choosing what to feed a taker, and avoiding feeding opponents' ranks or the Joker all require planning. The giver of turn 30 chooses an offer that decides its final scored hand, which adds endgame planning. Predictable opponents, such as an always-Offer-1 taker, a truthful claimer or an always-blind taker, are exploited heavily. Estimated chance share: about 30-40% of outcomes between equally skilled players, coming from the deal, blind draws and mixed-strategy realisations. A clearly better reasoner is favoured."
+        },
+        "required_changes": [
+          "Fix the turn counter: state 'The turn counter starts at 1 on turn 1. In Advance, if the turn just completed was turn 30, go to FALLBACK; otherwise add 1 and begin the next turn.' This keeps exactly 30 turns, makes the turn-30 taker the 5-card holder at FALLBACK, and agrees with the FALLBACK wording."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "SEAT CYCLE. The giver of turn t is seat f+(t-1) mod 3. The giver of turn 30 is f+2 and the taker of turn 30 is f, the first giver. Each seat is taker exactly 10 times (seat f+1 on turns 1,4,...,28; seat f+2 on turns 2,...,29; seat f on turns 3,...,30). The turn count is symmetric.\n\nTHE BLIND MOVE IS A PERFECT BLOCK. To exit, player X must hold AAAA after giving. So as giver X holds AAAA+y and must offer two different cards.\n\n| X offers | Non-offered three | Taker picks the y offer | Taker picks the A offer | Taker goes blind |\n|---|---|---|---|---|\n| y and A | A,A,A | X keeps AAAA | broken | broken (prob 1) |\n| A and A | A,A,y | n/a | broken | broken (prob 2/3) |\n\nX's best offer is y+A, and against it 'blind' breaks the set with certainty. A taker who always answers 'blind' therefore makes the player before them unable ever to exit. If all three play always-blind, no one ever exits and every game goes to FALLBACK.\n\nTHOUGHTLESS POLICIES.\n- Always 'Offer 1' is exploited: the giver puts y or the Joker in slot 1, and X's exit chance rises to 1.\n- Always 'blind' is not strictly dominant. A giver facing it keeps the Joker out of the offer, so it passes with probability 1/3, against 0.2 in the mixed equilibrium below. The giver also offers the two cards they want to keep, so the blind taker receives the giver's rejects. It still never loses to its predecessor's exit.\n- No policy literally never loses, but the exit win condition is neutralised by one cheap habit.\n\nFALLBACK IS JOKER-DOMINATED AND DRAW-HEAVY.\n- A 4-card non-Joker hand has a group of at least 2 (pigeonhole over 3 ranks).\n- A Joker holder has at most 3 ranked cards, so scores at most 3-2 = 1. The Joker holder can never win; the only exception is a tie at 2 for the turn-30 taker whose last card was the Joker.\n- So FALLBACK reduces to a group race between the two non-Joker players. Rough distribution of each hand's top group: 2 about 30%, 3 about 55%, 4 about 15%.\n- P(tie) \u2248 0.09 + 0.30 + 0.02 \u2248 0.41, so about 40% of competent games are draws.\n\nSEAT ASYMMETRY. The turn-30 taker (seat f) gets nothing from the last pass, because that card is excluded from scoring. That card can still hurt them through the Joker penalty. The turn-30 giver (seat f+2) gets the last chance to dump the Joker and shapes their hand last. One seat carries a pure downside on the decisive turn.\n\nOutcome: a policy (blind) that nullifies one opponent's main win route, a draw rate near 40%, and a fixed last-turn seat penalty."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Most rules are complete:\n- Request, offer, claims, take, blind and pass are all specified.\n- 'Two different cards' means two physical cards.\n- The Joker never counts toward a set.\n- The fallback scoring of the 5-card holder is defined, and the tie rule is defined.\n- The game is finite: 30 turns, or an earlier exit.\n- Stated limits are within bounds: steps 11/20, choice steps 3/4, attributes 16/20, hidden elements 1/3, random draws 1/1, rounds 30/40.\n- Requests and claims are a simultaneous-free public channel. Players genuinely disagree, so the absence of free talk is defensible: claims are the deception channel.\n\nBLOCKING DEFECT: SETUP. 'Collect all cards, reshuffle and redeal, repeating until neither 4-card player does' is an unbounded loop.\n- The engine has a flat step list with no conditional block repetition.\n- Each reshuffle is a further random draw beyond the limit of 1.\n- The engine cannot run 'repeat until'.\n- The condition matters: the turn-1 taker and the turn-2 taker check exit with their dealt hands, so it must be enforced somehow.\n\nMINOR. The Joker penalty applies to the turn-30 taker's last received card even though that card is excluded from the group count. This is legal, but it is inconsistent with 'scored cards' and is the source of the seat asymmetry noted under balanced."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Under competent play, exits almost never happen: blind blocks with probability 1 whenever the taker suspects a near-set. So the winner is set at FALLBACK by (a) who ends holding the Joker and (b) the non-Joker group race.\n\nJOKER TRANSFER GAME. The giver holds the Joker and offers it with probability p; the taker goes blind with probability q. The taker receives the Joker with probability\nP = p(1-q)/2 + (1-p)q/3.\nTaker indifference gives p/2 = (1-p)/3, so p = 0.4 and P = 0.2 per giving opportunity.\n\nThe holder gives about 10 times, so the number of Joker moves is about Bin(10, 0.2). Taken mod 3 (where the Joker ends relative to its start):\n\n| Moves mod 3 | Probability |\n|---|---|\n| 0 | \u2248 0.31 |\n| 1 | \u2248 0.36 |\n| 2 | \u2248 0.33 |\n\nThe final holder is close to uniformly random. It is fixed by mixed-strategy coin flips and blind draws, not by out-reasoning anyone. The final holder cannot win.\n\nGROUP RACE. The giver chooses what is offered and has seen the taker's public request, so a taker rarely gets the wanted rank from an offer. The only alternative is a uniform blind draw. Hand building is mostly random against an adversarial filter.\n\nCombined effect:\n- Roughly a third of results are fixed by the near-random Joker location.\n- About 40% of results are draws.\n- Ties at 3-3 are frequent.\n- Chance plausibly decides more than half of decisive outcomes.\n\nThere is real material to infer (claims, requests, take history), but no lasting reward for inferring it. With all-good play (always block, play the equilibrium Joker mix), the winner is decided by the draws."
+        },
+        "required_changes": [
+          "Setup: replace the redeal loop with one shuffle and a deterministic fix, e.g. 'If a 4-card player holds four of one rank, that player swaps one card of that rank with the first giver's lowest-ranked card of a different rank (Joker counts as lowest); apply to seat order 1, 2, 3 once.'",
+          "Make blocking a planned resource rather than a free habit: each player may choose 'blind' at most 3 times per game (a public counter). A player with no blinds left must take Offer 1 or Offer 2. Exits then become achievable and timing the blinds becomes a planning and opponent-modelling decision.",
+          "Reduce draws with arithmetic tiebreaks at FALLBACK, in order: (1) higher second-largest same-rank group; (2) more blinds remaining; (3) fewer turns spent holding the Joker, tracked as a public-at-end counter incremented after each Pass for the holder. Declare a draw only if all three tie.",
+          "Remove the turn-30 seat penalty: apply the Joker penalty to the turn-30 taker only if the Joker is among their scored cards, i.e. not their last received card. Alternatively, end after turn 30 with no pass on the final turn, so all three score 4-card hands formed symmetrically.",
+          "Lower Joker luck: make the penalty -1 and add a public bonus of +1 for the player with the most correct claims verified at reveal, or award a point each time a taker correctly identifies a false claim at FALLBACK reveal. This ties scoring to inference rather than to where the Joker drifted."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

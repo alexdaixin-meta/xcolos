@@ -1,0 +1,970 @@
+[
+  {
+    "name": "4 players: each seat is dealt 6 cards and the whole deck is dealt",
+    "rule": "R1",
+    "players": 4,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 6
+          },
+          "2": {
+            "hand": 6
+          },
+          "3": {
+            "hand": 6
+          },
+          "4": {
+            "hand": 6
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "hand_size": 6
+        },
+        "2": {
+          "hand_size": 6
+        },
+        "3": {
+          "hand_size": 6
+        },
+        "4": {
+          "hand_size": 6
+        }
+      }
+    },
+    "rule_text": "When the game starts with 4 players, then each player holds 6 cards; with 3 players, each holds 8 cards; the 24-card deck has 6 each of Roach, Rat, Fly and Toad, and all of it is dealt."
+  },
+  {
+    "name": "3 players: each seat is dealt 8 cards and the whole deck is dealt",
+    "rule": "R1",
+    "players": 3,
+    "seed": 2,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 0
+        },
+        "players": {
+          "1": {
+            "hand": 8
+          },
+          "2": {
+            "hand": 8
+          },
+          "3": {
+            "hand": 8
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "hand_size": 8
+        },
+        "2": {
+          "hand_size": 8
+        },
+        "3": {
+          "hand_size": 8
+        }
+      }
+    },
+    "rule_text": "When the game starts with 4 players, then each player holds 6 cards; with 3 players, each holds 8 cards; the 24-card deck has 6 each of Roach, Rat, Fly and Toad, and all of it is dealt."
+  },
+  {
+    "name": "At start every face-up count is 0",
+    "rule": "R2",
+    "players": 4,
+    "seed": 3,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "players": {
+        "1": {
+          "roach_up": 0,
+          "rat_up": 0,
+          "fly_up": 0,
+          "toad_up": 0,
+          "faceup_total": 0,
+          "lost": false
+        },
+        "2": {
+          "roach_up": 0,
+          "rat_up": 0,
+          "fly_up": 0,
+          "toad_up": 0,
+          "faceup_total": 0,
+          "lost": false
+        },
+        "3": {
+          "roach_up": 0,
+          "rat_up": 0,
+          "fly_up": 0,
+          "toad_up": 0,
+          "faceup_total": 0,
+          "lost": false
+        },
+        "4": {
+          "roach_up": 0,
+          "rat_up": 0,
+          "fly_up": 0,
+          "toad_up": 0,
+          "faceup_total": 0,
+          "lost": false
+        }
+      }
+    },
+    "rule_text": "When the game starts, then seat 1 is the first sender and every face-up count is 0."
+  },
+  {
+    "name": "Seat 1 sends first: only seat 1's hand shrinks in round 1",
+    "rule": "R2",
+    "players": 4,
+    "seed": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Fly",
+            "Toad"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Fly",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1,
+          "fly_up": 1,
+          "faceup_total": 1
+        },
+        "2": {
+          "hand_size": 6
+        },
+        "3": {
+          "hand_size": 6,
+          "faceup_total": 0
+        },
+        "4": {
+          "hand_size": 6
+        }
+      },
+      "game": {
+        "last_revealed": "Fly"
+      }
+    },
+    "rule_text": "When the game starts, then seat 1 is the first sender and every face-up count is 0."
+  },
+  {
+    "name": "Sent card leaves the hand and hand_size drops by 1",
+    "rule": "R3",
+    "players": 4,
+    "seed": 5,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Toad"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 1
+          }
+        }
+      },
+      "players": {
+        "1": {
+          "hand_size": 1,
+          "rat_up": 1,
+          "faceup_total": 1
+        }
+      },
+      "game": {
+        "last_revealed": "Rat"
+      }
+    },
+    "rule_text": "When the sender sends a card, then that card leaves their hand and their hand_size drops by 1."
+  },
+  {
+    "name": "Sender may claim a creature it does not hold and cannot choose itself as receiver",
+    "rule": "R4",
+    "players": 4,
+    "seed": 6,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Toad"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Fly"
+      },
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 4,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Fly"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 1
+        }
+      ],
+      "players": {
+        "4": {
+          "rat_up": 1,
+          "faceup_total": 1
+        },
+        "1": {
+          "faceup_total": 0,
+          "hand_size": 1
+        }
+      }
+    },
+    "rule_text": "When the sender sends, then they declare one of Roach, Rat, Fly or Toad, which may be false, and choose a receiver who is not themselves."
+  },
+  {
+    "name": "Only the chosen receiver is asked to respond to the claim",
+    "rule": "R5",
+    "players": 4,
+    "seed": 7,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 3,
+          "option": "PASS"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "TRUE"
+        },
+        {
+          "seat": 4,
+          "option": "TRUE"
+        }
+      ],
+      "players": {
+        "1": {
+          "roach_up": 1,
+          "faceup_total": 1
+        }
+      },
+      "game": {
+        "last_revealed": "Roach"
+      }
+    },
+    "rule_text": "When a claim is made, then the claim and the receiver are announced to all, but the card's identity is not."
+  },
+  {
+    "name": "TRUE on a true claim resolves against the sender's claim: sender takes",
+    "rule": "R6",
+    "players": 4,
+    "seed": 8,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "roach_up": 1,
+          "faceup_total": 1
+        },
+        "2": {
+          "faceup_total": 0
+        }
+      },
+      "game": {
+        "last_revealed": "Roach"
+      }
+    },
+    "rule_text": "When the receiver answers TRUE or FALSE, then the card resolves against the sender's claim."
+  },
+  {
+    "name": "Passer makes a new claim to a seat that is neither sender nor itself",
+    "rule": "R7",
+    "players": 4,
+    "seed": 9,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach"
+      },
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 2,
+        "options_include": "Roach"
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 1
+        },
+        {
+          "seat": 2,
+          "option": 2
+        }
+      ],
+      "offered": [
+        {
+          "seat": 2,
+          "option": 4
+        }
+      ],
+      "players": {
+        "2": {
+          "roach_up": 1,
+          "faceup_total": 1
+        },
+        "1": {
+          "faceup_total": 0,
+          "hand_size": 1
+        },
+        "3": {
+          "faceup_total": 0
+        }
+      },
+      "game": {
+        "last_revealed": "Roach"
+      }
+    },
+    "rule_text": "When the receiver answers PASS, then they privately see the card, make a new claim, and choose a new receiver who is neither the original sender nor themselves."
+  },
+  {
+    "name": "After a pass the final receiver may not pass again; a wrong FALSE makes it take",
+    "rule": "R8",
+    "players": 4,
+    "seed": 10,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach"
+      },
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS"
+      },
+      {
+        "seat": 2,
+        "options_include": "Roach"
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "PASS"
+        }
+      ],
+      "offered": [
+        {
+          "seat": 3,
+          "option": "TRUE"
+        }
+      ],
+      "players": {
+        "3": {
+          "roach_up": 1,
+          "faceup_total": 1
+        },
+        "2": {
+          "faceup_total": 0
+        }
+      }
+    },
+    "rule_text": "When a card has been passed once, then the final receiver may answer only TRUE or FALSE."
+  },
+  {
+    "name": "Correct FALSE on a bluff: claimer takes the card",
+    "rule": "R9",
+    "players": 4,
+    "seed": 11,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat",
+            "Toad"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Rat"
+      },
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "rat_up": 1,
+          "toad_up": 0,
+          "faceup_total": 1
+        },
+        "2": {
+          "faceup_total": 0
+        }
+      },
+      "game": {
+        "last_revealed": "Rat"
+      }
+    },
+    "rule_text": "When the judge says TRUE and the card matches the latest claim, or says FALSE and it does not, then the claimer takes the card face-up."
+  },
+  {
+    "name": "Wrong FALSE on a true claim: judge takes the card",
+    "rule": "R10",
+    "players": 4,
+    "seed": 12,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "roach_up": 1,
+          "faceup_total": 1
+        },
+        "1": {
+          "faceup_total": 0,
+          "roach_up": 0
+        }
+      },
+      "game": {
+        "last_revealed": "Roach"
+      }
+    },
+    "rule_text": "When the judge's call is wrong, then the judge takes the card face-up."
+  },
+  {
+    "name": "Taker becomes the next sender and its counts rise",
+    "rule": "R11",
+    "players": 4,
+    "seed": 13,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "hand": [
+            "Fly",
+            "Toad"
+          ],
+          "hand_size": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      },
+      {
+        "seat": 2,
+        "options_include": "Fly",
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "hand_size": 1,
+          "faceup_total": 0
+        },
+        "2": {
+          "hand_size": 1,
+          "roach_up": 1,
+          "fly_up": 1,
+          "faceup_total": 2
+        },
+        "3": {
+          "faceup_total": 0
+        }
+      },
+      "game": {
+        "last_revealed": "Fly"
+      }
+    },
+    "rule_text": "When a card resolves, then its identity is revealed to all, the taker's count for that creature and faceup_total each rise by 1, and the taker becomes the next sender."
+  },
+  {
+    "name": "Third face-up Roach makes the taker lose and ends the game",
+    "rule": "R12",
+    "players": 4,
+    "seed": 14,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        },
+        "2": {
+          "roach_up": 2,
+          "faceup_total": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        3,
+        4
+      ],
+      "standings": {
+        "1": 0,
+        "2": -1003,
+        "3": 0,
+        "4": 0
+      },
+      "players": {
+        "2": {
+          "roach_up": 3,
+          "faceup_total": 3,
+          "lost": true
+        },
+        "1": {
+          "lost": false
+        }
+      }
+    },
+    "rule_text": "When a player reaches 3 face-up cards of one creature, then that player loses and the game ends."
+  },
+  {
+    "name": "Next sender with an empty hand loses",
+    "rule": "R13",
+    "players": 4,
+    "seed": 15,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Rat"
+          ],
+          "hand_size": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Toad"
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3,
+        4
+      ],
+      "standings": {
+        "1": -1001,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "players": {
+        "1": {
+          "hand_size": 0,
+          "rat_up": 1,
+          "faceup_total": 1,
+          "lost": true
+        },
+        "2": {
+          "lost": false
+        }
+      }
+    },
+    "rule_text": "When the next sender has 0 cards in hand and nobody has 3 of one creature, then the next sender loses and the game ends."
+  },
+  {
+    "name": "Among non-losers the fewest face-up cards wins",
+    "rule": "R14",
+    "players": 4,
+    "seed": 16,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2,
+          "toad_up": 1,
+          "faceup_total": 1
+        },
+        "2": {
+          "roach_up": 2,
+          "faceup_total": 2
+        },
+        "3": {
+          "fly_up": 1,
+          "faceup_total": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "FALSE"
+      }
+    ],
+    "expect": {
+      "winner": 4,
+      "standings": {
+        "1": -1,
+        "2": -1003,
+        "3": -1,
+        "4": 0
+      },
+      "players": {
+        "2": {
+          "lost": true
+        }
+      }
+    },
+    "rule_text": "When the game ends, then among the players who did not lose, the one with the fewest face-up cards wins, and players tied for fewest share the result."
+  },
+  {
+    "name": "The game ends after round 24",
+    "rule": "R15",
+    "players": 4,
+    "seed": 17,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Roach",
+            "Rat"
+          ],
+          "hand_size": 2
+        }
+      },
+      "game": {
+        "round_count": 23
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Roach",
+        "times": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "TRUE"
+      }
+    ],
+    "expect": {
+      "winner": [
+        2,
+        3,
+        4
+      ],
+      "standings": {
+        "1": -1,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "players": {
+        "1": {
+          "roach_up": 1,
+          "faceup_total": 1,
+          "lost": false,
+          "hand_size": 1
+        }
+      }
+    },
+    "rule_text": "When 24 rounds have been played, then the game ends."
+  }
+]

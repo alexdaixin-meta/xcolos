@@ -1,0 +1,1877 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "coup-pre-rank-by",
+    "name": "Coup (XColos)",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Bluff, challenge and block: each player holds two hidden role cards, and the last one with a hidden card wins.",
+    "unlisted": true
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    },
+    {
+      "id": "out",
+      "acts": false
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "hidden_cards",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "revealed_cards",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "hidden_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "alive",
+        "visible": "public",
+        "type": "bool",
+        "initial": true
+      },
+      {
+        "key": "pending_loss",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "must_return",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "reaction",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "block_response",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "reveal_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "return_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "action_offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "reaction_offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "card_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "revealed_now",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Duke",
+          "Duke",
+          "Duke",
+          "Assassin",
+          "Assassin",
+          "Assassin",
+          "Captain",
+          "Captain",
+          "Captain",
+          "Ambassador",
+          "Ambassador",
+          "Ambassador",
+          "Contessa",
+          "Contessa",
+          "Contessa"
+        ]
+      },
+      {
+        "key": "deck_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "turn_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "active_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "action",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "claimed_role",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "target",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "action_status",
+        "visible": "public",
+        "type": "text",
+        "initial": "going"
+      },
+      {
+        "key": "challenger",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "blocker",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "block_role",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "block_challenger",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "stolen",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "living_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winner",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "bottom_n",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "claim_true",
+        "visible": "none",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "target_offer",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "top_key",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 15
+      },
+      {
+        "key": "copies_per_role",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "first_player_start_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "other_player_start_coins",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "forced_coup_threshold",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "income_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "foreign_aid_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "coup_cost",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "tax_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "assassinate_cost",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "steal_amount",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "exchange_draw",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "exchange_return",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "loss_per_hit",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "turn_cap",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      }
+    ]
+  },
+  "rules": "Players: 3 to 5.\n\nCOMPONENTS. A deck of 15 cards: 3 each of Duke, Assassin, Captain, Ambassador and Contessa. Each player has a coin count.\n\nSETUP. Shuffle the deck and deal 2 cards face down to each player; only the owner sees them. The rest form the face-down deck. Seat order is fixed. The first player starts with 1 coin and every other player with 2. A player's cards are either hidden or revealed. Revealed cards are face up, public and permanent.\n\nTURNS. Players take turns in seat order, skipping eliminated players. Each turn has these steps.\n\n1. STATE. The engine announces every player's coins, revealed cards and number of hidden cards, plus the number of cards in the deck.\n\n2. ACTION. The active player chooses one action, and a target where the action needs one (any other living player). A player who starts the turn with 10 or more coins must choose Coup. The actions are:\n- Income: take 1 coin. Cannot be challenged or blocked.\n- Foreign Aid: take 2 coins. Cannot be challenged. Any other player may block by claiming Duke.\n- Coup: pay 7 coins (only if you have 7 or more); the target loses 1 influence. Cannot be challenged or blocked.\n- Tax (claims Duke): take 3 coins. Can be challenged.\n- Assassinate (claims Assassin): pay 3 coins (only if you have 3 or more); the target loses 1 influence. Can be challenged. The target may block by claiming Contessa.\n- Steal (claims Captain): take 2 coins from the target, or all the target's coins if they have fewer than 2. Can be challenged. The target may block by claiming Captain or Ambassador.\n- Exchange (claims Ambassador): take the top card of the deck into your hand, then return one of your hidden cards (your choice, made in step 7) to the deck. Can be challenged.\nCosts are paid immediately and are not refunded, even if the action is later blocked or fails a challenge.\n\n3. REACTION. Every other living player answers at the same moment, without seeing the others' answers. The options are:\n- Pass;\n- Challenge, only if the action claims a role;\n- Block as Duke / Block as Contessa / Block as Captain / Block as Ambassador, only where that block is allowed (Duke against Foreign Aid by anyone; Contessa against Assassinate by the target only; Captain or Ambassador against Steal by the target only).\nAll answers are announced.\n\n4. ACTION CHALLENGE. If anyone challenged, only the first challenger in seat order after the active player counts.\n- If the active player holds the claimed role: they reveal it, take the top card of the deck into their hand, and put the revealed card into the deck. The challenger gets 1 pending loss. The action continues: a failed challenge costs the challenger a card AND the action still goes ahead, so a target who challenges a true Assassinate still loses a card to it.\n- Otherwise the active player gets 1 pending loss and the action fails. Any block is ignored, and the turn goes to step 7.\n\n5. BLOCK. If the action is still going ahead and anyone blocked, only the first blocker in seat order after the active player counts. Every living player except that blocker answers Accept or Challenge at the same moment, and the answers are announced.\n- If nobody challenges, the action is blocked and has no effect.\n- If anyone challenges, only the first challenger in seat order after the blocker counts. If the blocker holds the claimed blocking role, they reveal it, take the top card of the deck, and put the revealed card into the deck; the block challenger gets 1 pending loss and the action is blocked. Otherwise the blocker gets 1 pending loss, the block fails, and the action goes ahead.\n\nA card put into the deck during a turn goes to the bottom; draws take the top card, so the replacement is drawn first and can never be the card just shown, and the deck is shuffled once at the end of the turn.\n\n6. EFFECT. If the action went ahead (not failed, not blocked), apply it:\n- coins move as stated;\n- Assassinate and Coup give the target 1 pending loss;\n- Exchange gives the active player the top card of the deck and 1 card to return.\n\n7. CARD CHOICE. At the same moment:\n- every player with exactly 1 pending loss and 2 hidden cards chooses which hidden card to reveal;\n- a player who must return a card for Exchange chooses which of their hidden cards to put into the deck.\n\n8. RESOLVE.\n- A player with 1 pending loss and 2 hidden cards reveals the chosen card.\n- A player whose pending losses are equal to or more than their hidden cards reveals all of them and is eliminated. Their coins leave the game.\n- The Exchange card goes into the deck.\n- If any card was put into the deck this turn, the deck is shuffled.\n- Pending losses reset to 0.\nThe engine announces what was revealed (never what was returned).\n\n9. END CHECK. If only one player has hidden cards, that player wins. Otherwise the turn passes to the next living player in seat order.\n\nCAP. If 40 turns have been played without a winner, the game ends. The player with the most hidden cards wins; if tied, the tied player with the most coins wins; if still tied, the game is a draw.\n\nThere is no free discussion. Claims, challenges and blocks are the only communication.",
+  "setup": [
+    {
+      "use": "update",
+      "label": "shuffle and deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 3,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 3"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 4,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 4"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 5,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 5,
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "len(players) >= 5"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hidden_count",
+            "value": {
+              "calc": "len(you.hidden_cards)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck_count",
+            "value": {
+              "calc": "len(deck)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "coins",
+            "value": {
+              "calc": "first_player_start_coins if you.seat == 1 else other_player_start_coins"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "living_count",
+            "value": {
+              "calc": "len(players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "turn_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "active_seat",
+            "value": 1
+          }
+        }
+      ],
+      "text": "The deck is shuffled and each player is dealt 2 hidden cards. Seat 1 has 1 coin, every other seat 2."
+    },
+    {
+      "use": "tell",
+      "label": "your cards",
+      "to": "all",
+      "text": "You are dealt these hidden cards: {hidden_cards}. You have {coins} coins."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "start",
+      "label": "start of the turn",
+      "do": [
+        {
+          "set": {
+            "key": "action_status",
+            "value": "going"
+          }
+        },
+        {
+          "set": {
+            "key": "challenger",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "blocker",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "block_challenger",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "target",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "stolen",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "action",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "claimed_role",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "block_role",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "claim_true",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "reaction",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "block_response",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "reveal_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "return_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_now",
+            "value": []
+          }
+        },
+        {
+          "adjust": {
+            "key": "turn_count",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "action_offer",
+            "value": {
+              "calc": "['coup'] if you.coins >= forced_coup_threshold else ['income', 'foreign_aid'] + (['coup'] if you.coins >= coup_cost else []) + ['tax'] + (['assassinate'] if you.coins >= assassinate_cost else []) + ['steal', 'exchange']"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "target_offer",
+            "value": {
+              "calc": "[p.seat for p in players if p.alive and p.seat != active_seat]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "start",
+      "label": "the table",
+      "to": "all",
+      "text": "Turn {turn_count}. Seat {active_seat} acts. The deck holds {deck_count} cards. Each seat as [seat, coins, revealed cards, hidden cards]: {[[p.seat, p.coins, p.revealed_cards, p.hidden_count] for p in players]}."
+    },
+    {
+      "use": "tell",
+      "phase": "start",
+      "label": "your hidden cards",
+      "to": "all",
+      "text": "Your hidden cards: {hidden_cards}. Your coins: {coins}."
+    },
+    {
+      "use": "ask",
+      "phase": "action",
+      "label": "the action",
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "action_offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "action",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "claimed_role",
+              "value": {
+                "calc": "'Duke' if $answer == 'tax' else 'Assassin' if $answer == 'assassinate' else 'Captain' if $answer == 'steal' else 'Ambassador' if $answer == 'exchange' else ''"
+              }
+            }
+          }
+        ]
+      },
+      "text": "Your turn. Choose one action from those offered: income (+{income_gain}, no challenge or block), foreign_aid (+{foreign_aid_gain}, no challenge, any player may block as Duke), coup (pay {coup_cost}, target loses 1 influence, no challenge or block; compulsory with {forced_coup_threshold} or more coins), tax (claims Duke, +{tax_gain}), assassinate (claims Assassin, pay {assassinate_cost} at once, target loses 1 influence, target may block as Contessa), steal (claims Captain, take up to {steal_amount} coins from the target, target may block as Captain or Ambassador), exchange (claims Ambassador, draw 1 card and return 1 hidden card). A claim may be a bluff; a challenged false claim costs you a card and the action fails."
+    },
+    {
+      "use": "ask",
+      "phase": "action",
+      "label": "the target",
+      "when": {
+        "calc": "action in ['coup', 'assassinate', 'steal']"
+      },
+      "to": {
+        "where": "you.seat == active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "game": "target_offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "target",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "Choose the seat of another living player as the target of your {action}."
+    },
+    {
+      "use": "update",
+      "phase": "action",
+      "label": "pay the cost",
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-coup_cost"
+            },
+            "if": {
+              "calc": "action == 'coup'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-assassinate_cost"
+            },
+            "if": {
+              "calc": "action == 'assassinate'"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "reaction_offer",
+            "value": {
+              "calc": "['pass', 'block_duke'] if action == 'foreign_aid' else ['pass', 'challenge'] + (['block_contessa'] if action == 'assassinate' and you.seat == target else []) + (['block_captain', 'block_ambassador'] if action == 'steal' and you.seat == target else [])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "action",
+      "label": "the action is announced",
+      "to": "all",
+      "text": "Seat {active_seat} plays {action}{' claiming ' + claimed_role if claimed_role != '' else ''}{['', ' on seat 1', ' on seat 2', ' on seat 3', ' on seat 4', ' on seat 5'][target]}."
+    },
+    {
+      "use": "poll",
+      "phase": "reaction",
+      "label": "reactions to the action",
+      "when": {
+        "calc": "action in ['foreign_aid', 'tax', 'assassinate', 'steal', 'exchange']"
+      },
+      "to": {
+        "where": "you.seat != active_seat"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "reaction_offer"
+        }
+      },
+      "store": "reaction",
+      "text": "Seat {active_seat} plays {action}{' claiming ' + claimed_role if claimed_role != '' else ''}{['', ' on seat 1', ' on seat 2', ' on seat 3', ' on seat 4', ' on seat 5'][target]}. Answer at the same moment as the others, from the options offered. challenge: if the claim is false the active player loses a card and the action fails; if it is true they draw a replacement, you lose a card and the action still goes ahead. Only the first challenger after the active player counts. block: the action is stopped unless your block is challenged and you do not hold the role, in which case you lose a card and the action goes ahead; if it is challenged and you hold it, the challenger loses a card."
+    },
+    {
+      "use": "tell",
+      "phase": "reaction",
+      "label": "the reactions are announced",
+      "when": {
+        "calc": "action in ['foreign_aid', 'tax', 'assassinate', 'steal', 'exchange']"
+      },
+      "to": "all",
+      "text": "Reactions as [seat, answer]: {[[p.seat, p.reaction] for p in players if p.reaction != '']}."
+    },
+    {
+      "use": "update",
+      "phase": "challenge",
+      "label": "count and resolve the action challenge",
+      "do": [
+        {
+          "set": {
+            "key": "challenger",
+            "value": {
+              "calc": "(((active_seat) - 1 + min([(p.seat - (active_seat)) % len(players) for p in players if p.reaction == 'challenge'])) % len(players)) + 1"
+            },
+            "if": {
+              "calc": "count(p.reaction == 'challenge' for p in players) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "blocker",
+            "value": {
+              "calc": "(((active_seat) - 1 + min([(p.seat - (active_seat)) % len(players) for p in players if p.reaction in ['block_duke', 'block_contessa', 'block_captain', 'block_ambassador']])) % len(players)) + 1"
+            },
+            "if": {
+              "calc": "count(p.reaction in ['block_duke', 'block_contessa', 'block_captain', 'block_ambassador'] for p in players) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "block_role",
+            "value": {
+              "calc": "'Duke' if players[blocker - 1].reaction == 'block_duke' else 'Contessa' if players[blocker - 1].reaction == 'block_contessa' else 'Captain' if players[blocker - 1].reaction == 'block_captain' else 'Ambassador'"
+            },
+            "if": {
+              "calc": "blocker > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "claim_true",
+            "value": {
+              "calc": "challenger > 0 and claimed_role in players[active_seat - 1].hidden_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck) - bottom_n if len(deck) > bottom_n else len(deck)))]"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "remove": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "hidden_cards",
+            "value": {
+              "calc": "claimed_role"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "deck",
+            "value": {
+              "calc": "claimed_role"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "bottom_n",
+            "value": 1,
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "challenger"
+            },
+            "key": "pending_loss",
+            "value": {
+              "calc": "loss_per_hit"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "pending_loss",
+            "value": {
+              "calc": "loss_per_hit"
+            },
+            "if": {
+              "calc": "challenger > 0 and not claim_true"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "action_status",
+            "value": "failed",
+            "if": {
+              "calc": "challenger > 0 and not claim_true"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "challenge",
+      "label": "the challenge result",
+      "when": {
+        "calc": "challenger > 0"
+      },
+      "to": "all",
+      "text": "Seat {challenger} challenged. Seat {active_seat}'s claim of {claimed_role} was {'TRUE: they showed it, drew a replacement and put the shown card into the deck, and the action continues' if claim_true else 'FALSE: the action fails and any block is ignored'}. Seat {challenger if claim_true else active_seat} takes 1 pending loss."
+    },
+    {
+      "use": "poll",
+      "phase": "block",
+      "label": "answers to the block",
+      "when": {
+        "calc": "action_status == 'going' and blocker > 0"
+      },
+      "to": {
+        "where": "you.seat != blocker"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "accept",
+          "challenge"
+        ]
+      },
+      "store": "block_response",
+      "text": "Seat {blocker} blocks the {action} claiming {block_role}. Answer at the same moment as the others: accept, or challenge. If nobody challenges, the action is blocked. If challenged and the blocker holds {block_role}, they draw a replacement, the first challenger after the blocker loses a card and the action is blocked; if they do not, the blocker loses a card and the action goes ahead."
+    },
+    {
+      "use": "tell",
+      "phase": "block",
+      "label": "the block answers are announced",
+      "when": {
+        "calc": "action_status == 'going' and blocker > 0"
+      },
+      "to": "all",
+      "text": "Answers to the block as [seat, answer]: {[[p.seat, p.block_response] for p in players if p.block_response != '']}."
+    },
+    {
+      "use": "update",
+      "phase": "block",
+      "label": "resolve the block",
+      "when": {
+        "calc": "action_status == 'going' and blocker > 0"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "block_challenger",
+            "value": {
+              "calc": "(((blocker) - 1 + min([(p.seat - (blocker)) % len(players) for p in players if p.block_response == 'challenge'])) % len(players)) + 1"
+            },
+            "if": {
+              "calc": "count(p.block_response == 'challenge' for p in players) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "action_status",
+            "value": "blocked",
+            "if": {
+              "calc": "block_challenger == 0"
+            },
+            "text": "Nobody challenges: seat {blocker}'s block stands and the action has no effect."
+          }
+        },
+        {
+          "set": {
+            "key": "claim_true",
+            "value": {
+              "calc": "block_challenger > 0 and block_role in players[blocker - 1].hidden_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck) - bottom_n if len(deck) > bottom_n else len(deck)))]"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "blocker"
+            },
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "remove": {
+            "player": {
+              "calc": "blocker"
+            },
+            "key": "hidden_cards",
+            "value": {
+              "calc": "block_role"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "deck",
+            "value": {
+              "calc": "block_role"
+            },
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "bottom_n",
+            "value": 1,
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "block_challenger"
+            },
+            "key": "pending_loss",
+            "value": {
+              "calc": "loss_per_hit"
+            },
+            "if": {
+              "calc": "claim_true"
+            },
+            "text": "Seat {blocker} held {block_role}: they drew a replacement and put the shown card into the deck. Seat {block_challenger} takes 1 pending loss and the action is blocked."
+          }
+        },
+        {
+          "set": {
+            "key": "action_status",
+            "value": "blocked",
+            "if": {
+              "calc": "claim_true"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "blocker"
+            },
+            "key": "pending_loss",
+            "value": {
+              "calc": "loss_per_hit"
+            },
+            "if": {
+              "calc": "block_challenger > 0 and not claim_true"
+            },
+            "text": "Seat {blocker} did not hold {block_role}: they take 1 pending loss, the block fails and the action goes ahead."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "effect",
+      "label": "the effect",
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "income_gain"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'income'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "foreign_aid_gain"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'foreign_aid'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "tax_gain"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'tax'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "stolen",
+            "value": {
+              "calc": "min(steal_amount, players[target - 1].coins)"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'steal'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "target"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "-stolen"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'steal'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "coins",
+            "value": {
+              "calc": "stolen"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'steal'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "target"
+            },
+            "key": "pending_loss",
+            "value": {
+              "calc": "loss_per_hit"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action in ['coup', 'assassinate']"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck) - bottom_n if len(deck) > bottom_n else len(deck)))]"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'exchange'"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "hidden_cards",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'exchange'"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'exchange'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "hidden_count",
+            "value": {
+              "calc": "exchange_draw"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'exchange'"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": {
+              "calc": "active_seat"
+            },
+            "key": "must_return",
+            "value": {
+              "calc": "exchange_return"
+            },
+            "if": {
+              "calc": "action_status == 'going' and action == 'exchange'"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck_count",
+            "value": {
+              "calc": "len(deck)"
+            }
+          }
+        }
+      ],
+      "text": "The action {action} is {'carried out' if action_status == 'going' else action_status}."
+    },
+    {
+      "use": "poll",
+      "phase": "cards",
+      "label": "which card",
+      "when": {
+        "calc": "count(p.alive and ((p.pending_loss == 1 and p.hidden_count == 2) or p.must_return == 1) for p in players) > 0"
+      },
+      "to": {
+        "where": "(you.pending_loss == 1 and you.hidden_count == 2) or you.must_return == 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hidden_cards"
+        }
+      },
+      "store": "card_choice",
+      "text": "Choose one of your hidden cards. If you lose 1 influence with 2 hidden cards, it is the card you reveal: it becomes public and permanent and you keep the other hidden. If you owe the deck a card after your Exchange, it is the card you put back into the deck, and it is never announced."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.pending_loss == 1 and you.hidden_count == 2"
+            },
+            "key": "reveal_choice",
+            "value": {
+              "calc": "you.card_choice"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.must_return == 1"
+            },
+            "key": "return_choice",
+            "value": {
+              "calc": "you.card_choice"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": {
+              "where": "you.pending_loss == 1 and you.hidden_count == 2"
+            },
+            "key": "hidden_cards",
+            "value": {
+              "calc": "you.reveal_choice"
+            }
+          }
+        },
+        {
+          "append": {
+            "players": {
+              "where": "you.pending_loss == 1 and you.hidden_count == 2"
+            },
+            "key": "revealed_cards",
+            "value": {
+              "calc": "you.reveal_choice"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pending_loss == 1 and you.hidden_count == 2"
+            },
+            "key": "revealed_now",
+            "value": {
+              "calc": "[you.reveal_choice]"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": {
+              "where": "you.must_return == 1"
+            },
+            "key": "hidden_cards",
+            "value": {
+              "calc": "you.return_choice"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "deck",
+            "value": {
+              "calc": "[p.return_choice for p in players if p.must_return == 1][0]"
+            },
+            "if": {
+              "calc": "count(p.must_return == 1 for p in players) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pending_loss > 0 and you.pending_loss >= you.hidden_count"
+            },
+            "key": "revealed_now",
+            "value": {
+              "calc": "you.hidden_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pending_loss > 0 and you.pending_loss >= you.hidden_count"
+            },
+            "key": "revealed_cards",
+            "value": {
+              "calc": "you.revealed_cards + you.hidden_cards"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pending_loss > 0 and you.pending_loss >= you.hidden_count"
+            },
+            "key": "hidden_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pending_loss > 0 and you.pending_loss >= you.hidden_count"
+            },
+            "key": "coins",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.pending_loss > 0 and you.pending_loss >= you.hidden_count"
+            },
+            "key": "alive",
+            "value": false
+          }
+        },
+        {
+          "set_status": {
+            "players": {
+              "where": "you.pending_loss > 0 and you.pending_loss >= you.hidden_count"
+            },
+            "to": "out",
+            "text": "Seat {player} is out."
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hidden_count",
+            "value": {
+              "calc": "len(you.hidden_cards)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pending_loss",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "must_return",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "bottom_n",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "deck_count",
+            "value": {
+              "calc": "len(deck)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "living_count",
+            "value": {
+              "calc": "count(p.alive for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_key",
+            "value": {
+              "calc": "max([p.hidden_count * 1000 + p.coins for p in players if p.alive] + [0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "winner",
+            "value": {
+              "calc": "['seat 1', 'seat 2', 'seat 3', 'seat 4', 'seat 5'][min([p.seat for p in players if p.alive]) - 1] if living_count == 1 else (('draw' if count(p.alive and p.hidden_count * 1000 + p.coins == top_key for p in players) > 1 else ['seat 1', 'seat 2', 'seat 3', 'seat 4', 'seat 5'][min([p.seat for p in players if p.alive and p.hidden_count * 1000 + p.coins == top_key]) - 1]) if turn_count >= turn_cap else '')"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "what was revealed",
+      "to": "all",
+      "when": {
+        "calc": "count(len(p.revealed_now) > 0 for p in players) > 0"
+      },
+      "text": "Revealed this turn as [seat, cards]: {[[p.seat, p.revealed_now] for p in players if len(p.revealed_now) > 0]}. Eliminated this turn: {[p.seat for p in players if len(p.revealed_now) > 0 and not p.alive]}."
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "is the game over",
+      "when": {
+        "calc": "living_count == 1 or turn_count >= turn_cap"
+      },
+      "against": [
+        "seat_1",
+        "seat_2",
+        "seat_3",
+        "seat_4",
+        "seat_5",
+        "draw"
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "next player",
+      "do": [
+        {
+          "set": {
+            "key": "active_seat",
+            "value": {
+              "calc": "((active_seat + min([(p.seat - active_seat - 1) % len(players) for p in players if p.alive])) % len(players)) + 1"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "end": {
+    "seat_1": {
+      "when": {
+        "calc": "winner == 'seat 1'"
+      },
+      "result": "seat 1",
+      "text": "Seat 1 wins after {turn_count} turns, {'the last player holding a hidden card' if living_count == 1 else 'with the most hidden cards (then coins) at the turn cap'}. Final [seat, hidden cards, coins, revealed]: {[[p.seat, p.hidden_count, p.coins, p.revealed_cards] for p in players]}."
+    },
+    "seat_2": {
+      "when": {
+        "calc": "winner == 'seat 2'"
+      },
+      "result": "seat 2",
+      "text": "Seat 2 wins after {turn_count} turns, {'the last player holding a hidden card' if living_count == 1 else 'with the most hidden cards (then coins) at the turn cap'}. Final [seat, hidden cards, coins, revealed]: {[[p.seat, p.hidden_count, p.coins, p.revealed_cards] for p in players]}."
+    },
+    "seat_3": {
+      "when": {
+        "calc": "winner == 'seat 3'"
+      },
+      "result": "seat 3",
+      "text": "Seat 3 wins after {turn_count} turns, {'the last player holding a hidden card' if living_count == 1 else 'with the most hidden cards (then coins) at the turn cap'}. Final [seat, hidden cards, coins, revealed]: {[[p.seat, p.hidden_count, p.coins, p.revealed_cards] for p in players]}."
+    },
+    "seat_4": {
+      "when": {
+        "calc": "winner == 'seat 4'"
+      },
+      "result": "seat 4",
+      "text": "Seat 4 wins after {turn_count} turns, {'the last player holding a hidden card' if living_count == 1 else 'with the most hidden cards (then coins) at the turn cap'}. Final [seat, hidden cards, coins, revealed]: {[[p.seat, p.hidden_count, p.coins, p.revealed_cards] for p in players]}."
+    },
+    "seat_5": {
+      "when": {
+        "calc": "winner == 'seat 5'"
+      },
+      "result": "seat 5",
+      "text": "Seat 5 wins after {turn_count} turns, {'the last player holding a hidden card' if living_count == 1 else 'with the most hidden cards (then coins) at the turn cap'}. Final [seat, hidden cards, coins, revealed]: {[[p.seat, p.hidden_count, p.coins, p.revealed_cards] for p in players]}."
+    },
+    "draw": {
+      "when": {
+        "calc": "winner == 'draw'"
+      },
+      "result": "draw",
+      "text": "The game is a draw after {turn_count} turns: the leading living seats tie on hidden cards and coins. Final [seat, hidden cards, coins, revealed]: {[[p.seat, p.hidden_count, p.coins, p.revealed_cards] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 40,
+    "rounds_max": 60,
+    "actions_max": 4000,
+    "deadline_s": 120
+  }
+}

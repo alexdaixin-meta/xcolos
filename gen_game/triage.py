@@ -40,8 +40,10 @@ use), and the evidence of what went wrong. Decide who needs to act:
                   mistake in the file, a rule not implemented, a misread of the rules. Give the coder concrete guidance.
   fix_tests       The game file follows the rules, but a TEST is wrong: it misreads the rules, asserts on internal bookkeeping
                   (a counter, a scratch value, whose turn it is) instead of the result and the scores, or predicts something that
-                  chance decides. Compare the tests with the rules and with what the game actually did. The tests will be rewritten,
-                  and `guidance` says what to do differently.
+                  chance decides. Also a test's fault: a rule "never matched" for a seat that, by the rule under test, does not act
+                  (a correct game never asks it), and a test of an invalid or malformed answer (the platform refuses those before
+                  the game sees them, so no game can pass it). Compare the tests with the rules and with what the game actually
+                  did. The tests will be rewritten, and `guidance` says what to do differently.
   revise_rules    The rules are the problem: a test is right and the rules are unbalanced or ambiguous, the design is
                   too complex to build correctly, or it relies on something awkward the platform can only approximate
                   badly. Say how the designer should change the rules (simplify, rebalance, drop a mechanic).

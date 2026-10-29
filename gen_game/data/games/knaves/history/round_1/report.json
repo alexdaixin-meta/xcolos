@@ -1,0 +1,489 @@
+{
+  "game": "knaves",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state shown to players has empty fields (played_card, played_card, played_card, led_suit) in `your_hand`; hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    "it plays, but part of it does nothing: game attribute `full_deck` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.; game attribute `trump_weight` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.; game attribute `led_weight` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup: totals are 0, hand 1, full 20-card deck, no hand dealt yet",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Same suit ranks A K Q J 10: KS beats QS and 10S",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 36: starting at round 35, two tricks are played and the game ends",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Hand 1 starts with all totals at 0 (dealer and eldest are not observable)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "End of a hand dealt by seat 3 moves on to the next hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After a hand ends, a new hand is dealt and its first trick is played (only chance-free counts asserted)",
+      "passed": false,
+      "failures": [
+        "rule R6 is broken: When a hand begins, eldest is the seat to the dealer's left: dealer mod 3 + 1.",
+        "the match crashed: CalcError: 'deck[int(uniform(0, len(deck)))]': list index out of range"
+      ],
+      "trace": ""
+    },
+    {
+      "name": "Each seat is dealt 6 cards and holds 5 after the first trick (chance: counts only)",
+      "passed": false,
+      "failures": [
+        "rule R7 is broken: When a hand begins, all 20 cards are shuffled and each player is dealt 6 cards into their hand, which only the owner can see.",
+        "game deck: expected 0 items, got 3",
+        "Ada: the rule for 0 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 0 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 2: '10D'; r1 seat 3: 'QD'; r1 seat 1: 'JD'. First attribute changes: table pick: '' -> 'JH'; seat 1 hand: [] -> ['JH']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', 'JH', '10H'] -> ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JH' -> '10S'; seat 1 hand: ['JH'] -> ['JH', '10S']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: '10S' -> 'JC'; seat 1 hand: ['JH', '10S'] -> ['JH', '10S', 'JC']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JC' -> 'JD'; seat 1 hand: ['JH', '10S', 'JC'] -> ['JH', '10S', 'JC', 'JD']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JD' -> 'KH'; seat 1 hand: ['JH', '10S', 'JC', 'JD'] -> ['JH', '10S', 'JC', 'JD', 'KH'] .... Final: players {\"seat 1\": {\"hand\": [\"JH\", \"10S\", \"JC\", \"KH\", \"10H\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JD\"], \"play_value\": 39}, \"seat 2\": {\"hand\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"play_value\": 38}, \"seat 3\": {\"hand\": [\"KC\", \"KD\", \"10C\", \"AC\", \"QC\"], \"bid\": 0, \"tr; table {\"deck\": [\"10D\", \"QD\", \"JD\"], \"pick\": \"AD\", \"turned_card\": \"AD\", \"hidden_card\": \"QH\", \"trump_suit\": \"D\", \"hand_number\": 1, \"trick_in_hand\": 2, \"round_number\": 2, \"dealer\": 1, \"eldest\": 2, \"leader\": 3, \"led_suit\": \"\", \"trick_winner\": 3, \"player_count\": 3, \"deck_size\": 20, \"suits\": 4, \"ranks_per_suit\": 5, \"hands\": 6, \"tricks_per_hand\": 6, \"total_rounds\": 36, \"cards_dealt_per_player\": 6, \"trump_card_position\": 19, \"hidd"
+    },
+    {
+      "name": "Turned card is out of play: deck is empty after the deal and hands hold 5 after one trick (chance: counts only)",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When a hand is dealt, the 19th card is turned face up into turned_card, trump_suit becomes its suit, and that card is out of play.",
+        "game deck: expected 0 items, got 3",
+        "Ada: the rule for 0 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 0 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 2: '10D'; r1 seat 3: 'QD'; r1 seat 1: 'JD'. First attribute changes: table pick: '' -> 'JH'; seat 1 hand: [] -> ['JH']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', 'JH', '10H'] -> ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JH' -> '10S'; seat 1 hand: ['JH'] -> ['JH', '10S']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: '10S' -> 'JC'; seat 1 hand: ['JH', '10S'] -> ['JH', '10S', 'JC']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JC' -> 'JD'; seat 1 hand: ['JH', '10S', 'JC'] -> ['JH', '10S', 'JC', 'JD']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JD' -> 'KH'; seat 1 hand: ['JH', '10S', 'JC', 'JD'] -> ['JH', '10S', 'JC', 'JD', 'KH'] .... Final: players {\"seat 1\": {\"hand\": [\"JH\", \"10S\", \"JC\", \"KH\", \"10H\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JD\"], \"play_value\": 39}, \"seat 2\": {\"hand\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"play_value\": 38}, \"seat 3\": {\"hand\": [\"KC\", \"KD\", \"10C\", \"AC\", \"QC\"], \"bid\": 0, \"tr; table {\"deck\": [\"10D\", \"QD\", \"JD\"], \"pick\": \"AD\", \"turned_card\": \"AD\", \"hidden_card\": \"QH\", \"trump_suit\": \"D\", \"hand_number\": 1, \"trick_in_hand\": 2, \"round_number\": 2, \"dealer\": 1, \"eldest\": 2, \"leader\": 3, \"led_suit\": \"\", \"trick_winner\": 3, \"player_count\": 3, \"deck_size\": 20, \"suits\": 4, \"ranks_per_suit\": 5, \"hands\": 6, \"tricks_per_hand\": 6, \"total_rounds\": 36, \"cards_dealt_per_player\": 6, \"trump_card_position\": 19, \"hidd"
+    },
+    {
+      "name": "Hidden card is out of play: no card is left in the deck after the deal (chance: counts only)",
+      "passed": false,
+      "failures": [
+        "rule R9 is broken: When a hand is dealt, the 20th card goes face down into hidden_card, is out of play, and is never revealed during the hand.",
+        "game deck: expected 0 items, got 3",
+        "Ada: the rule for 0 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 0 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 2: '10D'; r1 seat 3: 'QD'; r1 seat 1: 'JD'. First attribute changes: table pick: '' -> 'JH'; seat 1 hand: [] -> ['JH']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', 'JH', '10H'] -> ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JH' -> '10S'; seat 1 hand: ['JH'] -> ['JH', '10S']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: '10S' -> 'JC'; seat 1 hand: ['JH', '10S'] -> ['JH', '10S', 'JC']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JC' -> 'JD'; seat 1 hand: ['JH', '10S', 'JC'] -> ['JH', '10S', 'JC', 'JD']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JD' -> 'KH'; seat 1 hand: ['JH', '10S', 'JC', 'JD'] -> ['JH', '10S', 'JC', 'JD', 'KH'] .... Final: players {\"seat 1\": {\"hand\": [\"JH\", \"10S\", \"JC\", \"KH\", \"10H\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JD\"], \"play_value\": 39}, \"seat 2\": {\"hand\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"play_value\": 38}, \"seat 3\": {\"hand\": [\"KC\", \"KD\", \"10C\", \"AC\", \"QC\"], \"bid\": 0, \"tr; table {\"deck\": [\"10D\", \"QD\", \"JD\"], \"pick\": \"AD\", \"turned_card\": \"AD\", \"hidden_card\": \"QH\", \"trump_suit\": \"D\", \"hand_number\": 1, \"trick_in_hand\": 2, \"round_number\": 2, \"dealer\": 1, \"eldest\": 2, \"leader\": 3, \"led_suit\": \"\", \"trick_winner\": 3, \"player_count\": 3, \"deck_size\": 20, \"suits\": 4, \"ranks_per_suit\": 5, \"hands\": 6, \"tricks_per_hand\": 6, \"total_rounds\": 36, \"cards_dealt_per_player\": 6, \"trump_card_position\": 19, \"hidd"
+    },
+    {
+      "name": "Bids 0 to 6 are stored for each seat",
+      "passed": false,
+      "failures": [
+        "rule R10 is broken: When a hand has been dealt, all players bid at the same moment a whole number from 0 to 6, and no bid is seen until all three are in.",
+        "seat 1 bid: expected 3, got 0",
+        "seat 3 bid: expected 6, got 0",
+        "seat 1 was never offered 6, but should have been",
+        "seat 2 was never offered 0, but should have been",
+        "Ada: the rule for 3 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 6 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 2: '10D'; r1 seat 3: 'QD'; r1 seat 1: 'JD'. First attribute changes: table pick: '' -> 'JH'; seat 1 hand: [] -> ['JH']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', 'JH', '10H'] -> ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JH' -> '10S'; seat 1 hand: ['JH'] -> ['JH', '10S']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: '10S' -> 'JC'; seat 1 hand: ['JH', '10S'] -> ['JH', '10S', 'JC']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JC' -> 'JD'; seat 1 hand: ['JH', '10S', 'JC'] -> ['JH', '10S', 'JC', 'JD']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JD' -> 'KH'; seat 1 hand: ['JH', '10S', 'JC', 'JD'] -> ['JH', '10S', 'JC', 'JD', 'KH'] .... Final: players {\"seat 1\": {\"hand\": [\"JH\", \"10S\", \"JC\", \"KH\", \"10H\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JD\"], \"play_value\": 39}, \"seat 2\": {\"hand\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"JS\", \"AS\", \"KS\", \"AH\", \"QS\"], \"play_value\": 38}, \"seat 3\": {\"hand\": [\"KC\", \"KD\", \"10C\", \"AC\", \"QC\"], \"bid\": 0, \"tr; table {\"deck\": [\"10D\", \"QD\", \"JD\"], \"pick\": \"AD\", \"turned_card\": \"AD\", \"hidden_card\": \"QH\", \"trump_suit\": \"D\", \"hand_number\": 1, \"trick_in_hand\": 2, \"round_number\": 2, \"dealer\": 1, \"eldest\": 2, \"leader\": 3, \"led_suit\": \"\", \"trick_winner\": 3, \"player_count\": 3, \"deck_size\": 20, \"suits\": 4, \"ranks_per_suit\": 5, \"hands\": 6, \"tricks_per_hand\": 6, \"total_rounds\": 36, \"cards_dealt_per_player\": 6, \"trump_card_position\": 19, \"hidd"
+    },
+    {
+      "name": "All three bids are revealed after bidding",
+      "passed": false,
+      "failures": [
+        "rule R11 is broken: When all three bids are in, all three are revealed to everyone.",
+        "seat 1 bid: expected 2, got 0",
+        "seat 2 bid: expected 5, got 0",
+        "seat 3 bid: expected 1, got 0",
+        "Ada: the rule for 2 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 2: 'JS'; r1 seat 3: '10C'; r1 seat 1: '10S'. First attribute changes: table pick: '' -> 'JH'; seat 1 hand: [] -> ['JH']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', 'JH', '10H'] -> ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JH' -> '10S'; seat 1 hand: ['JH'] -> ['JH', '10S']; table deck: ['AS', 'KS', 'QS', 'JS', '10S', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: '10S' -> 'JC'; seat 1 hand: ['JH', '10S'] -> ['JH', '10S', 'JC']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', 'JC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JC' -> 'JD'; seat 1 hand: ['JH', '10S', 'JC'] -> ['JH', '10S', 'JC', 'JD']; table deck: ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', 'JD', '10D', 'AH', 'KH', 'QH', '10H'] -> ['AS', 'KS', 'QS', 'JS', 'AC', 'KC', 'QC', '10C', 'AD', 'KD', 'QD', '10D', 'AH', 'KH', 'QH', '10H']; table pick: 'JD' -> 'KH'; seat 1 hand: ['JH', '10S', 'JC', 'JD'] -> ['JH', '10S', 'JC', 'JD', 'KH'] .... Final: players {\"seat 1\": {\"hand\": [\"JH\", \"JC\", \"JD\", \"KH\", \"10H\"], \"bid\": 0, \"tricks_taken\": 0, \"hand_score\": 0, \"total\": 0, \"played_card\": \"\", \"offer\": [\"10S\"], \"play_value\": 24}, \"seat 2\": {\"hand\": [\"10D\", \"AS\", \"KS\", \"AH\", \"QS\"], \"bid\": 0, \"tricks_taken\": 1, \"hand_score\": 1, \"total\": 0, \"played_card\": \"\", \"offer\": [\"AS\", \"KS\", \"QS\"], \"play_value\": 25}, \"seat 3\": {\"hand\": [\"QD\", \"KC\", \"KD\", \"AC\", \"QC\"], \"bid\": 0, \"tricks_taken\":; table {\"deck\": [\"JS\", \"10C\", \"10S\"], \"pick\": \"AD\", \"turned_card\": \"AD\", \"hidden_card\": \"QH\", \"trump_suit\": \"D\", \"hand_number\": 1, \"trick_in_hand\": 2, \"round_number\": 2, \"dealer\": 1, \"eldest\": 2, \"leader\": 2, \"led_suit\": \"\", \"trick_winner\": 2, \"player_count\": 3, \"deck_size\": 20, \"suits\": 4, \"ranks_per_suit\": 5, \"hands\": 6, \"tricks_per_hand\": 6, \"total_rounds\": 36, \"cards_dealt_per_player\": 6, \"trump_card_position\": 19, \"hid"
+    },
+    {
+      "name": "Eldest (seat 2) leads; the others must follow its suit",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The previous trick's winner (seat 3) leads the next trick",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "All three seats play one card each in the trick",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Leader may lead any card in hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Followers holding the led suit must follow it",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A follower void in the led suit may play anything, including a trump that then wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Highest trump wins: AD beats KD",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Without trump, off-suit aces cannot beat the led 10C",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Winning a trick adds 1 trick and 2 points",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Winner taking JH and JC scores 2 - 4 - 2 = -4",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Winner (trumping with JD) taking JS and JD scores 2 - 1 - 3 = -2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After a trick, its winner and every seat's tricks taken are public",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Exact bid earns +4 at the end of the hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "End of hand: hand_score added to total, then reset to 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Each seat plays one card in the trick and the trick is scored",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Game ends after round 36 and the highest total wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tie for the highest total is shared by both seats",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        3
+      ],
+      "results": {
+        "seat 2": 9,
+        "seat 1": 6,
+        "seat 3": 3,
+        "seats 1 and 3": 1,
+        "seats 1 and 2": 1
+      },
+      "turns_min": 77,
+      "turns_max": 92
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 2": 19,
+      "seat 1": 19,
+      "seat 3": 17,
+      "seats 1 and 3": 1,
+      "seats 1 and 2": 3,
+      "seats 1, 2 and 3": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 10,
+        "loss": 48,
+        "draw": 2,
+        "win_rate": 0.17
+      },
+      "first@seat2": {
+        "win": 15,
+        "loss": 40,
+        "draw": 5,
+        "win_rate": 0.27
+      },
+      "last@seat1": {
+        "win": 8,
+        "loss": 51,
+        "draw": 1,
+        "win_rate": 0.14
+      },
+      "last@seat2": {
+        "win": 10,
+        "loss": 47,
+        "draw": 3,
+        "win_rate": 0.18
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 126.0,
+      "prompt_chars_avg": 128,
+      "prompt_chars_max": 191
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 3 players (min, max and suggested 3)",
+      "why": "The designer fixed 3. The 20-card deck is built for it: 3 x 6 dealt cards plus the turned trump card and the hidden card make 20, so no other count works without changing the deck."
+    },
+    {
+      "what": "No talk phase",
+      "why": "The source has no table talk, and adding one would add a mechanic. The strategy is already in the exact bid (balancing taking tricks against hitting the bid), in dumping or avoiding Jacks, and in reading the revealed bids."
+    },
+    {
+      "what": "Cards are written as rank plus suit letter (AS, 10H, ...), with rank values A=14, K=13, Q=12, J=11, 10=10",
+      "why": "This lets the trick winner be worked out by arithmetic comparison."
+    },
+    {
+      "what": "Seat to the left means the next seat number, with seat 1 after seat 3",
+      "why": "The source says 'left' but gives no numbering, and a direction is needed for dealer rotation, eldest and play order."
+    },
+    {
+      "what": "The first-round-of-hand steps (deal, bid, reveal) and the end-of-hand step carry a when condition on trick_in_hand",
+      "why": "This keeps the step list flat while running those steps only on tricks 1 and 6 of each hand."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for the highest total is a shared win rather than a separately named draw",
+      "why": "The engine has no separate draw outcome; players level at the top share the result, which matches the source's draw."
+    },
+    {
+      "what": "Dealing is done by random draws from the deck list rather than by a physical shuffle and dealing in order",
+      "why": "Drawing at random is equivalent to shuffling, so the 19th and 20th cards are simply the two left after the 18 dealt cards."
+    },
+    {
+      "what": "The order of play within a trick is three ask steps addressed relative to leader",
+      "why": "The engine has no seat-order rotation, so the leader, the next seat and the third seat are each named by arithmetic on leader."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 46,
+    "hidden_elements": 6
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Knaves is a three-player trick-taking game with a 52-card deck and a trump suit set by a turned-up card. Each trick taken scores +1, and capturing the four Jacks costs -1, -2, -3 or -4 points. The first player to reach 20 points over several hands wins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "No simple policy is safe. Always playing your highest card wins tricks but also collects the Jacks that others discard, and a Jack trick can be worth -3 overall. Always playing your lowest card gives up tricks. Every card choice changes who takes which trick and who eats which Jack. One seat imbalance exists: the rules never rotate the deal or the first lead, so eldest always leads first."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "Card play, counting and Jack-dumping are real skills. But with 17-card hands, a hand rich in trumps and aces takes many tricks almost regardless of play, and nothing makes up for a weak deal. Over a few hands to 20, the deal often decides the winner."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "There is a lot to improve at: counting trumps, inferring voids from discards, timing when to win or lose a trick, and steering Jacks to the leader. A weak player still takes some tricks and scores."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Hands are hidden. Every play leaks information (failing to follow reveals a void), and planning which tricks to win or duck over a whole hand takes inference and opponent modelling."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "The trick winner follows from suit and rank. Scores are trick counts minus fixed Jack penalties, and the target is a plain number."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "bad",
+        "evidence": "Hidden hands and sequential plays are supported. But one hand is 17 tricks, and reaching 20 points can take three or more hands, so 50+ rounds against a 40-round limit. A 52-card deck is also a lot of state to track. 'First to 20' can be reached by two players in the same hand, with no tie rule."
+      }
+    ],
+    "problems": [
+      "Length: 17 tricks per hand, played to 20 points, exceeds the 40-round limit and has an unpredictable length.",
+      "Lottery: hand strength largely decides trick count, and nothing in the scoring rewards playing a weak hand well, so the deal often decides the winner.",
+      "Seat edge: the rules never rotate the deal or the first lead.",
+      "The winner rule is incomplete: two players can pass 20 in the same hand, and there is no tie rule.",
+      "Scale: a 52-card deck with 17-card hands is far more state than needed to keep the game's decisions."
+    ],
+    "changes": [
+      {
+        "what": "Shrink the deck to 20 cards (A, K, Q, J, 10 in each suit). Deal 6 cards to each player. Turn the 19th card up for trump and leave the 20th face down, out of play.",
+        "why": "This keeps the original's structure of three equal hands, one turned-up trump card and leftover cards out of play, at a size the engine can track. Each hand becomes 6 tricks.",
+        "fixes": "Scale: a 52-card deck with 17-card hands is far more state than needed to keep the game's decisions."
+      },
+      {
+        "what": "Play exactly 6 hands (36 tricks, one trick per round). The highest total wins, and a tie for highest is a draw.",
+        "why": "This gives a fixed length inside 40 rounds and a complete winner rule. Endgame unraveling does not apply, because this is not a cooperation game.",
+        "fixes": "Length: 17 tricks per hand, played to 20 points, exceeds the 40-round limit and has an unpredictable length."
+      },
+      {
+        "what": "Rotate the dealer every hand. The player left of the dealer (eldest) leads the first trick. Over 6 hands, each player is dealer twice and eldest twice.",
+        "why": "This removes any built-in seat advantage.",
+        "fixes": "Seat edge: the rules never rotate the deal or the first lead."
+      },
+      {
+        "what": "Add a secret simultaneous bid at the start of each hand. Each player predicts how many tricks they will take (0 to 6). Bids are revealed before the first lead, and an exact bid earns +4.",
+        "why": "A weak hand can now score well by bidding low and ducking accurately, so the deal changes what to do rather than who wins. Revealed bids give opponents a target to read and disrupt: they can force tricks on a player who bid low, or refuse tricks to one who bid high.",
+        "fixes": "Lottery: hand strength largely decides trick count, and nothing in the scoring rewards playing a weak hand well, so the deal often decides the winner."
+      },
+      {
+        "what": "Make each trick worth 2 points and keep the Jack penalties unchanged (spades -1, clubs -2, diamonds -3, hearts -4).",
+        "why": "With only 6 tricks per hand, worth 1 each, the -10 of Jack penalties would swamp trick-taking. At 2 points per trick (12 per hand), tricks and Jacks keep roughly the original balance against each other.",
+        "fixes": "Lottery: hand strength largely decides trick count, and nothing in the scoring rewards playing a weak hand well, so the deal often decides the winner."
+      }
+    ],
+    "keeps": [
+      "Three players, a trick-taking game with must-follow-suit and a trump suit set by a turned-up card",
+      "A leftover card out of play, as in the original's 52nd card",
+      "Tricks score points; the four Jacks carry graded penalties of -1, -2, -3 and -4 by suit",
+      "The central tension of Knaves: wanting tricks while dodging, and dumping, the expensive Jacks",
+      "Scores accumulate over several hands"
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The game's decisions (follow suit, trump, Jack-dumping, inference from discards) fit the engine once the deck and hand length are cut down. An exact-bid bonus turns deal luck into a planning problem."
+    },
+    "variation": {
+      "name": "Knaves' Wager",
+      "summary": "A short three-player Knaves played with a 20-card deck over 6 hands of 6 tricks. Players take tricks, avoid the Jacks and secretly predict their trick count each hand for a bonus.",
+      "players": {
+        "min": 3,
+        "max": 3,
+        "suggested": 3
+      },
+      "rules": "PLAYERS AND DECK. 3 players sit in a fixed order. The deck has 20 cards: A, K, Q, J, 10 in each of spades, clubs, diamonds and hearts. Within a suit, cards rank A (high), K, Q, J, 10 (low).\n\nHANDS AND ROUNDS. The game is 6 hands of 6 tricks each, 36 rounds in all. Each round is one trick. The dealer for hand 1 is player 1. The dealer moves one seat to the left each hand, so each player deals twice. The player to the dealer's left is eldest for that hand.\n\nDEAL (first round of each hand). Shuffle all 20 cards. Deal 6 cards privately to each player; a hand is seen only by its owner. Turn the 19th card face up: its suit is trump for this hand, and the card itself is out of play. The 20th card stays face down and out of play, and is never revealed during the hand.\n\nBID (first round of each hand, after the deal). All players at the same moment secretly choose a whole number from 0 to 6: the number of tricks they predict they will take this hand. All three bids are then revealed to everyone.\n\nTRICK PLAY (every round). The leader plays any card from their hand face up. The eldest leads the first trick of a hand; afterwards, the winner of the previous trick leads. Then the next player to the left plays, then the third. Each must play a card of the led suit if they have one. If they have none, they may play any card, including a trump. The trick is won by the highest trump in it. If it holds no trump, the highest card of the led suit wins. All plays are visible to everyone as they are made.\n\nTRICK SCORING. The trick winner adds 2 to their hand score. They also take penalties for any Jacks in the trick: Jack of spades -1, Jack of clubs -2, Jack of diamonds -3, Jack of hearts -4. The trick's cards, its winner and the running trick counts are announced.\n\nEND OF HAND (after the 6th trick). Any player whose tricks taken equal their bid adds 4 to their hand score. Each player's hand score (2 per trick, minus Jack penalties, plus any bid bonus) is added to their total and announced. Hand scores reset to 0, and the dealer rotates.\n\nEND OF GAME. After the 6th hand (round 36), the game ends.",
+      "objective": "After 6 hands, the player with the highest total wins. If two or three players tie for the highest total, the game is a draw.",
+      "expected_effect": "Players must judge their hand to bid, then steer the trick count towards that bid while dumping Jacks on rivals and avoiding taking them. Because bids are public, opponents can see who needs or must avoid tricks and act against them: force a trick on a low bidder, or ruff a high bidder's ace. A weak deal can still win through an accurate low bid and careful ducking, so the deal decides what to do more than who wins. The single unseen card keeps card-counting slightly uncertain. Thoughtless policies lose: always-highest overshoots its bid and collects Jacks, always-lowest misses tricks and often its bid, and random play does both. Talk is left out. Its only real conflict use is two players agreeing to gang up on the leader, which turns the result into kingmaking rather than card reasoning. Free talk could also let players reveal hands. The plays themselves already carry the signals worth reading."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 4,
+      "attributes": 14,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 36
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "PAYOFF ARITHMETIC PER HAND: 6 tricks x 2 = 12 trick points in total. The four Jacks carry -10 in penalties, but on average 18 of the 20 cards are in play, so about -9 is assessed. That leaves about +3 net from tricks, roughly +1 per player per hand. The exact-bid bonus is +4. Bidding accuracy therefore matters more than raw trick count, and Jack-dumping (a void player discards a Jack onto an opponent's trick) is a real tactic.\n\nKEY DECISION TABLE (one player's hand score, given tricks won t and Jack penalty p in those tricks):\n- bid = t: 2t - p + 4\n- bid != t: 2t - p\n- Examples: bid 0, made: 4. Bid 2, made, no Jacks: 8. Bid 2, made, J-hearts taken: 4. Bid 2, took 3 with J-diamonds: 3.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (highest 6-hand total wins):\n(a) Always bid 0 and play the lowest legal card. Ducking is not controllable: a hand holding a trump Ace, or forced to follow suit with high cards, must win tricks. With 6 of 20 cards, P(0 tricks) is well under 1/2, so the expected score is about 4 x P(make) < 2 per hand. Sensible players bid their honest estimate. They get about +1 from tricks plus 4 x P(make) with higher accuracy, because they control the trick count in both directions. Policy (a) loses most games against sensible play. Against random bidders it sometimes wins, but not almost always.\n(b) Always bid 6. This is made only with a near-perfect hand, so the bonus is almost never earned. It loses to sensible play.\n(c) Always play the highest card. This takes Jack-laden tricks and makes bids only by accident. It loses.\n(d) Always bid the first or last option (0 or 6) is the same as (a) or (b).\nNo bid and no card is strictly better whatever the opponents do. The best bid depends on the hand, on trump and on the opponents' bids and play.\n\nSEAT EDGE: the dealer rotates, so each player deals twice and is eldest twice over 6 hands. The leading advantage is shared equally. Bids are simultaneous, so there is no information edge from bid order.\n\nWINNABILITY: totals are integers over a wide range, so ties (draws) are rare. All three players can realistically win. There is no cooperation or dilemma framing to mislabel."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "COMPLETENESS: the deck (20 cards), ranks, deal (6/6/6, 19th card face-up for trump and out of play, 20th hidden), simultaneous bid 0-6, follow-suit rule, trick winner (highest trump, else highest card of the led suit), leader rule, scoring and draw rule are all specified. All cards are distinct, so no trick can tie. Six cards each over six tricks means hands empty exactly at hand end. A turned-up Jack is out of play and never scored, which is consistent with 'trick's cards'.\n\nFINITE: exactly 36 rounds.\n\nARITHMETIC DECISION: the winner is the highest total, and the totals are kept by the game.\n\nLIMITS:\n- Choices per round: round 1 of a hand has 1 simultaneous bid plus 3 sequential card plays = 4 (limit 4). Other rounds have 3.\n- Steps: 12 is within 20. Trick resolution is a calc on suit/rank encodings. Follow-suit legality is a single rule check the referee may rule on. A conditional bid bonus uses a 'when' or 'if' on a single step, which is allowed.\n- Attributes: per player bid, tricks, hand score and total = 12, plus trump suit and led suit = 14 (limit 20). Leader and dealer can be derived or are within slack.\n- Hidden elements: private hands and the face-down 20th card = 2 (limit 3).\n- Random draws: one shuffle in a hand's first round, 0 otherwise (limit 1).\n- Rounds: 36 (limit 40).\nNo board, clock, trading or binding agreements are needed. Bids use a simultaneous poll, as required.\n\nTALK: none is used. This is sensible here. Public bids already supply the information players need to read each other, and play is a visible, sequential trick contest. Free talk would mostly add cheap, unenforceable bluff, and players are not reduced to blind guessing without it.\n\nThe repeated-cooperation concern does not apply: this is not a dilemma game."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "CHANCE: the deal strongly shapes how many tricks a hand can take. However, the scoring rewards accurate prediction (+4) more than strength (about +1 net per hand from tricks). A weak hand that bids 0 or 1 accurately scores comparably to a strong hand. Over 6 hands with rotating lead, single-deal luck is averaged. I estimate chance decides roughly 30-40% of outcomes between equal players, and much less between a good and a poor player.\n\nINFERENCE AVAILABLE:\n- Card counting is very tractable: only 20 cards, with 1 visible out and 1 hidden out.\n- Opponents' public bids reveal their hand strength and intended trick counts.\n- Voids are revealed by failures to follow suit.\n- Jack location (who still holds J-hearts).\n\nWAYS TO ACT ON IT:\n- Bid calibration.\n- Ducking or overtaking to hit your own bid.\n- Forcing an unwanted trick onto an opponent who bid low, or starving one who bid high.\n- Dumping Jacks onto rivals' tricks.\n\nALL-GOOD-PLAY OUTCOME: if all three play well, the winner comes from accumulated small edges in bid accuracy, Jack placement and sabotage over 36 tricks, not from a single hidden type or deal. Good play can overcome a bad deal, because a low accurate bid still earns +4. A reasoning player is clearly favoured."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "The rules are sound and the platform can express them, but the game file mishandles its deck. After the first trick the three played cards (JD, 10D, QD) reappear in the table deck instead of leaving play. When a new hand begins the deck is not refilled with all 20 cards, so the deal draws from an empty list and crashes.",
+      "guidance": "1) At the start of every hand (the first round of hands 1 to 6), reset the table `deck` to the full 20-card list before shuffling and dealing. Use the parameters `deck_size`, `cards_dealt_per_player`, `trump_card_position` and `hidden_card_position` rather than literals. Then deal 6 cards to each seat, move the 19th card to `turned_card` (setting `trump_suit`) and the 20th to `hidden_card`, so the deck is empty after the deal. 2) When a card is played, remove it from the player's hand and put it in `played_card` and, if you want, a separate trick or discard list. Never append it back to `deck`. Clear the trick's cards after scoring. 3) Make sure the simultaneous bid poll offers every seat the whole range `bid_min` to `bid_max` (0 to 6) in the first round of every hand, including after hand 1. 4) Make sure that when a new hand starts, the dealer rotates and eldest becomes dealer mod 3 + 1, and that seat leads the first trick.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "Dealing works: each seat holds 5 cards after one trick, the deck is empty, and the turned and hidden cards are set. But the bid step never offers the options 0 to 6. In every failing scenario the seats were never offered 0 (or 6), and the stored bid stayed at 0 when the test chose 3 and 6, so the bid is not implemented as the rules and interface require.",
+      "guidance": "Make the bid a single simultaneous poll of all three players in the first round of each hand, after the deal. Each player chooses a whole number from bid_min to bid_max, read from those parameter attributes, so the options are 0, 1, 2, 3, 4, 5, 6. Store each chosen value in that player's `bid` and reveal the bids only after all three are in. Do not take the bid options from the card `offer` list or from a derived value such as `strength`, and do not fall back to 0. Only after the bids are recorded should trick play begin, with the eldest leading. Check that the chosen bid is actually written: a test choosing 3 for seat 1 must leave bid = 3. Keep the rest of the deal as it is, since the hand counts, deck emptying and turned and hidden cards already behave correctly.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "Cards played to a trick are put back into the table deck (the deck holds 10D, QD and JD after trick 1), and the deck is never rebuilt at the start of a new hand. So when hand 2 is dealt, the game draws from a nearly empty list and crashes with an index out of range. The rules deal all 20 cards each hand, and trick cards simply leave play.",
+      "guidance": "At the first round of every hand, reset the deck to the full 20-card list before shuffling and dealing. Keep the deck size tied to the deck_size parameter. Clear every player's hand at that point too. Deal 6 cards to each seat, then take the 19th card into turned_card and set trump_suit to its suit. Take the 20th card into hidden_card so the deck is empty. When a card is played, remove it from the player's hand and record it in played_card. Do not append played cards back to the deck. You may put them in a separate discard or trick list. Compute eldest as dealer mod player_count + 1 at each new hand, and make eldest the leader of that hand's first trick. Offer bids from bid_min to bid_max (including 0) to every seat in the simultaneous bid poll at the start of each hand."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 12,
+      "choice_steps_per_round": 4,
+      "attributes": 14,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 36
+    },
+    "measured": {
+      "steps_per_round": 15,
+      "choice_steps_per_round": 4,
+      "attributes": 46,
+      "hidden_elements": 6
+    }
+  },
+  "verdict": "needs_review"
+}

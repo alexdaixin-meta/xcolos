@@ -44,14 +44,14 @@ Players: 3 to 5, best with 4
 17. **poll** (every player with (pending_loss = 1 and hidden_count = 2) or must_return = 1): reveal_choice = the card to reveal; return_choice = the card to return to the deck.
 18. **update** (engine): Resolve. A player with pending_loss = 1 and hidden_count = 2 moves reveal_choice from hidden_cards to revealed_cards. A player with must_return = 1 moves return_choice from hidden_cards to deck. Any player with pending_loss >= hidden_count and pending_loss > 0 moves all of hidden_cards to revealed_cards, alive = false, coins = 0. Then hidden_count = length of hidden_cards for every player, deck_count = length of deck, living_count = number of players with alive = true. Every pending_loss and must_return goes back to 0.
 19. **tell** (all players): Announce every card revealed this turn and every player eliminated. Returned cards are never named.
-20. **check** (engine): If living_count = 1: winner = the seat of the only player with alive = true, every seat with alive = false has lost, and the game ends. Otherwise, if turn_count >= 40: winner = the living seat with the highest hidden_count, then the most coins; if still tied, winner = draw; every other seat has lost, and the game ends. Otherwise continue.
+20. **check** (engine): If living_count = 1 or turn_count >= 40, the game ends and the players are ranked by hidden_count * 1000 + coins: the only player with alive = true ranks first; at the turn cap the most hidden cards wins, then the most coins, and seats still level share the win. Otherwise continue.
 21. **update** (engine): active_seat = the next seat after active_seat in seat order, wrapping around and skipping players with alive = false.
 
 ## Ending
 
 - ends when: living_count = 1 or turn_count >= 40
-- results: seat 1, seat 2, seat 3, seat 4, seat 5, draw
-- decided by: If living_count = 1, the result is the seat with hidden_count >= 1. Otherwise, after 40 turns, the result is the seat with the highest hidden_count; if several tie, the tied seat with the most coins; if they are still tied, draw.
+- ranked by: `you.hidden_count * 1000 + you.coins` (the highest wins; players level at the top share the win)
+- decided by: Each player stands at hidden_count * 1000 + coins (an eliminated player has no hidden cards and no coins). If living_count = 1, the one seat with hidden cards ranks highest and wins. Otherwise, after 40 turns, the seat with the most hidden cards wins; between seats tied on hidden cards, the one with the most coins; seats still tied share the win.
 
 ## Choices the source did not make
 

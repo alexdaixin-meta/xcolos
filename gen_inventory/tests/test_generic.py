@@ -394,14 +394,50 @@ def test_pages_called_index_become_games_with_their_own_names():
     assert not counts.get("failed")
 
 
-def test_two_pages_that_name_the_same_game_both_get_filed_and_the_gates_pick_the_duplicate():
+def test_two_pages_that_name_the_same_game_file_one_game():
     pages = {f"https://x.test/rules/{d}": page(f"Rules {d}", "A game of hidden dice. " * 40) for d in ("a", "b")}
     site, inv, log, rater, ex = named_world(pages, [good("Poker"), good("Poker")])
     counts = crawl.crawl(reader(site), inv, ex, log, rater=rater)
-    assert not counts.get("failed")
-    by_id = {r.id: r for r in inv.all()}
-    assert set(by_id) == {"poker", "poker_2"}
-    assert by_id["poker_2"].status == "duplicate" and by_id["poker_2"].duplicate_of == "poker"
+    assert not counts.get("failed") and counts["duplicate"] == 1
+    assert [r.id for r in inv.all()] == ["poker"]
+    assert log.entries["https://x.test/rules/b"]["outcome"] == "duplicate"
+
+
+# -- a site's own lines in crawl_sources.json -----------------------------------
+
+
+def test_include_and_exclude_paths_pick_the_pages_and_a_segment_names_the_game():
+    site = Site({"https://x.test/sitemap.xml": sitemap(
+        "https://x.test/twilight-struggle/game-rules.php", "https://x.test/twilight-struggle/cards.php",
+        "https://x.test/hanabi/game-rules.php", "https://x.test/blog/top-ten.php", "https://x.test/old/game-rules.php")})
+    config = {"include_path": [r"^/[^/]+/game-rules\.php$"], "exclude_path": ["^/old/"], "title_segment": -2}
+    leads = reader(site, config=config).discover()
+    assert [(l.title, l.url) for l in leads] == [("Twilight Struggle", "https://x.test/twilight-struggle/game-rules.php"),
+                                                 ("Hanabi", "https://x.test/hanabi/game-rules.php")]
+
+
+def test_title_strip_cuts_what_a_site_appends_to_a_name():
+    site = Site({"https://x.test/sitemap.xml": sitemap("https://x.test/high-society-1995/", "https://x.test/1830/")})
+    leads = reader(site, config={"title_strip": r"\s+(1[6-9]|20)\d\d$"}).discover()
+    assert [l.title for l in leads] == ["High Society", "1830"]  # a name that is only a year is left alone
+
+
+def test_a_title_segment_out_of_range_falls_back_to_the_last():
+    assert title_from("https://x.test/twilight-struggle/game-rules.php", -2) == "Twilight Struggle"
+    assert title_from("https://x.test/hanabi", -2) == "Hanabi"
+
+
+def test_cli_gives_a_site_its_lines_from_crawl_sources():
+    from gen_inventory import cli
+    root, site = cli_world()
+    config = root / "crawl_sources.json"
+    config.write_text(json.dumps({"x.test": {"exclude_path": ["liars"]}}))
+    old, crawl.CONFIG_PATH = crawl.CONFIG_PATH, config
+    try:
+        src = cli.source_for(__import__("argparse").Namespace(dir=root / "inv", site="x.test"))
+    finally:
+        crawl.CONFIG_PATH = old
+    assert src.discover() == []  # the only page is excluded
 
 
 def test_a_site_that_robots_txt_forbids_says_so():

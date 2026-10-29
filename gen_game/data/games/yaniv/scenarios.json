@@ -1,0 +1,1789 @@
+[
+  {
+    "name": "R1 new hand deal: 3 players, all DRAW, the draw pile ends at 54-9-1-3 (chance cannot change these counts)",
+    "rule": "R1",
+    "players": 3,
+    "seed": 1,
+    "default": "first",
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 3,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "game": {
+        "draw_pile_size": 41
+      },
+      "lens": {
+        "game": {
+          "draw_pile": 41,
+          "dead_pile": 1
+        }
+      }
+    },
+    "rule_text": "When a new hand starts, the draw pile is the 54 values (two 0s, four each of 1-9, sixteen 10s), each player receives 3 random cards into c1, c2 and c3, and 1 more card becomes the offer row, leaving 54 - 3*players - 1 cards in the draw pile."
+  },
+  {
+    "name": "R2 new hand empties a leftover dead pile (only the untaken row card is dead after round 1)",
+    "rule": "R2",
+    "players": 2,
+    "seed": 2,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "game": {
+        "new_hand": true,
+        "dead_pile": [
+          5,
+          5,
+          3
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "dead_pile": 1
+        }
+      },
+      "game": {
+        "draw_pile_size": 45
+      }
+    },
+    "rule_text": "When a new hand starts, the dead pile is emptied and the new-hand flag is switched off."
+  },
+  {
+    "name": "R2 new-hand flag switched off: no redeal in round 2, so the draw pile is 47-2-2 (chance-proof)",
+    "rule": "R2",
+    "players": 2,
+    "seed": 3,
+    "default": "first",
+    "rounds": 2,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "draw_pile_size": 43
+      }
+    },
+    "rule_text": "When a new hand starts, the dead pile is emptied and the new-hand flag is switched off."
+  },
+  {
+    "name": "R3 an empty slot counts as nothing in H (round 24 showdown)",
+    "rule": "R3",
+    "players": 2,
+    "seed": 4,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 3,
+          "c2": -1,
+          "c3": 4,
+          "hand_total": 7,
+          "card_count": 2
+        },
+        "2": {
+          "c1": 5,
+          "c2": 6,
+          "c3": 9,
+          "hand_total": 20,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 24,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 6,
+        "offer_row": [
+          8
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_hand_total": 11,
+          "card_count": 2,
+          "penalty": 0
+        },
+        "2": {
+          "last_hand_total": 22,
+          "card_count": 3,
+          "penalty": 22
+        }
+      },
+      "game": {
+        "draw_pile_size": 4,
+        "offer_row": [
+          3,
+          5
+        ],
+        "dead_pile": [
+          8
+        ]
+      }
+    },
+    "rule_text": "A player's hand total H is the sum of their non-empty slots (an empty slot counts as nothing)."
+  },
+  {
+    "name": "R4 YANIV with H=11 is invalid and treated as DRAW",
+    "rule": "R4",
+    "players": 2,
+    "seed": 5,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 4,
+          "c3": 2,
+          "hand_total": 11,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_count": 3,
+          "penalty": 0,
+          "last_hand_total": 0
+        },
+        "2": {
+          "card_count": 3,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "draw_pile_size": 8,
+        "offer_row": [
+          5,
+          9
+        ],
+        "dead_pile": [
+          2
+        ]
+      }
+    },
+    "rule_text": "When a player calls YANIV with H <= 10, the call is valid; with H = 11 or more it is announced as invalid and the player is treated as DRAW."
+  },
+  {
+    "name": "R4 YANIV with H=10 is valid and leads to a showdown",
+    "rule": "R4",
+    "players": 2,
+    "seed": 6,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 4,
+          "c3": 1,
+          "hand_total": 10,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_hand_total": 10,
+          "penalty": 0
+        },
+        "2": {
+          "last_hand_total": 23,
+          "penalty": 23
+        }
+      },
+      "game": {
+        "draw_pile_size": 10
+      }
+    },
+    "rule_text": "When a player calls YANIV with H <= 10, the call is valid; with H = 11 or more it is announced as invalid and the player is treated as DRAW."
+  },
+  {
+    "name": "R5 a valid YANIV stops all card movement, even another seat's TAKE",
+    "rule": "R5",
+    "players": 2,
+    "seed": 7,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 4,
+          "c3": 1,
+          "hand_total": 10,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_count": 3,
+          "penalty": 0,
+          "last_hand_total": 10
+        },
+        "2": {
+          "card_count": 3,
+          "penalty": 23,
+          "last_hand_total": 23
+        }
+      },
+      "game": {
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rule_text": "When at least one valid YANIV is made, no card moves that round and a showdown follows."
+  },
+  {
+    "name": "R6 a pair sheds 2 cards and a triple sheds 3",
+    "rule": "R6",
+    "players": 2,
+    "seed": 8,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 6,
+          "c2": 6,
+          "c3": 1,
+          "hand_total": 13,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 4,
+          "c2": 4,
+          "c3": 4,
+          "hand_total": 12,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_count": 2
+        },
+        "2": {
+          "card_count": 1
+        }
+      },
+      "game": {
+        "draw_pile_size": 8,
+        "offer_row": [
+          6,
+          6,
+          4,
+          4,
+          4
+        ],
+        "dead_pile": [
+          2
+        ]
+      }
+    },
+    "rule_text": "When a player sheds, the card in their shed slot and every other slot of theirs with the same value are removed, so a pair sheds 2 cards and a triple sheds 3."
+  },
+  {
+    "name": "R7 an empty chosen shed slot sheds the lowest non-empty slot instead",
+    "rule": "R7",
+    "players": 2,
+    "seed": 9,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": -1,
+          "c2": 5,
+          "c3": 8,
+          "hand_total": 13,
+          "card_count": 2
+        },
+        "2": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 3,
+          "hand_total": 20,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_count": 2
+        },
+        "2": {
+          "card_count": 3
+        }
+      },
+      "game": {
+        "draw_pile_size": 8,
+        "offer_row": [
+          5,
+          9
+        ],
+        "dead_pile": [
+          2
+        ]
+      }
+    },
+    "rule_text": "When the chosen shed slot is empty, the lowest-numbered non-empty slot is shed instead."
+  },
+  {
+    "name": "R8 two TAKEs on the same position: the priority seat (2) gets it, seat 1 draws",
+    "rule": "R8",
+    "players": 2,
+    "seed": 10,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 10,
+          "c2": 8,
+          "c3": 5,
+          "hand_total": 23,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 24,
+        "priority_seat": 2,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          3,
+          0
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_hand_total": 21,
+          "penalty": 21
+        },
+        "2": {
+          "last_hand_total": 16,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "draw_pile_size": 9,
+        "offer_row": [
+          9,
+          10
+        ],
+        "dead_pile": [
+          0
+        ]
+      }
+    },
+    "rule_text": "When two TAKE players choose the same position, the one earlier in seat order from the priority seat gets the card, and the other becomes DRAW."
+  },
+  {
+    "name": "R9 taken and drawn cards go into the shed slot; the slot emptied by a pair stays empty",
+    "rule": "R9",
+    "players": 2,
+    "seed": 11,
+    "default": "first",
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 6,
+          "c2": 6,
+          "c3": 2,
+          "hand_total": 14,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 1,
+          "c2": 7,
+          "c3": 9,
+          "hand_total": 17,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          3
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      },
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_count": 2
+        },
+        "2": {
+          "card_count": 3
+        }
+      },
+      "game": {
+        "draw_pile_size": 7,
+        "offer_row": [
+          3,
+          5
+        ],
+        "dead_pile": [
+          6,
+          6,
+          1
+        ],
+        "round": 3
+      }
+    },
+    "rule_text": "A taken or drawn card is placed in the player's shed slot; extra slots emptied by a pair or triple stay empty for the rest of the hand."
+  },
+  {
+    "name": "R10 the draw pile drops by 1 per draw and not for a TAKE",
+    "rule": "R10",
+    "players": 3,
+    "seed": 12,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 10,
+          "c2": 8,
+          "c3": 5,
+          "hand_total": 23,
+          "card_count": 3
+        },
+        "3": {
+          "c1": 7,
+          "c2": 3,
+          "c3": 2,
+          "hand_total": 12,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          4
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 3,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "game": {
+        "draw_pile_size": 8,
+        "offer_row": [
+          9,
+          10,
+          7
+        ],
+        "dead_pile": []
+      }
+    },
+    "rule_text": "A drawn card's value is told only to the drawing player, and the draw pile size drops by 1 per draw."
+  },
+  {
+    "name": "R11 untaken row cards go dead and the new row is the shed cards from seat 1 up",
+    "rule": "R11",
+    "players": 3,
+    "seed": 13,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 5,
+          "c3": 1,
+          "hand_total": 11,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3
+        },
+        "3": {
+          "c1": 7,
+          "c2": 3,
+          "c3": 2,
+          "hand_total": 12,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          4,
+          0
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 3,
+        "options_include": "TAKE"
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "card_count": 2
+        },
+        "2": {
+          "card_count": 3
+        },
+        "3": {
+          "card_count": 3
+        }
+      },
+      "game": {
+        "draw_pile_size": 8,
+        "offer_row": [
+          5,
+          5,
+          9,
+          7
+        ],
+        "dead_pile": [
+          4
+        ]
+      }
+    },
+    "rule_text": "After the take step, untaken offer-row cards go to the dead pile, and the new offer row is all shed cards in seat order from seat 1, in slot order within each player."
+  },
+  {
+    "name": "R12 showdown when the draw pile falls below the number of players",
+    "rule": "R12",
+    "players": 2,
+    "seed": 14,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 4,
+          "c3": 9,
+          "hand_total": 18,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 10,
+          "c2": 8,
+          "c3": 3,
+          "hand_total": 21,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 3,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_hand_total": 20,
+          "penalty": 20
+        },
+        "2": {
+          "last_hand_total": 18,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "draw_pile_size": 1
+      }
+    },
+    "rule_text": "A showdown happens when a valid YANIV was made, when the draw pile holds fewer cards than there are players after the row update, or in round 24."
+  },
+  {
+    "name": "R12 no showdown when the draw pile still holds as many cards as players",
+    "rule": "R12",
+    "players": 2,
+    "seed": 15,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 4,
+          "c3": 9,
+          "hand_total": 18,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 10,
+          "c2": 8,
+          "c3": 3,
+          "hand_total": 21,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 4,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_hand_total": 0,
+          "penalty": 0
+        },
+        "2": {
+          "last_hand_total": 0,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "draw_pile_size": 2
+      }
+    },
+    "rule_text": "A showdown happens when a valid YANIV was made, when the draw pile holds fewer cards than there are players after the row update, or in round 24."
+  },
+  {
+    "name": "R13 both call: the lowest caller scores 0 (N=99), the other caller scores H+20",
+    "rule": "R13",
+    "players": 2,
+    "seed": 16,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 2,
+          "c2": 2,
+          "c3": 1,
+          "hand_total": 5,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 3,
+          "c2": 4,
+          "c3": 1,
+          "hand_total": 8,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 2,
+        "options_include": "YANIV"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 0,
+          "last_hand_total": 5
+        },
+        "2": {
+          "penalty": 28,
+          "last_hand_total": 8
+        }
+      }
+    },
+    "rule_text": "With valid callers, a caller whose H equals M (the lowest caller H) scores 0 when M < N (the lowest non-caller H, or 99 if all called); otherwise the caller scores H + 20."
+  },
+  {
+    "name": "R13 Asaf: a caller tied by a non-caller scores H+20",
+    "rule": "R13",
+    "players": 2,
+    "seed": 17,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 3,
+          "c2": 3,
+          "c3": 1,
+          "hand_total": 7,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 4,
+          "c2": 2,
+          "c3": 1,
+          "hand_total": 7,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 27,
+          "last_hand_total": 7
+        },
+        "2": {
+          "penalty": 0,
+          "last_hand_total": 7
+        }
+      }
+    },
+    "rule_text": "With valid callers, a caller whose H equals M (the lowest caller H) scores 0 when M < N (the lowest non-caller H, or 99 if all called); otherwise the caller scores H + 20."
+  },
+  {
+    "name": "R14 non-callers score 0 at or below M and their H above it",
+    "rule": "R14",
+    "players": 3,
+    "seed": 18,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 1,
+          "c2": 2,
+          "c3": 3,
+          "hand_total": 6,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 1,
+          "c2": 1,
+          "c3": 2,
+          "hand_total": 4,
+          "card_count": 3
+        },
+        "3": {
+          "c1": 10,
+          "c2": 10,
+          "c3": 5,
+          "hand_total": 25,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 3,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 26
+        },
+        "2": {
+          "penalty": 0
+        },
+        "3": {
+          "penalty": 25
+        }
+      }
+    },
+    "rule_text": "With valid callers, a non-caller scores 0 when their H <= M; otherwise they score H."
+  },
+  {
+    "name": "R15 showdown without a caller: everyone tied for the lowest H scores 0",
+    "rule": "R15",
+    "players": 3,
+    "seed": 19,
+    "default": "first",
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 2,
+          "c3": 9,
+          "hand_total": 16,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 8,
+          "c2": 2,
+          "c3": 9,
+          "hand_total": 19,
+          "card_count": 3
+        },
+        "3": {
+          "c1": 6,
+          "c2": 10,
+          "c3": 10,
+          "hand_total": 26,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 24,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          1
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 3,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 0,
+          "last_hand_total": 18
+        },
+        "2": {
+          "penalty": 0,
+          "last_hand_total": 18
+        },
+        "3": {
+          "penalty": 27,
+          "last_hand_total": 27
+        }
+      },
+      "game": {
+        "draw_pile_size": 7
+      }
+    },
+    "rule_text": "In a showdown with no valid caller, every player with the lowest H scores 0 and the others score their H."
+  },
+  {
+    "name": "R16 showdown scores add to the existing totals and the next round deals a fresh hand",
+    "rule": "R16",
+    "players": 2,
+    "seed": 20,
+    "default": "first",
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 4,
+          "c3": 1,
+          "hand_total": 10,
+          "card_count": 3,
+          "penalty": 10
+        },
+        "2": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3,
+          "penalty": 5
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "penalty": 10,
+          "last_hand_total": 10
+        },
+        "2": {
+          "penalty": 28,
+          "last_hand_total": 23
+        }
+      },
+      "game": {
+        "draw_pile_size": 45,
+        "round": 3
+      },
+      "lens": {
+        "game": {
+          "dead_pile": 1
+        }
+      }
+    },
+    "rule_text": "After every showdown, scores are added to penalty totals, all hands are revealed, and the next round starts a fresh hand."
+  },
+  {
+    "name": "R17 the priority seat moves from 1 to 2, so seat 2 wins round 24's TAKE collision",
+    "rule": "R17",
+    "players": 2,
+    "seed": 21,
+    "default": "first",
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "c1": 9,
+          "c2": 8,
+          "c3": 6,
+          "hand_total": 23,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 10,
+          "c2": 8,
+          "c3": 5,
+          "hand_total": 23,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 23,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          4
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 1,
+        "options_include": "TAKE"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "TAKE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "last_hand_total": 21,
+          "penalty": 0
+        },
+        "2": {
+          "last_hand_total": 22,
+          "penalty": 22
+        }
+      },
+      "game": {
+        "draw_pile_size": 7,
+        "offer_row": [
+          7,
+          7
+        ],
+        "dead_pile": [
+          4,
+          10
+        ]
+      }
+    },
+    "rule_text": "Every round the priority seat moves to the next seat, wrapping from the last seat to seat 1."
+  },
+  {
+    "name": "R18 the match ends after a showdown that pushes a penalty to 50 or more",
+    "rule": "R18",
+    "players": 2,
+    "seed": 22,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "c1": 5,
+          "c2": 6,
+          "c3": 4,
+          "hand_total": 15,
+          "card_count": 3,
+          "penalty": 40
+        },
+        "2": {
+          "c1": 1,
+          "c2": 2,
+          "c3": 0,
+          "hand_total": 3,
+          "card_count": 3,
+          "penalty": 0
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 1,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "YANIV"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -55,
+        "2": 0
+      },
+      "players": {
+        "1": {
+          "penalty": 55
+        },
+        "2": {
+          "penalty": 0
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rule_text": "The match ends after a showdown that leaves some penalty total at 50 or more, or after round 24."
+  },
+  {
+    "name": "R18 the match ends after round 24 even with every penalty below 50",
+    "rule": "R18",
+    "players": 2,
+    "seed": 23,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "c1": 1,
+          "c2": 2,
+          "c3": 3,
+          "hand_total": 6,
+          "card_count": 3
+        },
+        "2": {
+          "c1": 5,
+          "c2": 5,
+          "c3": 9,
+          "hand_total": 19,
+          "card_count": 3
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 24,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 0,
+        "2": -16
+      },
+      "players": {
+        "1": {
+          "penalty": 0,
+          "last_hand_total": 12,
+          "card_count": 3
+        },
+        "2": {
+          "penalty": 16,
+          "last_hand_total": 16,
+          "card_count": 2
+        }
+      },
+      "game": {
+        "round": 25
+      }
+    },
+    "rule_text": "The match ends after a showdown that leaves some penalty total at 50 or more, or after round 24."
+  },
+  {
+    "name": "R19 players tied for the lowest penalty share the win",
+    "rule": "R19",
+    "players": 2,
+    "seed": 24,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "c1": 1,
+          "c2": 1,
+          "c3": 2,
+          "hand_total": 4,
+          "card_count": 3,
+          "penalty": 30
+        },
+        "2": {
+          "c1": 5,
+          "c2": 3,
+          "c3": 2,
+          "hand_total": 10,
+          "card_count": 3,
+          "penalty": 20
+        }
+      },
+      "game": {
+        "new_hand": false,
+        "round": 24,
+        "priority_seat": 1,
+        "draw_pile": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "draw_pile_size": 10,
+        "offer_row": [
+          2
+        ],
+        "dead_pile": []
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "YANIV"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": -30,
+        "2": -30
+      },
+      "players": {
+        "1": {
+          "penalty": 30
+        },
+        "2": {
+          "penalty": 30
+        }
+      }
+    },
+    "rule_text": "The player with the lowest penalty total wins, and players tied for the lowest share the win."
+  }
+]

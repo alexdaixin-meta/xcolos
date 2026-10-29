@@ -140,30 +140,26 @@ class Action:
     """One structured response from a seat.
 
     Two halves, and the split matters. `target` and `text` are the response
-    itself, which the game may make public. `reason`, `predict` and `adjust`
-    are the agent's own thinking: why it moved, what it expects its opponents
-    to do, and how that changed its own plan. Recorded for whoever is watching
-    the match, and never turned into a fact, so no other seat can be told them.
+    itself, which the game may make public. `notes` are the agent's own
+    thinking, under the names the game asked for (why it moved, what it expects
+    its opponents to do, its plan). Recorded for whoever is watching the match,
+    and never turned into a fact, so no other seat can be told them.
     """
 
     type: str
     target: Any = None
     text: str = ""
     #: Private. Logged, shown to the operator, never shared with another seat.
-    reason: str = ""
-    #: Private, like `reason`: what the agent expects its opponents to do.
-    predict: str = ""
-    #: Private, like `reason`: how the agent changed its own plan in response.
-    adjust: str = ""
+    #: Never hashed: an Action is passed around and logged, not used as a key.
+    notes: dict[str, str] = field(default_factory=dict)
 
     def to_json(self) -> dict[str, Any]:
+        # Flat, so a note is `action.<name>` in the log.
         return {
             "type": self.type,
             "target": self.target,
             "text": self.text,
-            "reason": self.reason,
-            "predict": self.predict,
-            "adjust": self.adjust,
+            **self.notes,
         }
 
 
@@ -190,10 +186,10 @@ def validate(action: Action, schema: ActionSchema, legal_targets: tuple[Any, ...
         if schema.max_words:
             words = len(action.text.split())
             if words > schema.max_words:
+                # Not "put your reasoning in `reason`": told that, Claude refused the next move as reasoning extraction.
                 raise ActionInvalid(
                     f"that is {words} words; keep it to {schema.max_words} or "
-                    "fewer. Put your reasoning in `reason` instead, where it "
-                    "costs nobody anything to read"
+                    "fewer. Only the message counts; a private note can go in `reason`"
                 )
         return action
 

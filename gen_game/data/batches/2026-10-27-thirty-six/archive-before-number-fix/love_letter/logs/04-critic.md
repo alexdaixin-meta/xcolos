@@ -1,0 +1,55 @@
+# 04 critic
+
+- time: 2026-10-27T18:13:14+00:00 (69.5s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 ed962d7a10a3e019, reply sha256 89733de2385d97de
+
+## Sent
+
+````
+ORIGINAL GAME: Love Letter
+Love Letter uses 16 cards ranked 1 Guard to 8 Princess with special effects. Shuffle the deck and burn one card face down unseen. In 2 players also reveal 3 cards face up as out of play. Each player gets one hidden card. On your turn draw one card then choose and discard one of your two cards face up in front of you, applying its effect even if harmful. Guard guesses an opponent's hand, Priest looks at a hand, Baron compares hands to eliminate loser, Handmaid protects you, Prince makes a player discard, King trades hands, Countess must be discarded if you also hold King or Prince, Princess eliminates you if discarded. If eliminated, reveal hand without effect. Round ends when one player remains or deck empties; then remaining players compare hands, highest wins tie by sum of discards. Winner gains a token of affection, and first player next round is previous winner. First game player is who was most recently on a date. First to 7 tokens in 2p, 5 in 3p, 4 in 4p wins.
+
+PROPOSED VARIATION: Love Letter: Raised Stakes
+Players: 2 to 2
+Rules: CARDS (16): five 1-Guard, two 2-Priest, two 3-Baron, two 4-Handmaid, two 5-Prince, one 6-King, one 7-Countess, one 8-Princess. The two players are Seat 1 and Seat 2. Each starts the match with 0 points.
+
+THE MATCH is exactly 4 hands. Seat 1 starts hands 1 and 3, and Seat 2 starts hands 2 and 4. Each platform round is one turn. A hand can last at most 10 turns, so the match never exceeds 40 turns.
+
+STARTING A HAND: Shuffle all 16 cards. Remove the top card face down; this is the burned card, which nobody sees. Remove the next 3 cards face up and announce them to both players; they are out of play. Deal one card face down to each player. This leaves 10 cards in the deck. Both players are in the hand and unprotected. The hand's STAKE is 1, and the stake is CENTRED: either player may offer the next double.
+
+A TURN (active player = the player whose turn it is):
+(1) DOUBLE OFFER: if the stake is below 8 and the active player is allowed to double, they choose 'double' or 'no double'. A player may double when the stake is centred, or when they accepted the most recent double. They are holding only their one card at this point.
+(2) RESPONSE: if a double was offered, the opponent chooses 'accept' or 'concede'.
+(3) RESOLVE: on 'concede', the active player wins the hand and gains points equal to the current stake (before doubling); the hand ends and the rest of this turn is skipped. On 'accept', the stake doubles (1 to 2, 2 to 4, 4 to 8), and from now on only the player who accepted may offer the next double.
+(4) DRAW: the active player loses any Handmaid protection from their previous turn, then draws the top card of the deck. They now hold two cards, seen only by them.
+(5) PLAY: the active player chooses one of their two cards to discard face up. If they hold the Countess together with the King or the Prince, the Countess is discarded whatever they choose.
+(6) DETAIL: if the discarded card is the Guard, the active player names a number from 2 to 8. If it is the Prince, they choose to target themselves or the opponent; if the opponent is protected, they must target themselves.
+(7) EFFECT. The Guard, Priest, Baron and King target the opponent and do nothing if the opponent is protected.
+- Guard (1): if the opponent's card equals the named number, the opponent is eliminated.
+- Priest (2): the opponent's card is shown privately to the active player.
+- Baron (3): the two players privately show each other their cards. The holder of the lower card is eliminated; on a tie nothing happens.
+- Handmaid (4): the active player cannot be targeted until the start of their next turn.
+- Prince (5): the target discards their card face up without effect. If it is the Princess, they are eliminated. Otherwise they draw the top card of the deck, or the burned card if the deck is empty.
+- King (6): the players swap their hand cards.
+- Countess (7): no effect.
+- Princess (8): the active player is eliminated.
+An eliminated player reveals their card face up.
+(8) ANNOUNCE to both players: the card discarded, the Guard number or Prince target, any elimination and revealed card, the stake, and the number of cards left in the deck.
+(9) HAND END: if a player was eliminated, the other player wins the hand and gains points equal to the stake. Otherwise, if the deck is now empty, both reveal their cards. The higher card wins the hand and gains the stake; if the cards are equal, nobody scores. When a hand ends and fewer than 4 hands have been played, the next hand starts on the next turn with the other seat as starting player. Otherwise, play passes to the other player.
+
+MATCH END: after the 4th hand ends, the match is over.
+How the winner is decided: After exactly 4 hands, the player with more points wins. Equal points is a draw.
+The designer's stated complexity: {"steps_per_round": 19, "choice_steps_per_round": 4, "attributes": 19, "hidden_elements": 3, "random_draws_per_round": 1, "rounds": 40}
+````
+
+## Reply
+
+````
+```json
+{"balanced": {"verdict": "fail", "evidence": "The cube lets a leader lock the match. A player who concedes every double never lets the opponent win more than 1 point per hand. The stake only rises above 1 if the receiver accepts. A concede pays only the pre-double stake (1). A hand played out at stake 1 pays at most 1. Leader policy P = 'concede every double, never double, play normally' gives this table for hand 4, with L = leader's margin entering it:\n\n- Opponent doubles: leader concedes, opponent +1, final margin L-1.\n- Opponent never doubles and wins the hand: opponent +1, margin L-1.\n- Opponent never doubles and loses the hand: leader +1, margin L+1.\n- Tie at deck end: margin L.\n\nSo L>=2 means P never loses (WIN in every row). L=1 means P never loses (DRAW or WIN in every row). Generalised: with k hands left, a lead greater than k is a guaranteed win and a lead equal to k is a guaranteed non-loss, with zero thinking.\n\nLeads like this come early. One hand played at stake 4 in hand 1 (after a double and a redouble are accepted) gives a 4-point lead with 3 hands left, which is locked. One stake-2 hand in hand 3 locks the match. So typical matches are decided by one accepted double followed by up to three dead hands. That is the 'safe option wins every late round' failure.\n\nThoughtless policies:\n- 'Always double, never concede': not dominant. It loses when the opponent holds the better card at a high stake.\n- 'Never double, always concede': loses about 0-4 to an opponent who doubles every turn, since each concede gives them 1.\n- 'Never double, always accept': lets the opponent choose high stakes on Princess or Countess holdings and loses on average.\n\nNo option is strictly better unconditionally, and the alternating starts (S1 starts hands 1 and 3, S2 starts 2 and 4) leave no big seat edge. But the conditional lock above is a policy that never loses from a reachable and common position."},
+ "playable": {"verdict": "fail", "evidence": "The rules are mostly complete and finite. There are at most 10 draws per hand, including Prince draws. The burned card covers a Prince on the last deck card, and only one such draw can happen because the hand ends at an empty deck. There are 4 hands and at most 40 turns. Countess forcing, protection with Prince, and conceding are all specified. A 2-player game needs no talk.\n\nThe stated complexity does not hold:\n\n- Hidden elements: the design needs Seat 1's hand, Seat 2's hand, the burned card and the hidden deck order. That is 4, over the limit of 3, and Priest and Baron add private reveals on top.\n- Steps: realistic count against the claimed 19:\n  - hand setup when a hand starts (shuffle, burn, reveal 3, deal 2, reset stake, cube and protection): about 4-5\n  - double, respond, resolve concede, resolve accept: 4\n  - drop protection and draw: 1-2\n  - play, plus forced Countess: 2\n  - detail: 1\n  - effects (Guard, Priest, Baron, Handmaid, the 3 Prince parts, King, Princess): about 9\n  - announce: 1\n  - hand end (elimination payout, deck-empty compare, next starter): 2-3\n  That totals about 24-27, over the limit of 20.\n- Attributes: 19 is barely plausible. It needs points x2, protection x2, eliminated x2, hand cards x2, burned card, deck count, stake, cube owner, hand number, starter, active, Guard guess, Prince target, last discard and priest knowledge, with no spare."},
+ "reasoning_over_luck": {"verdict": "fail", "evidence": "Two-player Love Letter hands are heavily luck-driven:\n\n- A turn-1 Guard guess eliminates the opponent with probability about 1/6 to 1/7 even with good play.\n- Being dealt the Princess or Countess versus a Guard sets the deck-out comparison.\n- A skilled player wins perhaps 55-60% of hands against a weak one.\n\nThe match has only 4 hands, and the stake can reach 8, so one hand often decides everything. The locking effect above makes the first high-stake hand decisive. With two good players, both accept doubles on strong cards, and the hand that gets cubed is resolved by the draw order and Guard luck. The winner is then largely decided by that one deal.\n\nThe cube does add inference: reading the 3 face-up cards, the discards and the opponent's doubling behaviour. But a single-card holding before the draw is weak evidence, because cards change every turn. I estimate chance decides about 60-70% of match outcomes between unequal players, plus many 0-0 or 2-2 draws. A good reasoner is not clearly favoured."},
+ "required_changes": ["Remove the late-match lock. Replace 'exactly 4 hands' with a race: the first player to reach 7 points wins. At the 40-turn cap, the higher score wins, and equal scores are broken by most hands won. Conceded points then still advance the opponent toward the target, so conceding is no longer a free lock. Alternatively, keep a fixed length but make a concede pay the doubled stake.", "Lengthen the match, or cap the stake at 4, so one deal cannot decide it. Match length at the 40-turn limit is roughly 6-7 hands.", "Cut hidden elements to 3. One way: make the deck order public-random (each draw is a fresh random pick from the list of remaining cards) and fold the burned card into that list as the last card, so the hidden elements are the two hands plus one deck element.", "Restate the complexity with an honest step count. Merge steps to reach 20 or fewer: one step with operation-level ifs for all eight card effects, one combined hand-setup step, and one combined hand-end and scoring step. Or drop the Prince's burned-card draw by ending the hand when a Prince is played with the deck empty.", "Restore a tie-break on equal cards at deck-out (higher sum of discards) to cut zero-score hands and draws."]}
+```
+````

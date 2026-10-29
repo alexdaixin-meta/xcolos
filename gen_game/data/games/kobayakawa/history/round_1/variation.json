@@ -1,0 +1,140 @@
+{
+  "original_summary": "Kobayakawa is a short bluffing game of hidden single cards. Each round players may improve their card or swap the public Kobayakawa card, then decide in turn whether to pay a kamon to fight. Among the fighters, the lowest card gets the Kobayakawa value added, and the highest total takes the pot. The previous XColos variation made every choice simultaneous and dealt fresh cards every round.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "In the previous variation, always-fight loses to players who fold hands that are weak for this Kobayakawa value. Always-pass stays at 4 kamons while 11 centre kamons and opponents' stakes flow to others, so it almost always loses. No seat has a fixed edge, because a tied total carries the pot."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The tested estimate puts the skill edge at about +0.1 to +0.3 kamons per round, against a standard deviation over 10 rounds of about 4 to 5 kamons. An estimated 60-70% of results came from the deal."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "Once a player has learned to fold hands that are weak for this K and to draw sensibly, little remains to improve. Simultaneous fighting removes reading commitments, and the single fixed stake removes any signalling of confidence."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Cards are hidden, but every round was a fresh deal with no carried state. The only evidence was drawers' discards, the choice labels and free talk. Bluffing was nearly powerless, because nobody saw a commitment before making their own."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Card totals, pot transfers, ties and the most-kamons winner are all arithmetic on tracked numbers."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "It is text-only and turn-based, with one deal per round, about 14 steps, 10 rounds, simultaneous and sequential polls, and no board."
+    }
+  ],
+  "problems": [
+    "P1: The fight decision is simultaneous, so nobody can read or exploit earlier commitments. The original game's core inference (who has already decided to fight) is lost.",
+    "P2: There is a single fixed stake, so confidence cannot be expressed or bluffed, and strong and weak fights look identical.",
+    "P3: Every round deals completely fresh cards. Nothing about hands carries over, so histories are worthless as evidence and the deal decides most results (lottery trap with equal sensible strategies).",
+    "P4: Bluffing is weak. A sole fighter wins unrevealed, but there is no way to deter others except cheap talk."
+  ],
+  "changes": [
+    {
+      "what": "FIGHT becomes a sequential choice in seat order. It starts with the player who won the last pot. If the last pot was not won, it starts with the seat after the previous start player. Everyone sees all earlier decisions and stakes before choosing.",
+      "why": "Later players can read commitments, and early players can try to deter others. Rotating the start and carrying tied pots keep any seat from having a built-in edge. The winner acting first next round is a small catch-up brake.",
+      "fixes": "P1"
+    },
+    {
+      "what": "Fighters choose LOW (the minimum stake: 1, or 2 in round 10) or HIGH (minimum + 1). Once anyone has fought HIGH, every later fighter in that round must also stake HIGH. Earlier LOW fighters do not top up. The pot winner takes everything.",
+      "why": "A raise signals strength or bluffs it, and it raises the price for later callers. Reading stakes becomes part of opponent modelling.",
+      "fixes": "P2, P4"
+    },
+    {
+      "what": "Cards carry between rounds. A player who passes keeps their hand card into the next round. Every fighter's card is discarded after the fight, and the fighter gets a fresh card next round.",
+      "why": "Holding a strong card until a favourable Kobayakawa appears becomes a multi-round plan. Opponents can infer a held card from a pass history, from discards and from draw behaviour. Fresh luck enters only after fights.",
+      "fixes": "P3"
+    },
+    {
+      "what": "Keep the simultaneous talk phase before the fight. Messages are short and shown all at once.",
+      "why": "Only one player takes each pot, so claims such as 'I'm holding a high card' are real bluffs or deterrents. Combined with the sequential fight, claims can now be tested against actions.",
+      "fixes": "P4"
+    }
+  ],
+  "keeps": [
+    "One hidden card per player from a 1-15 deck and a public Kobayakawa card.",
+    "The lowest-card fighter adds the Kobayakawa value; the highest total takes the pot.",
+    "Draw-and-discard-face-up or replace-the-Kobayakawa as the improvement choice.",
+    "A sole fighter wins without revealing.",
+    "Fighting in turn order starting from the last winner.",
+    "A centre pot that releases kamons, with a costlier final round.",
+    "Elimination at 0 kamons; most kamons wins."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "Sequential fighting, stake sizes and carried hand cards restore commitment-reading and multi-round planning within the limits."
+  },
+  "variation": {
+    "name": "Kobayakawa: Held Cards",
+    "summary": "A 3-5 player bluffing game over 10 rounds. Players hold one secret card, which they keep while they pass. They may improve it or vote to swap the public Kobayakawa, then fight in turn order with a low or high stake. Among fighters, the lowest card adds the Kobayakawa value and the highest total takes the pot. Most kamons wins.",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "rules": "SETUP: Each player starts with 4 kamons and sits in a numbered seat (1 to N). The centre holds 11 kamons and the pot starts at 0. Nobody holds a card. The start player for round 1 is seat 1. The game lasts 10 rounds, or ends sooner if only one player remains.\n\nEACH ROUND:\n1. DEAL (the round's only random event). Shuffle all cards numbered 1 to 15 except the hand cards currently held by players. Each active player without a hand card receives one, seen only by that player. Every active player then receives one RESERVE card, face down and unseen. Then deal the KOBAYAKAWA face up and the ALTERNATE face down.\n2. ANNOUNCE. The engine announces:\n   - the round number;\n   - the Kobayakawa value and the current pot;\n   - each player's kamons;\n   - which players are holding a card kept from an earlier round, and for how many rounds;\n   - the start player;\n   - the minimum stake: 1 in rounds 1-9, 2 in round 10.\n3. DRAW CHOICE (simultaneous). Each active player secretly chooses one option:\n   - KEEP: keep your hand card.\n   - DRAW: look at your reserve card.\n   - SHIFT: vote to replace the Kobayakawa.\n4. Each player who chose DRAW privately sees their reserve card.\n5. KEEP CHOICE (simultaneous, drawers only). Each drawer keeps OLD (the hand card) or NEW (the reserve card) as their hand card. The other card is discarded face up. All undrawn reserve cards are discarded face down, unseen.\n6. REVEAL. The engine announces each player's draw choice and all face-up discards.\n7. SHIFT. If at least one player chose SHIFT, the Alternate replaces the Kobayakawa and its value is announced.\n8. TALK (simultaneous). Every active player writes one short message without seeing the others; all messages are then shown. Talk is not binding and may be false.\n9. FIGHT (sequential). Players act once each in seat order, beginning with the start player and wrapping around. Each player sees all earlier choices.\n   - The REQUIRED STAKE is the minimum stake, or the minimum + 1 if any earlier player this round fought HIGH.\n   - A player chooses PASS, FIGHT LOW (stake = minimum, allowed only while nobody has fought HIGH) or FIGHT HIGH (stake = minimum + 1).\n   - A player must PASS if they have fewer kamons than every stake they are allowed to choose.\n10. STAKE. Each fighter pays their stake into the pot. The engine moves centre kamons into the pot: 1 in rounds 1-9, and all remaining centre kamons in round 10.\n11. SCORE.\n   - Nobody fought: the pot carries to the next round.\n   - Exactly one fighter: that player takes the whole pot, and their card is not revealed.\n   - Two or more fighters: all fighters' cards are revealed. Each fighter's total is their card value. The fighter with the lowest card adds the Kobayakawa value to their total. The highest total takes the whole pot.\n12. TIES. If fighters share the highest total, nobody takes the pot and it carries to the next round. In round 10, the pot is instead split equally among the tied fighters, rounding down, and any remainder is removed from the game.\n13. CLEANUP.\n   - Every fighter's hand card is discarded; that player will receive a fresh card next round.\n   - Every player who passed keeps their hand card, still secret.\n   - The next start player is the pot winner. If nobody won the pot, it is the next active seat after this round's start player.\n14. ELIMINATION. Any player with 0 kamons is eliminated, and their card is discarded unseen.\n15. END CHECK. The game ends after round 10, or as soon as only one active player remains.",
+    "objective": "When the game ends, the player with the most kamons wins. If two or more players tie for the most, the game is a draw. If only one active player remains before round 10, that player wins.",
+    "expected_effect": "Results should depend far more on decisions than on the deal.\n\nPlanning: players will hold strong cards across rounds, waiting for a Kobayakawa value that does not reward a low card. Their opponents read long pass streaks as a strong held card (or a bluff setup).\n\nCommitment and stakes: fighting HIGH early deters callers and taxes them, so late seats must decide whether a raise is real. Sole-fighter bluffs become viable when the raise comes from an early seat. Carried cards, discards and pass histories make each opponent's hand partly inferable, which reduces the share decided by fresh cards.\n\nTalk: players disagree because only one fighter takes each pot. A claim like 'I hold 14, stay out' is meant to make others pass. A player who believes it and passes hands the bluffer the pot. A player who ignores it pays a stake against a real strong card.\n\nSimple policies:\n- Always-pass ends near 4 kamons while the 11 centre kamons go to others, so it loses.\n- Always-fight-LOW loses stakes to selective fighters.\n- Always-fight-HIGH is called by strong hands and pays the extra kamon each time.\n- Each can lose.\n\nWith equal sensible play, the hold-or-fight timing, raise reading and seat rotation still separate players. Honest residual luck is moderate, not dominant."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 4,
+    "attributes": 17,
+    "hidden_elements": 3,
+    "random_draws_per_round": 1,
+    "rounds": 10
+  },
+  "critic": {
+    "rounds": 2,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Kamon flow: there are 23 to 35 kamons in total (4 per player plus 11 in the centre). The centre pays 1 kamon per round in rounds 1-9 (9 kamons) and the remaining 2 in round 10, so the 11 are used exactly. Fight EV with a random card: with n fighters at cost c, the pot is n*c + 1 + carry. Each fighter wins about 1/n of the time, so EV = (n*c + 1 + carry)/n - c = (1 + carry)/n > 0. Fighting with an average card is therefore positive, and PASS earns 0. Folding pays only with a hand known to be weak for the current K.\n\nThoughtless policies, 3 players, two sensible opponents who each fight about 60% of the time with selected hands:\n- ALWAYS FIGHT. Both opponents fight (p=.36): pot 4, win about 20%, EV -0.2. One fights (.48): pot 3, win about 35%, EV +0.05. None fight (.16): EV +1. Total about +0.11 per round. Sensible play folds bad hands, which avoids about -0.6 per folded hand, and earns a similar or better EV. Always-fight is competitive but does not win almost every time. It loses whenever it holds a hand that is weak for the current K (e.g. K=12 and a mid card against a low card) in a contested round.\n- ALWAYS PASS. EV 0 per round while fighters average above 0, so it loses.\n- ALWAYS KEEP. Weakly worse than DRAW in card value, but it hides your card and sends a signal, so it is not strictly dominated.\n- ALWAYS DRAW. DRAW puts one card face up each round, and opponents can read relative strength from it given K, so it is not strictly best.\n- ALWAYS SHIFT. It gives up the second card and blindly redraws K, which is worse when K already favours you.\n\nNo option is strictly best whatever the opponents do. FIGHT beats PASS if everyone else passes but loses with a beaten card. Card strength is non-monotonic: with two fighters holding a low card L and a high card H, the low card wins iff H - L < K (tie if H - L = K). So there is no fixed best card.\n\nSeats: every choice is a simultaneous poll and there is no turn-order tie-break, so no seat has an edge. Every player can win. There are no labelled payoff orderings to check."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Deck: 6 players x 2 cards + K + Alternate = 14 cards, within 15. Card values are distinct, so the lowest fighter is unique. Total ties (L+K=H) are covered by rule 12, including the round-10 division with the remainder removed. A round where nobody fights carries the pot, and a sole fighter is defined. Players with fewer kamons than the cost must pass. Elimination happens at 0, and the game ends at one remaining player or after round 10. A tie for the most kamons is a draw. The game is finite and settled by arithmetic on kept numbers.\n\nLimits: 15 steps (max 20). 4 choice steps: draw, keep, talk, fight (max 4). 14 attributes (max 20). 3 hidden elements: hand, reserve, alternate (max 3). 1 shuffle per round (max 1). 10 rounds (max 40).\n\nWorkaround: finding the minimum fighter, the totals, the maximum and ties needs calc (arithmetic_ranking). This is costly but supported, and 15 steps leaves room. The game uses no board, clock, trades or binding agreements.\n\nTalk is simultaneous and comes after the reveal. Players genuinely disagree, since each wants the others to pass or to fight weak cards. Claims about cards and K-fit give real material for bluffing and inference, so talk is justified. This is not a cooperation game, so there is no late-round betrayal problem."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Every round is a fresh deal of one card per player, and nothing carries between rounds except kamons. Information available before the fight: the public K, discards from drawers only, the KEEP/DRAW/SHIFT labels and cheap talk. The fight choice is simultaneous, which removes the original game's main inference: later players can no longer see who has already committed.\n\nA good reasoner's edge comes mainly from folding hands that are weak for this K and choosing DRAW or SHIFT well. That is worth roughly +0.1 to +0.3 kamons per round over always-fight. Per-round outcome swings are about \u00b11 to 3 kamons, so the standard deviation over 10 rounds is about 4 to 5 kamons, against a skill edge of about 1 to 3. The good reasoner is therefore not clearly favoured. I estimate that 60-70% of results are decided by the deal.\n\nWith all players using the same sensible strategy (draw, fold weak-for-K hands, fight otherwise), the winner is set by who was dealt K-favourable cards in contested rounds, i.e. by the deal alone. Bluffing is weak: a sole fighter wins unrevealed, but with simultaneous choice only talk can deter anyone, and talk is free and non-binding."
+        },
+        "required_changes": [
+          "Make the FIGHT step a sequential choice in seat order, starting with the previous pot winner and otherwise rotating each round. Each player sees earlier FIGHT/PASS decisions before choosing, which restores reading of opponents' commitments. Keep total ties carrying the pot (as now) rather than breaking them by seat, so order gives no automatic edge.",
+          "Add a bet size: a fighter stakes 1 or 2 kamons (2 or 3 in round 10). A fighter may stake more than the minimum only if every earlier fighter staked the same or less. The pot winner takes all stakes. This lets confidence and bluffs be expressed and punished, increasing the reward for opponent modelling.",
+          "Carry information across rounds: a player who passes keeps their hand card into the next round, while fighters and drawers receive a fresh card. Repeated KEEP/PASS histories and discards then become evidence to infer from, and the share of results set by each round's fresh deal falls well below half."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "KAMON ACCOUNTING. Total kamons = 4N + 11. The centre feeds 1 kamon in each of rounds 1-9 (9 kamons) and the remaining 2 in round 10, so the centre empties exactly. The only leaks are round-10 split remainders and a pot that is left unclaimed after round 10.\n\nSHOWDOWN TABLE (two fighters, cards a < b, Kobayakawa value K). The low card a wins if a+K > b, ties if a+K = b, and loses if a+K < b.\n- K=8: card 1 beats b up to 8, ties b=9, loses to b of 10 or more. Card 7 beats every higher card up to 14, but loses to any lower card c, because c+8 > 7. Card 15 beats every lower card c up to 6, ties c=7, and loses to c of 8 or more.\n- K=2: low cards almost never win, and the highest card wins unless the low card is b-1 (which wins).\nSo whether a card is strong depends on K and on who else fights. No card value is good in every round.\n\nTHOUGHTLESS POLICIES (3 players, rounds 1-9: stake 1 LOW or 2 HIGH, centre adds 1). Results use the winner rule.\n- ALWAYS PASS: the player never gains and never loses, so ends on 4. The other two hold 4+4+11 = 19, minus leaks, so at least one of them ends on 9 or more. Always-pass loses against any opponents who fight at all. It draws only if every opponent also passes throughout, and then all players end on 4.\n- ALWAYS FIGHT LOW (any card):\n  - against passers: wins the pot alone, +1 or more per round.\n  - against one selective fighter, who fights with strong cards for the current K: wins roughly 30-40% of showdowns, so the expected value is about 0.35*(pot) - 0.65*(1) per contested round, which is negative.\n  - against random play: about 50%.\n  Selective opponents beat it on average. It loses many games, so it is not a never-lose policy.\n- ALWAYS FIGHT HIGH: the same win rate but a stake of 2, so a worse expected value when contested. Its deterrence does not stop strong-card holders.\n- ALWAYS KEEP / ALWAYS DRAW: DRAW gains an option over KEEP but leaks information. The draw choice and a face-up discard are announced, which narrows the range of the card you hold. KEEP hides information, so neither dominates.\n- ALWAYS SHIFT: gives up the draw and replaces K with an unknown value. It is dominated in many hands but not in all, for example when you hold a mid card and K suits you badly.\n- No option is strictly better whatever opponents do.\n\nSEATS. The fight is sequential, so later seats see earlier choices, and FIGHT HIGH lets early seats raise later stakes. The start seat rotates to the pot winner, or advances when no one wins. That spreads the order edge and gives the leader the worst information position. Seat 1's round-1 start is a minor, rotating edge.\n\nAll players can realistically win, and no labelled payoff ordering is misstated.\n\nOne small gap, which does not change the verdict: a pot that is not won in round 10 is effectively lost. A sentence saying it is removed from the game would make this explicit."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS. The rules cover the deal, the three draw options, the keep/discard step, the shift trigger (any single SHIFT forces the replacement; 'vote' is loose wording but the trigger is unambiguous), required stakes after HIGH, the forced pass for players short of kamons, scoring for 0, 1 and 2+ fighters, ties in rounds 1-9 versus round 10, cleanup of held and fought cards, elimination, and the end check.\n\nDECK CAPACITY. At most 5 hand + 5 reserve + Kobayakawa + Alternate = 12 cards, which fits in 15. Held cards are excluded from the shuffle, so there are no collisions.\n\nFINITE AND ARITHMETIC. The game lasts at most 10 rounds, and the winner is the highest kamon count, a game-kept number.\n\nLIMITS (stated: 15 steps, 4 choice steps, 17 attributes, 3 hidden elements, 1 random draw, 10 rounds). All are within the platform caps:\n- 15 steps: at most 20 allowed.\n- 4 choice steps (draw, keep, talk, fight): at most 4 allowed.\n- 17 attributes: at most 20 allowed.\n- 3 hidden elements (hands, reserves, Alternate): at most 3 allowed.\n- 1 random draw (a single shuffle per round): at most 1 allowed.\n- 10 rounds: at most 40 allowed.\n\nENGINE SUPPORT.\n- The fight is sequential_choice; the draw and keep choices are simultaneous polls.\n- 'Lowest card adds K', 'highest total' and the tie split need calc-style arithmetic, which is supported with a workaround and fits in the step budget.\n- No board, clock, trading or binding agreements are used.\n\nTALK. Talk is simultaneous and placed after the reveal and before a fight that players disagree about. Each player wants others to pass, or to fight into a losing showdown. Bluffing about held cards can therefore cost a listener, and there is something to reason about. Copying the first speaker does not happen.\n\nThe repeated-cooperation concern does not apply; this is not a cooperation dilemma."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT THERE IS TO INFER.\n- Opponents' hand ranges, from the announced draw choices, face-up discards, which players are holding kept cards and for how long, talk, and fight order.\n- The chance of K changing: SHIFT is announced, the Alternate is hidden, and the spent cards are known.\n- Whether lone-fighter steals will be contested.\n\nACTIONS THAT USE IT. Keep or draw, shift to swing K, fight HIGH to deter, pass to hold a strong card for a better K, and steal the pot alone.\n\nCHANCE SHARE. A single showdown is perhaps 50-60% determined by the deal. Over 10 rounds with selective entry, chance in the final standings is perhaps 35-45%.\n\nEQUAL-SKILL OUTCOME. If all players use good strategy, the deals vary and results spread across seats. But the winner is not fixed by one hidden draw, because each round re-deals and lets players opt out.\n\nSKILL EDGE. A selective, inferring player clearly beats always-fight and random play, which have negative expected value in contested rounds, and beats always-pass. Reasoning is favoured; luck adds variety without deciding the game alone."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

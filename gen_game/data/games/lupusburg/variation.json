@@ -1,0 +1,178 @@
+{
+  "original_summary": "Lupusburg is a hidden-role social deduction game for 4 to 8 players. Each player hides characters (one Werewolf, one Thief, the rest Townsfolk) and a chest under two houses. Each night the Thief hunts chests and the Werewolf kills a house; each day players bet coins on who is the Werewolf and vote to lynch a house. Points come from surviving characters, an intact chest and correct bets.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "weak",
+      "evidence": "The original's tapping, pointing and bag of coins do not translate to text, and bets drawn from a bag reward the draw. In the previous variation, silent hoarding of a lucky round-1 peek was the dominant policy. 'Never accuse' is never punished, and the Werewolf's result swings between about 2 and about 9 on whether a blind peek hits him early."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "bad",
+      "evidence": "In the previous variation, about 41-42% of games had someone find the Werewolf with a blind round-1 peek. A Townsfolk player found the Thief in 31-34% of games. Either find was worth +6, equal to the whole base score, so the luck of the deal outweighed reasoning."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Reading kill patterns, theft announcements, vote patterns and lies in talk gives a strong player room to improve. A weak player still keeps house and chest points."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "The hidden state is rich, but the previous variation let a single uninformed peek replace inference. Once found, the accuser had no further need to reason or persuade."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "All scoring is arithmetic on houses, chests, accusations and lynch outcomes tracked by the engine."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "Once the night actions are made simultaneous secret choices, the game is text-only and needs no board. Five rounds and about 11 steps per round fit the limits."
+    }
+  ],
+  "problems": [
+    "P1: A blind round-1 peek that lands on the Werewolf or Thief house gives a confirmed, risk-free accusation worth as much as a whole game's base score. This is the lottery trap.",
+    "P2: Accusation rewards (up to 6) exceed the base score (6), so house and chest play barely matters next to one lucky hit.",
+    "P3: A finder gains by hiding what he knows: publicising it raises k and cuts his payout, so talk carries no true information and the others have nothing to judge.",
+    "P4: The Werewolf seat is itself a deal lottery. Found early he ends near 2; unfound he ends near 9. Whether he is found depends mostly on blind peeks, not on his deception.",
+    "P5: Accusing is safe once a peek confirms the target, so accusation choices need no reasoning about evidence."
+  ],
+  "changes": [
+    {
+      "what": "Peeks never reveal the exact role. A peek reports only 'Townsfolk' or 'Special', where Special means Werewolf or Thief. The Thief's owner, knowing his own role, can of course deduce that a Special house that is not his own is the Werewolf.",
+      "why": "Finding a Special house shows only that its owner is one of two roles. To tell Werewolf from Thief, players must use theft announcements, kill choices, lynch results, votes and talk.",
+      "fixes": "P1"
+    },
+    {
+      "what": "No accusations may be made in round 1.",
+      "why": "A round-1 peek can never be cashed in at once. By round 2, more public evidence exists to tell the roles apart.",
+      "fixes": "P1"
+    },
+    {
+      "what": "A correct accusation scores max(1, 5 - r - (k - 1)), which is 3 at most, in round 2. A wrong accusation scores -3.",
+      "why": "A coin-flip accusation between Werewolf and Thief has expected value 0. The best possible hit (3) is half the base score of 6, so houses and chests still matter.",
+      "fixes": "P2, P5"
+    },
+    {
+      "what": "In the round the Werewolf house is lynched, every player who voted for it scores +2.",
+      "why": "A finder gains by persuading others to vote with him. Listeners must judge whether a claim of 'I found Special at X' is honest, and whether it points at the Werewolf or the Thief.",
+      "fixes": "P3"
+    },
+    {
+      "what": "The Werewolf's owner scores +1 for each round that ends without the Werewolf house being lynched, plus +2 if the Werewolf house is alive at the end. This replaces the flat +5.",
+      "why": "His score grows steadily with every round he survives through deception. Being found early costs a few points rather than everything, and the growth is driven by inference, not blind peeks.",
+      "fixes": "P4"
+    }
+  ],
+  "keeps": [
+    "Two houses per player, with hidden characters and a hidden chest",
+    "One Werewolf who kills a house each night and one Thief who hunts for chests",
+    "Burgomaster-style private peeks at other players' houses",
+    "Day discussion followed by a vote to lynch one house",
+    "Bets (accusations) on who holds the Werewolf, rewarding early correct suspicion",
+    "The Werewolf wins alone if he slaughters every other character",
+    "Points for living characters, a surviving chest and correct bets"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The previous variation's structure works. Its failure was a lottery in how peeks were rewarded, which lumped peek results, a ban on round-1 accusations and smaller payoffs fix within the limits."
+  },
+  "variation": {
+    "name": "Lupusburg Nights II",
+    "summary": "A hidden-role deduction game for 4 to 6 players over at most 5 rounds. Peeks reveal only whether a house is 'Special' (Werewolf or Thief), so players must combine kills, thefts, lynch results and talk to tell the two apart before risking an accusation. The Werewolf scores for every round he survives.",
+    "players": {
+      "min": 4,
+      "max": 6,
+      "suggested": 5
+    },
+    "rules": "SETUP\n- Seats are numbered 1..N, where N is 4 to 6.\n- Each player owns two houses, Left and Right. A house is named by owner and side.\n- The engine secretly deals characters. Exactly one house holds the Werewolf and exactly one holds the Thief. They belong to two different players, each in a random one of that player's houses. Every other house holds a Townsfolk.\n- The Werewolf's owner and the Thief's owner have no chest. Every other player has one chest, hidden under a randomly chosen one of his two houses.\n- Each player privately learns the characters under his own two houses and, if he has one, his chest side.\n- Everyone knows these dealing rules.\n- Each player starts with one unused accusation.\n- The game lasts at most 5 rounds.\n\nEACH ROUND, in order (r is the round number):\n\n1. NIGHT (simultaneous). Every player secretly names one living house belonging to another player.\n   - The Werewolf's owner may instead name his own other house if it is alive. He may never name the Werewolf house.\n   - Players with no living houses still take part.\n\n2. PEEKS. Every player except the Werewolf's owner privately learns the result for the house he named.\n   - The result is 'Special' if it holds the Werewolf or the Thief, and 'Townsfolk' otherwise.\n\n3. THEFT. This applies only if the Thief house is alive, the Thief has not yet stolen, and the Thief's owner has not been correctly accused as the Thief.\n   - If the house the Thief's owner named is its owner's chest house, the Thief steals that chest and the Thief's owner privately learns 'chest stolen'. Otherwise he privately learns 'no chest'.\n   - A steal is announced publicly as 'a chest was stolen from player X', without naming the Thief.\n   - The Thief steals at most once per game.\n\n4. KILL. The house named by the Werewolf's owner is removed.\n   - Its owner and side are announced publicly, but its character is not.\n   - The Werewolf's owner privately learns its character.\n   - Removing a house never removes a chest. If the removed house is the Thief house, the Thief loses any stolen chest, it returns to its victim, and the Thief can no longer steal.\n\n5. SLAUGHTER CHECK. If no living Thief or Townsfolk house remains, the Werewolf's owner wins alone and the game ends.\n\n6. TALK (simultaneous). Every player writes one short message without seeing the others' messages. All messages are then shown to everyone. Messages may be true or false and nothing said is binding.\n\n7. VOTE AND ACCUSE (simultaneous). Every player, including those with no living houses, names one living house to lynch.\n   - From round 2 on, a player who still holds his accusation may also, in the same step, name one other player and one role (Werewolf or Thief) as that player's character. This uses up his accusation.\n   - No accusations may be made in round 1.\n\n8. ACCUSATION RESULTS.\n   - For each role, let k be the number of players who correctly named that role's owner this round. Each correct accuser scores max(1, 5 - r - (k - 1)). Each wrong accuser scores -3.\n   - All accusations made this round (accuser, target, role) are announced publicly, but whether they were correct is not.\n   - If the Thief's owner is correctly accused as the Thief, he loses any stolen chest, it returns to its victim, and he can no longer steal.\n\n9. LYNCH. The house with the most votes is removed. If two or more houses tie for most votes, nothing is removed.\n   - It is announced only whether the lynched house was 'the Werewolf' or 'not the Werewolf'.\n   - If the Thief house is removed, the Thief loses any stolen chest, it returns to its victim, and he can no longer steal.\n   - If the Werewolf house was lynched, every player who voted for it scores +2.\n\n10. WEREWOLF ROUND POINT. If the Werewolf house was not lynched this round, the Werewolf's owner scores +1.\n\n11. END CHECK.\n   - If the Werewolf house was lynched, the game ends and is scored.\n   - Otherwise, if no living Thief or Townsfolk house remains, the Werewolf's owner wins alone.\n   - Otherwise, if this was round 5, the game ends and is scored.\n   - Otherwise a new round begins.\n\nFINAL SCORING (when the game ends by lynch or after round 5). Each player adds the following to the points already earned in play (accusation results, lynch-vote bonuses, Werewolf round points):\n(a) 2 points per living house he owns;\n(b) 2 points if he has a chest and it is not currently held by the Thief;\n(c) the Thief's owner: +2 if he still holds a stolen chest;\n(d) the Werewolf's owner: +2 if the Werewolf house is alive.",
+    "objective": "If at a slaughter check or the end check no living Thief or Townsfolk house remains, the Werewolf's owner is the sole winner. Otherwise the player with the highest total wins. If totals tie, the tied player with the higher accusation points wins. If still tied, the one with more living houses wins. If still tied, the game is a draw.",
+    "expected_effect": "A blind round-1 hit now yields only 'this owner is Werewolf or Thief'. It cannot be cashed in round 1, and a guess between the two roles has expected value 0 (+3 or -3). Under intended play, an uninformed round-1 choice should decide the winner in well under 25% of games (estimated around 10%). Cashing in needs extra evidence: who reports no chest, which houses the Werewolf spares or kills, the timing of theft announcements, and lynch results.\n\nTalk passes both tests.\n- Reasoning: finders want to publicise a Special house to collect the +2 lynch-vote bonus.\n- Conflict: only one player can win, and the roles want different outcomes. The Werewolf and Thief want to redirect votes and misname each other. Correct accusers want few co-accusers, since k cuts their payout. Townsfolk want the Werewolf lynched but not at the cost of their own houses.\n- A player who simply follows a confident claim may be voting for the Thief's house, or accusing on a lie, and lose 3.\n\nThe Werewolf's score grows by 1 per round he survives, plus 2 if he is alive at the end. Being caught early costs a few points rather than everything, so his result rewards sustained deception over the deal."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 11,
+    "choice_steps_per_round": 3,
+    "attributes": 14,
+    "hidden_elements": 2,
+    "random_draws_per_round": 0,
+    "rounds": 5
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "SCORE TABLE (no thief or wolf extras unless stated). Townsfolk owner, untouched: 2+2 houses, 2 chest, accusation (1 if held; 4/3/2/1 if correct in round 1/2/3/4+; 0 if wrong). Range 6 to 10, typically 7. Thief owner, untouched, steal made: 4+2+2+acc = 9 to 12. Mechanical play gets him there: check an unchecked house each night, and each townsfolk house is a chest with p = 1/2, so P(no steal by night 3) = 1/8. His victim also drops 2. Werewolf owner, surviving to round 6: 4 houses + 2 chest + 1 held accusation + up to 6 kills + 2 bonus = 14 to 15, which beats every possible non-wolf total (max 12). So wolf survival is a guaranteed win. Wolf lynched in round r: 2+2+r+1 = 5+r (6 in round 1, 8 in round 3), still competitive with townsfolk. GOOD-PLAY CASE (wolf caught round 3, about 3 kills spread over 2N-2 houses): wolf 8; untouched townsfolk 7 if holding, 8 if accusing correctly in round 3, 9 in round 2; untouched Thief owner 9 to 11. The Thief role, a dealt seat, wins most non-wolf outcomes with no reasoning edge, because his own chest can never be stolen and the steal is an automatic +2. THOUGHTLESS POLICIES. (a) 'Always hold accusation': from round 4 on, correct = 1 = hold and wrong = 0, so holding weakly dominates. It never loses to accusing in rounds 4 to 6. (b) 'Blind accuse in round 1': EV = 4/(N-1) = 1.33 at N=4, above the 1.00 for holding, so a no-information guess is correct play at N=4. (c) Thief 'check the lowest unchecked house': as good as any reasoned Thief play. (d) Town 'vote randomly': ties then mean no lynch, so the wolf survives and wins with 15. SEAT EDGE: the Burgomaster order is fixed by seat. Seat 1 peeks in round 1, when an accusation is worth 4; seat 4 peeks in round 4, when it is worth 1. A wolf found by a peek therefore yields +3 for seat 1 versus +0 for seat 4 (the hold value of 1 equals the accusation value). DRAWS: untouched holders all score 7, and almost all components are even, so ties at the top are common when the wolf is caught early."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Limits are fine: 17 steps (\u226420), 4 choice steps (night, peek, talk, vote+accuse; \u22644), 16 attributes (\u226420), 2 hidden elements (\u22643), 0 draws per round, 6 rounds (\u226440). Night is a simultaneous poll with dummy choices for cover. Talk is simultaneous and justified, since town and wolf disagree and townsfolk are rivals. Scoring is pure arithmetic. No board, judge or clock is needed. AMBIGUITY: the Burgomaster is 'the r-th seat counting from seat 1, skipping players with no living house'. With N=4 there is no 5th or 6th seat, so rounds 5 and 6 are undefined (round 6 at N=5), and wrap-around is never stated. Skipping also has two readings. Example: seat 2 is dead in round 3. Under 'the r-th living seat' the Burgomaster is seat 4 and seat 3 is never Burgomaster; under 'rotate and skip' it is seat 3. A model cannot resolve this from the text. LATE-ROUND TEST: from round 4 the accusation pays 1 if correct and 1 if held, so the safe option (hold) weakly dominates in every late round. The accusation mechanic is dead for half the game."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Under good play by all, the winner is mostly fixed by the deal and incidental chance. First, whoever is dealt the Thief gets a near-automatic +2 (steal by night 3 with p = 7/8, no skill involved) and is immune to being stolen from. That puts him at 9 to 11 against 7 to 9 for townsfolk. Second, the wolf, who does not know where the Thief is, decides which townsfolk lose 2 to 4 points. Third, who identifies the wolf in time for a 3- or 4-point accusation depends on the fixed Burgomaster order plus a peek that hits the wolf with p = 1/(2N-2) (1/6 at N=4, 1/10 at N=6). Inference does exist: kill patterns (the wolf rarely kills his own houses), peeks, lies in talk, public accusations, and 'chest stolen from X'. But the Thief role swing (about 4 points relative to a robbed rival) exceeds the typical skill swing from an early correct accusation (about 1 to 3 points). I estimate chance decides well over half of results when the wolf is caught, so a better reasoner is not clearly favoured."
+        },
+        "required_changes": [
+          "Remove the Thief's automatic edge. Make the steal transfer the victim's chest (Thief +2 only while his Thief house lives, victim -2), and add a counter: any player may name the Thief's owner instead of the Werewolf's owner with his accusation (correct = same round value, and the Thief loses the stolen +2). The Thief role then carries risk and requires concealment.",
+          "Cap the wolf so survival is not an automatic win. Drop +1 per kill and give +3 for surviving to round 6. A surviving wolf then scores about 4+2+3 = 9 to 10, beatable by a townsfolk who accused correctly early (10).",
+          "Fix the accusation values: unused = 0, wrong = -3, correct = 5/4/3/2/2/2 for rounds 1/2/3/4/5/6. A blind round-1 guess is then negative at N=4 ((5-6)/3 < 0), and late accusations still beat holding when informed.",
+          "Remove the seat edge from peeking: every living player peeks at one other player's living house each round as a single simultaneous step, replacing the Burgomaster. If a Burgomaster is kept, define it exactly: round 1 = seat 1; each later round = the next seat clockwise with a living house after the previous Burgomaster, wrapping from N to 1.",
+          "Add a tie-break before declaring a draw: first the earliest correct accusation, then the most living houses, then a shared win."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Payoff table, no accusations. Untouched chest owner: 2 houses x2 + chest 2 = 6, minus 2 per killed or lynched house and minus 2 if robbed. Thief's owner: 4 + 2 if he holds a stolen chest, so 4 to 6; each steal also costs a rival 2. Werewolf's owner: if lynched, 0 to 2 (his Townsfolk house only); if he survives round 5, 2 or 4 + 5 = 7 to 9. Accusation: correct pays max(1, 7-r-(k-1)): round 1: 6, round 2: 5, round 3: 4, round 4: 3, round 5: 2 (minus 1 per extra correct co-accuser); wrong pays -4.\n\nThoughtless policies, judged by the winner rule.\n(1) Never accuse: at most 6, so this loses to any correct accuser, and to a surviving Werewolf on 7 to 9.\n(2) Round-1 blind accusation of a fixed seat as Werewolf. P(correct) for a plain Townsfolk player is 1/(N-1): 1/3 at N=4, 1/5 at N=6. EV = 6p - 4(1-p) = -0.67 at N=4 and -2.0 at N=6. It loses most games.\n(3) Always vote the first living house: lynches wrong houses, often ties, and costs your own score when the first house is yours. It does not dominate.\n(4) Werewolf always kills a chest owner: a kill reveals only owner and side, so it does not protect the Werewolf house from peeks.\nNo option is strictly better whatever the others do, and no policy never loses.\n\nSeats. Werewolf: big upside (9) if he is never found, but each round brings N-1 peeks. Cumulative chance a random-peek village has found him: round 1 about 41%, round 2 about 65%, round 3 about 80%. Once found he usually loses on about 2. Thief: the same base as a chest owner and slightly more exposed. All seats can realistically win, and there is no move-order edge because choices are simultaneous. The labelled orderings in the rules match the numbers.",
+          "notes": "Pass, with the luck problem handled under reasoning_over_luck."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Every phase is a simultaneous poll or an arithmetic resolution. Night, talk and vote/accuse are 3 choice steps (at most 4). Rounds 5 (at most 40). Random draws per round 0, since the deal happens at setup. Hidden elements: character placement and chest placement, 2 (at most 3). Private learning (peek, theft result, kill result) uses private_values or a private channel. No board, clock, trading or binding deals.\n\nEdge cases are covered:\n- Players with no houses still peek, vote and accuse.\n- The Werewolf can always name a target, or the slaughter check has already ended the game.\n- Steal-then-killed in the same night is resolved at step 9 (the chest returns).\n- A lynch tie removes nothing.\n- Tie-breaks are listed in full.\n- The game is finite, at 5 rounds at most.\n\nTalk is simultaneous and justified: there is a hidden Werewolf, a hidden Thief, and players compete on score, so claims can be lies and following a claim can cost a house.\n\nThe late-round test does not apply as a cooperation dilemma. A round-5 accusation pays at most 2 against a -4 risk, so it is only worth making with p > 2/3. That is sensible.\n\nComplexity caveats: tallying votes over up to 12 houses with tie detection, plus computing k per role, is step-heavy, so 16 steps is tight but plausible. The 18 attributes holds only if per-house and per-player values count as one attribute each (house alive, character index, chest side, accusation used, accusation points, stolen flag, score)."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "The round-1 peek is a blind lottery whose prize equals a whole game's base score. Each non-Werewolf peeker hits the Werewolf house with chance 1/(2N-2).\n- P(someone finds the Werewolf in round 1): N=4: 1-(5/6)^3 = 42%; N=5: 1-(7/8)^4 = 41%; N=6: 1-(9/10)^5 = 41%.\n- P(a plain Townsfolk player finds the Thief in round 1): N=4: 1-(5/6)^2 = 31%; N=6: 1-(9/10)^4 = 34%.\nSo in roughly 60% of games at least one player gets a risk-free +6 in round 1, purely from an uninformed choice. That equals the maximum base score of 6.\n\nThe lucky finder also has every reason to hide it. Announcing the house reveals its owner, others co-accuse, and his payout drops by 1 each. He accuses silently and wins at about 12 against at most 6 to 7 for everyone else.\n\nA careful reasoner can do little about this:\n- Theft announcements and kills give weak signals: the kill shows owner and side, not the character.\n- Systematic peeking only pays off from round 2 or 3, worth 5 or 4 and often shared, so k > 1.\n\nWhen all players follow the intended good strategy (spread peeks, accuse only on a confirmed peek, lynch the confirmed Werewolf), the winner is whoever's round-1 or round-2 peek happened to land on the Werewolf or Thief house. That is decided by the random deal against blind choices. The Werewolf seat is also a deal lottery: whether he is found by round 2 (about 65%) decides between about 2 and about 9.\n\nEstimated share of the result decided by chance: well over half.",
+          "notes": "There is real inference (bluffing in talk, reading theft announcements, the finder's dilemma between sharing and hoarding), but its value is swamped by the size of the blind-peek prize."
+        },
+        "required_changes": [
+          "Remove the blind-peek lottery: allow no accusations in round 1, or have the round-1 peek reveal only 'Townsfolk' or 'not Townsfolk', which lumps the Werewolf and the Thief together. A finder must then use later evidence (theft announcements, kills, votes, talk) to tell the two roles apart before accusing.",
+          "Shrink accusation rewards so they cannot exceed a game's base score. For example, correct = max(1, 4 - r - (k-1)) and wrong = -3, so house, chest and survival points still matter and one lucky hit cannot decide the game.",
+          "Reward sharing true information so the finder's best play is not silent hoarding. For example, add +2 to every player who voted for the Werewolf house in the round it is lynched, so a confirmed finder gains by publicising it and the others must judge whether his claim is true.",
+          "Cut the Werewolf's swing between found and unfound. For example, survival bonus +3 instead of +5, plus +1 per round he survives, so his result depends on deception through talk and kill choice across rounds rather than on whether a blind peek hits him early.",
+          "Re-run the probability table after these changes. Target: in under 25% of games does a single blind round-1 choice decide the winner when everyone plays the intended strategy."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "FINAL TOTALS, assuming the WW lynched in round r and his other house alive. WW: 2 (houses) + 0 (d) + (r-1) round points, so r=1 gives 2, r=3 gives 4, r=5 gives 6. Untouched chest owner who voted for the WW: 4 + 2 + 2 = 8, plus accusation points. Thief: 4 + 2 (lynch bonus) + 2 if he stole and kept the chest = 6 or 8, plus accusation points. WW never lynched in 5 rounds: 4 + 2 + 5 = 11. Best town total without a lynch: 4 + 2 + 3 (single correct accusation in round 2) = 9, which is less than 11. So the WW wins essentially if and only if he survives 5 rounds. A self-kill costs him 2, leaving 9, and a town player with 9 then wins the tie on accusation points. The WW is near-certain to lose if caught. This is a coherent one-vs-team core: N-1 aligned players with N-1 peeks per round and talk, against one liar who controls kills and can split votes (ties remove nothing). Both sides can realistically win. THOUGHTLESS POLICIES. (1) Always accuse in round 2 at random: P(correct) is about 1/(N-1), 0.2 at N=6, so EV = 0.2*3 - 0.8*3 = -1.8. It loses to sensible play. (2) Never accuse: safe from -3, but it loses whenever a rival accuses correctly, because the totals are otherwise level. Not unbeatable. (3) Always vote the first listed house: it forfeits the +2 lynch bonus and loses to anyone voting on information. (4) WW always kills the first listed house: no effect on lynch odds by itself; the outcome rests on talk and votes. (5) Always lynch any house reported 'Special': hits the Thief half the time, which costs the Thief and helps the WW. Not dominant. No option is strictly better against every opponent action. ROLE ASYMMETRY (concern, not fatal): the Thief starts 2 behind a chest owner (4 vs 6) and catches up only by stealing. His per-round success is about 0.5*(N-2)/(N-1), roughly 0.4 at N=6. In compensation, a 'Special' peek tells him the WW house exactly."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Within limits: 11 steps (max 20); 3 choice steps (night, talk, vote; max 4); 5 rounds (max 40); 0 random draws per round, with the deal at setup; 2 hidden elements (max 3); 14 attributes (max 20). All features are supported. The winner chain needs calc (workaround). Talk is simultaneous and justified: the town disagrees about which house is Special, and the WW and the Thief have reasons to lie. The game is finite. GAPS: (1) The rules never say whether running scores are visible. Step 8 hides whether accusations were correct, but a public score change (+3 vs -3, or the +2 lynch bonus) reveals it. A model cannot tell what it may infer, and the main inference channel depends on this. (2) A chest returned to its victim (Thief house killed or lynched, or Thief accused) is never announced. Whether the victim or the public learns it is unspecified. (3) It is not stated whether a player may vote to lynch his own house, or whether an accusation may target a player with no living houses. Gap 1 alone leaves a central information rule undefined."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "The overall structure rewards inference: peeks, cross-checking claims against the dealing rules, the Thief's exact WW detection, and accusation timing with k-sharing. But the outcome under intended good play is decided by other factors. Example, N=6: the town lynches the WW in round 1, everyone votes for him, and no accusations are allowed. The WW killed one house. The three untouched chest owners each have 4 + 2 + 2 = 8. The Thief has 6, or 8 if his ~40% steal landed, in which case the victim drops to 6. The tie-breaks give accusation points 0 for all and living houses 2 for all, so the result is a 3- or 4-way DRAW. Round 2 lynch: good players all accuse correctly in the same step, so with k=4 each scores max(1, 3-3) = 1. They tie again, and the result is decided by which houses the already-doomed WW chose to kill and by whether the Thief's 50/50 chest-side guess hit. Among the town, the winner is thus set by the opponent's kill targets and a coin-flip theft, not by the winner's own reasoning. Chance and kingmaking decide roughly half or more of town outcomes. The WW-side result (survive or not) is reasoning-driven, but the per-player winner usually is not."
+        },
+        "required_changes": [
+          "Specify score visibility: keep all running scores hidden until final scoring, or announce accusation correctness publicly. Either way, make it consistent with step 8.",
+          "Announce publicly when a stolen chest returns to its victim (or state explicitly that it is private), and say whether a player may vote for his own house.",
+          "Break good-play ties by individual reasoning. Allow accusations from round 1, worth max(1, 6 - r - (k - 1)). Award +1 per round to each player whose lynch vote hit a Special house (Thief or Werewolf). Use 'fewer wrong accusations, then earlier correct vote' as a tie-break before living houses, so simultaneous identical play rarely ends in a draw.",
+          "Reduce the theft coin-flip. Either let the Thief steal whenever he names any house of a chest owner, or give the Thief's owner a base +2 (equal to a chest), so that stealing is a relative gain rather than a recovery from a deal-imposed deficit.",
+          "Limit the lynched WW's kingmaking: score each kill victim +1 per house lost to the Werewolf (compensation), so that the WW's last-round target choice does not by itself decide the town winner."
+        ],
+        "sound": false
+      }
+    ],
+    "sound": false
+  }
+}

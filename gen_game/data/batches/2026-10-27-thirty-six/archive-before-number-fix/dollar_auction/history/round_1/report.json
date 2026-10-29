@@ -1,0 +1,435 @@
+{
+  "game": "dollar_auction",
+  "attempts": [
+    "the game file was refused by the loader: dollar_auction: steps[5].do[0].value.calc: cannot read 'you.raise': invalid syntax",
+    "playing it with random seats failed: seed 1, 3 players: the match crashed: FlowError: 'auction_winner' is not a declared player attribute",
+    "it plays, but part of it does nothing: game attribute `prize_deck` is never changed in 3 random matches, so nothing updates it. Steps that name it: starting coins and the deal. They never change it: their `when`/`if` may never be true, the `key` may be spelled differently from the attribute, or the value written may equal what it already holds.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Setup: every seat starts with 100 coins, nothing committed, auction 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Setup: each seat holds a private values list of six entries (the order is random, so only the count is checked)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A new round advances the auction by 1 and committed is back to 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The talk step changes no state when every seat then raises 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Raises across stages add up: 10 then 5 costs 15 coins, and nothing above the coins is offered",
+      "passed": false,
+      "failures": [
+        "rule R5 is broken: When a raise stage runs, then each player chooses a raise from 0 to coins - committed simultaneously, and committed increases by that raise.",
+        "seat 1 coins: expected 85, got 100",
+        "seat 1 was never offered 100, but should have been",
+        "Ada: the rule for 10 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 20, 30, 25, 10], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 2\": {\"coins\": 100, \"prize_points\": 0, \"values\": [15, 30, 10, 20, 40, 25], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 3\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 25, 20, 10, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fi; table {\"auction\": 1, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    },
+    {
+      "name": "With 40 coins and 30 committed, a raise of 10 is still allowed and nothing above 40 in total is ever offered",
+      "passed": false,
+      "failures": [
+        "rule R6 is broken: When a player has coins 40 and committed 30, then their raise options are 0 to 10.",
+        "seat 1 coins: expected 0, got 40",
+        "seat 1 was never offered 10, but should have been",
+        "Ada: the rule for 30 was never matched (the game never put that option to this seat)",
+        "Ada: the rule for 10 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 40, \"prize_points\": 0, \"values\": [40, 15, 20, 30, 25, 10], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 2\": {\"coins\": 100, \"prize_points\": 0, \"values\": [15, 30, 10, 20, 40, 25], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 3\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 25, 20, 10, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fin; table {\"auction\": 1, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    },
+    {
+      "name": "Three raise stages each run: a raise of 5 in each stage costs 15",
+      "passed": false,
+      "failures": [
+        "rule R7 is broken: When each of the 3 raise stages ends, then every player's committed bid is announced to all.",
+        "seat 2 coins: expected 85, got 100",
+        "Blaise: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 20, 30, 25, 10], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 2\": {\"coins\": 100, \"prize_points\": 0, \"values\": [15, 30, 10, 20, 40, 25], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 3\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 25, 20, 10, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fi; table {\"auction\": 1, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    },
+    {
+      "name": "Bids 20, 15, 0 leave coins 80, 85, 100",
+      "passed": false,
+      "failures": [
+        "rule R8 is broken: When an auction resolves, then every player's coins decrease by their committed bid, whether or not they won (bids 20, 15, 0 leave coins 80, 85, 100 from 100 each).",
+        "seat 1 coins: expected 80, got 100",
+        "seat 2 coins: expected 85, got 100",
+        "Ada: the rule for 20 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 15 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 20, 30, 25, 10], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 2\": {\"coins\": 100, \"prize_points\": 0, \"values\": [15, 30, 10, 20, 40, 25], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 3\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 25, 20, 10, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fi; table {\"auction\": 1, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    },
+    {
+      "name": "A sole top bid of 20 wins this auction's value of 30 (every values entry is set to 30)",
+      "passed": false,
+      "failures": [
+        "rule R9 is broken: When exactly one player holds the highest committed bid and it is at least 1, then that player's prize_points increase by their own values entry for this auction.",
+        "seat 1 coins: expected 80, got 100",
+        "Ada: the rule for 20 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 100, \"prize_points\": 0, \"values\": [30, 30, 30, 30, 30, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 2\": {\"coins\": 100, \"prize_points\": 0, \"values\": [15, 30, 10, 20, 40, 25], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 3\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 25, 20, 10, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fi; table {\"auction\": 1, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    },
+    {
+      "name": "A tie at the top (20, 20, 5) gives nobody the prize and all three still pay",
+      "passed": false,
+      "failures": [
+        "rule R10 is broken: When two or more players tie for the highest committed bid (e.g. 20, 20, 5), then nobody's prize_points change, and all three still pay.",
+        "seat 1 coins: expected 80, got 100",
+        "seat 2 coins: expected 80, got 100",
+        "seat 3 coins: expected 95, got 100",
+        "Ada: the rule for 20 was never matched (the game never put that option to this seat)",
+        "Blaise: the rule for 20 was never matched (the game never put that option to this seat)",
+        "Cleo: the rule for 5 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 100, \"prize_points\": 0, \"values\": [30, 30, 30, 30, 30, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 2\": {\"coins\": 100, \"prize_points\": 0, \"values\": [30, 30, 30, 30, 30, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 3\": {\"coins\": 100, \"prize_points\": 0, \"values\": [30, 30, 30, 30, 30, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fi; table {\"auction\": 1, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    },
+    {
+      "name": "All bids 0: no winner and no coins change",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The winner's seat is recorded and every seat's coins are updated",
+      "passed": false,
+      "failures": [
+        "rule R12 is broken: When an auction resolves, then the winner's seat (or none) and all coins are announced, but the prize value won is not.",
+        "seat 2 coins: expected 93, got 100",
+        "game auction_winner: expected '2', got 'none'",
+        "Blaise: the rule for 7 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 20, 30, 25, 10], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 2\": {\"coins\": 100, \"prize_points\": 0, \"values\": [15, 30, 10, 20, 40, 25], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 0}, \"seat 3\": {\"coins\": 100, \"prize_points\": 0, \"values\": [40, 15, 25, 20, 10, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fi; table {\"auction\": 1, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    },
+    {
+      "name": "After auction 6 the game ends and final_score = coins + prize_points",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Seats level at the top of coins + prize_points share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A winning final bid decides the game: the bid's prize value lifts the seat to the top",
+      "passed": false,
+      "failures": [
+        "rule R14 is broken: When the game ends, then the player with the highest coins + prize_points wins, and players tied at the top share the win.",
+        "winner: expected 'seat 1', got 'seat 2'",
+        "seat 1 standing: expected 90, got 70",
+        "seat 1 coins: expected 60, got 70",
+        "seat 1 final_score: expected 90, got 70",
+        "Ada: the rule for 10 was never matched (the game never put that option to this seat)"
+      ],
+      "trace": "moves played: r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0; r1 seat 1: 0; r1 seat 2: 0; r1 seat 3: 0. First attribute changes: table pick: 0 -> 40; seat 1 values: [] -> [40]; table prize_deck: [10, 15, 20, 25, 30, 40] -> [10, 15, 20, 25, 30]; table pick: 40 -> 15; seat 1 values: [40] -> [40, 15]; table prize_deck: [10, 15, 20, 25, 30] -> [10, 20, 25, 30]; table pick: 15 -> 20; seat 1 values: [40, 15] -> [40, 15, 20]; table prize_deck: [10, 20, 25, 30] -> [10, 25, 30]; table pick: 20 -> 30; seat 1 values: [40, 15, 20] -> [40, 15, 20, 30]; table prize_deck: [10, 25, 30] -> [10, 25]; table pick: 30 -> 25; seat 1 values: [40, 15, 20, 30] -> [40, 15, 20, 30, 25] .... Final: players {\"seat 1\": {\"coins\": 70, \"prize_points\": 0, \"values\": [30, 30, 30, 30, 30, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 70}, \"seat 2\": {\"coins\": 60, \"prize_points\": 20, \"values\": [15, 30, 10, 20, 40, 25], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"final_score\": 80}, \"seat 3\": {\"coins\": 75, \"prize_points\": 0, \"values\": [40, 15, 25, 20, 10, 30], \"committed\": 0, \"raise\": 0, \"stage_raise\": 0, \"fi; table {\"auction\": 6, \"prize_deck\": [], \"pick\": 30, \"top_bid\": 0, \"top_count\": 3, \"auction_winner\": \"none\", \"starting_coins\": 100, \"auctions\": 6, \"raise_stages\": 3, \"prize_value_1\": 10, \"prize_value_2\": 15, \"prize_value_3\": 20, \"prize_value_4\": 25, \"prize_value_5\": 30, \"prize_value_6\": 40, \"prize_value_total\": 140, \"min_winning_bid\": 1}"
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        4
+      ],
+      "results": {
+        "seats 1 and 2": 2,
+        "seat 2": 8,
+        "seat 1": 11,
+        "seat 3": 9,
+        "seats 1 and 3": 2,
+        "seats 1, 2 and 3": 1,
+        "seat 4": 6,
+        "seats 1 and 4": 1
+      },
+      "turns_min": 26,
+      "turns_max": 65
+    }
+  },
+  "tier1": {
+    "flags": [
+      "always taking the first option as seat 1 wins 100% of decided matches against random seats",
+      "always taking the first option as seat 2 wins 97% of decided matches against random seats"
+    ],
+    "notes": [],
+    "random_results": {
+      "seats 1 and 2": 3,
+      "seat 2": 19,
+      "seat 1": 19,
+      "seat 3": 15,
+      "seats 1 and 3": 1,
+      "seats 1, 2 and 3": 1,
+      "seats 2 and 3": 2
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 60,
+        "loss": 0,
+        "draw": 0,
+        "win_rate": 1.0
+      },
+      "first@seat2": {
+        "win": 58,
+        "loss": 2,
+        "draw": 0,
+        "win_rate": 0.97
+      },
+      "last@seat1": {
+        "win": 7,
+        "loss": 47,
+        "draw": 6,
+        "win_rate": 0.13
+      },
+      "last@seat2": {
+        "win": 10,
+        "loss": 42,
+        "draw": 8,
+        "win_rate": 0.19
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 39.8,
+      "prompt_chars_avg": 193,
+      "prompt_chars_max": 251
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 4 players, suggested 3",
+      "why": "The designer suggested 3. With 3, a tie between two bidders lets the third steal cheaply, and talk can form two-against-one splits. At 4 the auctions are still contested. More would dilute each player's influence and lengthen talk beyond the source's range."
+    },
+    {
+      "what": "Talk as a simultaneous poll with broadcast",
+      "why": "The source says messages are written at the same time without seeing others. Players disagree over who takes which auction, so claims and bluffs about values matter."
+    },
+    {
+      "what": "Each player's value ordering built by drawing all six values at random from a copy of prize_deck",
+      "why": "This implements the 'random ordering' dealing with list draws."
+    },
+    {
+      "what": "prize_points visible only to the owner until the end",
+      "why": "The source says won values are not revealed. Only who won is announced."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for the highest final score is a shared win rather than a separate draw",
+      "why": "The engine ranking has tied top players share the win, which is equivalent to the source's draw."
+    },
+    {
+      "what": "The highest bid is found through table attributes top_bid and top_count",
+      "why": "The engine has no direct player-to-player attribute comparison, so a table attribute is kept beside the bids."
+    },
+    {
+      "what": "A final_score attribute is set at the end",
+      "why": "It gives an observable score, since prize_points stay hidden during play."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 4,
+    "attributes": 24,
+    "hidden_elements": 6
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Shubik's dollar auction: two players take turns raising a public bid for a $1 prize by a minimum increment. The highest bidder wins the dollar and pays their bid, and the losing bidder also pays their last bid. The game is a classic escalation trap in which sunk costs push both players to bid past the prize's value.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "bad",
+        "evidence": "The platform only decides who wins. With two players, the auction winner nets 1 - b and the loser pays b - 0.05. The winner therefore always ends 0.95 ahead, whatever the bid level. Raising is always relatively better than dropping, so 'always raise' cannot lose, the auction never ends rationally, and dropping out always loses."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "bad",
+        "evidence": "Under a who-ends-higher rule the outcome is decided by who refuses to stop, or by a tie-breaking cap. Absolute payoffs, where real skill (not entering, or stopping early) lives, are invisible to the winner rule."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "bad",
+        "evidence": "It is a single one-shot event with an obvious relative strategy (never yield). There is nothing to improve beyond that."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "weak",
+        "evidence": "Information is perfect: the bid and the high bidder are public, and the prize value is common knowledge. The only inference is guessing the opponent's resolve, and the winner rule makes resolve infinite."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Payoffs are pure arithmetic on bids."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "Turn-based and text-only, but the alternating open-ended raise loop has no fixed length. That needs unbounded repetition, which the flat step list handles poorly."
+      }
+    ],
+    "problems": [
+      "In a two-player highest-total game, winning the auction always beats losing it by 0.95 regardless of price, so 'always raise' cannot lose and escalation is unbounded.",
+      "Perfect information: there is no hidden state to infer, only an unbounded test of will.",
+      "A single one-shot auction gives no planning over several rounds and no budget trade-offs.",
+      "The open-ended alternating raise loop has no fixed number of steps, which the flat step list cannot build cleanly.",
+      "Skill at the game, knowing when to stay out or stop, is not rewarded by a who-ends-higher rule with two players."
+    ],
+    "changes": [
+      {
+        "what": "Three or four players instead of two.",
+        "why": "Two bidders locked in an escalation war both bleed coins while a bystander who stayed out pulls ahead. Escalation becomes genuinely costly under a highest-total rule, which restores the trap's meaning.",
+        "fixes": "In a two-player highest-total game, winning the auction always beats losing it by 0.95 regardless of price, so 'always raise' cannot lose and escalation is unbounded."
+      },
+      {
+        "what": "A series of 6 auctions funded from one budget of 100 coins per player. Final score is coins left plus the value of prizes won.",
+        "why": "Coins spent fighting in one auction are unavailable later, so players must plan across rounds and pick their battles.",
+        "fixes": "A single one-shot auction gives no planning over several rounds and no budget trade-offs."
+      },
+      {
+        "what": "Each player is secretly dealt their own random order of prize values: the six numbers 10, 15, 20, 25, 30 and 40, one per auction. Everyone's list totals 140.",
+        "why": "This is one hidden element. Players must infer from bidding behaviour which auctions rivals value highly. Because every list has the same total, the deal changes what to do, not who is ahead.",
+        "fixes": "Perfect information: there is no hidden state to infer, only an unbounded test of will."
+      },
+      {
+        "what": "Each auction is played as exactly 3 simultaneous raise stages, with cumulative bids revealed after each stage. All players pay their full cumulative bid (all-pay, as in the original), and the sole highest bidder takes the prize.",
+        "why": "This keeps the dollar auction's escalation and sunk-cost pressure: after stage 1 you see you are behind and must decide whether to throw more in. The length is fixed and buildable.",
+        "fixes": "The open-ended alternating raise loop has no fixed number of steps, which the flat step list cannot build cleanly."
+      },
+      {
+        "what": "A tie for the highest cumulative bid leaves the prize unclaimed, though everyone still pays. The winner is whoever has the highest final score.",
+        "why": "Matching bids is punished rather than rewarded. Restraint (staying out, stopping early) shows up directly in the score, and with three or more players a fighter's loss is the bystander's gain.",
+        "fixes": "Skill at the game, knowing when to stay out or stop, is not rewarded by a who-ends-higher rule with two players."
+      },
+      {
+        "what": "A simultaneous one-message talk phase before each auction.",
+        "why": "Players have opposed interests: only one can win, and values are private. Talk enables bluffing about values, proposing bid rings ('you take this one, I take the next'), and testing whether such promises are kept. All of this is non-binding.",
+        "fixes": "Perfect information: there is no hidden state to infer, only an unbounded test of will."
+      }
+    ],
+    "keeps": [
+      "Ascending bidding for a prize in which losing bidders also pay what they bid.",
+      "The escalation and sunk-cost trap: seeing you are behind, with coins already committed, tempts you to raise past the prize's worth.",
+      "Public visibility of the current bids during the auction.",
+      "The core lesson that the best move is often not to enter, or to stop early."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The escalation trap is a rich strategic idea. It fails only because of the two-player relative-score winner rule and perfect information, and both can be fixed within the limits with more players, a budget across auctions and private prize values."
+    },
+    "variation": {
+      "name": "War of Attrition Auctions",
+      "summary": "Three or four players fight six all-pay auctions from one 100-coin budget. Each auction has three rounds of sealed raises, and every bidder pays what they committed. Each player privately values each prize differently, so escalating against the wrong rival hands the game to whoever stayed out.",
+      "players": {
+        "min": 3,
+        "max": 4,
+        "suggested": 3
+      },
+      "rules": "SETUP: Each player starts with 100 coins. Each player is secretly dealt a random ordering of the six prize values 10, 15, 20, 25, 30 and 40, one value for each of auctions 1 to 6. A player sees only their own list, so every player's six values total 140. Coin totals are public; prize values are private.\n\nThe game has 6 auctions (rounds). Each auction proceeds as follows.\n\n1. Announce the auction number.\n\n2. TALK: Every player writes one short message at the same time without seeing the others. All messages are then shown to everyone. Messages are not binding: players may claim values, propose who takes which auction, or bluff.\n\n3. RAISE STAGE 1: At the same time, each player secretly chooses a raise, a whole number from 0 up to their available coins. Available coins are coins held minus everything they have already committed in this auction. Each player's committed bid for this auction becomes the sum of their raises so far. All committed bids are then announced.\n\n4. RAISE STAGE 2: Same as stage 1. Committed bids are announced again.\n\n5. RAISE STAGE 3: Same as stage 1. Final committed bids are announced.\n\n6. RESOLUTION: Every player pays their full committed bid, which is subtracted from their coins, whether or not they win. If exactly one player has the highest committed bid and it is at least 1, that player wins the prize and adds their OWN private value for this auction to their prize points. The value is not revealed to others. If two or more players tie for the highest bid, or all bids are 0, nobody wins the prize.\n\n7. Announce who (if anyone) won and everyone's remaining coins. Committed bids reset to 0 for the next auction.\n\nEND: After auction 6, each player's final score is coins remaining plus prize points. All private value lists are then revealed.",
+      "objective": "The player with the highest final score (coins remaining plus prize points) wins. If two or more players tie for the highest final score, the game is a draw.",
+      "expected_effect": "Simple policies all lose. Never bidding scores exactly 100, which loses to anyone who wins a single prize for less than its value. Going all-in early wins at most one prize worth 40 and finishes with at most 40 points. Any fixed bid can be topped by one coin. Good play means reading which auctions rivals value highly from their stage-1 bids and their talk, then fighting only where your value is high and theirs seems low. It also means cutting losses mid-auction rather than escalating, and remembering that two fighters both lose ground to the bystander. Players disagree on everything: there is one winner, and the values are private. A player who simply follows a proposed rotation ('you take auction 3, I take 4') can be undercut by a rival who breaks the deal on a prize they value at 40, or can give away their own best prize. Talk therefore rewards reading credibility, not just agreeing. Because every value list totals 140, good play rather than the deal decides the winner."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 15,
+      "choice_steps_per_round": 4,
+      "attributes": 10,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 6
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Coins and prize points count 1:1. In an auction you win you net v - b; in one you lose you net -b. A bid above your own value can never pay. SEAT/ORDER: all choices and talk are simultaneous polls, so no seat moves first or sees more than another. Every player holds the same multiset {10,15,20,25,30,40}, total 140, so there is no edge from the deal in total. THOUGHTLESS POLICIES (3 players, outcome by the WINNER RULE): (a) ALWAYS PASS gives a fixed score of 100. It draws if both opponents also always pass (100/100/100, no prizes). It loses if any opponent bids 1 into empty auctions: one minimal bidder scores 100 - 6 + 140 = 234. Against two sensible opponents contesting each other, I treat each auction as a two-bidder all-pay contest with values roughly known from talk and bids. The higher-value bidder expects about v_high - v_low. E|v1 - v2| over two independent draws from the value set = 2 x 200 / 36 = 11.1 per auction, so about 67 of rent over 6 auctions, roughly 33 each. Sensible players end near 133 and beat the passer's 100. Always-pass beats only random players, who spend about half their coins in auction 1. That reflects random play being terrible, not the policy being safe against good play. It is not a never-lose policy. (b) ALWAYS ALL-IN AT STAGE 1 pays up to 100 in auction 1 for at most 40, finishes at or below 40 and loses to anyone who passes. (c) ALWAYS BID 1 AT STAGE 1, THEN 0 is overbid by 2 at any later stage, or tied, and loses to any opponent who contests even one auction cheaply. (d) BID 0 UNTIL STAGE 3, THEN SNIPE is just sealed-bid all-pay play and is beaten by opponents who model it. No option is strictly better whatever others do. Bid 0 is beaten by bid 1 when the others pass, and bid 1 is beaten by bid 2. Every player can realistically win, and the payoff labels match the arithmetic: a winner nets v - b and everyone pays their committed bid."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "RULES ARE COMPLETE: raise range, available coins, cumulative commitment, unique-highest test (ties or all-zero bids mean no winner), payment by everyone, scoring and the draw rule are all stated. A player with 0 coins can only raise 0. The game is finite (6 auctions x 3 raise polls) and decided by arithmetic on numbers the game keeps: coins, committed bids and prize points. LIMITS: steps per round. Announce 1. Talk poll 1. Three raise stages at 3 steps each (poll, add raise to committed, announce) = 9. Compute max bid and count ties 1-2. Pay all and conditionally add the private value 1-2: the value is selected by auction number using `if` operations over six value attributes, which is allowed as conditional updates. Announce 1. That is about 15, at most 20. Choice steps: talk plus 3 raises = 4, at most 4. Attributes: 6 values, coins, committed, points, plus a flag = 10, at most 20. Hidden elements 1, at most 3. Random draws per round 0: the deal is a setup shuffle. Rounds 6, at most 40. The unique-highest test uses the player_attribute_compare/calc workaround, which is supported. No board, clock, judge, trade or binding promise is needed. TALK: there are 3-4 players and they genuinely disagree, since each wants the auctions where their own value is high. Following a proposed rotation can cost you, because a designated 1-coin bidder can be sniped at stage 3. Claims about values are something to reason about. Talk is simultaneous, as required. LATE ROUNDS: a bid-1 rotation unravels in auction 6, the one-shot stage-3 snipe. But the safe option (pass, net 0) does not win late rounds. Auction 6 is still a contested sealed all-pay auction where a high private value earns rent, so late play is not trivial."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "CHANCE is limited to how the values line up across players per auction. Every player's six values sum to 140, so in the two-bidder view the sum of (v1 - v2) over the 6 auctions is exactly 0. The positive gaps (A's rent) therefore equal the negative gaps (B's rent), so complete-information equilibrium rents are equal in expectation, about 33 each. With 3-4 players some imbalance from the alignment remains, but it is moderate. I estimate chance at about 25-35% of the result, mainly from alignment and mixed-strategy guessing in sealed stage 3. INFERENCE: values are private and never revealed, even to the winner's opponents. Players must infer them from talk claims, from stage 1-2 commitments (signals versus bluffs), from bids that grow as players chase sunk costs, and from coin totals. They must decide when to concede, since sunk bids are lost anyway, and when to snipe. Spending against a 100-coin budget across six auctions requires planning. When every player plays well, the result is decided by who reads values and opponents' resolve best, not by the deal alone. A deal that lines up high values with others' low values helps, but good play can overcome it because rents are symmetric in expectation. A careless bidder who over-commits or chases sunk bids loses heavily to a disciplined one, so good reasoning is clearly favoured."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [
+    "always taking the first option as seat 1 wins 100% of decided matches against random seats",
+    "always taking the first option as seat 2 wins 97% of decided matches against random seats"
+  ],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_game",
+      "reason": "The tests correctly expect each raise stage to offer every whole number from 0 to coins \u2212 committed. In the game, no seat was ever offered 5, 10, 20 or even 100, so every raise came out 0 and coins never dropped. The raise-choice options in the game file are wrong. This is not a rules or platform problem.",
+      "guidance": "Fix the three simultaneous raise stages so each player's options are the whole-number range 0 .. (you.coins - you.committed). With 100 coins and 0 committed the range is 0..100. With 40 coins and 30 committed it is 0..10. Build the range from those attributes, not from a fixed or empty list or from stage_raise. After each stage, add the chosen raise to `committed`. At resolution, subtract each player's `committed` from their `coins` whether or not they won. Then award the prize to the unique top bidder only if their bid is at least min_winning_bid: add their own value for the current auction to prize_points and set auction_winner. Reset `committed` to 0 after the auction. Also check that the stage choice is actually the move the players make: in the trace, all 9 recorded moves were 0 and the scripted options never matched. Keep the talk step as a simultaneous free-text poll before stage 1.",
+      "missing": ""
+    },
+    {
+      "round": 1,
+      "fix": 1,
+      "decision": "fix_game",
+      "reason": "The tests read the rules correctly: raises from 0 to coins minus committed, raises summed across the three stages, and every committed bid paid at resolution. The game never offered any raise above 0, since every seat played only 0 and options like 5, 10, 20 and 100 were never offered. So no coins ever moved, which is a bug in how the file builds the raise options.",
+      "guidance": "1. In each of the 3 simultaneous raise stages, offer every seat the whole numbers from 0 up to `you.coins - you.committed`. Use a numeric range with that expression as its maximum, not a stale scratch attribute such as `raise` or `stage_raise`, which stays at 0. For example, with 100 coins and 0 committed the options are 0..100; with 40 coins and 30 committed they are 0..10.\n2. After each stage, add the chosen raise to `committed`, so 10 then 5 gives 15.\n3. At resolution, subtract each player's `committed` from `coins` for every player, winner or not.\n4. Award the current private value to `prize_points` only when there is a unique top bid of at least `min_winning_bid`.\n5. Then reset `committed` to 0.\n6. Check the move log: chosen raises like 5, 10 and 20 must appear as legal options and change `coins`."
+    },
+    {
+      "round": 1,
+      "fix": 2,
+      "decision": "fix_game",
+      "reason": "In every raise stage the game offered each seat only a raise of 0, so 10, 15, 20 and 100 were never put to any seat and coins never fell below 100. The tests ask for exactly what the rules say: a raise from 0 to coins minus committed, and every committed bid paid at resolution.",
+      "guidance": "Fix the option range of the simultaneous raise poll in all three raise stages. It must offer every whole number from 0 up to `coins - committed`, worked out for each player at that moment: 0..100 at the start of an auction, 0..10 when coins are 40 and committed is 30. Make the range bound read the live player attributes and not a scratch value that is still 0 (your `raise` or `stage_raise` look like the culprit). After each stage, add the chosen raise to `committed`. At resolution, subtract `committed` from `coins` for every player, winner or not. Set `auction_winner` only when exactly one player holds the top bid and it is at least `min_winning_bid`; that player adds their own value for this auction to `prize_points`. Then reset `committed` to 0. Keep all the numbers as parameter attributes."
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 15,
+      "choice_steps_per_round": 4,
+      "attributes": 10,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 6
+    },
+    "measured": {
+      "steps_per_round": 18,
+      "choice_steps_per_round": 4,
+      "attributes": 24,
+      "hidden_elements": 6
+    }
+  },
+  "verdict": "needs_review"
+}

@@ -61,7 +61,7 @@ def test_a_match_lasts_ten_rounds_and_ends_on_a_declared_result():
     for seed in range(1, 6):
         result, game, _ = play(seed)
         assert result.status == "ended", result
-        assert result.winner in {"seat 1", "seat 2", "draw"}
+        assert result.winner in {"seat 1", "seat 2", "seats 1 and 2"}
         assert len(cards_played(game)) == 10
 
 
@@ -78,7 +78,7 @@ def test_scores_follow_the_rules():
         assert got == expected, f"seed {seed}: {got} != {expected}"
 
         winner = ("seat 1" if expected[0] > expected[1]
-                  else "seat 2" if expected[1] > expected[0] else "draw")
+                  else "seat 2" if expected[1] > expected[0] else "seats 1 and 2")
         assert result.winner == winner, f"seed {seed}"
 
 

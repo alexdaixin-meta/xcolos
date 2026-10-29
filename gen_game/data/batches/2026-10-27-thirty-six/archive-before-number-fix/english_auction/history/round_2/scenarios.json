@@ -1,0 +1,1035 @@
+[
+  {
+    "name": "Start state: budgets 30, scores 0, spent 0, empty table",
+    "rule": "R1",
+    "players": 4,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 4,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        },
+        "2": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        },
+        "3": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        },
+        "4": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        }
+      },
+      "game": {
+        "round": 0,
+        "standing_bid": 0,
+        "leader": 0,
+        "last_price": 0
+      }
+    },
+    "rule_text": "When the game starts, then every player has budget 30, score 0 and spent 0, and the table has standing_bid 0, leader 0 and last_price 0."
+  },
+  {
+    "name": "Every seat gets a 6-entry values list (random order, only the count is asserted)",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 0,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "values": 6
+          },
+          "2": {
+            "values": 6
+          },
+          "3": {
+            "values": 6
+          }
+        }
+      }
+    },
+    "rule_text": "When setup runs and a player's values list is empty, then that player receives a random ordering of [3,5,7,9,11,13], which sums to 48. When a list is already set, then it is not overwritten."
+  },
+  {
+    "name": "A values list that is already set is not overwritten: seat 1 with value 13 for item 1 wins it at 4 and scores 9",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "seed": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            13,
+            11,
+            9,
+            7,
+            5,
+            3
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 26,
+          "score": 9,
+          "spent": 4
+        }
+      },
+      "game": {
+        "round": 1,
+        "leader": 1,
+        "standing_bid": 4,
+        "last_price": 4
+      }
+    },
+    "rule_text": "When setup runs and a player's values list is empty, then that player receives a random ordering of [3,5,7,9,11,13], which sums to 48. When a list is already set, then it is not overwritten."
+  },
+  {
+    "name": "Results are public: after seat 2 wins item 1 at 3, all budgets and scores are shown and each seat still holds 6 values",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "values": [
+            9,
+            3,
+            5,
+            7,
+            11,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 30,
+          "score": 0
+        },
+        "2": {
+          "budget": 27,
+          "score": 6,
+          "spent": 3
+        },
+        "3": {
+          "budget": 30,
+          "score": 0
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "values": 6
+          },
+          "2": {
+            "values": 6
+          },
+          "3": {
+            "values": 6
+          }
+        }
+      }
+    },
+    "rule_text": "When values are dealt, then a player's values list is visible only to that player, while all budgets, scores, spent, eligibility flags, standing_bid, leader and last_price are public."
+  },
+  {
+    "name": "Round 3 sells item 3: seat 1's value is entry 3 of its list (13), so winning at 4 scores 9",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            3,
+            5,
+            13,
+            7,
+            9,
+            11
+          ]
+        }
+      },
+      "game": {
+        "round": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 26,
+          "score": 9,
+          "spent": 4
+        }
+      },
+      "game": {
+        "round": 3,
+        "last_price": 4,
+        "leader": 1
+      }
+    },
+    "rule_text": "When round r is played (r from 1 to 6), then item r is sold, and a player's value for it is entry r of their own values list, counting from 1."
+  },
+  {
+    "name": "Talk binds nobody: a round where everyone talks and then passes leaves the item unsold",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 30,
+          "score": 0
+        },
+        "2": {
+          "budget": 30,
+          "score": 0
+        },
+        "3": {
+          "budget": 30,
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 1,
+        "leader": 0,
+        "standing_bid": 0,
+        "last_price": 0
+      }
+    },
+    "rule_text": "When a round starts, then every player writes one short message at the same time, and all messages are then shown to everyone. No message binds anyone."
+  },
+  {
+    "name": "Standing bid and leader reset at round start: an old standing bid of 9 does not stop a bid of 1",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            5,
+            3,
+            7,
+            9,
+            11,
+            13
+          ],
+          "eligible": false
+        }
+      },
+      "game": {
+        "standing_bid": 9,
+        "leader": 2,
+        "round": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 29,
+          "score": 4,
+          "spent": 1
+        },
+        "2": {
+          "budget": 30,
+          "score": 0
+        }
+      },
+      "game": {
+        "leader": 1,
+        "standing_bid": 1,
+        "last_price": 1
+      }
+    },
+    "rule_text": "When the talk phase of a round ends, then standing_bid becomes 0, leader becomes 0 and every player becomes eligible."
+  },
+  {
+    "name": "Three bidding turns: bids 1/2, 3/4 and 5/6 leave seat 2 paying 6",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "values": [
+            13,
+            11,
+            9,
+            7,
+            5,
+            3
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 30,
+          "score": 0
+        },
+        "2": {
+          "budget": 24,
+          "score": 7,
+          "spent": 6
+        }
+      },
+      "game": {
+        "leader": 2,
+        "standing_bid": 6,
+        "last_price": 6
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 0
+        },
+        {
+          "seat": 1,
+          "option": 30
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 31
+        }
+      ]
+    },
+    "rule_text": "When a round is played, then it has exactly 3 bidding turns. In each turn, all players answer at the same time with 0 (pass) or a whole number from 1 to their current budget."
+  },
+  {
+    "name": "A bid from a seat that passed earlier (ineligible) counts as no bid",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "values": [
+            5,
+            3,
+            7,
+            9,
+            11,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": 10
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        },
+        "2": {
+          "budget": 27,
+          "score": 2,
+          "spent": 3
+        }
+      },
+      "game": {
+        "leader": 2,
+        "standing_bid": 3,
+        "last_price": 3
+      }
+    },
+    "rule_text": "When a player bids, then the bid is valid only if the player is eligible, the bid is at least standing_bid + 1 (at least 1 in turn 1), and the bid is at most the player's budget. A pass or an invalid bid counts as no bid."
+  },
+  {
+    "name": "A bid equal to the standing bid (not standing_bid + 1) is invalid",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            9,
+            3,
+            5,
+            7,
+            11,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 25,
+          "score": 4,
+          "spent": 5
+        },
+        "2": {
+          "budget": 30,
+          "score": 0
+        }
+      },
+      "game": {
+        "leader": 1,
+        "standing_bid": 5,
+        "last_price": 5
+      }
+    },
+    "rule_text": "When a player bids, then the bid is valid only if the player is eligible, the bid is at least standing_bid + 1 (at least 1 in turn 1), and the bid is at most the player's budget. A pass or an invalid bid counts as no bid."
+  },
+  {
+    "name": "A unique highest bid of 6 against 4 takes the lead at 6",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            11,
+            3,
+            5,
+            7,
+            9,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 24,
+          "score": 5,
+          "spent": 6
+        },
+        "2": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        }
+      },
+      "game": {
+        "leader": 1,
+        "standing_bid": 6,
+        "last_price": 6
+      }
+    },
+    "rule_text": "When exactly one player made the highest valid bid in a turn (for example a single bid of 6 against a bid of 4), then standing_bid becomes that amount and leader becomes that player's seat."
+  },
+  {
+    "name": "Two bids of 6 tie, so nobody leads; the lower 4 does not win and the item goes unsold",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      },
+      {
+        "seat": 3,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        },
+        "2": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        },
+        "3": {
+          "budget": 30,
+          "score": 0,
+          "spent": 0
+        }
+      },
+      "game": {
+        "leader": 0,
+        "standing_bid": 0,
+        "last_price": 0
+      }
+    },
+    "rule_text": "When two or more players tie on the highest valid bid (for example two bids of 6), or nobody made a valid bid, then standing_bid and leader stay unchanged. A lower valid bid never wins."
+  },
+  {
+    "name": "The leader stays eligible after passing; a seat that passed cannot come back with 9",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            13,
+            11,
+            9,
+            7,
+            5,
+            3
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 9
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 24,
+          "score": 7,
+          "spent": 6
+        },
+        "2": {
+          "budget": 30,
+          "score": 0
+        },
+        "3": {
+          "budget": 30,
+          "score": 0
+        }
+      },
+      "game": {
+        "leader": 1,
+        "standing_bid": 6,
+        "last_price": 6
+      }
+    },
+    "rule_text": "When a turn ends, then a player stays eligible for the next turn only if they made a valid bid in that turn (winning, tied or beaten) or they are the leader. Every other player is ineligible for the rest of the round."
+  },
+  {
+    "name": "An outbid seat that made a valid bid stays eligible and can raise to win",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "values": [
+            7,
+            3,
+            5,
+            9,
+            11,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 3,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 30,
+          "score": 0
+        },
+        "3": {
+          "budget": 24,
+          "score": 1,
+          "spent": 6
+        }
+      },
+      "game": {
+        "leader": 3,
+        "standing_bid": 6,
+        "last_price": 6
+      }
+    },
+    "rule_text": "When a turn ends, then a player stays eligible for the next turn only if they made a valid bid in that turn (winning, tied or beaten) or they are the leader. Every other player is ineligible for the rest of the round."
+  },
+  {
+    "name": "Standing bid and leader are public after the turns: seat 2 leads at 4",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "values": [
+            11,
+            3,
+            5,
+            7,
+            9,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "budget": 26,
+          "score": 7,
+          "spent": 4
+        }
+      },
+      "game": {
+        "leader": 2,
+        "standing_bid": 4
+      }
+    },
+    "rule_text": "When a turn ends, then standing_bid, leader and every eligibility flag are announced to all."
+  },
+  {
+    "name": "Value 3 bought at price 8 gives a score of -5",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            3,
+            5,
+            7,
+            9,
+            11,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 8
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "budget": 22,
+          "score": -5,
+          "spent": 8
+        }
+      },
+      "game": {
+        "last_price": 8,
+        "leader": 1
+      }
+    },
+    "rule_text": "When turn 3 ends with leader not 0 and standing_bid p, then the leader's budget decreases by p, their spent increases by p, and their score increases by (their value for item r) minus p. This can be negative: value 3 at price 8 gives -5."
+  },
+  {
+    "name": "Unsold item sets last_price to 0 even if it was 7 before",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "last_price": 7
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "last_price": 0,
+        "leader": 0,
+        "round": 1
+      }
+    },
+    "rule_text": "When turn 3 ends, then last_price is set to standing_bid if there is a leader, and to 0 if leader is 0 (the item goes unsold). The round's result is announced."
+  },
+  {
+    "name": "Sold item sets last_price to the price",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "3": {
+          "values": [
+            9,
+            3,
+            5,
+            7,
+            11,
+            13
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "players": {
+        "3": {
+          "budget": 28,
+          "score": 7,
+          "spent": 2
+        }
+      },
+      "game": {
+        "last_price": 2,
+        "leader": 3
+      }
+    },
+    "rule_text": "When turn 3 ends, then last_price is set to standing_bid if there is a leader, and to 0 if leader is 0 (the item goes unsold). The round's result is announced."
+  },
+  {
+    "name": "Game ends after round 6; unspent budget counts for nothing, seat 1 wins with score 8",
+    "rule": "R15",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            3,
+            5,
+            7,
+            9,
+            11,
+            13
+          ],
+          "score": 0,
+          "budget": 10
+        },
+        "2": {
+          "score": 4,
+          "budget": 30
+        },
+        "3": {
+          "score": 2,
+          "budget": 25
+        }
+      },
+      "game": {
+        "round": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 8,
+        "2": 4,
+        "3": 2
+      },
+      "players": {
+        "1": {
+          "score": 8,
+          "budget": 5
+        },
+        "2": {
+          "budget": 30
+        }
+      },
+      "game": {
+        "round": 6,
+        "last_price": 5
+      }
+    },
+    "rule_text": "When round 6 has been resolved, then the game ends, and unspent budget is worth nothing."
+  },
+  {
+    "name": "Two seats level at the top score share the win",
+    "rule": "R16",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "values": [
+            3,
+            7,
+            9,
+            11,
+            13,
+            5
+          ],
+          "score": 3
+        },
+        "2": {
+          "score": 5
+        },
+        "3": {
+          "score": 0
+        }
+      },
+      "game": {
+        "round": 5
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 5,
+        "2": 5,
+        "3": 0
+      },
+      "players": {
+        "1": {
+          "score": 5,
+          "budget": 27
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the player with the strictly highest score wins. If two or more players share the highest score, then they share the result (a draw)."
+  }
+]

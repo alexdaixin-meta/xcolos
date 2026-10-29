@@ -1,0 +1,172 @@
+# 21 spec
+
+- time: 2026-10-27T18:35:38+00:00 (56.8s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 7b76afeddd54128b, reply sha256 ccaf25acecd873c2
+
+## Sent
+
+````
+Game: Diamonds: Three-Hand Vault
+Players in the source: 3 to 3
+Suggested table size, chosen by the designer of these rules (keep it): 3
+
+Rules, as filed in the inventory:
+COMPONENTS: A deck of 32 cards with 4 suits (Diamonds, Hearts, Spades, Clubs) and ranks 1 to 8 in each suit. Each player has a showroom and a vault, each holding crystals and each starting at 0. The supply of crystals is unlimited. Seats are numbered 1, 2 and 3 clockwise; 'left' means the next seat clockwise.
+
+STRUCTURE: The game is 3 hands of 7 tricks, which is 21 rounds; one round is one trick. In hand 1 the dealer is seat 1, in hand 2 seat 2, and in hand 3 seat 3.
+
+START OF EACH HAND (on trick 1 of the hand): Shuffle all 32 cards and deal 7 to each player face down; the remaining 11 cards are set aside unseen for the hand. Each player privately sees only their own hand. Shown to each player, a hand is listed sorted by suit (Diamonds, Hearts, Spades, Clubs) and then by ascending rank. Then all players at the same moment secretly choose exactly 1 card from their hand to pass to the player on their left. All passes are exchanged at once, and passed cards are not revealed to the third player. Every player's per-hand count of won cards in each suit is reset to 0, and so is their tricks-won count.
+
+PLAYING A TRICK: On trick 1 of a hand, the player left of the dealer leads; on later tricks, the winner of the previous trick leads. The leader plays any card from their hand, and its suit is the led suit. The other two players then play one card each, in clockwise order. A player who holds a card of the led suit must play one. A player who holds no card of the led suit may play any card, and immediately takes the action of the suit of the card they played (see SUIT ACTIONS), resolved before the next player plays. All played cards are shown to everyone.
+
+WINNING A TRICK: The highest-ranked card of the led suit wins the trick, and off-suit cards never win. The winner takes all 3 cards face down, adds 1 to their tricks-won count, and adds the number of cards of each suit in the trick to their won-card count for that suit. The winner then takes the action of the led suit once, and leads the next trick.
+
+SUIT ACTIONS:
+- Diamonds: move 1 crystal from the supply to your vault.
+- Hearts: move 1 crystal from the supply to your showroom.
+- Spades: move 1 crystal from your own showroom to your own vault. If your showroom is empty, nothing happens.
+- Clubs: move 1 crystal from the showroom of the opponent whose showroom is largest into your own showroom. If both opponents tie for largest, take it from the tied opponent who sits first clockwise after you. If both opponents' showrooms are empty, nothing happens.
+Every action and its result is announced to all players.
+
+END OF HAND (after trick 7): For each suit in the order Diamonds, Hearts, Spades, Clubs, the player with strictly the most won cards of that suit takes that suit's action once; if the top count is tied, no one takes it. Then every player whose tricks-won count for the hand is 0 takes the Diamonds action twice. The dealer passes to the left for the next hand. Resolve all end-of-hand actions in the order given.
+
+VISIBILITY: Showroom counts are always displayed. Vault counts are not displayed in score summaries, but every action that changes a vault is announced, so they can be tracked. Hands, passed cards and the 11 set-aside cards are hidden.
+
+SCORING: At the end of hand 3, each player's score is 2 times their vault crystals plus their showroom crystals.
+
+How the winner is decided: The player with the highest score after 3 hands wins. If two or more players tie for highest score, the tied player with more vault crystals wins. If they are still tied, the game is a draw between them.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Diamonds: Three-Hand Vault",
+  "summary": "A three-player trick-taking game over 3 hands of 7 tricks. Winning tricks, and playing off-suit, trigger suit actions that move crystals into your showroom (worth 1 each) and your vault (worth 2 each).",
+  "players": {"min": 3, "max": 3, "suggested": 3},
+  "parameters": {
+    "deck_size": 32,
+    "suits": 4,
+    "ranks_per_suit": 8,
+    "lowest_rank": 1,
+    "highest_rank": 8,
+    "hands": 3,
+    "tricks_per_hand": 7,
+    "total_rounds": 21,
+    "cards_dealt_per_player": 7,
+    "cards_set_aside": 11,
+    "cards_passed_per_player": 1,
+    "cards_per_trick": 3,
+    "crystals_per_action": 1,
+    "zero_trick_diamond_actions": 2,
+    "vault_weight": 2,
+    "showroom_weight": 1,
+    "starting_showroom": 0,
+    "starting_vault": 0,
+    "rank_tiebreak_multiplier": 1000
+  },
+  "attributes": {
+    "player": [
+      {"key": "hand", "type": "list", "visible": "ally", "initial": [], "meaning": "Cards held, as text such as 'D7' (suit letter D/H/S/C, then rank 1-8). Shown to the owner sorted by suit D,H,S,C, then by ascending rank.", "observable": false},
+      {"key": "pass_card", "type": "text", "visible": "ally", "initial": "", "meaning": "The card this player chose to pass left at the start of the hand.", "observable": false},
+      {"key": "played_card", "type": "text", "visible": "public", "initial": "", "meaning": "The card this player played to the current trick.", "observable": false},
+      {"key": "showroom", "type": "number", "visible": "public", "initial": 0, "meaning": "Crystals in the showroom, always displayed.", "observable": true},
+      {"key": "vault", "type": "number", "visible": "public", "initial": 0, "meaning": "Crystals in the vault. It is left out of score summaries, but every change to it is announced.", "observable": true},
+      {"key": "tricks_won", "type": "number", "visible": "public", "initial": 0, "meaning": "Tricks won this hand. Reset to 0 at the start of each hand.", "observable": false},
+      {"key": "won_diamonds", "type": "number", "visible": "ally", "initial": 0, "meaning": "Diamond cards won this hand. Reset each hand.", "observable": false},
+      {"key": "won_hearts", "type": "number", "visible": "ally", "initial": 0, "meaning": "Heart cards won this hand. Reset each hand.", "observable": false},
+      {"key": "won_spades", "type": "number", "visible": "ally", "initial": 0, "meaning": "Spade cards won this hand. Reset each hand.", "observable": false},
+      {"key": "won_clubs", "type": "number", "visible": "ally", "initial": 0, "meaning": "Club cards won this hand. Reset each hand.", "observable": false},
+      {"key": "score", "type": "number", "visible": "public", "initial": 0, "meaning": "Final score: 2 * vault + showroom, computed at the end of hand 3.", "observable": true}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": "all 32 cards D1..D8, H1..H8, S1..S8, C1..C8", "meaning": "The undealt deck during dealing.", "observable": false},
+      {"key": "set_aside", "type": "list", "visible": "none", "initial": [], "meaning": "The 11 cards left after the deal, unseen for the hand.", "observable": false},
+      {"key": "hand_number", "type": "number", "visible": "public", "initial": 1, "meaning": "Current hand, from 1 to 3.", "observable": true},
+      {"key": "trick_number", "type": "number", "visible": "public", "initial": 1, "meaning": "Current trick within the hand, from 1 to 7.", "observable": false},
+      {"key": "rounds_played", "type": "number", "visible": "public", "initial": 0, "meaning": "Tricks completed in total, from 0 to 21.", "observable": false},
+      {"key": "dealer_seat", "type": "number", "visible": "public", "initial": 1, "meaning": "Dealer this hand (equals hand_number).", "observable": false},
+      {"key": "leader_seat", "type": "number", "visible": "public", "initial": 2, "meaning": "Seat that leads the current trick.", "observable": false},
+      {"key": "led_suit", "type": "text", "visible": "public", "initial": "", "meaning": "Suit letter of the led card.", "observable": false},
+      {"key": "trick_cards", "type": "list", "visible": "public", "initial": [], "meaning": "Cards played to the current trick, in play order.", "observable": false},
+      {"key": "trick_winner", "type": "number", "visible": "public", "initial": 0, "meaning": "Seat that won the current trick.", "observable": false}
+    ]
+  },
+  "setup": [
+    "Seats 1, 2 and 3 sit clockwise; the left of seat s is seat (s mod 3) + 1.",
+    "Every player's showroom and vault start at 0, and score at 0.",
+    "Set hand_number = 1, trick_number = 1, rounds_played = 0, dealer_seat = 1."
+  ],
+  "round": [
+    {"action": "update", "who": "table", "answer": null, "effect": "When trick_number == 1: deck = all 32 cards; set_aside = []; every player's hand = []; dealer_seat = hand_number; leader_seat = (dealer_seat mod 3) + 1; reset each player's tricks_won, won_diamonds, won_hearts, won_spades and won_clubs to 0. Announce the new hand and its dealer."},
+    {"action": "initialize", "who": "all players", "answer": null, "effect": "When trick_number == 1: deal 7 cards to each player, each one a random draw removed from deck and appended to that player's hand. Then move the remaining 11 deck cards to set_aside."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "When trick_number == 1: each player privately sees their own hand, sorted by suit D,H,S,C and then by ascending rank."},
+    {"action": "poll", "who": "all players", "answer": "one card from your own hand", "effect": "When trick_number == 1: store the answer in pass_card. Nobody sees another player's choice."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When trick_number == 1: at once, for each seat s, remove pass_card from s.hand and append it to the hand of seat (s mod 3) + 1. Each receiver is told privately which card they received; the third player is not told."},
+    {"action": "sync", "who": "all players", "answer": null, "effect": "When trick_number == 1: each player sees their updated sorted hand."},
+    {"action": "update", "who": "table", "answer": null, "effect": "trick_cards = []; every played_card = ''."},
+    {"action": "ask", "who": "seat leader_seat", "answer": "any card from your hand", "effect": "Remove the card from hand; played_card = the card; append it to trick_cards; led_suit = its suit letter. Announce the card to all."},
+    {"action": "ask", "who": "seat (leader_seat mod 3) + 1", "answer": "a card from your hand of led_suit if you hold one, otherwise any card from your hand", "effect": "Remove the card from hand; played_card = the card; append it to trick_cards; announce it to all."},
+    {"action": "update", "who": "seat (leader_seat mod 3) + 1", "answer": null, "effect": "If that seat's played_card suit != led_suit, the seat takes the action of the played card's suit (see rules R14-R17) at once. Announce the action and its result."},
+    {"action": "ask", "who": "seat ((leader_seat + 1) mod 3) + 1", "answer": "a card from your hand of led_suit if you hold one, otherwise any card from your hand", "effect": "Remove the card from hand; played_card = the card; append it to trick_cards; announce it to all."},
+    {"action": "update", "who": "seat ((leader_seat + 1) mod 3) + 1", "answer": null, "effect": "If that seat's played_card suit != led_suit, the seat takes the action of the played card's suit at once. Announce the action and its result."},
+    {"action": "update", "who": "table", "answer": null, "effect": "trick_winner = the seat whose played_card has suit == led_suit and the highest rank. The winner gets tricks_won += 1, and for each suit, won_<suit> += the count of that suit in trick_cards. The winner then takes the action of led_suit once. Announce the winner, the action and its result."},
+    {"action": "update", "who": "table", "answer": null, "effect": "When trick_number == 7, end of hand, resolved in order: for suit in Diamonds, Hearts, Spades, Clubs, if exactly one player has the strictly highest won_<suit>, that player takes that suit's action once. Then each player with tricks_won == 0 takes the Diamonds action twice (vault += 2). Announce every action."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "When trick_number == 7 and hand_number == 3: score = 2 * vault + showroom. Announce scores and vaults."},
+    {"action": "update", "who": "table", "answer": null, "effect": "rounds_played += 1. If trick_number == 7, then hand_number += 1 and trick_number = 1; otherwise trick_number += 1 and leader_seat = trick_winner."},
+    {"action": "check", "who": "table", "answer": null, "effect": "End the game if rounds_played >= 21; otherwise continue."}
+  ],
+  "ending": {
+    "condition": "rounds_played >= 21",
+    "rank_by": "you.score * 1000 + you.vault",
+    "decided_by": "Highest score (2 * vault + showroom) after 3 hands wins. A tie on score is broken by more vault crystals. Players still tied share the win, which is the draw."
+  },
+  "rules": [
+    {"id": "R1", "text": "When the game starts, every player's showroom and vault are 0."},
+    {"id": "R2", "text": "When a hand starts, all 32 cards are shuffled, each player receives 7 cards into their hand, and the other 11 go to set_aside, unseen."},
+    {"id": "R3", "text": "When a hand starts, each player simultaneously passes exactly 1 card from their hand to the seat on their left, and the third player is not told which card was passed."},
+    {"id": "R4", "text": "When a hand starts, every player's tricks_won and won_diamonds, won_hearts, won_spades and won_clubs are reset to 0."},
+    {"id": "R5", "text": "In hand h, the dealer is seat h (hand 1: seat 1, hand 2: seat 2, hand 3: seat 3)."},
+    {"id": "R6", "text": "On trick 1 of a hand, the seat left of the dealer leads; on later tricks, the previous trick's winner leads."},
+    {"id": "R7", "text": "When the leader plays a card, its suit becomes led_suit, and the other two players then play in clockwise order."},
+    {"id": "R8", "text": "When a player holds a card of led_suit, they may only play a card of led_suit."},
+    {"id": "R9", "text": "When a non-leader holds no card of led_suit, they may play any card, and they immediately take that card's suit action before the next player plays."},
+    {"id": "R10", "text": "When all 3 cards are played, the highest-ranked card of led_suit wins the trick, and an off-suit card never wins."},
+    {"id": "R11", "text": "When a player wins a trick, their tricks_won increases by 1, and each won_<suit> increases by the number of that suit among the 3 trick cards."},
+    {"id": "R12", "text": "When a player wins a trick, they take the action of led_suit once and lead the next trick."},
+    {"id": "R13", "text": "When the Diamonds action is taken, the taker's vault increases by 1 from the supply."},
+    {"id": "R14", "text": "When the Hearts action is taken, the taker's showroom increases by 1 from the supply."},
+    {"id": "R15", "text": "When the Spades action is taken and the taker's showroom >= 1, their showroom decreases by 1 and their vault increases by 1; when their showroom is 0, nothing happens."},
+    {"id": "R16", "text": "When the Clubs action is taken, 1 crystal moves from the opponent with the largest showroom into the taker's showroom; if both opponents' showrooms are 0, nothing happens."},
+    {"id": "R17", "text": "When the Clubs action is taken and both opponents tie for the largest showroom (above 0), the crystal is taken from the tied opponent seated first clockwise after the taker."},
+    {"id": "R18", "text": "When trick 7 of a hand ends, for each suit in the order Diamonds, Hearts, Spades, Clubs, the single player with strictly the most won cards of that suit takes that suit's action once; if the top count is tied, nobody takes it."},
+    {"id": "R19", "text": "When trick 7 of a hand ends, after the suit-majority actions, each player with tricks_won == 0 takes the Diamonds action twice (vault += 2)."},
+    {"id": "R20", "text": "When hand 3 ends (after 21 tricks), each player's score = 2 * vault + showroom, and the game ends."},
+    {"id": "R21", "text": "When the game ends, the highest score wins; a tie is broken by the larger vault; players still tied share the win as a draw."},
+    {"id": "R22", "text": "When a card is played or a suit action resolves, the card and the action's result are announced to all players, and showroom counts are always public."}
+  ],
+  "offers": [
+    {"question": "Pass a card (start of each hand)", "who": "all players simultaneously", "options": "every card currently in your own hand (7 cards)"},
+    {"question": "Lead a card", "who": "seat leader_seat", "options": "every card in your hand"},
+    {"question": "Follow to the trick", "who": "the second and third seats clockwise from the leader", "options": "if you hold at least one card of led_suit: only your cards of led_suit; otherwise: every card in your hand"}
+  ],
+  "choices": [
+    {"what": "Exactly 3 players, suggested 3", "why": "The designer fixed the game at 3. Seat-based dealer rotation, passing left and the Clubs tie-break all assume 3 seats."},
+    {"what": "Strategy at the table", "why": "A thoughtful player chooses when to void a suit so that off-suit plays trigger Diamonds or Clubs actions. They track opponents' showrooms to time Clubs and Spades, and weigh winning suit majorities against deliberately taking zero tricks for the +2 vault bonus."},
+    {"what": "No talk step", "why": "The source rules include no table talk, and adding it would add a mechanic."},
+    {"what": "Cards encoded as text 'D7', 'H3', and so on", "why": "The suit letter and rank can then be read arithmetically to find led_suit and the trick winner."},
+    {"what": "Rank expression score * 1000 + vault", "why": "No score can reach 1000 in 21 tricks, so this ranks by score first and vault second. Equal values share the win, which matches the source's draw."},
+    {"what": "Final scores computed in a step when hand 3's trick 7 ends", "why": "The source scores only at the end of hand 3."}
+  ],
+  "simplifications": [
+    {"what": "Vault is declared public", "why": "The source leaves vaults out of summaries, but every vault change is announced to everyone, so vaults are fully trackable. Public visibility gives the same information."},
+    {"what": "The trick is played as three separate ask steps addressed by seat expressions relative to leader_seat, each follower's ask followed by an update for an off-suit action", "why": "The engine's step list is flat. This keeps clockwise order from a variable leader and resolves each off-suit action before the next player plays."},
+    {"what": "Start-of-hand dealing and passing run as steps guarded by trick_number == 1", "why": "One round is one trick, so the hand-start steps run only on the first trick of each hand."},
+    {"what": "Won cards are tracked only as per-suit counts, not as a pile of cards", "why": "The rules use won cards only through their per-suit counts."}
+  ],
+  "unsupported": []
+}
+```
+````

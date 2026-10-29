@@ -1,0 +1,175 @@
+{
+  "original_summary": "Yaniv is a shedding card game. Players discard singles, sets or runs and draw from a blind pile or from the previous discard, trying to bring their hand total low enough to call Yaniv. A caller who is not strictly lowest takes a penalty (Asaf), penalties build up across hands, and players are eliminated past a total. The reviewed predecessor, Slot Yaniv, turned it into simultaneous rounds with three private card slots and a bid for one upcard.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "The Asaf penalty punishes always calling. Never calling lets a low-handed opponent take 0 while you pay your hand total. Always shedding the highest card is sensible but does not decide when to call. In the predecessor, the tie-break priority over 15 rounds gave the seats 8/7 or 4/4/4/3 shares, a small built-in seat edge."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "weak",
+      "evidence": "The predecessor re-shuffled a full deck every round, and held cards stayed in it. Every draw was therefore an independent card with mean 6.3. With only 2 to 4 showdowns in 15 rounds, about 60-70% of results between competent players came from the draw."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "weak",
+      "evidence": "Shed highest, take a low upcard, bid 0 or 1 and call at a low total was close to optimal. Little remained for a stronger player to discover beyond Yaniv timing."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Hands are hidden, but with no persistent deck there was no card counting. Taking had only one public option, so taking revealed and denied little. The real inference left was reading an opponent's total from their public sheds and card count."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "weak",
+      "evidence": "Scoring is pure arithmetic. However, rule 8 left three of a kind undefined: 'that card' is singular. That case arises in about 2.6% of fresh deals alone, and it changes hand size and the showdown result."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "good",
+      "evidence": "17 steps, 1 random draw per round, 15 rounds and about 16 attributes, all within the limits. Text-only, with no board."
+    }
+  ],
+  "problems": [
+    "P1: Three of a kind on shedding is undefined. One or two matching cards might be removed, so the outcome is ambiguous.",
+    "P2: The deck is re-shuffled full every round with held cards included. Card counting and discard tracking, the core inference of Yaniv, are gone.",
+    "P3: Only one public takeable card exists. Taking is an obvious threshold decision that reveals little and denies little.",
+    "P4: Hands last too long relative to the match: threshold 7 on 3 cards, 15 rounds, about 2 to 4 showdowns. A few lucky draws decide the match, and the end total of 60 is rarely reached.",
+    "P5: When everyone plays the obvious heuristic, the shuffle alone decides the winner. This is the lottery trap.",
+    "P6: The tie-break priority is shared unequally between seats over 15 rounds.",
+    "P7: The bid sub-game adds steps but mostly reduces to bidding 0 or 1. It is complexity without much reasoning."
+  ],
+  "changes": [
+    {
+      "what": "When a shed card matches other slots, every other slot with the same value is also shed and stays empty. A triple sheds all three.",
+      "why": "Gives one unambiguous rule for pairs and triples.",
+      "fixes": "P1: Three of a kind on shedding is undefined."
+    },
+    {
+      "what": "Shuffle once per hand, not every round. Deal from a running draw pile. Keep a public dead pile of every card that has left play this hand. If the draw pile cannot serve every player, that round's showdown is forced.",
+      "why": "Players can count the 54-card deck. They can infer what remains in the pile and what opponents hold from what they kept. There is still at most one random event per round, and no mid-hand reshuffle is needed.",
+      "fixes": "P2: The deck is re-shuffled full every round with held cards included."
+    },
+    {
+      "what": "Replace the single upcard with an offer row. It holds all cards shed in the previous round, numbered in order. Each player may TAKE one card from it by position. Conflicts are resolved in rotating priority order, and a player who loses a conflict draws blind. Unclaimed offer cards go to the dead pile.",
+      "why": "Taking becomes a public, informative choice. It shows what you are collecting, for example pairs or low cards. It can deny an opponent the card they need, and it forces guesses about who else wants the same card.",
+      "fixes": "P3: Only one public takeable card exists."
+    },
+    {
+      "what": "Raise the Yaniv threshold to 10. Extend the match to 24 rounds. End early when any total reaches 50 after a showdown.",
+      "why": "Hands end in about 3 to 5 rounds, giving roughly 5 to 7 showdowns. Luck averages out, and the end total actually comes into play.",
+      "fixes": "P4: Hands last too long relative to the match."
+    },
+    {
+      "what": "Remove the bid. Rotate priority every round. Allow only 2 to 4 players with 24 rounds, a number divisible by 2, 3 and 4.",
+      "why": "Over a full match every seat gets priority equally often. Removing the bid frees steps for the offer row.",
+      "fixes": "P6: The tie-break priority is shared unequally between seats; P7: The bid sub-game adds steps but mostly reduces to bidding 0 or 1."
+    },
+    {
+      "what": "The overall combination: counting, a choice of takeable cards, readable sheds and more showdowns.",
+      "why": "Among heuristic players the draw still matters. A player who counts low cards, tracks what opponents took and times Yaniv against an opponent's likely total beats a fixed heuristic over 5 to 7 showdowns.",
+      "fixes": "P5: When everyone plays the obvious heuristic, the shuffle alone decides the winner."
+    }
+  ],
+  "keeps": [
+    "Card values: Ace 1, 2-10 face value, J/Q/K 10, Joker 0, in a 54-card deck",
+    "Shedding a single card or a matching set",
+    "Choosing between a known discard and a blind draw",
+    "Calling Yaniv below a threshold; lowest hand scores 0, others score their hand total",
+    "The Asaf penalty for a caller who is not strictly lowest",
+    "Penalty totals built up across hands, with a match-ending total and lowest total winning"
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The fixes fit inside the limits: one shuffle per hand, an offer row, a defined triple, a higher threshold, more rounds and rotating priority. They restore Yaniv's card-counting and opponent-reading core."
+  },
+  "variation": {
+    "name": "Row Yaniv",
+    "summary": "A simultaneous-round Yaniv for 2 to 4 players. Each player holds up to three private cards. A hand uses one shuffled deck, with a public offer row of last round's discards and a public dead pile. Each round, every player at once either calls Yaniv or sheds a card (or a set) and replaces it, either by taking a card from the row or by drawing blind. The lowest penalty total after 24 rounds, or when someone reaches 50, wins.",
+    "players": {
+      "min": 2,
+      "max": 4,
+      "suggested": 3
+    },
+    "rules": "DECK: 54 cards, used only for their values: two Jokers worth 0; four each of values 1 to 9 (Ace = 1); sixteen cards worth 10 (the 10s, Jacks, Queens and Kings). Only values matter; suits are ignored.\n\nSTATE: Each player has three private slots c1, c2 and c3. Each slot holds one card value or is empty. A player's hand total H is the sum of their non-empty slots. Each player has a public penalty total, starting at 0.\nPublic table state:\n- the round number (1 to 24);\n- the priority seat (seat 1 in round 1);\n- a 'new hand' flag (on at the start);\n- the draw pile, whose order is hidden and whose size is public;\n- the OFFER ROW, an ordered public list of cards;\n- the DEAD PILE, a public list of every card that has left play this hand.\n\nEACH ROUND:\n1. NEW HAND. If the 'new hand' flag is on: shuffle all 54 cards to form the draw pile. This is the only random event in any round. Empty all slots, empty the dead pile, and deal 3 cards from the top of the draw pile to each player in seat order, into c1, c2 and c3, told privately. Then turn the next card face up as the offer row (one card at position 1). Switch the flag off.\n2. ANNOUNCE the offer row with its positions and values, the dead pile, the draw pile size, the priority seat, and each player's number of cards.\n3. CHOICES. All players answer at the same moment, privately, three things:\n   (a) action: YANIV, DRAW, or TAKE;\n   (b) take position: a number from 1 to the length of the offer row (used only for TAKE);\n   (c) shed slot: 1, 2 or 3. It must be a non-empty slot; if it is not, the lowest-numbered non-empty slot is used.\n4. YANIV CHECK. A YANIV is valid only if the player's H is 10 or less. An invalid YANIV is announced as invalid, and that player is treated as DRAW for the rest of the round.\n5. If at least one valid YANIV was made, no cards move this round. Go to step 10.\n6. SHED. Each player removes the card in their shed slot. Every other slot of theirs holding the same value is also removed, so a pair sheds two cards and a triple sheds three. Those extra slots stay empty for the rest of the hand. Announce every player's shed card values.\n7. TAKE. Go through the TAKE players in seat order, starting at the priority seat and wrapping around. Each one receives the offer-row card at their take position if no earlier player has claimed it, and places it in their shed slot. Announce who took which card. A TAKE player whose card was already claimed becomes DRAW.\n8. DRAW. In the same order (from the priority seat), each DRAW player takes the top card of the draw pile into their shed slot, told privately. The drawn value is never announced.\n9. ROW UPDATE. All offer-row cards not taken go to the dead pile. The new offer row is every card shed in step 6, listed in seat order from seat 1, and within a player in the order of their slots. Announce each player's card count and the draw pile size.\n10. SHOWDOWN. A showdown happens in any of three cases:\n   - a valid YANIV was made this round;\n   - after step 9 the draw pile holds fewer cards than there are players;\n   - this is round 24.\n   All hands are revealed.\n   If there were valid callers: let M be the lowest H among the callers, and N the lowest H among the non-callers (N = 99 if everyone called).\n   - A caller scores 0 if their H equals M and M is less than N. Otherwise they score H + 20 (Asaf).\n   - A non-caller scores 0 if their H is less than or equal to M. Otherwise they score H.\n   With no valid caller: every player with the lowest H scores 0, and the others score their H.\n   Add the scores to the penalty totals and announce all totals. Then switch the 'new hand' flag on, so the next round begins a fresh hand and a fresh shuffle.\n11. The priority seat passes to the next seat in order.\n12. END CHECK. The match ends after any showdown that leaves some player's penalty total at 50 or more, or after round 24.\n\nThere is no discussion phase.",
+    "objective": "When the match ends, the player with the lowest penalty total wins. If two or more players share the lowest total, the match is a draw among them.",
+    "expected_effect": "Hands end in about 3 to 5 rounds, so a match has roughly 5 to 7 showdowns and the 50 limit is often reached. Players can count Jokers and low cards in the dead pile and the row, and estimate what remains in the draw pile. They can read opponents: a player who takes a 4 from the row probably holds or wants another 4, and a player who keeps shedding 10s still holds high cards. Taking a low card from the row signals your plan but denies it to others, and with conflicts each player must guess whether a rival with priority wants the same card. Calling Yaniv is a risk judgement: with H of 8 to 10, the caller must estimate from opponents' sheds, takes and card counts whether anyone is lower, against the 20-point Asaf. A fixed 'shed highest, take lowest, call when valid' heuristic loses to a player who times calls on opponents' likely totals and denies key cards. Talk is left out: it is a free-for-all where every rival wants you to call badly, so messages would be pure noise with no shared plan to test."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 15,
+    "choice_steps_per_round": 3,
+    "attributes": 15,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 24
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "fail",
+          "evidence": "Card distribution (values only): 0 x2, 1-9 x4 each, 10 x16. That is 54 cards with a value sum of 340, so a hidden draw averages 6.30. Cumulative P(card <= k): k=0 .037, 1 .111, 2 .185, 3 .259, 4 .333, 5 .407, 6 .481, 7 .556, 9 .704. Showdown table for 2 players (caller h_c, non-caller h_n): h_c < h_n gives caller 0 and non-caller h_n. h_c >= h_n gives caller h_c+20 and non-caller 0 (even 0 vs 0 Asafs the caller). Both call: the lower scores 0, the higher scores H+20, and a tie gives both 0. Thoughtless policies under the WINNER rule: (a) Always TAKE (first option). The taker's H is revealed (after round 1, H=U), so an opponent who draws below U calls next round, scores 0 and gives the taker U. Always-TAKE never calls, so it loses whenever U is high. It loses. (b) Always YANIV (last option). This equals DRAW until H<=7, then a blind call. Against an opponent who TAKEs U<=3, the caller is Asaf (H+20) whenever the opponent's H <= its own. It loses often. (c) Always DRAW and random play are beaten by anyone taking low U and calling on revealed information. No seat edge: choices are simultaneous and drawers draw from a fresh shuffle. So no option is strictly dominant and no policy never loses. The arithmetic does not match the labels, though. 'Shed your top card' is implemented as 'remove min(H,10)'. A hand of 1+1 (H=2) or a single 3 is wiped to 0 as if a 10 had been shed, so every hand with H<=10 is erased each turn and H simply becomes U or the drawn card. The game is described as Yaniv hand management (shedding cards, building a low hand over turns), but the numbers make it a one-card-per-round choice: 'take known U or a random card worth 6.3 on average'. There is nothing to accumulate or plan. A labelled mechanic whose numbers say something else fails. The shared upcard also lets every TAKE player receive the same U, which removes the competition for the discard that the original has."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Complexity is within limits: steps 14<=20, choice steps 1<=4, attributes 11<=20, hidden elements 1 (per-player H) <=3, random draws 1 per round (one shuffle, with dealing, the upcard and draws taken from it), rounds 12<=40. The game is finite: it ends at round 12 or at a 50-point total, and all scoring is arithmetic on H and the totals. The winner is the lowest total, and ties draw. No board, clock, judge or trading is needed. The choice is a simultaneous poll, as required. Minor wording issues: 'top card' does not exist in an H-only model and should be replaced by the min(H,10) rule. It should also say explicitly that invalid callers count as non-callers at showdown (the natural reading). Having no talk with 3-6 players is acceptable. TAKE/DRAW announcements already give public evidence to reason about, and cheap talk about hidden H would only add unverifiable words. This is not a fixed-length cooperation game, so the late-round betrayal test does not apply."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Intended good strategy: TAKE when U is below the draw average (about U<=5, which happens with P=22/54=41%), otherwise DRAW. Call when your H is known to be below a revealed opponent H (a taker's H = U), or when P(opponent's random card > your H) is high. When every player follows it: on low-U rounds all players TAKE the same U and get identical H. Calling on a tie is an Asaf, so nobody calls, and the round is a wash. On high-U rounds all players DRAW, and their new H values are independent random cards. Whoever drew lower calls (or the round-12 lowest wins). For 2 players the only events that move the totals come from comparing two random cards, so the winner of each scoring showdown, and of the match, is decided by the draws. Skill only shows in the call threshold, and that is a fixed probability lookup (e.g. with H=3 the opponent's random card is >3 with P=40/54=.74), not opponent modelling. There is some inference (a TAKE reveals H exactly, a DRAW hides it), but symmetric good play converges to identical choices. I estimate over 70% of the outcome between competent players is chance. Because the shed rule wipes the hand every turn, there is also no planning across rounds."
+        },
+        "required_changes": [
+          "Replace the single-total hand with real cards. Give each player up to 3 hidden card values (attributes c1..c3; with H = their sum). Shedding removes one chosen card (or a matching pair, which reduces the hand size), so keeping or dumping low cards over several rounds becomes a planning decision. Remove the min(H,10) wipe.",
+          "Make the upcard exclusive so that taking it is contested. If several players choose TAKE, only the player with the current priority (a rotating seat, or the highest of simultaneous numeric bids paid in penalty points) gets U, and the others DRAW. This breaks the identical-hand mirror and rewards modelling which opponents want U.",
+          "Make the shed card public (announce its value) while the hand total stays hidden. Players can then infer opponents' remaining hands from their discards and take/draw history, so calling depends on inference rather than a fixed probability lookup.",
+          "Reword step 4 to drop 'top card', and state explicitly that invalid callers count as non-callers at showdown."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Deck values: 2x0, 4 each of 1-9 (36 cards), 16x10. The mean card is (0 + 4x45 + 160)/54 = 340/54 = 6.30. Cards in hands are not removed from the deck, so every draw has this mean. TAKE is worth 6.30 - U in expected hand reduction, so U of 6 or less is worth taking. Bids are permanent penalty points, at most 3. YANIV decision, 2 players, my H = h <= 7, opponent H = o: (I call, opp passes) gives h<o: me 0, opp o; h>=o: me h+20, opp 0. (Both call) gives the lower 0 and the higher H+20; a tie gives both 0. (I pass, opp calls) is the mirror. (Neither) continues. Calling is not dominant: if o <= h it costs h+20 (20 to 27) where waiting costs at most h. Passing is not dominant either: it hands the opponent the chance to call and charges you H. WINNER RULE, thoughtless policies against sensible play (shed highest, TAKE if U<=5, call when valid with a low h): (1) Always first option (TAKE, slot 1, bid 0) takes 10-value upcards (16/54 = 30% of rounds) and sheds a random slot instead of the highest. It ends with a higher H at most showdowns and loses most matches. It can win only when draws favour it. (2) Always last option (YANIV, slot 3, bid 3) is an invalid call whenever H>7, so it is DRAW with shed slot 3, a random shed. When H<=7 it calls at once and risks the Asaf penalty. It loses more often than not and does not never-lose. (3) Always TAKE with bid 3 pays 3 per won round, up to 45 over 15 rounds, and often takes high U. It loses. (4) Always DRAW gives up free low upcards and never loses the 0-to-3 bid. Against a sensible TAKE-if-low player it is behind on average but not always. Against random play every policy here wins often, but none wins or draws almost every time. No option is strictly better whatever the opponent does. Seat edge: priority only breaks bid ties. Over 15 rounds it falls 8/7 with 2 players, 5/5/5 with 3, and 4/4/4/3 with 4. This is a small tie-break edge only; draw order gives no edge because each draw is an independent card. Every seat can realistically win."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Limits: steps 17 <= 20, choice steps 3 <= 4, random draws 1 per round, rounds 15 <= 40. Hidden elements: private hands plus the shuffle order, which is 1 or 2, within 3. Attributes: per player c1, c2, c3, penalty, action, shed, bid, invalid flag = 8; table round, U, priority, new-hand flag, plus temporaries (top bid, U winner, M, N). That is about 16, near but within 20 if counted per definition. No board, clock or judge is needed. The game is finite (15 rounds) and decided by arithmetic on penalty totals. Omitting talk is sensible: it is a free-for-all with no allies, and public shed values and card counts already give something to reason about. The fault is in rule 8. It reads 'If another of their slots holds a card of the same value, that card is removed too (a pair)', with 'that card' singular. When both other slots match the shed value (three of a kind), it is undefined whether one or both are removed and which slot stays empty. This is not rare: three 10s in a fresh deal alone is about (16/54)^3 = 2.6%, and triples also arise through draws and TAKE. The undefined case changes hand size and H, and so the showdown result. Minor point: rule 9's 'A slot emptied by the second card of a pair stays empty' does not say what happens to a third matching card."
+        },
+        "reasoning_over_luck": {
+          "verdict": "fail",
+          "evidence": "Each draw is an independent card with mean 6.30, because the deck is re-shuffled full every round and held cards stay in it. Card counting and discard tracking, the main inference in Yaniv, are therefore gone. The per-round decisions are mostly obvious: shed the highest card (or a pair), TAKE when U <= 5 or 6, bid 0 or 1. Reaching a valid YANIV (H <= 7 on up to 3 cards) needs low draws. A dealt hand has H <= 7 only a few percent of the time. Each round improves the hand by replacing its highest card with min(U, draw), so a hand lasts several rounds, and 15 rounds give only about 2 to 4 showdowns. Per-hand scores are about 10 to 27, so the 60 end is rarely reached and the match is usually settled by those few showdowns. Who reaches a low H first is set mainly by draw luck. The remaining skill is YANIV timing, read from the opponent's public shed values and card count, plus small bid fights. That is real but secondary. Rough estimate: chance decides 60-70% of results between competent players. When all players follow the intended good strategy (shed highest, take low U, call at a safe low H), the strategies are symmetric and the winner is decided by the shuffle alone. A careful reasoner is not clearly favoured over a fixed heuristic."
+        },
+        "required_changes": [
+          "Define three of a kind in rule 8. For example: 'Every other slot holding the same value is also removed and stays empty.' Or: 'Only the lowest-numbered matching slot is also removed.'",
+          "Make the deck persist through a hand. Use one shuffle per hand with a running draw pile, and keep each round's shed cards in a public discard list. Players can then count cards and infer what remains, and what opponents likely hold from the cards they did not shed.",
+          "Make the U decision a real inference. Offer the round's shed cards as public takeable options, in addition to U and the blind draw, so taking reveals information and can deny an opponent.",
+          "Cut the share of chance per match. Raise the Yaniv threshold or the hand size so hands end in about 3 rounds, or raise the round count toward 30-40 so many showdowns are averaged. Alternatively, lower the elimination total so more hands decide the match. Verify by simulation that a heuristic player loses clearly to an inferring player.",
+          "Use a round count divisible by the player count, or rotate priority so each seat gets it equally often, removing the 8/7 and 4/4/4/3 tie-break imbalance."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "DECK ARITHMETIC: The values sum to 0x2 + 4x(1+...+9) + 10x16 = 0 + 180 + 160 = 340. The mean card is 340/54 = 6.30, and P(10-value) = 16/54 = 0.296. A fresh 3-card hand averages about 18.9.\n\nP(dealt H<=10), estimated with replacement:\n- No zeros: ordered triples of 1..9 summing to 10 or less = sum over s=3..10 of C(s-1,2) = 120. 120 x 0.074^3 = 0.049.\n- One zero: 3 x 45 pairs x 0.037 x 0.074^2 = 0.027.\n- Two or more zeros: about 0.004.\n- Total about 0.08 per player, so about 15% that some player can call in round 1 of a 2-player hand.\n\nTHOUGHTLESS POLICIES (winner rule: lowest penalty total):\n(1) Always YANIV. An invalid call is simply treated as DRAW, so this policy equals 'draw from your shed slot until H<=10, then call at once'. Calling at H=8-10 loses to any opponent at H<=M: a non-caller ties-or-beats the caller, and the caller takes H+20, i.e. 28-30. A sensible opponent who waits while shedding pairs and taking known low cards often reaches 0-6. When both call, the lower caller wins and the other takes H+20. The policy loses often and does not never-lose.\n(2) Always DRAW and never call. It never scores 0 unless it ties or beats a caller. Opponents call as soon as they are low, and its hand stays near 15-19 on average, so it loses most hands.\n(3) Always TAKE position 1. Position 1 is the first seat's shed card. Players shed their highest cards, so this card is typically a 10 or a high card. Taking it raises H and the policy loses.\n(4) Always shed slot 1. This is blind replacement, about equivalent to random play, and it loses to choosing the highest card or a pair.\n\nNo option is strictly better whatever the opponent does. YANIV is good only when your H is below the opponent's hidden H. DRAW versus TAKE depends on the row value against the 6.3 draw mean. Shed choice depends on pairs and values.\n\nSEAT EDGE:\n- Priority affects only contested TAKEs (same position chosen), and it rotates every round.\n- Draw order from a hidden shuffled pile gives no edge.\n- Seat 1's cards being listed first in the row is cosmetic.\n- Over up to 24 rounds the priority imbalance is at most one round.\n\nBoth players can win. Ties produce a draw. There is no cooperation element, so the 'higher total' safe-option concern does not apply."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLETENESS:\n- Every phase is specified: deal, announce, a simultaneous 3-part poll, validity check, shed with pair/triple removal, priority-ordered TAKE with conflict fallback to DRAW, DRAW, row update, and showdown with explicit caller and non-caller formulas.\n- Caller tie handling is explicit. N=99 covers the case where everyone calls, and the no-caller case is defined.\n- A hand can never empty: at most 3 cards are shed and 1 is always received.\n- The row is never empty after a moving round, because every player sheds at least 1 card.\n- The draw pile cannot run out mid-step. Initially it holds 54-3n-1 >= n. A showdown is forced as soon as it drops below n after step 9, so step 8 always has at least as many cards as there are drawers.\n\nTERMINATION:\n- The match is finite at a hard cap of 24 rounds, and round 24 forces a showdown.\n- It also ends at 50+ penalty. The maximum single-hand score is 30, either three 10s as a non-caller or Asaf at 10+20, so a match lasts at least 2 hands.\n- All outcomes are arithmetic on kept numbers.\n\nLIMITS (all within platform limits):\n- 15 steps per round (limit 20).\n- 3 choice steps, all simultaneous (limit 4).\n- About 15 attributes: 3 slots, H, penalty, action, take position and shed slot per player; round, priority, flag, pile, row and dead pile at table level.\n- 2 hidden elements (slots, pile order).\n- At most 1 random draw per round (the shuffle, on new-hand rounds only).\n- 24 rounds (limit 40).\n\nENGINE FIT:\n- Uses hidden hands, a shared deck via list remove/append, simultaneous choice and elimination-free scoring.\n- Needs no board, clock, trading or judge.\n- Minor point: an out-of-range take position should be constrained by the option list or default to DRAW. Since the choice is defined as a range from 1 to row length, the option list can enforce it.\n\nTALK: No discussion is the right call. All players are strictly opposed. There is nothing to agree on and no proposal anyone would gain by following, so talk would only add words."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "CHANCE SOURCES:\n- The deal: about 8% per player of an immediate legal call, and in that case the hand is decided by the deal.\n- The hidden draws: mean 6.3, 30% chance of a 10.\n\nSKILL SOURCES:\n(a) Shed choice: dump the highest card, or a pair or triple to shrink the hand. A pair of 9s removes 18 points and one slot.\n(b) DRAW versus TAKE: compare a known row card against the 6.3 draw expectation, and anticipate priority conflicts.\n(c) Call timing under hidden information. This is the core.\n\nWHAT CAN BE INFERRED: The opponent's H can be bounded from public data:\n- every shed value and every take is announced;\n- card counts are public;\n- the dead pile and row give card counting (e.g. both Jokers seen);\n- an announced invalid YANIV reveals H>10;\n- choosing DRAW over a low row card hints the hand is already low.\n\nCalling at 9 is very different against an opponent who just shed a pair of 2s and holds 1 card than against one who has taken a 10.\n\nGOOD PLAY BY ALL: Neither player calls on marginal H. Each sheds pairs and high cards and races down. The winner of a hand then depends on draws plus call timing and reads, not on draws alone. Over 2-5 hands and up to 24 rounds per match, deal variance partly averages out.\n\nCHANCE ESTIMATE: Roughly 40-50% of single-hand outcomes are luck-driven, and less over a match. A reasoning player is clearly favoured over a random or thoughtless one, as policies (1)-(4) under balanced show. Chance is substantial, as in Yaniv, but does not alone decide the winner when both play well."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

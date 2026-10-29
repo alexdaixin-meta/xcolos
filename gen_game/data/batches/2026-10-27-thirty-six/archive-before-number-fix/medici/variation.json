@@ -1,0 +1,169 @@
+{
+  "original_summary": "Medici is a 2-6 player auction game over 3 days. Players take turns drawing 1-3 commodity cards as a lot, which is then auctioned once around the table. They fill limited ships to win florins for ship value and for majorities on commodity tracks, and the most florins after day 3 wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "Simple policies lose. Always passing earns nothing while rivals collect ship and track payouts. Always bidding high bankrupts a player for low-value lots. The drawer's choice of lot size changes what is worth bidding. The fixed clockwise order gives the drawer a last-bid edge, but the active seat rotates."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Valuing a lot against ship space, track standings and rivals' cash decides games. Card draws add variance, but every player bids on the same lots, so the luck is shared."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Weak players still fill ships and score something. Strong players keep improving through cash management across days, denial bidding and timing their ship fills."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "weak",
+      "evidence": "Inference covers rivals' valuations and what remains in the deck. Ships and money are mostly public, so there is no private information about a player's own goals."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "All scoring is arithmetic on ship values, track positions and florins."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "The sequential once-around auction, variable-length days, the free fill for the last ship and track boards are costly to build. The previous adaptation fitted the step budget but used 23-25 attributes, over the limit of 20."
+    }
+  ],
+  "problems": [
+    "The previous variation tracked 23-25 attributes, over the platform limit of 20.",
+    "Revealed cards 1-3 were stored as separate attributes when the deck positions already hold them.",
+    "Four separate good_max attributes (grain_max, cloth_max, spice_max, dye_max) duplicated one reusable value.",
+    "Keeping the undealt favour pool as an attribute after setup wasted an attribute and was counted as an extra hidden element.",
+    "Track maxima and payouts used paired steps per good, which would cost 8 steps if itemised honestly.",
+    "Original (kept fixed): the sequential once-around auction gives a positional edge and is costly to build; this is replaced by a sealed simultaneous bid.",
+    "Original (kept fixed): there is little private information; the secret favoured good is kept so bids reflect hidden valuations."
+  ],
+  "changes": [
+    {
+      "what": "Drop revealed cards 1-3. The top 3 deck cards are announced in place. The lot is the first lot_size cards of the deck. After resolving, the top 3 cards are removed from the deck.",
+      "why": "This saves three attributes with no change to play.",
+      "fixes": "Revealed cards 1-3 were stored as separate attributes when the deck positions already hold them."
+    },
+    {
+      "what": "Replace the four good maxima with one reusable track_max. Each good is scored in a single step: set track_max to the highest count of that good, then pay 6 florins to every player who has that count, provided it is above 0.",
+      "why": "This saves three attributes and halves the track-scoring steps (4 instead of 8).",
+      "fixes": "Four separate good_max attributes (grain_max, cloth_max, spice_max, dye_max) duplicated one reusable value."
+    },
+    {
+      "what": "The favour pool exists only during the setup deal. Undealt tiles are simply never revealed and are not tracked.",
+      "why": "This removes an attribute and a counted hidden element.",
+      "fixes": "Keeping the undealt favour pool as an attribute after setup wasted an attribute and was counted as an extra hidden element."
+    },
+    {
+      "what": "Store lot_value once at the cut, so the announcement and the load use the same number. Merge the new-deck and ship-reset steps into one day-start step.",
+      "why": "This keeps the step count at 19 and the attribute count at 19 while staying explicit.",
+      "fixes": "Track maxima and payouts used paired steps per good, which would cost 8 steps if itemised honestly."
+    },
+    {
+      "what": "Keep the sealed simultaneous bid. A tie for the high bid discards the lot. The active seat rotates so that every seat chooses lot size exactly twice per day.",
+      "why": "This removes the positional edge and is a simple poll.",
+      "fixes": "Original (kept fixed): the sequential once-around auction gives a positional edge and is costly to build; this is replaced by a sealed simultaneous bid."
+    },
+    {
+      "what": "Keep the secret favoured good, worth 3 florins per card of that good loaded over the game.",
+      "why": "Each player values goods differently and secretly, so rivals must infer favours from bidding patterns. All goods are symmetric, so no tile is better than another.",
+      "fixes": "Original (kept fixed): there is little private information; the secret favoured good is kept so bids reflect hidden valuations."
+    }
+  ],
+  "keeps": [
+    "Three days of auctions on lots of 1-3 commodity cards, with the lot size chosen by the active player.",
+    "Ships with 5 slots: a full ship cannot buy more that day, and lots cannot be split.",
+    "Ship-value payouts for the top two ships each day.",
+    "Cumulative commodity tracks that pay majorities every day.",
+    "Money spent on bids leaves the game, and the most florins at the end wins.",
+    "The sealed bid, the hidden favoured good and the public florins from the previous variation, which reviewed well."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The previous variation played well and only exceeded the attribute limit. Merging the revealed-card, good-maximum and pool attributes brings it to 19 attributes and 19 steps without changing play."
+  },
+  "variation": {
+    "name": "Medici: Sealed Lots",
+    "summary": "A 3-6 player sealed-bid auction over 3 days. The active player picks a lot of 1-3 revealed commodity cards, and everyone bids secretly at once, with ties discarding the lot. Ships of 5 slots score daily for value. Cumulative goods counts score daily for majorities. A secret favoured good pays at the end.",
+    "players": {
+      "min": 3,
+      "max": 6,
+      "suggested": 4
+    },
+    "rules": "GOODS AND CARDS\nThere are four goods: Grain, Cloth, Spice and Dye. The deck has 48 cards. For each good there is one card of each of these values: 0, 1, 1, 2, 2, 3, 3, 3, 4, 4, 5, 5. That is 12 cards per good, worth 33 in total per good.\n\nSETUP\nN is the number of players (3 to 6). Each player starts with:\n- 40 florins. Florins are PUBLIC: every player's florins are announced at the start and after every change.\n- ship_value 0 and ship_count 0.\n- grain_count, cloth_count, spice_count and dye_count all 0.\n- bid 0.\nFavour deal: if N is 3 or 4, take one tile each of Grain, Cloth, Spice and Dye (4 tiles). If N is 5 or 6, take two tiles of each good (8 tiles). Deal each player one tile at random, face down. This is their secret favoured_good, known only to them. Undealt tiles are set aside and never revealed.\nSet round = 0. The game lasts 6N rounds: 3 days of 2N rounds each. The game-level values are round, active_seat, lot_size, lot_value, deck, high_bid, high_count, top, second and track_max.\n\nEACH ROUND, IN THIS ORDER\n1. ADVANCE: round = round + 1. Then active_seat = ((round - 1) mod N) + 1.\n2. NEW DAY (only when round mod 2N = 1): set the deck to the full 48-card list and shuffle it once. Any cards left from the previous day are gone. Set every player's ship_value and ship_count to 0. Florins and the four goods counts are kept.\n3. REVEAL: announce the top 3 cards of the deck (positions 1, 2, 3) to everyone.\n4. LOT SIZE (choice): the active seat chooses 1, 2 or 3.\n5. CUT: lot_size = that choice. The lot is deck positions 1 to lot_size. lot_value = the sum of those cards' values. Announce lot_size and lot_value.\n6. BID (simultaneous choice): every player whose ship_count + lot_size > 5 is told their ship cannot fit this lot and only a bid of 0 counts. Then all players, at the same moment, choose a whole-number bid from 0 to their florins.\n7. VALIDATE: a bid becomes 0 if it exceeds the player's florins or if ship_count + lot_size > 5.\n8. RESOLVE: high_bid = the largest bid. high_count = the number of players whose bid equals high_bid. Announce every bid.\n9. PAY (only if high_bid > 0 and high_count = 1): the sole high bidder loses high_bid florins, which leave the game. Announce their florins.\n10. LOAD AND CLEAR: if high_bid > 0 and high_count = 1, the winner adds lot_value to ship_value and lot_size to ship_count, and adds 1 to their count of each lot card's good. Then, in every case, remove the top 3 cards from the deck. If nobody won, the lot is simply discarded.\n11. SHIP RANKS (only when round mod 2N = 0): top = the highest ship_value. second = the highest ship_value strictly below top, or 0 if there is none.\n12. SHIP PAYOUT (same condition): if top > 0, every player with ship_value = top gains 20 florins. If second > 0, every player with ship_value = second gains 10 florins. Announce florins.\n13. GRAIN TRACK (same condition): track_max = the highest grain_count. If track_max > 0, every player with grain_count = track_max gains 6 florins.\n14. CLOTH TRACK (same condition): the same, for cloth_count.\n15. SPICE TRACK (same condition): the same, for spice_count.\n16. DYE TRACK (same condition): the same, for dye_count. Announce florins.\n17. FAVOUR (only when round = 6N): each player gains 3 florins times their count of their own favoured_good. All favoured goods are revealed and final florins announced.\n18. END: if round = 6N, the game ends.\n\nThere is no talk phase.",
+    "objective": "After round 6N, the player with the most florins wins. If two or more players tie for the most florins, the game is a draw.",
+    "expected_effect": "Play is the same as the previously tested version. Each lot is a valuation puzzle: ship space, the daily ship race, track majorities, a secret favour, rivals' public cash and their inferred favours all bear on what to bid. Always bidding 0 keeps 40 florins but loses to anyone who wins cheap lots and collects payouts. Always bidding everything either ties and discards the lot or wins once and goes broke, so both simple policies can lose. Favour tiles are symmetric, so the hidden type changes what to buy, not who is ahead. Rotating lot choice removes any seat edge. Talk is left out: the sealed auction is purely competitive, promises cannot bind, and public bids and ships give enough to read."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 2,
+    "attributes": 19,
+    "hidden_elements": 2,
+    "random_draws_per_round": 1,
+    "rounds": 36
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "SUPPLY AND PRIZES. Each day reveals 2N x 3 = 6N cards (at most 36), so the 48-card deck never runs out. A card averages 33/12 = 2.75, so a 3-card lot averages 8.25 and a 5-card ship about 13.75. Prizes per day, with no ties: top ship 20, second ship 10, track 4 x 6 = 24, for a minimum of 54. Over 3 days that is 162 or more, plus favour at 3 per card of the favoured good, roughly 15 to 24 for an active buyer. Money paid in bids leaves the game.\n\nWINNER-RULE CHECK, N = 3, 6 lots per day:\n| Thoughtless policy | vs sensible bidders | vs random bidders |\n| Always bid 0 | Ends at exactly 40. Ship value 0 and good counts 0 never earn a payout. A sensible pair that spends about 10 per day each while earning about 27 per day ends near 90. LOSES. | Random bids average about 20 and burn florins fast, so it often wins. Not 'never loses'. |\n| Always bid all florins | Wins lot 1 for about 40 and drops to 0. After that it can only bid its payouts, which it spends again in full. Ends near 0 to 30. LOSES. | Mixed result. |\n| Always bid 1 | Wins only lots nobody else bids on. It ties with any other bidder of 1, which discards the lot, and it is outbid by bids of 2 or more. Ends below the sensible buyers. LOSES. | Random bids are mostly 1 or more, so mostly LOSES. |\n| Always lot size 3 (or 1) | Has no effect on its own score. | Has no effect. |\nNo policy avoids losing against sensible play.\n\nNO STRICTLY DOMINANT OPTION. The bid is a first-price sealed auction in which ties discard the lot. The best bid depends on rivals' bids, their ship-fill state and the hidden favour, so no single bid is best whatever opponents do.\n\nSEATS. Each seat is active exactly 6 times, twice per day. Seat N always cuts the last lot before each payout, a small edge. Everyone sees the same 3 revealed cards and bids at the same time, so information is symmetric apart from each player's own favour.\n\nWINNING CHANCES AND LABELS. All four goods have identical card sets, so no favour tile is better than another, and every player can realistically win. No payout ordering is mislabelled."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "WHAT IS FINE.\n- Rounds = 6N, at most 36 (limit 40).\n- Steps 17 (limit 20); choice steps 2 (lot size, bid; limit 4).\n- Attributes: florins, ship_value, ship_count, 4 good counts, bid, favoured_good, plus round, active_seat, deck, revealed, lot, lot_size, high_bid, high_count, ship_ranks, good_max, giving roughly 19 (limit 20).\n- One shuffle per day-opening round (at most 1 random draw per round).\n- The bid is a simultaneous poll.\n- Everything is decided by arithmetic: day boundaries via round mod 2N, the fill limit ship_count + lot_size <= 5, discard on a tie or a top bid of 0, rank payouts that handle ties, and final most-florins with ties a draw.\n- No board, clock or judge is needed.\n- No talk is reasonable. Every lot is contested and every bid is announced, so players reason from the public bid history rather than guessing. Talk would only add non-binding cartel chatter.\n\nFAILURE: HIDDEN ELEMENTS. The design hides four things: the deck order, each player's favoured_good, the undealt favour tiles, and florins marked 'private (shown only to the owner)'. That breaks the limit of 3, against the stated count of 3. The florin privacy is also pointless, because every bid and every payout is announced, so anyone can work out every balance.\n\nMINOR WORDING ISSUE. Step 8 says an over-capacity player 'is told before bidding', but step 8 comes after the bid in step 7. The notice belongs in step 7."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHERE CHANCE ENTERS. There are two random elements: the daily shuffle and the favour deal.\n- The shuffle affects every player equally, since all compete for the same public lot.\n- The favour deal is value-neutral, because all four goods have identical card sets.\n- Estimated share of the result due to chance: about 20 to 30 percent, mostly the order in which high cards appear relative to who still has ship room and florins.\n\nWHAT REASONING DECIDES.\n- Inferring each rival's favoured good from repeated high bids on one good, and denying them those cards.\n- Tracking rivals' florins (derivable) and ship room, which shows who can contest a lot.\n- Cutting the lot size to spoil or protect value.\n- Choosing bids that avoid the tie that discards the lot.\n- Planning the five ship slots across a day against the 20/10 rank payout and the cumulative track majorities paid each day.\n\nWHEN EVERYONE PLAYS WELL. The result comes from contested auction choices and favour inference, not from a hidden type alone. A careless bidder who overpays or ties is clearly beaten by a careful one."
+        },
+        "required_changes": [
+          "Make florins public, or state plainly that they are derivable and not hidden. This brings hidden elements to 3 (deck order, favoured_good, undealt tiles).",
+          "Move the notice in step 8 into step 7: before bidding, tell any player with ship_count + lot_size > 5 that only a bid of 0 counts."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Deck check: per good 0+1+1+2+2+3+3+3+4+4+5+5 = 33, so 12 cards and 33 value per good, 48 cards in all. Cards revealed per day = 3 x 2N = 6N, at most 36 when N=6, so the 48-card deck never runs out.\n\nMoney injected per day: top ship 20 + second ship 10 + track 6 x 4 goods = 54 (more with ties). Over 3 days that is about 162, plus favour of 3 per favoured card. All bids leave the game.\n\nValue of a lot to a bidder = (change in chance of top or second ship) x 20/10 + (change in chance of leading each good track) x 6 + 3 x (cards of own favoured good, final payout). A full ship holds 5 cards at an average of 2.75 each, about 13.75 value. Sensible bids per lot are roughly 2 to 15.\n\nWinner-rule tests:\n(1) ALWAYS BID 0. The player never pays or scores and ends at 40.\n- Against all-0 opponents, everyone draws at 40, because top>0 and second>0 are required for payouts.\n- Against random bidders, who draw uniformly from 0 to their florins, the random players burn money fast. The 0-bidder usually wins.\n- Against sensible players, take N=3 with two sensible bidders. They share about 54 per day and win lots in a first-price sealed auction where they shade below value. Their combined spend is below their combined income, so their summed florins exceed 80 and at least one finishes above 40. The 0-bidder therefore loses to sensible play and is not a never-lose policy.\n(2) ALWAYS BID 1. Any bid of 2 beats it, and ties discard the lot. It loses to sensible play.\n(3) ALWAYS BID ALL FLORINS. It wins one lot for 40, goes broke, and can then collect at most one day's ship and track money. It loses to anyone who keeps money.\n(4) ALWAYS LOT SIZE 1 or ALWAYS 3. Neither dominates. Size 3 can lock out near-full rivals (ship_count + lot_size > 5), and size 1 keeps lots cheap and fittable. This is a real trade-off.\n\nNo option is strictly better whatever opponents do.\n\nSeat order: each seat is active exactly 2 times per day and 6 in total. Later seats choose lots when ships are fuller, which is a minor asymmetry. Florins are public for all, and the only private information is each player's own favour tile.\n\nEvery player can realistically win."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Rules are complete. Conditions use round mod 2N, which works for N = 3..6. Ties, full ships and all-zero bids are all handled. The game is finite at 6N rounds (at most 36, within 40) and is decided by arithmetic on florins. No board, clock or judge is needed, and bids are a simultaneous poll.\n\nLimits: steps 17 (max 20) OK; choice steps 2 (max 4) OK; random draws 1 per round (shuffle only on day-start rounds) OK; hidden elements 3 (favour tiles, deck order, undealt tiles) OK.\n\nATTRIBUTES are understated. The design claims 19, but a recount gives:\n- Per player (9): florins, ship_value, ship_count, grain_count, cloth_count, spice_count, dye_count, bid, favoured_good.\n- Global (14): round, active_seat, lot_size, revealed cards (even counted as one list), deck, favour pool, high_bid, high_count, top, second, grain_max, cloth_max, spice_max, dye_max.\n- Total: 23, or 25 with revealed 1-3 counted separately. This exceeds the limit of 20.\n\nTalk: omitting talk is defensible. This is a sealed-bid auction where interests conflict and promises cannot bind, so talk would add only words. Bid history, public florins and visible ships give enough to reason about.\n\nCooperation after betrayal: not applicable, since this is not a cooperation game."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance comes from two sources.\n- The per-day shuffle decides which 3 cards appear each round. These are revealed to everyone before the lot is cut, so it is shared, public luck.\n- The favour tile deal, worth 3 per card. For N=5 or 6, two players may share a favoured good and compete for its supply. That is a mild disadvantage, capped at roughly 10-20 florins against about 160 of contested money.\n\nI estimate chance decides about 20-25% of the outcome.\n\nSkill levers:\n- Bid shading in a first-price auction where ties discard the lot.\n- Using lot size to lock rivals out by ship capacity.\n- Planning ship capacity across 2N rounds for the relative 20/10 ship ranks.\n- Track-majority races on cumulative counts.\n- Inferring rivals' hidden favoured goods from consistent overbidding on one good. With N=4 all four tiles are dealt and distinct, so elimination helps.\n\nWhen everyone plays well, the winner is decided by auction reads and capacity planning, not by the deal alone. A strong reasoner is clearly favoured over a random or naive bidder."
+        },
+        "required_changes": [
+          "Cut the attribute count to 20 or fewer (currently 23-25). One way to do it:\n(a) Drop revealed cards 1-3: the lot is the first lot_size cards of the deck, then remove the top 3 cards.\n(b) Replace grain_max, cloth_max, spice_max and dye_max with one reusable track_max, filled and paid good by good in steps 14-15. These can be rolled into one step per good if the step budget allows, or kept within 20 steps.\n(c) Do not keep the favour pool as an attribute after setup. The undealt tiles are simply never revealed.\n(d) Optionally drop high_count by making the PAY/LOAD condition 'exactly one player's bid equals high_bid' in the step's when-clause.\nThen restate the complexity with an honest attribute count of 20 or fewer."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "PRIZE POOL. Each day pays at most 20 (top ship) + 10 (second ship) + 4 x 6 (tracks) = 54 florins, more on ties. Over 3 days that is 162, plus the favour bonus of 3 x (cards of your secret good). Florins only leave the game through winning bids. The only decision is a first-price sealed bid on a lot whose value is public, so no single option is strictly better: the right bid depends on what the others bid and on rank thresholds.\n\nTHOUGHTLESS POLICIES, by the winner rule:\n- Always bid 0. Your ship_value and goods stay at 0. Track payouts need track_max > 0, so you never score and finish on 40. A sensible opponent who wins one lot worth at least 1 card value for 1 to 3 florins gains at least 10 (second ship) every day. In N=4, three bidders split about 54 a day and spend perhaps 8 to 12 each, ending around 65 to 80 against 40. The passer loses to sensible play. Against random players (uniform bid from 0 to florins, about 20 per bid), the passer often wins. That reflects random play bleeding money, not a degenerate policy.\n- Always bid all florins. You pay 40 on the first lot and cannot bid again. Only payouts can bring you back, so you lose to sensible play.\n- Always bid 1. You win only when every other bid is 0. If anyone else also bids 1 the lot ties and is voided. Any sensible bid of 2 or more beats you, so you buy almost nothing and lose to anyone who wins cheap lots for the 10 or 20 ship prizes.\n- Always choose lot size 1, or always 3. This only shapes which public cards are offered. Every player may bid on every lot, so it cannot win by itself.\nNo policy never loses.\n\nTIES. A tie at the high bid voids the lot (no payment, cards discarded). That adds a real coordination risk to low bids rather than a safe option.\n\nSEATS. The active seat rotates 1..N, and each day has 2N rounds, so every seat is active exactly twice per day. All lot information (top 3 cards, lot_value) is public, so the active seat has no information edge. Bids are simultaneous, so there is no move-order edge.\n\nSHIP CAP. Each ship holds 5 cards. N=6 needs 12 rounds x 3 = 36 cards from the 48-card deck, and N=3 needs 18, so the deck never runs out.\n\nAll players can realistically win; the labelled payouts match the arithmetic."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "COMPLEXITY LIMITS.\n- Steps: 18 (limit 20).\n- Choice steps: 2, lot size and the simultaneous bid (limit 4).\n- Attributes: 19 (limit 20). Per player: florins, ship_value, ship_count, 4 goods counts, bid, favoured_good = 9. Game: round, active_seat, lot_size, lot_value, deck, high_bid, high_count, top, second, track_max = 10.\n- Hidden elements: 2, favoured_good and deck order (limit 3). Undealt tiles are never used.\n- Random draws: 1 shuffle, and only on new-day rounds (limit 1 per round).\n- Rounds: at most 6 x 6 = 36 (limit 40).\n\nRULE CHECKS.\n- Round 1 satisfies 1 mod 2N = 1, so the deck is shuffled before the first reveal.\n- Day-end steps fire at rounds 2N, 4N and 6N.\n- The deck always holds enough cards: 6N removed per day, at most 36 of 48.\n- Over-capacity bids are zeroed by an arithmetic condition.\n- Ties void the lot, and all-zero bids discard it.\n- Track and ship ties pay everyone tied.\n- Winner: highest florins, and a tie is a draw.\n\nNo judge, board, clock, trading or binding promise is needed. The bid is a simultaneous poll, as required, and the day-reset (NEW DAY) is handled by `when` conditions on single steps rather than block branching.\n\nTALK. Omitting talk is sensible. This is a pure sealed-bid contest between rivals, and cheap talk could not be enforced. Each player's information (bids, florins and goods counts) is all announced, so players reason from observed behaviour rather than blind guessing.\n\nREPEATED-GAME CHECK. Not applicable: there is no cooperate/defect safe option, and the late rounds stay contested because ship rank is decided at day end."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "WHAT CHANCE CONTROLS.\n- The daily shuffle sets which cards appear. They are revealed publicly and every player can bid on them, so the draw creates shared opportunities rather than favouring a seat.\n- The favour deal is worth 3 per card of one good. A player buys roughly 10 to 15 cards over the game, so about 3 to 5 cards of any one good, worth 9 to 15 florins. Against total swings of 50 to 100 florins from auctions and payouts, that is a modest share, and a player can steer purchases toward their good to capture it. I estimate chance at about 20 to 25 percent of the result.\n\nWHAT REASONING CONTROLS.\n- Sizing bids against opponents' florins and ship_count, both public.\n- Predicting which rivals are capacity-blocked, which zeroes their bids.\n- Judging the marginal value of a lot for the top/second ship thresholds and the four track leads.\n- Avoiding tie-voids.\n- Inferring rivals' secret favoured goods from which goods they overpay for, then denying those goods.\n- As active seat, choosing lot size to exploit rivals who cannot fit 3 cards.\n\nWHEN EVERYONE PLAYS WELL. Outcomes still differ through bid-guessing in the simultaneous auction and through track and rank races. The favour deal is a tiebreaker-sized bonus, not the sole decider. A careful reasoner is clearly favoured over a random or thoughtless bidder."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

@@ -1,0 +1,157 @@
+# 62 spec
+
+- time: 2026-10-27T10:31:13+00:00 (46.5s)  model: claude-opus-5-5
+- system prompt: [system/bc335988-spec.md](system/bc335988-spec.md) (sha256 bc335988cecc1ece)
+- sent sha256 193462d5d5e78588, reply sha256 cb5a5bfb43069b93
+
+## Sent
+
+````
+Game: Lost Cities: Wager Draft
+Players in the source: 2 to 2
+Suggested table size, chosen by the designer of these rules (keep it): 2
+
+Rules, as filed in the inventory:
+SETUP
+1. The deck has 27 cards: Red, Blue and Green, each with one card of every value from 2 to 10. It is shuffled once, face down. Both players know this composition.
+2. Each player has three expeditions, one per colour. Each starts empty and is tracked by its top value (0 when empty) and its sum. Each player also has a Burial penalty starting at 0. All of these are public.
+
+EACH ROUND (12 rounds)
+3. Priority belongs to seat 1 in odd rounds and to seat 2 in even rounds. This is announced.
+4. The top two cards of the deck are turned face up as Card A and Card B. Their colours and values are shown to both players.
+5. WAGER, at the start of round 5 only, before step 4's cards are revealed:
+   - Both players secretly and at the same moment name one colour: Red, Blue or Green. This is their Wager.
+   - The Wager cannot be changed and stays hidden until the end.
+6. The priority player chooses A, B or NONE.
+7. If they chose a card, they receive it and place it (see step 10).
+8. The other player is told what was chosen. They then choose A, B or NONE. Naming the card already taken counts as NONE.
+9. If they chose a card, they receive it and place it.
+10. Placement is mandatory:
+   - If the card's value is higher than the top value of that player's expedition in its colour (any card beats an empty expedition), it is added. Its value is added to the sum, and it becomes the new top value.
+   - Otherwise the card is buried: it is removed from the game and that player's Burial penalty rises by 3.
+11. Cards in the row that no one took are removed from the game.
+12. Both choices, where each card went, and all expedition states and Burial penalties are announced.
+
+After round 12, the 3 cards left in the deck are never revealed.
+
+FINAL SCORING, for each player and each colour
+13. An empty expedition scores 0. However, if the empty expedition is in the player's Wager colour, it scores -15.
+14. Otherwise, the base is the sum minus 10.
+15. If the colour is the player's Wager colour, the base is doubled. Negative bases are doubled too.
+16. Add 10 if the expedition's sum is 25 or more.
+17. A player's total is the sum of their three colour scores minus their Burial penalty.
+18. Wagers are revealed and the totals are compared.
+
+How the winner is decided: After round 12, the player with the higher total wins. Equal totals are a draw.
+````
+
+## Reply
+
+````
+```json
+{
+  "name": "Lost Cities: Wager Draft",
+  "summary": "Two players draft face-up cards from a 27-card, three-colour deck over 12 rounds. They build rising expeditions, pay 3 for every burial, and score a secret colour Wager at double.",
+  "players": {"min": 2, "max": 2, "suggested": 2},
+  "parameters": {
+    "deck_size": 27,
+    "colours": 3,
+    "min_card_value": 2,
+    "max_card_value": 10,
+    "rounds": 12,
+    "row_size": 2,
+    "wager_round": 5,
+    "burial_penalty": 3,
+    "empty_wager_score": -15,
+    "empty_expedition_score": 0,
+    "base_offset": 10,
+    "wager_multiplier": 2,
+    "bonus_threshold": 25,
+    "bonus": 10,
+    "cards_left_unrevealed": 3
+  },
+  "attributes": {
+    "player": [
+      {"key": "red_top", "type": "number", "visible": "public", "initial": 0, "meaning": "top value of the Red expedition (0 when empty)", "observable": true},
+      {"key": "red_sum", "type": "number", "visible": "public", "initial": 0, "meaning": "sum of the Red expedition", "observable": true},
+      {"key": "blue_top", "type": "number", "visible": "public", "initial": 0, "meaning": "top value of the Blue expedition (0 when empty)", "observable": true},
+      {"key": "blue_sum", "type": "number", "visible": "public", "initial": 0, "meaning": "sum of the Blue expedition", "observable": true},
+      {"key": "green_top", "type": "number", "visible": "public", "initial": 0, "meaning": "top value of the Green expedition (0 when empty)", "observable": true},
+      {"key": "green_sum", "type": "number", "visible": "public", "initial": 0, "meaning": "sum of the Green expedition", "observable": true},
+      {"key": "burial", "type": "number", "visible": "public", "initial": 0, "meaning": "Burial penalty, rising by 3 per buried card", "observable": true},
+      {"key": "wager", "type": "text", "visible": "ally", "initial": "", "meaning": "secret Wager colour (Red, Blue or Green), named in round 5 and revealed at the end", "observable": false},
+      {"key": "choice", "type": "text", "visible": "public", "initial": "NONE", "meaning": "this round's pick: A, B or NONE (an already-taken card is recorded as NONE)", "observable": false},
+      {"key": "score", "type": "number", "visible": "public", "initial": 0, "meaning": "final total, the sum of the three colour scores minus burial, computed after round 12", "observable": true}
+    ],
+    "game": [
+      {"key": "deck", "type": "list", "visible": "none", "initial": ["Red-2","Red-3","Red-4","Red-5","Red-6","Red-7","Red-8","Red-9","Red-10","Blue-2","Blue-3","Blue-4","Blue-5","Blue-6","Blue-7","Blue-8","Blue-9","Blue-10","Green-2","Green-3","Green-4","Green-5","Green-6","Green-7","Green-8","Green-9","Green-10"], "meaning": "the shuffled face-down deck", "observable": false},
+      {"key": "round", "type": "number", "visible": "public", "initial": 0, "meaning": "current round number, 1 to 12", "observable": true},
+      {"key": "priority_seat", "type": "number", "visible": "public", "initial": 1, "meaning": "seat with priority this round: 1 in odd rounds, 2 in even rounds", "observable": true},
+      {"key": "card_a_colour", "type": "text", "visible": "public", "initial": "", "meaning": "colour of face-up Card A", "observable": false},
+      {"key": "card_a_value", "type": "number", "visible": "public", "initial": 0, "meaning": "value of face-up Card A", "observable": false},
+      {"key": "card_b_colour", "type": "text", "visible": "public", "initial": "", "meaning": "colour of face-up Card B", "observable": false},
+      {"key": "card_b_value", "type": "number", "visible": "public", "initial": 0, "meaning": "value of face-up Card B", "observable": false},
+      {"key": "taken", "type": "text", "visible": "public", "initial": "NONE", "meaning": "which card the priority player took this round (A, B or NONE)", "observable": false}
+    ]
+  },
+  "setup": [
+    "The table deck is filled with the 27 cards Red, Blue and Green 2 to 10 and shuffled once (cards are later drawn from it at random). Both players are told this composition.",
+    "Each player's six expedition values (red_top, red_sum, blue_top, blue_sum, green_top, green_sum) and their burial start at 0, all public.",
+    "Each player's wager starts empty and score starts at 0."
+  ],
+  "round": [
+    {"action": "update", "who": "all players", "answer": null, "effect": "round += 1; priority_seat = 1 if round is odd, else 2; taken = NONE; every player's choice = NONE. Announce: 'Round {round}: seat {priority_seat} has priority.'"},
+    {"action": "poll", "who": "all players", "answer": "one of Red, Blue, Green", "effect": "when round == 5: each player's wager = their answer. Nobody sees another's wager. This runs before Card A and Card B are revealed."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Draw one card at random from deck and remove it: card_a_colour and card_a_value are set from it. Draw another and remove it: card_b_colour and card_b_value are set from it. Announce both cards to both players."},
+    {"action": "ask", "who": "seat {priority_seat}", "answer": "one of A, B, NONE", "effect": "the priority player's choice = answer; taken = answer. Both players are told what was chosen."},
+    {"action": "update", "who": "seat {priority_seat}", "answer": null, "effect": "If choice is A or B, place that card (colour C, value v) for the priority player. If v > C_top: C_top = v and C_sum += v. Otherwise burial += 3 and the card is removed from the game."},
+    {"action": "ask", "who": "the seat that is not priority_seat", "answer": "one of A, B, NONE", "effect": "choice = answer, except that choice = NONE if answer equals taken."},
+    {"action": "update", "who": "the seat that is not priority_seat", "answer": null, "effect": "If choice is A or B, place that card (colour C, value v) for this player. If v > C_top: C_top = v and C_sum += v. Otherwise burial += 3 and the card is removed from the game."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "Any card in the row that nobody took is removed from the game. Announce both choices, where each card went (added or buried), every player's red/blue/green top and sum, and every player's burial."},
+    {"action": "update", "who": "all players", "answer": null, "effect": "when round == 12: for each colour C, colour_score = (C_sum == 0 ? (wager == C ? -15 : 0) : (C_sum - 10) * (wager == C ? 2 : 1) + (C_sum >= 25 ? 10 : 0)); score = red score + blue score + green score - burial. Reveal each player's wager publicly and announce the totals. The 3 cards left in the deck are never revealed."},
+    {"action": "check", "who": "all players", "answer": null, "effect": "end the game if round >= 12, otherwise continue"}
+  ],
+  "ending": {
+    "condition": "round >= 12",
+    "rank_by": "you.score",
+    "decided_by": "Each player's standing is their final total (the three colour scores minus the Burial penalty). The higher total wins, and equal totals share the win, which is a draw."
+  },
+  "rules": [
+    {"id": "R1", "text": "At setup the deck holds exactly 27 cards, Red, Blue and Green each valued 2 to 10, and every expedition top, sum and burial is 0."},
+    {"id": "R2", "text": "When the round is odd, priority_seat is 1. When it is even, priority_seat is 2."},
+    {"id": "R3", "text": "Each round, two cards are drawn from the deck as Card A and Card B and shown to both players, so the deck shrinks by 2 per round and holds 3 cards after round 12."},
+    {"id": "R4", "text": "When round is 5, both players name a Wager of Red, Blue or Green simultaneously, before that round's cards are revealed. The Wager is never changed and stays hidden until the end."},
+    {"id": "R5", "text": "The priority player chooses A, B or NONE first. The other player is then told that choice and chooses A, B or NONE."},
+    {"id": "R6", "text": "When the second player names the card the priority player already took, their choice counts as NONE and they receive nothing."},
+    {"id": "R7", "text": "When a player receives a card of colour C and value v, and v is greater than C_top, then C_top becomes v and C_sum rises by v (for example, Red 7 on an empty Red gives red_top 7 and red_sum 7)."},
+    {"id": "R8", "text": "When a player receives a card of colour C and value v, and v is not greater than C_top, the card is buried and that player's burial rises by 3 (for example, Red 5 on red_top 7 gives burial +3)."},
+    {"id": "R9", "text": "When a player chooses NONE, none of their attributes change."},
+    {"id": "R10", "text": "Cards in the row that nobody took are removed from the game."},
+    {"id": "R11", "text": "After each round, both choices, where each card went, all expedition tops and sums, and both burials are announced."},
+    {"id": "R12", "text": "At final scoring, an empty expedition scores 0, unless it is in the player's Wager colour, in which case it scores -15."},
+    {"id": "R13", "text": "At final scoring, a non-empty expedition's base is its sum minus 10 (for example, sum 18 gives base 8 and sum 6 gives base -4)."},
+    {"id": "R14", "text": "When the expedition is in the player's Wager colour, its base is doubled, negative or not (for example, sum 6 gives -8 and sum 18 gives 16)."},
+    {"id": "R15", "text": "When a non-empty expedition's sum is 25 or more, it gains 10 after any doubling (for example, a Wager-colour sum of 27 scores 2*17 + 10 = 44)."},
+    {"id": "R16", "text": "A player's score is the sum of their three colour scores minus their burial."},
+    {"id": "R17", "text": "The game ends after round 12. Wagers are then revealed, the higher score wins, and equal scores are a draw."}
+  ],
+  "offers": [
+    {"question": "Wager (round 5 only)", "who": "both seats, simultaneously", "options": "Red, Blue, Green"},
+    {"question": "Priority pick", "who": "seat {priority_seat}", "options": "A, B, NONE"},
+    {"question": "Second pick", "who": "the non-priority seat", "options": "A, B, NONE (naming the card already taken is accepted but counts as NONE)"}
+  ],
+  "choices": [
+    {"what": "Exactly 2 players, suggested 2", "why": "The designer fixed the table at 2. The draft is a head-to-head contest over a shared row, and the second pick depends on reading the one opponent."},
+    {"what": "No talk step", "why": "The rules include no talk, and with two players in direct competition a message would add nothing the rules ask for."},
+    {"what": "Cards stored as 'Colour-Value' strings in the deck, split into card_a/card_b colour and value attributes when drawn", "why": "This lets placement and scoring be done by plain arithmetic comparisons on numbers."},
+    {"what": "The second player is still offered the taken card", "why": "The rules say that naming the taken card counts as NONE, so the option exists and is resolved to NONE."},
+    {"what": "Strategy at the table", "why": "A thoughtful player times the Wager against the cards already seen in rounds 1 to 4. They also deny the opponent high cards, avoid burials that cost 3, and take NONE rather than bury a card."}
+  ],
+  "simplifications": [
+    {"what": "The 'shuffle once, take the top two' draw is done as two random draws from the deck list each round", "why": "The engine draws at random from a list. This is equivalent to drawing from the top of a shuffled deck."},
+    {"what": "Removed and buried cards are not kept in a discard list", "why": "The rules take them out of the game and never refer to them again. Only the burial counter matters."}
+  ],
+  "unsupported": []
+}
+```
+````

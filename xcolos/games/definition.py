@@ -14,12 +14,13 @@ once the dependency exists, and nothing below it changes.
 
 from __future__ import annotations
 
+import copy
 import re
 
 from dataclasses import dataclass, field
 from typing import Any
 
-from xcolos.games.calc import BUILTIN_NAMES, CalcError, Expr
+from xcolos.games.calc import BUILTIN_NAMES, CalcError, Expr, Scope, evaluate
 
 SCHEMA_VERSION = 1
 
@@ -136,6 +137,69 @@ NOBODY = "nobody"
 RERUN = "rerun"
 
 ON_TIE = (NOBODY, "random", RERUN)
+
+#: The private notes a game may ask its players for, each with the words that
+#: ask for it. A game names the ones it wants under `notes`, and takes the
+#: words from here unless it gives its own.
+STANDARD_NOTES: dict[str, str] = {
+    "plan": ("your plan for the coming turns and what this move does for it, "
+             "concretely enough to check later"),
+    "reason": "why you made this move, in concrete details: the seats, numbers and facts it rests on",
+    "predict": "predict your opponents' strategy: what each will do next, and why",
+    "adjust": ("what happened since your last move against what you expected, "
+               "and whether you keep or change your plan"),
+}
+
+#: Names an answer already uses, so a note called one of them would be
+#: indistinguishable from the move itself.
+RESERVED_NOTE_NAMES = ("kind", "action", "response", "type", "target", "text", "seat",
+                       "choice", "answer", "reply", "ack", "id", "full", "wait", "name")
+
+
+@dataclass(frozen=True)
+class NoteDef:
+    """One private note an agent is asked to write with its move."""
+
+    name: str
+    describe: str
+
+
+#: What a game that declares no `notes` asks for: the three the engine always
+#: asked for, in the words it always used.
+DEFAULT_NOTES: tuple[NoteDef, ...] = (
+    NoteDef("reason", STANDARD_NOTES["reason"]),
+    NoteDef("predict", STANDARD_NOTES["predict"]),
+    NoteDef("adjust", "how you adjusted your strategy in response to that prediction"),
+)
+
+
+def _parse_notes(raw: Any) -> tuple[NoteDef, ...]:
+    _require(isinstance(raw, list), "notes", "a list of {name, describe} objects")
+    notes: list[NoteDef] = []
+    for i, item in enumerate(raw):
+        where = f"notes[{i}]"
+        _require(isinstance(item, dict), where, f"expected an object, got {item!r}")
+        _only(item, ("name", "describe"), where)
+        name = item.get("name")
+        _require(isinstance(name, str) and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) is not None,
+                 where + ".name", f"{name!r} is not a plain word (letters, digits, underscore)")
+        _require(name not in RESERVED_NOTE_NAMES, where + ".name",
+                 f"{name!r} is already a field of an answer; reserved: {list(RESERVED_NOTE_NAMES)}")
+        _require(all(n.name != name for n in notes), where + ".name", f"{name!r} is declared twice")
+        describe = item.get("describe")
+        if describe is None:
+            _require(name in STANDARD_NOTES, where + ".describe",
+                     f"{name!r} is not a standard note ({list(STANDARD_NOTES)}), so it needs a `describe`")
+            describe = STANDARD_NOTES[name]
+        _require(isinstance(describe, str) and bool(describe.strip()), where + ".describe",
+                 "must be a non-empty string")
+        notes.append(NoteDef(name, describe))
+    return tuple(notes)
+
+
+def _parse_evaluation(raw: Any) -> dict[str, Any]:
+    _require(isinstance(raw, dict), "evaluation", "an object")
+    return copy.deepcopy(raw)
 
 
 class DefinitionError(Exception):
@@ -968,15 +1032,33 @@ class EndRule:
     #: names the winning seats; players it names together share the win. Any
     #: rule a game can state, it can rank by, without the engine knowing how.
     winner: str = ""
+    #: Or an expression worked out for every seat (`you` is that seat), the
+    #: highest value winning and ties sharing. The engine decides, with no
+    #: model, and the per-seat values are logged as the standings.
+    rank_by: str = ""
+    #: With `rank_by` only: a bar a seat's value must reach to win, worked out
+    #: once for the table (no `you`). Seats below it cannot win; when none
+    #: reaches it the game ends with no winner, its standings still logged.
+    min_to_win: str = ""
 
     @staticmethod
     def parse(name: str, raw: Any, where: str) -> "EndRule":
         _require(isinstance(raw, dict), where, f"expected an ending, got {raw!r}")
-        _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "winner"),
-              where)
+        _only(raw, ("when", "result", "reason", "reveal", "text", "llm", "winner",
+                     "rank_by", "min_to_win"), where)
         _require("when" in raw, where, "needs a `when`")
-        _require(("result" in raw) != ("winner" in raw), where,
-                 "needs a `result`, or a `winner` saying who wins; not both")
+        _require(sum(k in raw for k in ("result", "winner", "rank_by")) == 1, where,
+                 "needs exactly one of `result`, `winner` (a sentence saying who "
+                 "wins) or `rank_by` (an expression per seat)")
+        rank_by = raw.get("rank_by")
+        if rank_by is not None:
+            _require(isinstance(rank_by, str) and rank_by.strip(),
+                     where + ".rank_by", "is an expression worked out per seat")
+            try:
+                Expr(rank_by)
+            except Exception as exc:
+                raise DefinitionError(f"{where}.rank_by: {exc}") from None
+        min_to_win = _min_to_win(raw, where)
         winner = raw.get("winner")
         if winner is not None:
             _require(isinstance(winner, str) and winner.strip(), where + ".winner",
@@ -986,11 +1068,45 @@ class EndRule:
             when=Condition.parse(raw["when"], where + ".when"),
             result=str(raw.get("result", "")),
             winner=str(winner or "").strip(),
+            rank_by=str(rank_by or "").strip(),
+            min_to_win=min_to_win,
             reason=str(raw.get("reason", "")),
             reveal=tuple(raw.get("reveal", ())),
             text=str(raw.get("text", "")),
             llm=str(raw.get("llm", "")),
         )
+
+
+def _min_to_win(raw: dict, where: str) -> str:
+    """An ending's `min_to_win` as expression text ("" when absent): a number, or a calc for the table.
+
+    Only an ending that ranks the seats has a bar to reach. A calc that reads no
+    state is worked out here, so a constant that is not a number is refused at
+    load; one that reads the table is checked when the game ends.
+    """
+    if "min_to_win" not in raw:
+        return ""
+    value, where = raw["min_to_win"], where + ".min_to_win"
+    _require("rank_by" in raw, where, "is a bar on `rank_by`; this ending has no `rank_by`")
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return str(value)
+    _require(isinstance(value, str) and value.strip(), where,
+             f"is a number, or a calc worked out for the table, not {value!r}")
+    try:
+        expr = Expr(value)
+    except Exception as exc:
+        raise DefinitionError(f"{where}: {exc}") from None
+    _require("you" not in expr.names(), where,
+             "is worked out once for the table, so it cannot read `you`")
+    if not (expr.names() - {"True", "False", "None"}) and not expr.attributes() and not expr.bindings():
+        constants = {"True": True, "False": False, "None": None}
+        try:
+            got = evaluate(expr, Scope(constants.__getitem__, lambda name: None, lambda seat: None))
+        except CalcError:
+            got = None
+        _require(isinstance(got, (int, float)) and not isinstance(got, bool), where,
+                 f"{value!r} gives {got!r}, not a number")
+    return value.strip()
 
 
 #: Legacy per-seat fields on the kernel's Seat, kept from Milestone 1 because
@@ -1073,6 +1189,13 @@ class GameDefinition:
     #: off the rules put a game's words in the server's code, which is the
     #: thing this milestone exists to stop.
     blurb: str = ""
+    #: The private notes each answer is asked to carry, in order.
+    notes: tuple[NoteDef, ...] = DEFAULT_NOTES
+    #: The file said `notes`, as against getting the default three.
+    declares_notes: bool = False
+    #: How a later reader scores the agent. Kept as the file wrote it and never
+    #: sent to a seat.
+    evaluation: dict[str, Any] | None = None
 
     # -- lookups -------------------------------------------------------
 
@@ -1220,6 +1343,9 @@ def parse(raw: dict[str, Any]) -> GameDefinition:
         ),
         text=dict(raw.get("text") or {}),
         rules=str(raw.get("rules", "")),
+        notes=_parse_notes(raw["notes"]) if "notes" in raw else DEFAULT_NOTES,
+        declares_notes="notes" in raw,
+        evaluation=_parse_evaluation(raw["evaluation"]) if "evaluation" in raw else None,
     )
     _check_references(definition)
     _check_text(definition)
@@ -1560,6 +1686,12 @@ def _check_references(d: GameDefinition) -> None:
 
     for i, rule in enumerate(d.end):
         _check_condition(rule.when, player_keys, game_keys, f"end[{i}].when")
+        if rule.rank_by:
+            _check_expr(Expr(rule.rank_by), player_keys, game_keys, None,
+                        f"end[{i}].rank_by")
+        if rule.min_to_win:
+            _check_expr(Expr(rule.min_to_win), player_keys, game_keys, None,
+                        f"end[{i}].min_to_win")
     for key in d.reveal:
         _require(key in player_keys, "reveal", f"{key!r} is not a declared attribute")
 

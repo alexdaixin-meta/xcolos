@@ -765,6 +765,13 @@ function oneLine(text) {
   return (text || "").replace(/\s*\n\s*/g, " | ");
 }
 
+/** The notes in a logged response: every key that is not the move itself. */
+function noteEntries(response) {
+  return Object.entries(response || {}).filter(
+    ([key, value]) => !["type", "target", "text"].includes(key) && value,
+  );
+}
+
 function answerText(r) {
   const said = r.response || {};
   // A choice arrives as a target with an empty text beside it.
@@ -796,9 +803,7 @@ function wireRow(r) {
     case "from_agent":
       return {
         dir: "←", kind: "answer", text: answerText(r),
-        reason: (r.response || {}).reason,
-        predict: (r.response || {}).predict,
-        adjust: (r.response || {}).adjust,
+        notes: noteEntries(r.response),
         cls: r.rejected ? "ev-degraded" : "ev-msg-in",
       };
     case "offered":
@@ -859,13 +864,11 @@ function renderMessages() {
       text.textContent = open ? row.text || "" : oneLine(row.text);
     };
     box.append(line_);
-    if (row.reason) {
-      // Private thinking. Visible here because the console is the operator's
-      // view; never sent to another seat.
-      line(box, r.log_seq, `    reason: ${row.reason}`, "ev-reason");
+    // Private thinking. Visible here because the console is the operator's
+    // view; never sent to another seat.
+    for (const [key, value] of row.notes || []) {
+      line(box, r.log_seq, `    ${key}: ${value}`, "ev-reason");
     }
-    if (row.predict) line(box, r.log_seq, `    predict: ${row.predict}`, "ev-reason");
-    if (row.adjust) line(box, r.log_seq, `    adjust: ${row.adjust}`, "ev-reason");
   }
   box.scrollTop = box.scrollHeight;
 }
@@ -958,8 +961,8 @@ function renderSeatViews() {
     } else if (r.type === "from_agent") {
       m.append(el("div", "reply", `▶ answered ${answerText(r)}`));
       const said = r.response || {};
-      for (const key of ["reason", "predict", "adjust"]) {
-        if (said[key]) m.append(el("div", "reason", `${key}: ${said[key]}`));
+      for (const [key, value] of noteEntries(said)) {
+        m.append(el("div", "reason", `${key}: ${value}`));
       }
     } else if (r.type === "expired") {
       m.append(el("div", "reply bad", `⏱ no answer after ${r.after_s}s; the default action was taken`));

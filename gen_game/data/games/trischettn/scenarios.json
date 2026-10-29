@@ -1,0 +1,1141 @@
+[
+  {
+    "name": "Match starts in deal 1 at trick 1 (observable setup only)",
+    "rule": "R1",
+    "players": 2,
+    "seed": 1,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "game": {
+        "deal_number": 1,
+        "trick_number": 1
+      }
+    },
+    "rule_text": "When the match starts, then there are 2 deals of 16 tricks each, 32 rounds in all, and each round is one trick."
+  },
+  {
+    "name": "First deal forms a 16-card talon; after trick 1 two cards have been drawn (chance-independent counts only)",
+    "rule": "R2",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "expect": {
+      "game": {
+        "deal_number": 1,
+        "trick_number": 2,
+        "talon_count": 14
+      }
+    },
+    "rule_text": "When a deal starts (trick 1 of deal 1 or deal 2), then all 32 cards are shuffled, each player's hand gets 8 cards, and the other 16 form the talon."
+  },
+  {
+    "name": "Deal start sets talon_count 16, whatever it was before; after one trick it is 14",
+    "rule": "R3",
+    "players": 2,
+    "seed": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [],
+    "given": {
+      "game": {
+        "talon_count": 0
+      }
+    },
+    "expect": {
+      "game": {
+        "talon_count": 14,
+        "deal_number": 1,
+        "trick_number": 2
+      }
+    },
+    "rule_text": "When a deal starts, then the top talon card is turned face up as talon_up, talon_count is 16, and both deal_pips are set to 0."
+  },
+  {
+    "name": "Deal 2 starts after trick 16 of deal 1 with a fresh talon and match totals kept (chance-independent)",
+    "rule": "R4",
+    "players": 2,
+    "seed": 1,
+    "rounds": 2,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Bells"
+          ],
+          "deal_pips": 20,
+          "match_total": 0
+        },
+        "2": {
+          "hand": [
+            "Seven of Bells"
+          ],
+          "deal_pips": 9,
+          "match_total": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 16,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Bells"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "match_total": 26
+        },
+        "2": {
+          "match_total": 9
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "trick_number": 2,
+        "talon_count": 14
+      }
+    },
+    "rule_text": "When deal 1 starts, then seat 1 (Player A) leads trick 1; when deal 2 starts, then seat 2 (Player B) leads trick 1."
+  },
+  {
+    "name": "Leader may play any card; a 0-pip trick changes no pips",
+    "rule": "R5",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Bells",
+            "Seven of Hearts"
+          ],
+          "deal_pips": 10
+        },
+        "2": {
+          "hand": [
+            "King of Bells",
+            "Eight of Leaves"
+          ],
+          "deal_pips": 5
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Seven of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Eight of Leaves"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Ace of Bells"
+        },
+        {
+          "seat": 1,
+          "option": "Seven of Hearts"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_pips": 10
+        },
+        "2": {
+          "deal_pips": 5
+        }
+      },
+      "game": {
+        "trick_winner_seat": 1,
+        "leader_seat": 1,
+        "trick_number": 11,
+        "led_card": "none",
+        "follow_card": "none"
+      }
+    },
+    "rule_text": "When a trick begins, then the leader may play any one card from their hand, which is removed from the hand and shown as led_card."
+  },
+  {
+    "name": "Follower holding the led suit is offered only that suit",
+    "rule": "R6",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Seven of Hearts",
+            "Ace of Leaves"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "King of Hearts",
+            "Ace of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Seven of Hearts"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "King of Hearts"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Ace of Bells"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_pips": 0
+        },
+        "2": {
+          "deal_pips": 1
+        }
+      },
+      "game": {
+        "trick_winner_seat": 2,
+        "leader_seat": 2
+      }
+    },
+    "rule_text": "When the follower holds at least one card of the led suit, then only cards of that suit are offered to them."
+  },
+  {
+    "name": "Follower void in the led suit is offered every card",
+    "rule": "R7",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Seven of Hearts",
+            "Ace of Leaves"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "Ace of Bells",
+            "Ten of Leaves"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Seven of Hearts"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ten of Leaves"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "Ace of Bells"
+        },
+        {
+          "seat": 2,
+          "option": "Ten of Leaves"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_pips": 1
+        },
+        "2": {
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "trick_winner_seat": 1
+      }
+    },
+    "rule_text": "When the follower holds no card of the led suit, then every card in their hand is offered."
+  },
+  {
+    "name": "Ten (strength 8) beats Ace (strength 6) of the led suit",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Acorns",
+            "Seven of Hearts"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "Ten of Acorns",
+            "Seven of Acorns",
+            "King of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Acorns"
+      },
+      {
+        "seat": 2,
+        "options_include": "Ten of Acorns"
+      }
+    ],
+    "expect": {
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "King of Bells"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_pips": 0
+        },
+        "2": {
+          "deal_pips": 4
+        }
+      },
+      "game": {
+        "trick_winner_seat": 2,
+        "leader_seat": 2
+      }
+    },
+    "rule_text": "When both cards are of the led suit, then the card of higher strength wins, with Ten 8, Nine 7, Ace 6, King 5, Ober 4, Unter 3, Eight 2, Seven 1."
+  },
+  {
+    "name": "Nine (7) led beats a lower King (5) following suit",
+    "rule": "R8",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Nine of Hearts",
+            "Seven of Bells"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "King of Hearts",
+            "Ace of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Nine of Hearts"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_pips": 2
+        },
+        "2": {
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "trick_winner_seat": 1,
+        "leader_seat": 1
+      }
+    },
+    "rule_text": "When both cards are of the led suit, then the card of higher strength wins, with Ten 8, Nine 7, Ace 6, King 5, Ober 4, Unter 3, Eight 2, Seven 1."
+  },
+  {
+    "name": "Off-suit Ten does not win: no trumps, leader takes the trick",
+    "rule": "R9",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Seven of Leaves",
+            "Ace of Hearts"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "Ten of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Seven of Leaves"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_pips": 1
+        },
+        "2": {
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "trick_winner_seat": 1,
+        "leader_seat": 1
+      }
+    },
+    "rule_text": "When the follower's card is not of the led suit, then the leader wins the trick, because there are no trumps."
+  },
+  {
+    "name": "Winner adds Ace 3 + Unter 1 to deal_pips",
+    "rule": "R10",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Hearts",
+            "Seven of Bells"
+          ],
+          "deal_pips": 6
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts",
+            "Ten of Leaves"
+          ],
+          "deal_pips": 3
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Hearts"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_pips": 10
+        },
+        "2": {
+          "deal_pips": 3
+        }
+      },
+      "game": {
+        "trick_winner_seat": 1
+      }
+    },
+    "rule_text": "When a trick is won, then the winner adds the pips of both cards to their deal_pips: Ace 3; Ten, Nine, King, Ober and Unter 1; Eight and Seven 0."
+  },
+  {
+    "name": "Trick 16 adds 3 bonus pips (Ace 3 + Seven 0 + 3 = 6) and closes deal 1",
+    "rule": "R11",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Bells"
+          ],
+          "deal_pips": 20,
+          "match_total": 0
+        },
+        "2": {
+          "hand": [
+            "Seven of Bells"
+          ],
+          "deal_pips": 9,
+          "match_total": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 16,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Bells"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_pips": 26,
+          "match_total": 26
+        },
+        "2": {
+          "deal_pips": 9,
+          "match_total": 9
+        }
+      },
+      "game": {
+        "trick_winner_seat": 1,
+        "deal_number": 2,
+        "trick_number": 1
+      }
+    },
+    "rule_text": "When trick 16 of a deal is won, then the winner adds 3 extra pips to their deal_pips."
+  },
+  {
+    "name": "Winner takes talon_up, loser takes the next talon card; both then appear in their hands",
+    "rule": "R12",
+    "players": 2,
+    "seed": 1,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "King of Hearts",
+            "Ober of Bells"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "Seven of Hearts",
+            "Ten of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 7,
+        "leader_seat": 1,
+        "talon_up": "Ace of Leaves",
+        "talon": [
+          "Seven of Leaves",
+          "Eight of Leaves",
+          "Nine of Leaves"
+        ],
+        "talon_count": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "King of Hearts"
+      },
+      {
+        "seat": 1,
+        "options_include": "Ace of Leaves"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Ace of Leaves"
+        },
+        {
+          "seat": 2,
+          "option": "Seven of Leaves"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "Ten of Bells"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_pips": 4
+        },
+        "2": {
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "talon_count": 0,
+        "talon_up": "none",
+        "trick_number": 9,
+        "leader_seat": 1
+      }
+    },
+    "rule_text": "When a trick ends and talon_count > 0, then the winner takes talon_up into their hand openly and the loser takes the next talon card into their hand unseen by the winner."
+  },
+  {
+    "name": "New top card becomes talon_up after a draw that leaves cards",
+    "rule": "R13",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "King of Hearts",
+            "Ober of Bells"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "Seven of Hearts",
+            "Ten of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 7,
+        "leader_seat": 1,
+        "talon_up": "Ace of Leaves",
+        "talon": [
+          "Seven of Leaves",
+          "Eight of Leaves",
+          "Nine of Leaves"
+        ],
+        "talon_count": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "King of Hearts"
+      }
+    ],
+    "expect": {
+      "game": {
+        "talon_count": 2,
+        "talon_up": "Eight of Leaves",
+        "trick_number": 8
+      }
+    },
+    "rule_text": "When a talon draw leaves cards in the talon, then the new top card becomes talon_up; when it leaves none, then talon_up becomes 'none'."
+  },
+  {
+    "name": "Last draw empties the talon (talon_up none); trick 9 has no drawing",
+    "rule": "R14",
+    "players": 2,
+    "seed": 1,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "King of Hearts",
+            "Ober of Bells"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "Seven of Hearts",
+            "Ten of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 8,
+        "leader_seat": 1,
+        "talon_up": "Ace of Leaves",
+        "talon": [
+          "Seven of Leaves"
+        ],
+        "talon_count": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "King of Hearts"
+      },
+      {
+        "seat": 1,
+        "options_include": "Ober of Bells"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_pips": 1
+        },
+        "2": {
+          "deal_pips": 2
+        }
+      },
+      "game": {
+        "talon_count": 0,
+        "talon_up": "none",
+        "trick_number": 10,
+        "leader_seat": 2,
+        "trick_winner_seat": 2
+      }
+    },
+    "rule_text": "When 8 tricks of a deal have been played, then the talon is empty (talon_count 0) and tricks 9 to 16 are played with no drawing."
+  },
+  {
+    "name": "Follower who wins the trick leads the next one",
+    "rule": "R15",
+    "players": 2,
+    "seed": 1,
+    "rounds": 2,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Acorns",
+            "Seven of Hearts"
+          ],
+          "deal_pips": 0
+        },
+        "2": {
+          "hand": [
+            "Ten of Acorns",
+            "King of Bells"
+          ],
+          "deal_pips": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 10,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Acorns"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 2,
+          "option": "King of Bells"
+        }
+      ],
+      "players": {
+        "1": {
+          "deal_pips": 0
+        },
+        "2": {
+          "deal_pips": 5
+        }
+      },
+      "game": {
+        "leader_seat": 2,
+        "trick_number": 12
+      }
+    },
+    "rule_text": "When a trick ends, then its winner leads the next trick."
+  },
+  {
+    "name": "End of deal 1 adds deal_pips to match_total",
+    "rule": "R16",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Seven of Acorns"
+          ],
+          "deal_pips": 15,
+          "match_total": 0
+        },
+        "2": {
+          "hand": [
+            "Nine of Acorns"
+          ],
+          "deal_pips": 16,
+          "match_total": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 16,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Seven of Acorns"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "match_total": 15
+        },
+        "2": {
+          "deal_pips": 20,
+          "match_total": 20
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "trick_number": 1,
+        "leader_seat": 2,
+        "trick_winner_seat": 2
+      }
+    },
+    "rule_text": "When trick 16 of a deal ends, then each player's deal_pips are added to their match_total."
+  },
+  {
+    "name": "Scored deal totals 35 pips (14 + 21)",
+    "rule": "R17",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Leaves"
+          ],
+          "deal_pips": 14,
+          "match_total": 0
+        },
+        "2": {
+          "hand": [
+            "Ten of Leaves"
+          ],
+          "deal_pips": 14,
+          "match_total": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 16,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Leaves"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_pips": 14,
+          "match_total": 14
+        },
+        "2": {
+          "deal_pips": 21,
+          "match_total": 21
+        }
+      }
+    },
+    "rule_text": "When a deal is scored, then the deal_pips of the two players total 35."
+  },
+  {
+    "name": "After round 32 the game ends and the higher match_total wins",
+    "rule": "R18",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Seven of Hearts"
+          ],
+          "deal_pips": 10,
+          "match_total": 20
+        },
+        "2": {
+          "hand": [
+            "Eight of Hearts"
+          ],
+          "deal_pips": 22,
+          "match_total": 15
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "trick_number": 16,
+        "leader_seat": 2,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "Eight of Hearts"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 30,
+        "2": 40
+      },
+      "players": {
+        "1": {
+          "match_total": 30
+        },
+        "2": {
+          "match_total": 40
+        }
+      },
+      "game": {
+        "deal_number": 3
+      }
+    },
+    "rule_text": "When round 32 ends (deal_number becomes 3), then the game ends and the higher match_total wins."
+  },
+  {
+    "name": "35 each is a draw shared by both seats",
+    "rule": "R19",
+    "players": 2,
+    "seed": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "King of Hearts"
+          ],
+          "deal_pips": 16,
+          "match_total": 14
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts"
+          ],
+          "deal_pips": 14,
+          "match_total": 21
+        }
+      },
+      "game": {
+        "deal_number": 2,
+        "trick_number": 16,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "King of Hearts"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 35,
+        "2": 35
+      },
+      "players": {
+        "1": {
+          "match_total": 35
+        },
+        "2": {
+          "match_total": 35
+        }
+      },
+      "game": {
+        "deal_number": 3
+      }
+    },
+    "rule_text": "When both match totals are equal (35 each), then the match is a draw and both players share the win."
+  },
+  {
+    "name": "Public trick state is visible after a trick",
+    "rule": "R20",
+    "players": 2,
+    "seed": 1,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "hand": [
+            "Ace of Hearts",
+            "Seven of Bells"
+          ],
+          "deal_pips": 2,
+          "match_total": 0
+        },
+        "2": {
+          "hand": [
+            "Unter of Hearts"
+          ],
+          "deal_pips": 1,
+          "match_total": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 12,
+        "leader_seat": 1,
+        "talon": [],
+        "talon_up": "none",
+        "talon_count": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Ace of Hearts"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "deal_pips": 6,
+          "match_total": 0
+        },
+        "2": {
+          "deal_pips": 1,
+          "match_total": 0
+        }
+      },
+      "game": {
+        "deal_number": 1,
+        "trick_number": 13,
+        "leader_seat": 1,
+        "led_card": "none",
+        "follow_card": "none",
+        "talon_up": "none",
+        "talon_count": 0,
+        "trick_winner_seat": 1
+      }
+    },
+    "rule_text": "When a player looks at the game, then they see only their own hand, but both players see the deal and trick numbers, leader, led_card, follow_card, talon_up, talon_count, both deal_pips and both match totals."
+  }
+]

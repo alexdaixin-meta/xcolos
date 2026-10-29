@@ -10,6 +10,7 @@ seat acting at a time. Nothing is ever in flight concurrently.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Callable, Protocol
 
 from xcolos import calls
@@ -19,7 +20,7 @@ from xcolos.session import Session
 from xcolos.state import Rng
 
 DEFAULT_SYSTEM = (
-    "You are a player in a hidden-role social deduction game. "
+    "You are a player in a multi-player game. "
     "You know only what you are told. "
     "When asked to act, answer with exactly one legal action."
 )
@@ -217,13 +218,17 @@ def parse_action(
     illegal target must be rejected so the repair ladder can correct it.
     """
     import json
-    import re
 
     text = (raw or "").strip()
     if not text:
         return None
 
     if schema.target == "text":
+        # Seats are told to keep any reasoning before the answer, so a reply in several paragraphs is reasons, then the
+        # message: only the last paragraph goes to the table, and the reasons stay private (a note no other seat is told).
+        paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+        if len(paragraphs) > 1:
+            return Action(type=schema.id, text=paragraphs[-1], notes={"reason": "\n\n".join(paragraphs[:-1])})
         return Action(type=schema.id, text=text)
 
     # A well-formed object, possibly inside a fenced block.
@@ -237,27 +242,59 @@ def parse_action(
         except (ValueError, TypeError):
             pass
 
-    if schema.target == "number":
-        numbers = re.findall(r"-?\d+", text.replace(",", ""))
-        if numbers:
-            return Action(type=schema.id, target=int(numbers[-1]))
-        lowered = text.lower()
-        for choice in schema.choices:
-            if str(choice).lower() in lowered:
-                return Action(type=schema.id, target=choice)
+    # Seats are told to reason first and answer last, so the reasoning names
+    # other options, numbers and seats. The answer is the last line when that
+    # line is one legal answer; otherwise the last legal answer the reply
+    # mentions. Never the first option in the game's own order.
+    words = tuple(schema.choices) if schema.target in ("number", "enum") else ()
+    if schema.target == "enum" and not words:
+        words = tuple(legal_targets)
+    final = _final_answer(text, schema.target, words)
+    if final is not None:
+        return Action(type=schema.id, target=_coerce(final, legal_targets))
+
+    best, at = None, -1
+    for choice in words:
+        for m in re.finditer(_word_pattern(choice), text, re.IGNORECASE):
+            if m.start() > at:
+                best, at = choice, m.start()
+    if schema.target != "enum":
+        # A minus only after a non-word: the 400 of "240-400" is 400, not -400.
+        # Matched on `text` itself, so positions compare with the words above.
+        for m in re.finditer(r"(?:(?<![\w-])-)?(?<!\d)\d+(?:,\d{3})*(?!\d)", text):
+            if m.start() > at:
+                best, at = m.group(0).replace(",", ""), m.start()
+        if best is not None and schema.target == "number" and best not in words:
+            best = int(best)
+    if best is None:
         return None
+    return Action(type=schema.id, target=_coerce(best, legal_targets))
 
-    if schema.target == "enum" and schema.choices:
-        lowered = text.lower()
-        for choice in schema.choices:
-            if str(choice).lower() in lowered:
-                return Action(type=schema.id, target=choice)
-        return None
 
-    numbers = re.findall(r"-?\d+", text)
-    if numbers:
-        return Action(type=schema.id, target=_coerce(numbers[-1], legal_targets))
+def _norm(value: Any) -> str:
+    """An answer as compared: lower case, `_` and spaces alike."""
+    return re.sub(r"[\s_]+", " ", str(value).strip().lower())
 
+
+def _word_pattern(choice: Any) -> str:
+    """Matches `choice` as a whole word, with `_` and spaces interchangeable."""
+    parts = [re.escape(p) for p in re.split(r"[\s_]+", str(choice).strip()) if p]
+    return r"(?<![\w])" + r"[\s_]+".join(parts) + r"(?![\w])"
+
+
+def _final_answer(text: str, target: str, words: tuple[Any, ...]) -> Any:
+    """The reply's last line, if it is exactly one answer of this kind."""
+    line = text.strip().splitlines()[-1]
+    line = _norm(line.strip().strip("*`\"'.").strip())
+    line = re.sub(r"^(?:final answer|answer|my answer|i choose|i bid)\s*[:\-]?\s*", "", line)
+    line = line.strip("*`\"'.").strip()
+    for choice in words:
+        if line == _norm(choice) or line == "seat " + _norm(choice):
+            return choice
+    if target in ("number", "seat"):
+        m = re.fullmatch(r"(?:seat\s*)?(-?\d+)", line.replace(",", ""))
+        if m:
+            return int(m.group(1))
     return None
 
 
@@ -268,6 +305,11 @@ def _coerce(value: Any, legal_targets: tuple[Any, ...]) -> Any:
             return int(value)
         except (ValueError, TypeError):
             return value
+    # A number for an answer the game lists as text ("10" among a hand of cards): that text,
+    # so it matches. Only an answer that would otherwise be refused changes.
+    if (isinstance(value, int) and not isinstance(value, bool)
+            and value not in legal_targets and str(value) in legal_targets):
+        return str(value)
     return value
 
 

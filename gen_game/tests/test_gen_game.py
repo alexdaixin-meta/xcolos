@@ -5,7 +5,9 @@ The flow itself is in test_flow.py. Nothing here touches a model or the network.
 
 from __future__ import annotations
 
+import copy
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -19,8 +21,9 @@ from fixtures import (ALWAYS_ROCK, ALWAYS_ROCK_MOVES, LIBRARY, PLAN, RPS, RPS_TE
 from gen_game import adapt as adaptmod  # noqa: E402
 from gen_game import complexity  # noqa: E402
 from gen_game import encode as enc  # noqa: E402
-from gen_game import evaluate, flow, harness, scenarios, spec as specmod  # noqa: E402
+from gen_game import evaluate, flow, harness, prompt, scenarios, spec as specmod  # noqa: E402
 from gen_game.cli import main  # noqa: E402
+from xcolos.games.loader import load  # noqa: E402
 
 def test_a_shipped_game_passes_smoke_and_replays_identically():
     assert harness.smoke(RPS) == []
@@ -74,13 +77,31 @@ def test_a_spec_renders_for_review_with_its_choices_and_gaps():
     assert "twelve cards each" in page and "a board" in page and "`rounds` = 10" in page
 
 
+def test_a_spec_without_rank_by_is_a_problem_and_the_ranking_reaches_the_reviewer_and_the_coder():
+    assert specmod.problems(SPEC) == []
+    for ending in ({"condition": "rounds_left == 0", "decided_by": "higher score"},
+                   {"condition": "rounds_left == 0", "rank_by": " ", "decided_by": "higher score"},
+                   {"condition": "rounds_left == 0", "results": ["seat 1", "seat 2", "draw"], "decided_by": "higher score"}):
+        assert any("rank_by" in p for p in specmod.problems({**SPEC, "ending": ending})), ending
+    assert "you.score" in specmod.render(SPEC) and "you.score" in specmod.script(SPEC)
+    assert "rank_by" in specmod.SYSTEM and "share the win" in specmod.SYSTEM
+
+
 # -- step 3 ----------------------------------------------------------------
 
 
 def test_the_encoder_is_shown_the_format_and_told_to_use_arithmetic():
     system = enc.system_prompt()
     assert "calc" in system and "# THE FORMAT" in system and "Example game: rps" in system
-    assert "Do NOT copy" in system
+    assert "rank_by" in system and "you." in system
+    assert "Do NOT copy" not in system  # both examples now end with `rank_by`, so there is nothing to warn about
+
+
+def test_the_coder_prompt_asks_for_one_ending_ranked_by_the_spec():
+    for flag in (True, False):
+        text = prompt.build("rps", PLAN, SPEC, agent=flag)
+        assert "`rank_by` is `you.score`" in text and "rank_by" in text
+        assert "do NOT copy" not in text and "not the `auction`" not in text
 
 
 def test_a_loader_error_goes_back_to_the_model_and_the_next_reply_is_used():
@@ -94,8 +115,219 @@ def test_a_loader_error_goes_back_to_the_model_and_the_next_reply_is_used():
 
 
 def test_a_game_decided_by_a_model_is_refused_with_the_reason():
-    problem = enc.check(json.loads((LIBRARY / "auction.json").read_text()), "x")[2]
+    from fixtures import WINNER_RPS_DICT
+
+    problem = enc.check(copy.deepcopy(WINNER_RPS_DICT), "rps")[2]
     assert "decided by arithmetic" in problem and "winner" in problem
+
+
+def test_an_ending_without_rank_by_is_refused():
+    from fixtures import RESULT_RPS_DICT
+
+    problem = enc.check(copy.deepcopy(RESULT_RPS_DICT), "rps")[2]
+    assert "ending 'seat_1_wins' has no rank_by" in problem and "ending 'draw' has no rank_by" in problem
+
+
+def test_a_match_that_ends_without_standings_fails_smoke_play_and_tier_zero():
+    from fixtures import RESULT_RPS_DICT
+    from xcolos.games.loader import load
+
+    defn = load(json.dumps(RESULT_RPS_DICT), source="rps")
+    played = harness.play(defn, harness.random_agents(2, 1), 1)
+    assert played.result.status == "ended" and played.result.winner and played.standings is None
+    assert any("standings" in p for p in harness.smoke(defn))
+    t0 = evaluate.tier0(defn, seeds=range(1, 3))
+    assert not t0["passed"] and any("standings" in p for p in t0["problems"])
+    assert harness.play(RPS, harness.random_agents(2, 1), 1).standings.keys() == {"1", "2"}
+
+
+def test_a_judged_step_and_llm_wording_with_a_text_fallback_pass_the_check():
+    from fixtures import JUDGED_RPS_DICT
+
+    assert enc.check(copy.deepcopy(JUDGED_RPS_DICT), "rps")[2] == ""
+
+
+def test_a_bare_sentence_when_counts_as_a_judged_step():
+    from fixtures import JUDGED_RPS_DICT
+
+    g = copy.deepcopy(JUDGED_RPS_DICT)
+    g["steps"][20]["when"] = "The bonus rule applies this round."
+    assert enc.check(g, "rps")[2] == ""
+
+
+def test_llm_without_text_and_a_prose_ending_are_still_refused():
+    from fixtures import JUDGED_RPS_DICT
+
+    g = copy.deepcopy(JUDGED_RPS_DICT)
+    del g["steps"][5]["text"]
+    assert "no `text`" in enc.check(g, "rps")[2]
+    g = copy.deepcopy(JUDGED_RPS_DICT)
+    next(iter(g["end"].values()))["when"] = {"prose": "Seat 1 played better."}
+    assert "decided by arithmetic" in enc.check(g, "rps")[2]
+
+
+def test_a_spec_step_may_be_judged_and_render_shows_it():
+    s = copy.deepcopy(SPEC)
+    s["round"][0]["judged"] = "The bonus rule applies this round."
+    assert specmod.problems(s) == [] and 'judged: "The bonus rule applies this round."' in specmod.render(s)
+    s["round"][0]["judged"] = ""
+    assert any("judged" in p for p in specmod.problems(s))
+
+
+def _judged_copy():
+    from fixtures import JUDGED_RPS_DICT
+
+    return copy.deepcopy(JUDGED_RPS_DICT)
+
+
+def test_the_coder_sees_a_judged_step_and_its_sentence():
+    s = copy.deepcopy(SPEC)
+    s["round"][0]["judged"] = "The bonus rule applies this round."
+    shown = specmod.script(s)
+    assert "The bonus rule applies this round." in shown and '"prose"' in shown
+
+
+def test_a_null_judged_is_the_same_as_no_judged():
+    s = copy.deepcopy(SPEC)
+    s["round"][0]["judged"] = None
+    assert specmod.problems(s) == [] and "judged" not in specmod.render(s) and "judged" not in specmod.script(s)
+
+
+def test_an_attribute_only_a_judged_step_changes_is_not_reported_dead():
+    g = _judged_copy()
+    g["attributes"]["player"].append({"key": "bonuses", "visible": "public", "type": "number", "initial": 0})
+    g["steps"][20]["do"].append({"adjust": {"player": 1, "key": "bonuses", "value": 1}})
+    assert enc.check(g, "rps")[2] == ""
+
+
+def test_llm_on_a_question_is_refused_because_it_can_skip_a_seat():
+    g = _judged_copy()
+    g["steps"][3]["llm"] = "Ask seat 1 for a card."
+    assert "`llm`" in enc.check(g, "rps")[2]
+
+
+def test_llm_on_an_outcome_branch_and_a_broadcast_without_text_are_refused():
+    g = _judged_copy()
+    g["steps"][1]["broadcast"] = {"llm": "Pass the opening on."}
+    assert "broadcast" in enc.check(g, "rps")[2]
+    g = _judged_copy()
+    g["steps"][3]["outcome"] = {"chosen": {"do": [], "text": "Seat 1 has played.", "llm": "Say seat 1 has played."}}
+    assert "outcome" in enc.check(g, "rps")[2]
+
+
+def test_a_prose_when_that_is_really_arithmetic_is_refused():
+    for when in ("rounds_left >= 3", {"prose": "rounds_left >= 3"}):
+        g = _judged_copy()
+        g["steps"][20]["when"] = when
+        assert "calc" in enc.check(g, "rps")[2], when
+
+
+def test_a_judged_when_on_a_check_is_refused_because_it_would_choose_when_the_game_ends():
+    g = _judged_copy()
+    g["steps"][22]["when"] = {"prose": "The table has had enough."}
+    assert "check" in enc.check(g, "rps")[2]
+
+
+def test_the_gateway_model_takes_the_pipelines_effort():
+    import types
+
+    from gen_game.cli import completion_for
+
+    stand_in = "anthropic" not in sys.modules and not _importable("anthropic")
+    if stand_in:  # only the construction is checked, never a call: a placeholder module is enough without the SDK
+        sys.modules["anthropic"] = types.ModuleType("anthropic")
+    try:
+        for effort, want in (("minimal", "low"), ("low", "low"), ("medium", "medium"), ("high", "high")):
+            c = completion_for("gateway", effort)
+            assert c.inner.effort == want and c.inner.model == "claude-opus-5-5"
+        assert completion_for("gateway:claude-sonnet-5-5", "high").inner.model == "claude-sonnet-5-5"
+    finally:
+        if stand_in:
+            del sys.modules["anthropic"]
+
+
+def _importable(name: str) -> bool:
+    import importlib.util
+
+    return importlib.util.find_spec(name) is not None
+
+
+def test_claude_through_the_gateway_is_the_generators_default_and_muse_is_still_there():
+    from gen_game import cli
+
+    p = cli.parser()
+    assert p.parse_args(["convert", "x"]).model == "gateway|muse"  # Claude, or Muse when Claude cannot be reached
+    assert p.parse_args(["convert", "x", "--model", "muse"]).model == "muse"
+    for cmd in ("review", "revise", "brief"):
+        assert p.parse_args([cmd, "x"]).model == "gateway|muse", cmd
+    a = p.parse_args(["loop", "x"])
+    assert (a.model, a.review_model, a.encoder, a.players) == ("gateway|muse", "gateway|muse", "completion", "muse|gateway")
+
+
+def test_the_generator_uses_claude_or_muse_whichever_answers():
+    import types
+
+    from gen_game.cli import completion_for
+    from xcolos.flow.backends import FallbackCompletion
+
+    stand_in = "anthropic" not in sys.modules and not _importable("anthropic")
+    if stand_in:  # only the construction is checked, never a call
+        sys.modules["anthropic"] = types.ModuleType("anthropic")
+    try:
+        c = completion_for("gateway|muse", "high")
+    finally:
+        if stand_in:
+            del sys.modules["anthropic"]
+    assert isinstance(c.inner, FallbackCompletion)
+    assert [type(b).__name__ for b in c.inner.backends] == ["AnthropicCompletion", "MuseChat"]
+    assert c.inner.backends[0].effort == "high"
+
+
+def test_the_cli_trusts_the_corporate_ca_bundle_as_metas_python_does():
+    from gen_game.cli import trust_corporate_ca
+
+    with tempfile.TemporaryDirectory() as d:
+        bundle = Path(d) / "ca.pem"
+        bundle.write_text("certificates")
+        env: dict[str, str] = {}
+        trust_corporate_ca(env, bundles=(str(Path(d) / "missing.pem"), str(bundle)))
+        assert env == {"SSL_CERT_FILE": str(bundle)}
+        env = {"SSL_CERT_FILE": "/mine.pem"}
+        trust_corporate_ca(env, bundles=(str(bundle),))
+        assert env == {"SSL_CERT_FILE": "/mine.pem"}  # a bundle the user chose is kept
+
+
+def test_without_the_sdk_the_generator_uses_muse_alone_instead_of_stopping():
+    from gen_game.cli import completion_for
+
+    saved = sys.modules.get("anthropic", "absent")
+    sys.modules["anthropic"] = None  # makes `import anthropic` fail, as under a python without the package
+    try:
+        c = completion_for("gateway|muse", "high")
+    finally:
+        if saved == "absent":
+            del sys.modules["anthropic"]
+        else:
+            sys.modules["anthropic"] = saved
+    assert type(c.inner).__name__ == "MuseChat"
+
+
+def test_the_gateway_default_says_at_once_how_to_run_it_when_the_sdk_is_missing():
+    from gen_game.cli import completion_for
+
+    saved = sys.modules.get("anthropic", "absent")
+    sys.modules["anthropic"] = None  # makes `import anthropic` fail, as under a python without the package
+    try:
+        completion_for("gateway", "high")
+    except SystemExit as stop:
+        assert ".venv/bin/python" in str(stop) and "--model muse" in str(stop)
+    else:
+        raise AssertionError("a missing SDK must stop the command before any retry waits")
+    finally:
+        if saved == "absent":
+            del sys.modules["anthropic"]
+        else:
+            sys.modules["anthropic"] = saved
 
 
 def test_a_reply_that_never_loads_ends_with_every_attempt_recorded():
@@ -143,7 +375,10 @@ def test_scenarios_parse_from_a_fenced_reply_and_bad_ones_are_named():
     items, err = scenarios.write_scenarios(Fenced(), SPEC)
     assert err == "" and items[0]["name"] == ALWAYS_ROCK["name"]
     assert any("one entry per seat" in p for p in scenarios.problems([{**ALWAYS_ROCK, "moves": {"1": []}}]))
-    assert any("'result'" in p for p in scenarios.problems([{**ALWAYS_ROCK, "expect": {}}]))
+    assert any("'winner'" in p for p in scenarios.problems([{**ALWAYS_ROCK, "expect": {}}]))
+    for bad in ({"winner": "seat 1"}, {"winner": []}, {"winner": [1, "x"]}, {"winner": 1, "standings": [3, 1]}):
+        assert any("winner" in p or "standings" in p for p in scenarios.problems([{**ALWAYS_ROCK, "expect": bad}])), bad
+    assert scenarios.problems([{**ALWAYS_ROCK, "expect": {"winner": 1, "standings": {"1": 3, "2": 1}}}]) == []
 
 
 def test_a_correct_game_passes_and_a_wrong_expectation_names_the_difference():
@@ -152,6 +387,67 @@ def test_a_correct_game_passes_and_a_wrong_expectation_names_the_difference():
     out = scenarios.run_scenario(RPS, bad)
     assert not out.passed
     assert any("result: expected 'seat 2'" in f for f in out.failures) and any("seat 1 score" in f for f in out.failures)
+
+
+def test_a_scenario_may_assert_the_winner_and_the_standings():
+    score = 4 * 3 + 4 * 1 + 2 * 2
+    right = {**SEAT1_WINS, "expect": {"winner": 1, "standings": {"1": score, "2": 0}}}
+    assert scenarios.run_scenario(RPS, right).passed
+    assert scenarios.run_scenario(RPS, ALWAYS_ROCK).passed  # level scores: seats 1 and 2 share the win
+    out = scenarios.run_scenario(RPS, {**SEAT1_WINS, "expect": {"winner": [1, 2], "standings": {"1": 3}}})
+    assert not out.passed
+    assert any("winner: expected 'seats 1 and 2', got 'seat 1'" in f for f in out.failures)
+    assert any(f"seat 1 standing: expected 3, got {score}" in f for f in out.failures)
+
+
+def _bar_rps():
+    from fixtures import BAR_RPS_DICT
+    from xcolos.games.loader import load
+
+    return load(json.dumps(BAR_RPS_DICT), source="rps")
+
+
+def test_min_to_win_is_optional_in_a_spec_and_reaches_the_reviewer_and_the_coder():
+    barred = {**SPEC, "ending": {**SPEC["ending"], "min_to_win": 1}}
+    assert specmod.problems(barred) == []
+    for bad in ("", True, [1]):
+        assert any("min_to_win" in p for p in specmod.problems({**SPEC, "ending": {**SPEC["ending"], "min_to_win": bad}})), bad
+    assert "min_to_win" in specmod.render(barred) and "min_to_win" in specmod.script(barred)
+    assert "min_to_win" not in specmod.render(SPEC) and "min_to_win" in specmod.SYSTEM
+    for flag in (True, False):
+        assert "`min_to_win` is `1`" in prompt.build("rps", PLAN, barred, agent=flag)
+        assert "`min_to_win` is" not in prompt.build("rps", PLAN, SPEC, agent=flag)
+    assert "min_to_win" in enc.system_prompt()
+
+
+def test_a_match_with_no_winner_passes_only_when_its_ending_has_min_to_win():
+    from fixtures import BAR_RPS_DICT
+
+    defn = _bar_rps()
+    played = harness.play(defn, harness.random_agents(2, 1), 1)
+    assert harness.no_winner(played.result.winner) and played.standings.keys() == {"1", "2"}
+    assert played.end_problems() == [] and harness.smoke(defn) == []
+    assert evaluate.tier0(defn, seeds=range(1, 3))["passed"]
+    assert enc.check(copy.deepcopy(BAR_RPS_DICT), "rps")[2] == ""
+    import dataclasses
+
+    unbarred = dataclasses.replace(played, orchestrator=SimpleNamespace(definition=RPS))  # an ending of the same name, with no bar
+    assert any("no winner" in p for p in unbarred.end_problems())
+
+
+def test_a_match_with_no_winner_counts_as_a_draw_in_the_dominance_tally():
+    t1 = evaluate.tier1(_bar_rps(), seeds=range(1, 13))
+    assert not any("not 'seat N'" in f for f in t1["flags"])
+    assert all(v["draw"] == 12 and v["win"] == v["loss"] == 0 for v in t1["dominance"].values()), t1["dominance"]
+
+
+def test_a_scenario_may_assert_that_nobody_wins():
+    nobody = {**ALWAYS_ROCK, "expect": {"winner": None, "standings": {"1": 0, "2": 0}}}
+    assert scenarios.problems([nobody]) == []
+    assert scenarios.run_scenario(_bar_rps(), nobody).passed
+    out = scenarios.run_scenario(RPS, nobody)  # no bar: level scores share the win
+    assert any("winner: expected no winner, got 'seats 1 and 2'" in f for f in out.failures)
+    assert any("expected no winner" in f for f in scenarios.run_scenario(RPS, {**SEAT1_WINS, "expect": {"winner": None}}).failures)
 
 
 def test_scripting_too_many_or_too_few_moves_is_reported_as_that():
@@ -192,6 +488,60 @@ def test_tier_one_flags_a_policy_that_always_wins(monkeypatch=None):
 
 def test_tier_one_does_not_flag_a_balanced_game():
     assert evaluate.tier1(RPS, seeds=range(1, 25))["flags"] == []
+
+
+def _shared_rps(result: str):
+    """RPS where every ending gives the whole table one result, as a team target does."""
+    d = json.loads(RPS_TEXT)
+    for e in d["end"].values():
+        e.pop("rank_by", None)
+        e["result"] = result
+    return load(json.dumps(d), source="rps")
+
+
+def _team_rps(bar: int):
+    """RPS ranked as a team target is: by a table value every seat shares (0 rounds left at the end), with a bar to reach."""
+    d = json.loads(RPS_TEXT)
+    for e in d["end"].values():
+        e["rank_by"], e["min_to_win"] = "rounds_left", bar
+    return load(json.dumps(d), source="rps")
+
+
+def test_a_shared_outcome_is_one_where_no_ending_names_a_seat():
+    assert evaluate.shared_outcome(_shared_rps("no seat wins"))
+    assert not evaluate.shared_outcome(RPS)
+
+
+def test_a_ranking_every_seat_scores_level_on_is_a_shared_outcome():
+    assert evaluate.shared_outcome(_team_rps(1))
+    assert not evaluate.shared_outcome(RPS)  # `you.score` differs from seat to seat
+    d = json.loads(RPS_TEXT)
+    d["end"]["over"]["rank_by"] = "rounds_left + uniform(0, 1)"  # a draw at random for each seat
+    assert not evaluate.shared_outcome(load(json.dumps(d), source="rps"))
+
+
+def test_tier_one_expects_random_teams_to_miss_a_ranked_shared_target():
+    t1 = evaluate.tier1(_team_rps(1), seeds=range(1, 13))
+    assert [f for f in t1["flags"] if not any(i in f for i in flow.IGNORED_FLAGS)] == []
+    assert any("no winner decided" in n and "play-test" in n for n in t1["notes"]), t1["notes"]
+
+
+def test_tier_one_flags_a_ranked_shared_target_random_teams_always_reach():
+    t1 = evaluate.tier1(_team_rps(0), seeds=range(1, 13))
+    assert any("every random match ended 'seats 1 and 2'" in f for f in t1["flags"])
+    assert t1["notes"] == []
+
+
+def test_tier_one_expects_random_teams_to_miss_a_shared_target():
+    t1 = evaluate.tier1(_shared_rps("no seat wins"), seeds=range(1, 13))
+    assert [f for f in t1["flags"] if not any(i in f for i in flow.IGNORED_FLAGS)] == []
+    assert any("no seat wins" in n and "play-test" in n for n in t1["notes"])
+
+
+def test_tier_one_flags_a_shared_target_random_teams_always_reach():
+    t1 = evaluate.tier1(_shared_rps("all seats win"), seeds=range(1, 13))
+    assert any("every random match ended 'all seats win'" in f for f in t1["flags"])
+    assert t1["notes"] == []
 
 
 # -- the flow --------------------------------------------------------------
@@ -417,6 +767,15 @@ def test_complexity_limits_measure_what_the_designer_reports_and_what_was_built(
     assert complexity.describe_limits().startswith(f"steps_per_round at most {complexity.LIMITS['steps_per_round']}")
 
 
+def test_the_built_file_has_its_own_attribute_limit():
+    """The design counts the game's state; the built file also holds the rules' fixed numbers and its working fields."""
+    built = {"steps_per_round": 11, "choice_steps_per_round": 1, "attributes": 64}  # Hanabi Trio, built correctly by Claude
+    assert flow.complexity_flags({"complexity_measured": built}) == []
+    over = flow.complexity_flags({"complexity_measured": {**built, "attributes": complexity.BUILT_LIMITS["attributes"] + 1}})
+    assert over and "attributes" in over[0] and f"limit of {complexity.BUILT_LIMITS['attributes']}" in over[0]
+    assert complexity.over({**PLAN["complexity"], "attributes": 21})  # the designer's own count is still held to 20
+
+
 def test_a_designer_that_gives_nothing_usable_stops_the_flow():
     class Junk(Models):
         def complete(self, prompt, system=""):
@@ -509,9 +868,36 @@ def test_a_patient_model_asks_again_with_growing_waits_and_gives_up_after_the_la
         raise AssertionError("an endless outage was not reported")
 
 
+def test_the_generated_games_in_the_library_are_the_generated_files_and_each_ends_ranked():
+    """Scenario files are checked when a game is converted, under that day's rules, and are not re-checked here."""
+    from xcolos.games.loader import load_file
+
+    data = Path(enc.ROOT) / "gen_game" / "data" / "games"
+    ids = sorted(p.name for p in data.iterdir() if (p / "game.json").exists() and (LIBRARY / f"{p.name}.json").exists())
+    assert {"agram", "assurance_game", "battle_of_wits", "coup", "hanabi"} <= set(ids)
+    for game_id in ids:
+        assert (data / game_id / "game.json").read_bytes() == (LIBRARY / f"{game_id}.json").read_bytes(), game_id
+        defn = load_file(data / game_id / "game.json")
+        assert defn.end and all(rule.rank_by for rule in defn.end), game_id
+        assert enc.model_use(defn) == [], (game_id, enc.model_use(defn))
+        spec = json.loads((data / game_id / "spec.json").read_text())
+        constants = {a["key"]: a["initial"] for a in json.loads((data / game_id / "game.json").read_text())["attributes"].get("game", [])
+                     if isinstance(a.get("initial"), (int, float)) and not isinstance(a.get("initial"), bool)}
+        as_numbers = re.sub(r"\b[a-z_][a-z0-9_]*\b", lambda m: str(constants.get(m.group(0), m.group(0))), defn.end[0].rank_by)
+        assert spec["ending"]["rank_by"] in (defn.end[0].rank_by, as_numbers), game_id  # a named constant is the number it names
+        assert str(spec["ending"].get("min_to_win", "")) == defn.end[0].min_to_win, game_id
+        assert not [p for p in specmod.problems(spec) if "ending" in p or "rank_by" in p], game_id
+
+
 def test_the_encoder_is_warned_of_the_mistakes_the_loader_has_refused():
     system = enc.system_prompt()
     assert "never `none`" in system and "no `each` key" in system and "`into`" in system
+
+
+def test_the_coder_is_told_to_ask_a_question_with_one_option_and_not_skip_it():
+    # Hanamikoji skipped "choose an action" when one action was left, so the forced move was never made and its tests failed
+    built = prompt.build("rps", PLAN, SPEC)
+    assert "still ask the question" in built and "Do not skip the question with a `when`" in built
 
 
 
@@ -522,3 +908,17 @@ def test_a_muse_request_that_hangs_is_cut_after_three_minutes_not_ten():
     except Exception:
         return
     assert built.inner.timeout_s == 180 and hasattr(built, "converse")
+
+
+def test_a_check_match_that_runs_past_its_time_cap_is_abandoned_with_the_reason():
+    from xcolos.agents import RandomAgent
+
+    saved = harness.CHECK_SECONDS
+    harness.CHECK_SECONDS = 0  # every match is over its cap at once
+    try:
+        played = harness.play(load((LIBRARY / "rps.json").read_text()), [RandomAgent("a", seed=1), RandomAgent("b", seed=2)], seed=1)
+    finally:
+        harness.CHECK_SECONDS = saved
+    assert played.result.status == "abandoned" and "time cap" in (played.result.reason or "")
+    assert "every combination" in played.end_problems()[0]  # the coder is told what makes a match this slow
+    assert harness.CHECK_SECONDS == 30  # every library game plays a random match in under 0.1 s; scopa's runaway build took minutes

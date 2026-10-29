@@ -1,0 +1,974 @@
+[
+  {
+    "name": "Setup: every seat has 40 coins and 0 prize points, kept through an all-zero round",
+    "rule": "R1",
+    "players": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 4,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "coins": 40,
+          "prize_points": 0
+        },
+        "2": {
+          "coins": 40,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 40,
+          "prize_points": 0
+        },
+        "4": {
+          "coins": 40,
+          "prize_points": 0
+        }
+      },
+      "game": {
+        "round": 1,
+        "round_winner": 0
+      }
+    },
+    "rule_text": "When the game starts, then every player has 40 coins and 0 prize points."
+  },
+  {
+    "name": "All four types are dealt out of the deck (random split, so only the empty deck is checked)",
+    "rule": "R2",
+    "players": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "type_deck": 0
+        }
+      }
+    },
+    "rule_text": "When types are dealt, then exactly 2 players have type Red and 2 have type Blue, and each player sees only their own type."
+  },
+  {
+    "name": "Round 1 prize is Red: a Red sole bidder gains 12",
+    "rule": "R3",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Red"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1,
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 35,
+          "prize_points": 12
+        }
+      }
+    },
+    "rule_text": "When the round is odd (1, 3, 5, 7), then the prize is Red. When it is even (2, 4, 6, 8), then the prize is Blue."
+  },
+  {
+    "name": "Round 2 prize is Blue: a Blue sole bidder gains 12",
+    "rule": "R3",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "type": "Blue"
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 4
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2,
+        "round_winner": 2
+      },
+      "players": {
+        "2": {
+          "coins": 36,
+          "prize_points": 12
+        }
+      }
+    },
+    "rule_text": "When the round is odd (1, 3, 5, 7), then the prize is Red. When it is even (2, 4, 6, 8), then the prize is Blue."
+  },
+  {
+    "name": "Talk step runs and the round proceeds with no effect on coins",
+    "rule": "R4",
+    "players": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 1,
+        "round_winner": 0
+      },
+      "players": {
+        "1": {
+          "coins": 40
+        },
+        "2": {
+          "coins": 40
+        },
+        "3": {
+          "coins": 40
+        },
+        "4": {
+          "coins": 40
+        }
+      }
+    },
+    "rule_text": "When the talk step runs, then every player submits one message at the same time and all four messages are shown to everyone."
+  },
+  {
+    "name": "Opening bid range is 0 to current coins",
+    "rule": "R5",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "coins": 20
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 20
+        },
+        {
+          "seat": 1,
+          "option": 0
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 21
+        }
+      ],
+      "players": {
+        "1": {
+          "coins": 20
+        }
+      }
+    },
+    "rule_text": "When opening bids are made, then every player simultaneously picks a whole number from 0 to their current coins."
+  },
+  {
+    "name": "Bids 5,5,5,2 give three contenders; seat 1 raises 1 and wins",
+    "rule": "R6",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Blue"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 3,
+        "options_include": 5
+      },
+      {
+        "seat": 4,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 34,
+          "prize_points": 6
+        },
+        "2": {
+          "coins": 35,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 35,
+          "prize_points": 0
+        },
+        "4": {
+          "coins": 38,
+          "prize_points": 0
+        }
+      }
+    },
+    "rule_text": "When opening bids are revealed, then a player is a contender if and only if their opening bid is > 0 and >= the second-highest opening bid (ties counted). For example, bids 5,5,5,2 give three contenders, and bids 7,0,0,0 make the bidder of 7 the sole contender."
+  },
+  {
+    "name": "Bids 7,0,0,0: the bidder of 7 is sole contender and wins",
+    "rule": "R6",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Red"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 7
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 33,
+          "prize_points": 12
+        }
+      }
+    },
+    "rule_text": "When opening bids are revealed, then a player is a contender if and only if their opening bid is > 0 and >= the second-highest opening bid (ties counted). For example, bids 5,5,5,2 give three contenders, and bids 7,0,0,0 make the bidder of 7 the sole contender."
+  },
+  {
+    "name": "All opening bids 0: nobody wins",
+    "rule": "R7",
+    "players": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 4,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 0
+      },
+      "players": {
+        "1": {
+          "coins": 40,
+          "prize_points": 0
+        },
+        "2": {
+          "coins": 40,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 40,
+          "prize_points": 0
+        },
+        "4": {
+          "coins": 40,
+          "prize_points": 0
+        }
+      }
+    },
+    "rule_text": "When all opening bids are 0, then there are no contenders and nobody wins the prize."
+  },
+  {
+    "name": "Two contenders get Raise 1; seat 1 raises 2 and wins",
+    "rule": "R8",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Red"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      },
+      {
+        "seat": 4,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 33,
+          "prize_points": 12
+        },
+        "2": {
+          "coins": 35
+        },
+        "3": {
+          "coins": 37
+        },
+        "4": {
+          "coins": 37
+        }
+      }
+    },
+    "rule_text": "When there are at least 2 contenders, then each contender simultaneously chooses a Raise 1 from 0 to (coins - opening bid). Non-contenders are not asked."
+  },
+  {
+    "name": "Sole contender: raises skipped, pays only the opening bid",
+    "rule": "R9",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "type": "Blue"
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 10
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 2
+      },
+      "players": {
+        "2": {
+          "coins": 30,
+          "prize_points": 12
+        },
+        "1": {
+          "coins": 40
+        },
+        "3": {
+          "coins": 40
+        },
+        "4": {
+          "coins": 40
+        }
+      }
+    },
+    "rule_text": "When fewer than 2 contenders exist, then Raise 1 and Raise 2 are skipped."
+  },
+  {
+    "name": "Contender raising 0 drops out; the others go on to Raise 2",
+    "rule": "R10",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "type": "Red"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": 5
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 2
+      },
+      "players": {
+        "1": {
+          "coins": 35,
+          "prize_points": 0
+        },
+        "2": {
+          "coins": 28,
+          "prize_points": 12
+        },
+        "3": {
+          "coins": 32,
+          "prize_points": 0
+        },
+        "4": {
+          "coins": 40
+        }
+      }
+    },
+    "rule_text": "When a contender raises 0 in Raise 1, then they have dropped out and are not asked in Raise 2."
+  },
+  {
+    "name": "Two positive Raise 1s lead to Raise 2",
+    "rule": "R11",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Blue"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 30,
+          "prize_points": 6
+        },
+        "2": {
+          "coins": 33,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 40
+        },
+        "4": {
+          "coins": 40
+        }
+      }
+    },
+    "rule_text": "When at least 2 contenders raised more than 0 in Raise 1, then each of them simultaneously chooses a Raise 2 from 0 to (coins - opening bid - Raise 1). Otherwise Raise 2 is skipped."
+  },
+  {
+    "name": "Total bid is opening + Raise 1 + Raise 2 (4+6+5 vs 4+6+0)",
+    "rule": "R12",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Red"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 25,
+          "prize_points": 12
+        },
+        "2": {
+          "coins": 30,
+          "prize_points": 0
+        }
+      }
+    },
+    "rule_text": "When bidding ends, then each player's total bid = opening bid + Raise 1 + Raise 2."
+  },
+  {
+    "name": "Single highest total wins the prize",
+    "rule": "R13",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Blue"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 10
+      },
+      {
+        "seat": 2,
+        "options_include": 6
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 30,
+          "prize_points": 6
+        },
+        "2": {
+          "coins": 34,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 37,
+          "prize_points": 0
+        },
+        "4": {
+          "coins": 40
+        }
+      }
+    },
+    "rule_text": "When exactly one player has the highest total bid, then that player wins the round's prize."
+  },
+  {
+    "name": "Tie for the highest total: nobody wins, both still pay",
+    "rule": "R14",
+    "players": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 8
+      },
+      {
+        "seat": 2,
+        "options_include": 8
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 0
+      },
+      "players": {
+        "1": {
+          "coins": 32,
+          "prize_points": 0
+        },
+        "2": {
+          "coins": 32,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 40
+        },
+        "4": {
+          "coins": 40
+        }
+      }
+    },
+    "rule_text": "When two or more players tie for the highest total bid, then nobody wins the prize that round."
+  },
+  {
+    "name": "Every player pays their own bid, winner or not",
+    "rule": "R15",
+    "players": 4,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 10
+      },
+      {
+        "seat": 2,
+        "options_include": 9
+      },
+      {
+        "seat": 3,
+        "options_include": 9
+      },
+      {
+        "seat": 4,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 30
+        },
+        "2": {
+          "coins": 31
+        },
+        "3": {
+          "coins": 31
+        },
+        "4": {
+          "coins": 39
+        }
+      }
+    },
+    "rule_text": "When payment happens, then every player, winner or not, loses coins equal to their own total bid."
+  },
+  {
+    "name": "Mismatched type: a Red winner of the Blue prize gains 6",
+    "rule": "R16",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "type": "Red"
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2,
+        "round_winner": 1
+      },
+      "players": {
+        "1": {
+          "coins": 39,
+          "prize_points": 6
+        }
+      }
+    },
+    "rule_text": "When the winner's type matches the prize colour, then they gain 12 prize points. Otherwise they gain 6."
+  },
+  {
+    "name": "The prize winner is announced; only the winner gains points",
+    "rule": "R17",
+    "players": 4,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "3": {
+          "type": "Red"
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_winner": 3
+      },
+      "players": {
+        "3": {
+          "coins": 38,
+          "prize_points": 12
+        },
+        "1": {
+          "prize_points": 0
+        },
+        "2": {
+          "prize_points": 0
+        },
+        "4": {
+          "prize_points": 0
+        }
+      }
+    },
+    "rule_text": "When a round's prize is won, then everyone is told who won but not how many points were gained."
+  },
+  {
+    "name": "Round 8 ends the game; score = coins + prize points",
+    "rule": "R18",
+    "players": 4,
+    "given": {
+      "game": {
+        "round": 7
+      },
+      "players": {
+        "1": {
+          "coins": 20,
+          "prize_points": 12
+        },
+        "2": {
+          "coins": 30,
+          "prize_points": 0
+        },
+        "3": {
+          "coins": 10,
+          "prize_points": 24
+        },
+        "4": {
+          "coins": 25,
+          "prize_points": 6
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 4,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": 3,
+      "standings": {
+        "1": 32,
+        "2": 30,
+        "3": 34,
+        "4": 31
+      },
+      "game": {
+        "round": 8
+      },
+      "players": {
+        "1": {
+          "score": 32
+        },
+        "2": {
+          "score": 30
+        },
+        "3": {
+          "score": 34
+        },
+        "4": {
+          "score": 31
+        }
+      }
+    },
+    "rule_text": "When round 8 ends, then the game ends, each score = coins + prize points, and all scores and types are revealed."
+  },
+  {
+    "name": "Tied top scores share the win",
+    "rule": "R19",
+    "players": 4,
+    "given": {
+      "game": {
+        "round": 7
+      },
+      "players": {
+        "1": {
+          "coins": 30,
+          "prize_points": 6
+        },
+        "2": {
+          "coins": 24,
+          "prize_points": 12
+        },
+        "3": {
+          "coins": 30,
+          "prize_points": 0
+        },
+        "4": {
+          "coins": 20,
+          "prize_points": 0
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 4,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 36,
+        "2": 36,
+        "3": 30,
+        "4": 20
+      },
+      "players": {
+        "1": {
+          "score": 36
+        },
+        "2": {
+          "score": 36
+        },
+        "3": {
+          "score": 30
+        },
+        "4": {
+          "score": 20
+        }
+      }
+    },
+    "rule_text": "When the game ends, then the highest score wins, and tied top scores share the result (a draw)."
+  }
+]

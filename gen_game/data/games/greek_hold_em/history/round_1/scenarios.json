@@ -1,0 +1,1222 @@
+[
+  {
+    "name": "Start: everyone has 40 chips and the pot is 0 (seen through hand 1: antes to 39, seat 1 wins pot of 4)",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "fold"
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 42,
+          "out": false
+        },
+        "2": {
+          "chips": 39,
+          "out": false
+        },
+        "3": {
+          "chips": 39,
+          "out": false
+        }
+      },
+      "game": {
+        "pot": 0,
+        "hand_no": 1
+      }
+    },
+    "rule_text": "When the game starts, each player has 40 chips and the pot is 0."
+  },
+  {
+    "name": "Ante: seat with 5 goes to 4; others fold to seat 2's bet",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 5
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "fold"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 4
+        },
+        "2": {
+          "chips": 42
+        },
+        "3": {
+          "chips": 39
+        }
+      },
+      "game": {
+        "pot": 0,
+        "hand_no": 1
+      }
+    },
+    "rule_text": "When a hand starts, each player not eliminated pays 1 chip into the pot, so a player with 5 chips goes to 4 and the pot rises by 1 per player."
+  },
+  {
+    "name": "Player with 1 chip antes to 0 and stays in to showdown (pot 4 splits evenly, chance-independent)",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "call"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "call"
+        }
+      ],
+      "lens": {
+        "players": {
+          "1": {
+            "shown_hole": 2
+          },
+          "3": {
+            "shown_hole": 0
+          }
+        }
+      },
+      "players": {
+        "3": {
+          "chips": 39
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When a player with exactly 1 chip antes, they have 0 chips and still take part in the hand (all-in)."
+  },
+  {
+    "name": "Deal: 2 hole cards each, 5 board, deck left with 21 (chance-independent counts)",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "fold"
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 21,
+          "board": 5
+        },
+        "players": {
+          "1": {
+            "hole": 2
+          },
+          "2": {
+            "hole": 2
+          },
+          "3": {
+            "hole": 2
+          }
+        }
+      }
+    },
+    "rule_text": "When a hand starts, the deck is rebuilt to 32 cards (values 1 to 8, four of each), each player in the hand receives 2 hole cards from it, and 5 board cards are drawn from it."
+  },
+  {
+    "name": "Flop reveals exactly 3 board cards (hand ends at flop)",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "fold"
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "board_shown": 3
+        }
+      },
+      "players": {
+        "1": {
+          "chips": 39
+        },
+        "2": {
+          "chips": 42
+        },
+        "3": {
+          "chips": 39
+        }
+      }
+    },
+    "rule_text": "When the flop happens, exactly the first 3 board cards become public in board_shown."
+  },
+  {
+    "name": "Bet capped by chips and moves from chips to pot",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": "fold"
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 2
+        },
+        {
+          "seat": 2,
+          "option": 4
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 3
+        },
+        {
+          "seat": 2,
+          "option": 5
+        }
+      ],
+      "players": {
+        "1": {
+          "chips": 0,
+          "out": true
+        },
+        "2": {
+          "chips": 44
+        },
+        "3": {
+          "chips": 39
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When a player bets in a betting round, the bet is a whole number from 0 to 4 and no more than their chips, and it moves from their chips to the pot."
+  },
+  {
+    "name": "Only players below H are asked to call or fold",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 3,
+          "option": "call"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "call"
+        },
+        {
+          "seat": 2,
+          "option": "call"
+        },
+        {
+          "seat": 1,
+          "option": "fold"
+        },
+        {
+          "seat": 2,
+          "option": "fold"
+        }
+      ],
+      "players": {
+        "3": {
+          "chips": 38
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When bets are revealed, H is the largest bet among players still in the hand, and only players who bet less than H are asked to call or fold."
+  },
+  {
+    "name": "Bet 1 against H=4: call pays 3 more",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "call"
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "fold"
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 35,
+          "out": false
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "shown_hole": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When a player calls, they pay H minus their bet, so a player who bet 1 against H = 4 pays 3 more."
+  },
+  {
+    "name": "Short call pays all chips and stays in to showdown (chance-independent)",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": "call"
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "call"
+        }
+      ],
+      "lens": {
+        "players": {
+          "1": {
+            "shown_hole": 2
+          },
+          "2": {
+            "shown_hole": 2
+          },
+          "3": {
+            "shown_hole": 2
+          }
+        },
+        "game": {
+          "board_shown": 5
+        }
+      }
+    },
+    "rule_text": "When a player calls with fewer chips than the difference, they pay all their chips, go to 0, and stay in the hand."
+  },
+  {
+    "name": "Fold leaves the hand, bet chips are lost",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": "fold"
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 37
+        }
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "shown_hole": 0
+          },
+          "2": {
+            "shown_hole": 2
+          },
+          "3": {
+            "shown_hole": 2
+          }
+        }
+      }
+    },
+    "rule_text": "When a player folds, they leave the hand and the chips they already bet stay in the pot."
+  },
+  {
+    "name": "Last player after flop takes the pot; no turn or river",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "fold"
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 42
+        },
+        "2": {
+          "chips": 39
+        },
+        "3": {
+          "chips": 39
+        }
+      },
+      "game": {
+        "pot": 0
+      },
+      "lens": {
+        "game": {
+          "board_shown": 3
+        },
+        "players": {
+          "1": {
+            "shown_hole": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When only one player remains in the hand after the flop call or fold, that player takes the whole pot, the pot becomes 0, and the turn, river and showdown do not happen."
+  },
+  {
+    "name": "Two remain after flop: all 5 board cards shown",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "board_shown": 5
+        }
+      },
+      "players": {
+        "3": {
+          "chips": 38
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When 2 or more players remain after the flop, board cards 4 and 5 are revealed, so board_shown has all 5 cards."
+  },
+  {
+    "name": "River betting: fresh bets, chips to pot, fold loses river bet",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 1,
+        "options_include": "fold"
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": 3
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "call"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "call"
+        },
+        {
+          "seat": 3,
+          "option": "call"
+        }
+      ],
+      "players": {
+        "1": {
+          "chips": 34
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When the river betting happens, it follows R6 to R10, with bets reset to 0 for the new round."
+  },
+  {
+    "name": "Last player after river takes the pot without showdown",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "fold"
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 42
+        },
+        "2": {
+          "chips": 39
+        },
+        "3": {
+          "chips": 39
+        }
+      },
+      "game": {
+        "pot": 0
+      },
+      "lens": {
+        "game": {
+          "board_shown": 5
+        },
+        "players": {
+          "1": {
+            "shown_hole": 0
+          }
+        }
+      }
+    },
+    "rule_text": "When only one player remains after the river call or fold, that player takes the whole pot."
+  },
+  {
+    "name": "Showdown reveals every remaining hole (chance-independent counts)",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "pot": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": 2
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "shown_hole": 2
+          },
+          "2": {
+            "shown_hole": 2
+          },
+          "3": {
+            "shown_hole": 2
+          }
+        },
+        "game": {
+          "board_shown": 5
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When a showdown happens, each remaining player's hole cards become public, and strength = 20*min(matches,3) + 30*pair + hole1 + hole2."
+  },
+  {
+    "name": "Two-way showdown with even pot 8 empties the pot (chance-independent)",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "shown_hole": 2
+          },
+          "2": {
+            "shown_hole": 2
+          },
+          "3": {
+            "shown_hole": 0
+          }
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When counting matches, a board card counts if its value equals either hole value, and it counts once even if both hole cards share that value; for example hole 5,5 with board 5,5,2,3,8 gives matches = 2, pair = 1, strength = 40+30+10 = 80."
+  },
+  {
+    "name": "Three-way showdown with pot 12 empties the pot (chance-independent)",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "pot": 9
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "pot": 0
+      },
+      "lens": {
+        "players": {
+          "1": {
+            "shown_hole": 2
+          }
+        }
+      }
+    },
+    "rule_text": "When matches exceeds 3, only 3 count; for example hole 2,7 with board 2,2,7,7,1 gives strength = 60+0+9 = 69."
+  },
+  {
+    "name": "Showdown pays out the pot; folded seat unchanged (chance-independent)",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 1,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "players": {
+        "3": {
+          "chips": 38
+        }
+      },
+      "game": {
+        "pot": 0
+      }
+    },
+    "rule_text": "When one player has the highest strength at showdown, that player takes the whole pot."
+  },
+  {
+    "name": "Pot of 6 split among any number of 1-3 tied winners leaves 0 (chance-independent)",
+    "rule": "R19",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "pot": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 2,
+        "options_include": 0,
+        "times": 2
+      },
+      {
+        "seat": 3,
+        "options_include": 0,
+        "times": 2
+      }
+    ],
+    "expect": {
+      "game": {
+        "pot": 0,
+        "hand_no": 1
+      }
+    },
+    "rule_text": "When k players tie for the highest strength, each receives floor(pot/k) chips and pot mod k chips stay in the pot for the next hand; for example a pot of 11 split 3 ways gives 3 each and leaves 2."
+  },
+  {
+    "name": "Player at 0 chips after the hand is eliminated",
+    "rule": "R20",
+    "players": 3,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "fold"
+      },
+      {
+        "seat": 2,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": 1
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "chips": 0,
+          "out": true
+        },
+        "2": {
+          "out": false
+        },
+        "3": {
+          "out": false
+        }
+      }
+    },
+    "rule_text": "When a hand ends and a player has 0 chips, that player is eliminated (out = true) and takes no further part."
+  },
+  {
+    "name": "Game ends after hand 15",
+    "rule": "R21",
+    "players": 3,
+    "given": {
+      "game": {
+        "hand_no": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "fold"
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 42,
+        "2": 39,
+        "3": 39
+      },
+      "game": {
+        "hand_no": 15
+      }
+    },
+    "rule_text": "When hand 15 ends, the game ends."
+  },
+  {
+    "name": "Game ends at once when only one player is left",
+    "rule": "R22",
+    "players": 3,
+    "given": {
+      "players": {
+        "2": {
+          "chips": 1
+        },
+        "3": {
+          "chips": 1
+        }
+      },
+      "game": {
+        "hand_no": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "fold"
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 42,
+        "2": 0,
+        "3": 0
+      },
+      "players": {
+        "2": {
+          "out": true
+        },
+        "3": {
+          "out": true
+        }
+      },
+      "game": {
+        "hand_no": 4
+      }
+    },
+    "rule_text": "When only one player is not eliminated at the end of a hand, the game ends at once."
+  },
+  {
+    "name": "Tied for most chips at the end share the win",
+    "rule": "R23",
+    "players": 3,
+    "given": {
+      "players": {
+        "1": {
+          "chips": 40
+        },
+        "2": {
+          "chips": 43
+        },
+        "3": {
+          "chips": 20
+        }
+      },
+      "game": {
+        "hand_no": 14
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": 0
+      },
+      {
+        "seat": 2,
+        "options_include": "fold"
+      },
+      {
+        "seat": 3,
+        "options_include": 0
+      },
+      {
+        "seat": 3,
+        "options_include": "fold"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 42,
+        "2": 42,
+        "3": 19
+      }
+    },
+    "rule_text": "When the game ends, the player with the most chips wins, and players tied for the most chips share the win."
+  }
+]

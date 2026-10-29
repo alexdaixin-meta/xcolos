@@ -1,0 +1,32 @@
+# Reasoning and planning: Cat Lady: Secret Favourites (Balanced)
+
+**Verdict: adequate.** Winning takes solid state-based reasoning: food-to-cat balance, toy-set timing, the catnip curve and relative leftover food. Planning stays short-range, and favourite inference and denial appear only occasionally; scarcer food or catnip, or more interaction around shared lots, would reward deeper multi-round and opponent-dependent planning.
+
+From 3 play(s): 96 choices, 96 with a reason given (about 74.0 words each); results {'seat 4': 1, 'seat 1': 2}.
+
+## Reasoning: 2 of 3
+
+Most decisions weigh each lot's marginal points against the player's own food, cat and toy-set state, and track rivals' leftover food to manage the penalty. Several players also correctly infer rivals' Favourites from their picks and deny lots, but much of the thinking is self-focused arithmetic rather than inference about hidden information.
+
+- match 2, turn 20, seat 4: "Lot A also keeps a 6th catnip away from Seat 1. They have taken 5 catnip so far, so catnip is probably their favourite, and they look like the leader." (Correct count of a rival's catnip and inference of their secret Favourite, used to justify a denial pick.)
+- match 3, turn 29, seat 4: "Seat 1 already has 7 catnip, so more catnip is worthless to them. Lot D is also their best gain, and I take it first." (Models what the next picker values and takes it from them.)
+- match 3, turn 30, seat 1: "seat 2 already has 4 leftover (10 food, 3 cats), so I won't get the food penalty" (Accurate tracking of a rival's public holdings to judge penalty risk.)
+- match 2, turn 26, seat 4: "who has taken every stray so far and probably has Strays as their Favourite." (Favourite inference combined with own gain and leftover-food parity.)
+
+## Planning: 2 of 3
+
+Players often bank food for future cats or take unfed cats expecting food later, and some use the known picking order to plan the last rounds. These setups were sometimes carried out, as with match 2 seat 4's fourth cat, but planning rarely spans more than one or two rounds and never depends on what rivals will do.
+
+- match 2, turn 23, seat 4: "Then any one food card in the next two rounds feeds my 4th cat, worth about +8 points. I pick second next round and first in the last round, so that should be easy." (Look-ahead using the seat rotation; the plan was carried out at turn 26.)
+- match 1, turn 21, seat 2: "In the last two rounds I pick 4th and then 3rd, so I can't rely on finding the food that extra cats would need." (Plans resources around future picking position and estimated food left in the deck.)
+- match 3, turn 25, seat 3: "I pick second in round 8. Getting even 1 more food feeds the 4th cat" (Accepts a -1 now to set up a payoff next round.)
+
+## Luck: 2 of 3
+
+Markets are random and decide which lots appear when a player picks first. The catnip-Favourite players each reached 6-7 catnip and won two of the three matches, helped by catnip showing up on their turns. Margins were 4-9 points, so draws could swing results, though food and penalty management clearly mattered.
+
+- match 3, turn 24, seat 1: "the 6th card raises my catnip score from 15 to 21 (+6), and my secret Favourite adds +2" (The eventual winner's large swing depended on catnip appearing in the market at the right time.)
+
+## Weak spots
+
+- match 3, turn 31, seat 2: Justified Lot A as giving 'the best tiebreaker' with more fed cats, but the rules have no tiebreaker. The two lots really were tied in points, so the stated reason was wrong.

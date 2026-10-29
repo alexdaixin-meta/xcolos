@@ -1,0 +1,370 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "unique_bid_auction",
+    "name": "Lowest Unique Number",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Over 12 rounds everyone secretly picks 1 to 5; the lowest number nobody else picked scores that many points."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pick",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "revealed_pick",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "message",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "count_5",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "winning_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "min_pick",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "max_pick",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "message_max_words",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "starting_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "unique_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "no_winner_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "starting_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "talk",
+      "label": "clear last round",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "pick",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "store": "message",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table (at most {message_max_words} words). Everyone writes at the same time; all messages are shown together. Messages are not binding."
+    },
+    {
+      "use": "poll",
+      "phase": "pick",
+      "label": "pick",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_pick"
+        },
+        "max": {
+          "calc": "max_pick"
+        }
+      },
+      "store": "pick",
+      "text": "Secretly pick one whole number from {min_pick} to {max_pick}. Nobody sees any pick until all are in. The lowest number picked by exactly one player scores that many points for its picker."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "reveal the picks",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_pick",
+            "value": {
+              "calc": "you.pick"
+            }
+          }
+        }
+      ],
+      "text": "All picks are revealed together."
+    },
+    {
+      "use": "update",
+      "phase": "count",
+      "label": "count the picks",
+      "do": [
+        {
+          "set": {
+            "key": "count_1",
+            "value": {
+              "calc": "count(p.revealed_pick == 1 for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_2",
+            "value": {
+              "calc": "count(p.revealed_pick == 2 for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_3",
+            "value": {
+              "calc": "count(p.revealed_pick == 3 for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_4",
+            "value": {
+              "calc": "count(p.revealed_pick == 4 for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "count_5",
+            "value": {
+              "calc": "count(p.revealed_pick == 5 for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "count",
+      "label": "find the lowest unique number",
+      "do": [
+        {
+          "set": {
+            "key": "winning_number",
+            "value": {
+              "calc": "1 if count_1 == unique_count else (2 if count_2 == unique_count else (3 if count_3 == unique_count else (4 if count_4 == unique_count else (5 if count_5 == unique_count else no_winner_number))))"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "score the round",
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "winning_number > no_winner_number and you.revealed_pick == winning_number"
+            },
+            "key": "score",
+            "value": {
+              "calc": "you.revealed_pick"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "end of round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "announce a winner",
+      "when": {
+        "calc": "winning_number > no_winner_number"
+      },
+      "to": "all",
+      "text": "Round {round} of {rounds}. Picks [seat, pick]: {[[p.seat, p.revealed_pick] for p in players]}. Winning number: {winning_number}. Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "announce no winner",
+      "when": {
+        "calc": "winning_number == no_winner_number"
+      },
+      "to": "all",
+      "text": "Round {round} of {rounds}. Picks [seat, pick]: {[[p.seat, p.revealed_pick] for p in players]}. No number was unique: no winner this round. Scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    },
+    {
+      "use": "check",
+      "phase": "announce",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores [seat, score]: {[[p.seat, p.score] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 12,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "Every player starts with a score of {starting_score}. The game lasts exactly {rounds} rounds.\n\nEach round:\n1. Talk. Every player writes one short message (at most {message_max_words} words) at the same time, without seeing the others. All messages are then shown to everyone together. Messages are not binding: players may claim, threaten or lie freely.\n2. Pick. Every player secretly and simultaneously picks one whole number from {min_pick} to {max_pick}. No player sees any other pick before choosing.\n3. Reveal. All picks are revealed together, showing who picked what.\n4. Count. For each number from {min_pick} to {max_pick}, count how many players picked it.\n5. Winner of the round. A number is 'unique' if exactly one player picked it. The round winner is the player who picked the lowest unique number. If no number is unique, nobody wins the round.\n6. Score. The round winner adds points equal to their number (1 to 5) to their score. Nobody else scores this round; if there is no winner, nobody scores.\n7. Announce. The round's picks, the winning number (or 'no winner') and all players' current scores are announced to everyone.\n\nAfter round {rounds} the game ends. The player with the highest total score wins; players tied for the highest total share the result."
+}

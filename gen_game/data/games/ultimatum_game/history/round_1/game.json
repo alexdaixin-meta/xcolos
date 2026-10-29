@@ -1,0 +1,560 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "ultimatum_game",
+    "name": "Hidden Pie Ultimatum III",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "blurb": "Three players take turns splitting a pot only the Proposer can see between two Responders; the deal passes if at least one accepts."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "resp",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "proposer",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "responder1",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "responder2",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pots_p1",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          70,
+          90,
+          110,
+          130
+        ]
+      },
+      {
+        "key": "pots_p2",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          70,
+          90,
+          110,
+          130
+        ]
+      },
+      {
+        "key": "pots_p3",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          70,
+          90,
+          110,
+          130
+        ]
+      },
+      {
+        "key": "pot",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer_a",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer_b",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "response1",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "response2",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 12
+      },
+      {
+        "key": "player_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "pot_value_1",
+        "visible": "public",
+        "type": "number",
+        "initial": 70
+      },
+      {
+        "key": "pot_value_2",
+        "visible": "public",
+        "type": "number",
+        "initial": 90
+      },
+      {
+        "key": "pot_value_3",
+        "visible": "public",
+        "type": "number",
+        "initial": 110
+      },
+      {
+        "key": "pot_value_4",
+        "visible": "public",
+        "type": "number",
+        "initial": 130
+      },
+      {
+        "key": "max_offer_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 130
+      },
+      {
+        "key": "min_offer",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "proposals_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "initial_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "rounds_per_block",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "the starting scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "initial_score"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "the pot lists",
+      "do": [
+        {
+          "set": {
+            "key": "pots_p1",
+            "value": {
+              "calc": "[pot_value_1, pot_value_2, pot_value_3, pot_value_4]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pots_p2",
+            "value": {
+              "calc": "[pot_value_1, pot_value_2, pot_value_3, pot_value_4]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pots_p3",
+            "value": {
+              "calc": "[pot_value_1, pot_value_2, pot_value_3, pot_value_4]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "the pot lists explained",
+      "to": "all",
+      "text": "Each player's pot list starts as {pot_value_1}, {pot_value_2}, {pot_value_3} and {pot_value_4}. Each value is used exactly once when that player proposes."
+    },
+    {
+      "use": "tell",
+      "label": "the proposer order",
+      "to": "all",
+      "text": "Proposer order: rounds 1-3 are P1, P2, P3; rounds 4-6 are P3, P2, P1; rounds 7-9 are P1, P2, P3; rounds 10-12 are P3, P2, P1."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "start",
+      "label": "the new round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "proposer",
+            "value": {
+              "calc": "((round - 1) - rounds_per_block * int((round - 1) / rounds_per_block)) + 1 if (int((round - 1) / rounds_per_block) - 2 * int(int((round - 1) / rounds_per_block) / 2)) == 0 else rounds_per_block - ((round - 1) - rounds_per_block * int((round - 1) / rounds_per_block))"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "responder1",
+            "value": {
+              "calc": "2 if proposer == 1 else 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "responder2",
+            "value": {
+              "calc": "2 if proposer == 3 else 3"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "resp",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "response1",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "response2",
+            "value": ""
+          }
+        }
+      ],
+      "text": "Round {round} of {rounds}. Proposer: Seat {proposer}. Responders: Seat {responder1} (first) and Seat {responder2} (second)."
+    },
+    {
+      "use": "update",
+      "phase": "draw",
+      "label": "the draw",
+      "do": [
+        {
+          "set": {
+            "key": "pot",
+            "value": {
+              "calc": "pots_p1[int(uniform(0, len(pots_p1)))] if proposer == 1 else (pots_p2[int(uniform(0, len(pots_p2)))] if proposer == 2 else pots_p3[int(uniform(0, len(pots_p3)))])"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pots_p1",
+            "value": {
+              "calc": "pot"
+            },
+            "if": {
+              "calc": "proposer == 1"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pots_p2",
+            "value": {
+              "calc": "pot"
+            },
+            "if": {
+              "calc": "proposer == 2"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pots_p3",
+            "value": {
+              "calc": "pot"
+            },
+            "if": {
+              "calc": "proposer == 3"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "draw",
+      "label": "the private pot",
+      "to": {
+        "where": "you.seat == proposer"
+      },
+      "text": "This round's pot is {pot}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 40
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table. Everyone writes at the same time; all messages are then shown to everyone. Messages are not binding and may be false."
+    },
+    {
+      "use": "ask",
+      "phase": "offer",
+      "label": "offer for the first responder",
+      "to": {
+        "where": "you.seat == proposer"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_offer"
+        },
+        "max": {
+          "calc": "max_offer_total"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "offer_a",
+              "value": "$answer"
+            }
+          }
+        ]
+      },
+      "text": "You are the Proposer. Choose a whole number a to offer the first Responder, Seat {responder1}: from {min_offer} to {max_offer_total}. a + b may not exceed {max_offer_total}."
+    },
+    {
+      "use": "ask",
+      "phase": "offer",
+      "label": "offer for the second responder",
+      "to": {
+        "where": "you.seat == proposer"
+      },
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_offer"
+        },
+        "max": {
+          "calc": "max_offer_total - offer_a"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "offer_b",
+              "value": "$answer"
+            }
+          }
+        ]
+      },
+      "text": "You offered {offer_a} to Seat {responder1}. Choose a whole number b to offer the second Responder, Seat {responder2}: from {min_offer} up to {max_offer_total} minus {offer_a}."
+    },
+    {
+      "use": "tell",
+      "phase": "offer",
+      "label": "the offer",
+      "to": "all",
+      "text": "Seat {proposer} offers {offer_a} to Seat {responder1} and {offer_b} to Seat {responder2}."
+    },
+    {
+      "use": "poll",
+      "phase": "response",
+      "label": "the responses",
+      "to": {
+        "where": "you.seat == responder1 or you.seat == responder2"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Accept",
+          "Reject"
+        ]
+      },
+      "store": "resp",
+      "text": "Seat {proposer} offers {offer_a} to Seat {responder1} and {offer_b} to Seat {responder2}. You do not know the pot. Choose Accept or Reject; the other Responder chooses at the same time. If at least one Responder accepts, the deal passes: each accepter gains their offer, a rejecter gains 0, and the Proposer gains the pot minus both offers. If both reject, nobody gains anything this round."
+    },
+    {
+      "use": "update",
+      "phase": "scoring",
+      "label": "the scoring",
+      "do": [
+        {
+          "set": {
+            "key": "response1",
+            "value": {
+              "calc": "[p.resp for p in players if p.seat == responder1][0]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "response2",
+            "value": {
+              "calc": "[p.resp for p in players if p.seat == responder2][0]"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "proposer"
+            },
+            "key": "score",
+            "value": {
+              "calc": "pot - offer_a - offer_b"
+            },
+            "if": {
+              "calc": "response1 == 'Accept' or response2 == 'Accept'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "responder1"
+            },
+            "key": "score",
+            "value": {
+              "calc": "offer_a"
+            },
+            "if": {
+              "calc": "response1 == 'Accept'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "responder2"
+            },
+            "key": "score",
+            "value": {
+              "calc": "offer_b"
+            },
+            "if": {
+              "calc": "response2 == 'Accept'"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "reveal",
+      "label": "the reveal",
+      "to": "all",
+      "text": "The pot was {pot}. Seat {responder1}: {response1}. Seat {responder2}: {response2}. Scores: P1 {players[0].score}, P2 {players[1].score}, P3 {players[2].score}."
+    },
+    {
+      "use": "check",
+      "phase": "reveal",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score}, Seat 2 {players[1].score}, Seat 3 {players[2].score}."
+    }
+  },
+  "limits": {
+    "rounds": 12,
+    "rounds_max": 12,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "Three players, P1, P2 and P3 (seats 1, 2 and 3), each start with a score of {initial_score}. Each player has a pot list holding the four values {pot_value_1}, {pot_value_2}, {pot_value_3} and {pot_value_4}. Everyone knows the contents of every list.\n\nThere are {rounds} proposal rounds. The Proposer by round is: rounds 1-3: P1, P2, P3; rounds 4-6: P3, P2, P1; rounds 7-9: P1, P2, P3; rounds 10-12: P3, P2, P1. Each player proposes exactly {proposals_per_player} times. The other two players are that round's Responders; the first Responder is the one with the lower seat number.\n\nEach round:\n1. Draw: one value is drawn at random from the Proposer's remaining pot list and removed from it. This is the pot. Only the Proposer is told it. Because each list loses one value per proposal, every player plays all four values exactly once.\n2. Talk: every player writes one short message at the same time, without seeing the others. Then all three messages are shown to everyone. Messages are not binding and may be false.\n3. Offer: the Proposer announces two whole numbers: a for the first Responder and b for the second. Each must be {min_offer} or more, and a + b must be at most {max_offer_total}. The offer is shown to everyone; the pot is not.\n4. Response: both Responders choose Accept or Reject at the same time, without seeing each other's choice.\n5. Scoring: If at least one Responder accepts, the deal passes. The Proposer gains pot - a - b; if a + b exceeds the pot, this is negative and the Proposer loses points. Each Responder who accepted gains their offered amount. A Responder who rejected gains 0, and their share is destroyed (the Proposer still pays it). If both Responders reject, the deal fails and all three gain 0 this round.\n6. Reveal: the pot, both responses and all three scores are announced.\n\nThe game ends after round {rounds}. The player with the highest total score wins; players tied for the highest total share the result."
+}

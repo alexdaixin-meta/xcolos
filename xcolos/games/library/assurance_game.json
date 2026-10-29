@@ -247,54 +247,18 @@
         "calc": "round_number >= rounds"
       },
       "against": [
-        "seat_1_only",
-        "seat_2_only",
-        "seat_3_only",
-        "shared_win",
-        "draw"
+        "over"
       ]
     }
   ],
   "end": {
-    "seat_1_only": {
+    "over": {
       "when": {
-        "calc": "players[0].total_score >= win_threshold and players[1].total_score < win_threshold and players[2].total_score < win_threshold"
+        "calc": "round_number >= rounds"
       },
-      "result": "seat 1",
-      "text": "Seat 1 wins. Final totals: Seat 1 {players[0].total_score}, Seat 2 {players[1].total_score}, Seat 3 {players[2].total_score}; threshold {win_threshold}, rounds {round_number}/{rounds}, last n_C {n_c}.",
-      "llm": "Summarize how the game went over the 10 rounds and why seat 1 is the sole winner: who reached threshold and who did not, the turning point, and what each player's choices and type led to."
-    },
-    "seat_2_only": {
-      "when": {
-        "calc": "players[1].total_score >= win_threshold and players[0].total_score < win_threshold and players[2].total_score < win_threshold"
-      },
-      "result": "seat 2",
-      "text": "Seat 2 wins. Final totals: Seat 1 {players[0].total_score}, Seat 2 {players[1].total_score}, Seat 3 {players[2].total_score}; threshold {win_threshold}, rounds {round_number}/{rounds}, last n_C {n_c}.",
-      "llm": "Summarize how the game went over the 10 rounds and why seat 2 is the sole winner: who reached threshold and who did not, the turning point, and what each player's choices and type led to."
-    },
-    "seat_3_only": {
-      "when": {
-        "calc": "players[2].total_score >= win_threshold and players[0].total_score < win_threshold and players[1].total_score < win_threshold"
-      },
-      "result": "seat 3",
-      "text": "Seat 3 wins. Final totals: Seat 1 {players[0].total_score}, Seat 2 {players[1].total_score}, Seat 3 {players[2].total_score}; threshold {win_threshold}, rounds {round_number}/{rounds}, last n_C {n_c}.",
-      "llm": "Summarize how the game went over the 10 rounds and why seat 3 is the sole winner: who reached threshold and who did not, the turning point, and what each player's choices and type led to."
-    },
-    "shared_win": {
-      "when": {
-        "calc": "count(p.total_score >= win_threshold for p in players) >= 2"
-      },
-      "result": "shared win",
-      "text": "Shared win. Final totals: Seat 1 {players[0].total_score}, Seat 2 {players[1].total_score}, Seat 3 {players[2].total_score}; threshold {win_threshold}, rounds {round_number}/{rounds}, last n_C {n_c}. Multiple players reached threshold.",
-      "llm": "Summarize how the game went over the 10 rounds and why this is a shared win: which players reached threshold, the turning point, and what each player's choices and type led to."
-    },
-    "draw": {
-      "when": {
-        "calc": "count(p.total_score >= win_threshold for p in players) == 0"
-      },
-      "result": "draw",
-      "text": "Draw. Final totals: Seat 1 {players[0].total_score}, Seat 2 {players[1].total_score}, Seat 3 {players[2].total_score}; threshold {win_threshold}, rounds {round_number}/{rounds}, last n_C {n_c}. No player reached threshold.",
-      "llm": "Summarize how the game went over the 10 rounds and why this is a draw with no one reaching threshold: what each player did, the turning point, and how totals stayed below threshold."
+      "rank_by": "1 if you.total_score >= win_threshold else 0",
+      "min_to_win": 1,
+      "text": "Result: {result}. Final totals: Seat 1 {players[0].total_score}, Seat 2 {players[1].total_score}, Seat 3 {players[2].total_score}; threshold {win_threshold}, rounds {round_number}/{rounds}, last n_C {n_c}. {'No player reached threshold: a draw, with no winner.' if count(p.total_score >= win_threshold for p in players) == 0 else 'Multiple players reached threshold and share the win.' if count(p.total_score >= win_threshold for p in players) > 1 else 'Only the winner reached threshold.'}"
     }
   },
   "limits": {

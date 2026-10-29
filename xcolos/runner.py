@@ -71,6 +71,8 @@ class Runner:
         max_turns: int = 400,
         max_degraded_streak: int = 8,
         deadline_ms: int | None = None,
+        max_seconds: float | None = None,
+        clock: Any = time.monotonic,
     ) -> None:
         self.game = game
         self.orchestrator = orchestrator
@@ -81,6 +83,11 @@ class Runner:
         #: Overrides what the orchestrator asked for. How long a seat may take
         #: is an operator's concern, not a game rule.
         self.deadline_ms = deadline_ms
+        #: A wall-clock cap on the whole match, for matches nobody waits on a person
+        #: in (gen_game's checks): a game whose steps do more work every turn would
+        #: otherwise grind on for hours while staying under the turn cap.
+        self.max_seconds, self.clock = max_seconds, clock
+        self._began: float | None = None
         self.degraded_turns = 0
 
         # Turn driving. A pull seat parks here instead of blocking a thread.
@@ -139,9 +146,14 @@ class Runner:
     def _pump(self) -> None:
         """Advance until somebody who pulls is due, or the match is over."""
         game = self.game
+        if self._began is None:
+            self._began = self.clock()
         while self._request is not None and game.status is RunStatus.RUNNING:
             if game.turn_seq >= self.max_turns:
                 game.abandon(f"turn cap of {self.max_turns} reached")
+                break
+            if self.max_seconds is not None and self.clock() - self._began > self.max_seconds:
+                game.abandon(f"time cap of {self.max_seconds:g}s reached")
                 break
 
             if isinstance(self._request, list):

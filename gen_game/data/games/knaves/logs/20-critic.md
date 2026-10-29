@@ -1,0 +1,62 @@
+# 20 critic
+
+- time: 2026-10-27T18:27:45+00:00 (43.0s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 4721f69581c6887e, reply sha256 0f517d133596e76a
+
+## Sent
+
+````
+ORIGINAL GAME: Knaves
+Knaves is for 3 players with a 52-card French deck. One card is turned face up for trump after dealing. Each player receives 17 cards. In rotation, eldest leads any card. Others must follow suit if able, otherwise may play any card including trump. Highest card of the led suit wins unless trumped; highest trump wins the trick. Winner leads next. No other special plays. Scoring per hand: +1 point per trick taken, minus penalties for Jacks: J♠ = -1, J♣ = -2, J♦ = -3, J♥ = -4. Points accumulate over hands. First player to reach 20 total points wins.
+
+PROPOSED VARIATION: Knaves Short Deck with Bids
+Players: 3 to 3
+Rules: R1 Setup. There are exactly 3 players, seats 1, 2 and 3. The full deck is the 20 cards AS KS QS JS 10S AC KC QC JC 10C AD KD QD JD 10D AH KH QH JH 10H. At the start every player's total is 0, their hand is empty, hand_number is 1, and the deck holds all 20 cards.
+
+R2 Rank. Within a suit, cards rank A (high), K, Q, J, 10 (low).
+
+R3 Length. The game has exactly 36 rounds. Each round is one trick. The game ends after round 36.
+
+R4 Hands. Rounds 1-6 form hand 1, rounds 7-12 hand 2, and so on up to rounds 31-36, which form hand 6. trick_in_hand runs from 1 to 6 within each hand.
+
+R5 Dealer. In hand h, the dealer is seat ((h-1) mod 3) + 1. So hand 1 is dealt by seat 1, hand 2 by seat 2, hand 3 by seat 3, hand 4 by seat 1, and so on.
+
+R6 Eldest. When a hand begins, eldest is the seat to the dealer's left: (dealer mod 3) + 1. Eldest is the leader of that hand's first trick.
+
+R7 Reset and deal. In the first round of every hand, before anything else happens:
+(a) Set the deck to the full 20-card list from R1.
+(b) Empty every player's hand and the discard pile.
+(c) Set every player's bid, tricks_taken and hand_score to 0.
+(d) Shuffle the deck once. This is the only random event in the round.
+(e) Cards 1-6 of the shuffled deck go to seat 1, cards 7-12 to seat 2, and cards 13-18 to seat 3. Each hand is seen only by its owner.
+
+R8 Turned card. Card 19 is turned face up into turned_card, seen by all, and trump_suit becomes its suit. That card is out of play for the hand.
+
+R9 Hidden card. Card 20 goes face down into hidden_card. It is out of play and is never revealed during the hand. After the deal the deck holds 0 cards.
+
+R10 Bid. In the first round of every hand, right after the deal, all three seats bid at the same moment in one simultaneous poll. Each seat is offered exactly the options 0, 1, 2, 3, 4, 5 and 6: the number of tricks it predicts it will take this hand. All bids are then shown to everyone.
+
+R11 Play order. Every round, the leader plays one card from their hand first. Then seat (leader mod 3) + 1 plays, then the remaining seat. Players act one at a time and each sees the cards already played to the trick. The suit of the leader's card is led_suit. Each played card is removed from its owner's hand, recorded as that player's played_card, and added to the discard pile. It never returns to the deck.
+
+R12 Follow suit. A player who holds any card of led_suit must play one of those cards. A player who holds none may play any card in their hand, including a trump. The leader may play any card.
+
+R13 Trick winner. If any trump_suit cards were played, the highest-ranked trump wins. Otherwise the highest-ranked card of led_suit wins. The winner becomes trick_winner and leads the next trick of the same hand.
+
+R14 Trick score. The trick winner adds 1 to tricks_taken and adds to hand_score: +2, minus the penalties for any Jacks among the three cards in the trick (JS 1, JC 2, JD 3, JH 4). A Jack is penalised even if it is the trump suit.
+
+R15 End of hand. After the trick in round 6, 12, 18, 24, 30 or 36 is scored:
+(a) Each player whose tricks_taken equals their bid adds 5 to hand_score.
+(b) Each player adds hand_score to their total.
+(c) The totals are announced to all.
+
+R16 Winner. After round 36, the player with the highest total wins. If two or three players tie for the highest total, the game is a draw.
+How the winner is decided: After the 36th trick and the final end-of-hand scoring, the single player with the highest total wins. A tie for the highest total is a draw.
+The designer's stated complexity: {"steps_per_round": 15, "choice_steps_per_round": 4, "attributes": 19, "hidden_elements": 2, "random_draws_per_round": 1, "rounds": 36}
+````
+
+## Reply
+
+````
+{"balanced": {"verdict": "pass", "evidence": "Per-hand arithmetic: there are 6 tricks at +2 each, so 12 trick points. 18 of the 20 cards are in play, so the expected Jack penalty in play is 10 × 18/20 = 9. Expected trick points across all three seats are therefore about 12 − 9 = 3 per hand, roughly 1 per seat. The exact-bid bonus of +5 dominates, which makes this an Oh-Hell-style prediction game. Winning a trick can score negatively: a trick holding JH scores +2 − 4 = −2, and one holding JD and JC scores −3. Taking a trick is therefore not always good, which creates real tension between hitting the bid and dumping Jacks.\n\nThoughtless policies, judged by the winner rule:\n(1) Always first option (bid 0, play first legal card). Bid 0 succeeds only if the seat takes no tricks. With 6 random cards from 20 and no attempt to duck, holding an Ace or the high trump wins tricks often; I estimate success at about 20–30% per hand. Bids are public, so opponents can lead into the bidder's forced follows to break the bid. Over 6 hands it scores about 1.5 bonuses (≈7.5), against a sensible bidder at about 50–65% success (≈15–20 bonus points). It loses most games.\n(2) Always last option (bid 6). It needs all 6 tricks against two opponents who can deny one cheaply. Success is under 2% per hand, so it collects about 1 trick point per hand and nearly always loses.\n(3) Always bid 2, the average share. It succeeds only by coincidence, about 30%, because it ignores hand strength, and it loses to hand-reading bidders.\n(4) 'Always pass' and 'highest bid' have no analogue beyond (2).\n\nNo bid is strictly better whatever the opponents do: the correct bid depends on the hand, the trump and the hidden card. No single card play is dominant, because the follow-suit rule constrains every play.\n\nSeat edge: the dealer rotates 1, 2, 3, 1, 2, 3, so each seat is eldest exactly twice over 6 hands. Bids are simultaneous, so no seat gains an information edge from bidding order. All three seats can realistically win.\n\nNo payoff ordering is mislabelled, and this is not a cooperation dilemma, so the 'higher total' safe-option concern does not apply.", "playable": {"verdict": "pass", "evidence": "Rules completeness:\n- R1 lists all 20 cards. R2 gives the rank order. R3/R4 fix 36 rounds as 6 hands of 6 tricks.\n- R5/R6 give closed-form formulas for dealer and eldest.\n- R7 is the deal. Each of its steps carries a per-step `when trick_in_hand==1` condition, which is allowed; it is not a conditional block.\n- R8/R9 dispose of cards 19 and 20, so the deck ends empty.\n- R10 is a single simultaneous poll with options 0–6.\n- R11 sets the play order from the leader. R12 is follow-suit and covers the leader and void cases. R13 is the trick winner with trump precedence.\n- R14 makes the score explicit, including that a trump Jack is still penalised.\n- R15 is end-of-hand scoring. R16 covers the winner and ties.\n\nEvery situation has a defined action. The game is finite at 36 rounds and decided by arithmetic on kept numbers. The trick-winner comparison can use a rank calc or a referee check, which is permitted.\n\nLimits:\n- steps_per_round 15 ≤ 20.\n- choice_steps_per_round 4 ≤ 4: bid plus 3 plays in a hand's first round, 3 plays otherwise.\n- attributes 19 ≤ 20. A plausible count is per-player: total, hand, bid, tricks_taken, hand_score, played_card; table: deck, discard, turned_card, trump_suit, hidden_card, hand_number, trick_in_hand, dealer, leader, led_suit, trick_winner.\n- hidden_elements 2 ≤ 3 (hands, hidden_card).\n- random_draws_per_round 1: one shuffle, first round of each hand only.\n- rounds 36 ≤ 40.\n\nThe game uses only supported or workaround features: hidden_hands, simultaneous_choice, sequential_choice, and shared_deck_draw via list operations. It needs no board, clock, trading or binding.\n\nTalk: none is included, which is sensible. The public simultaneous bid is the information channel, and the play itself is the opponent-reading surface. Free talk would add only unbinding words in a zero-sum-ish trick game.\n\nThe late-round cooperation check is not applicable, because this is not a repeated cooperation dilemma.", "reasoning_over_luck": {"verdict": "pass", "evidence": "Chance enters through 6 deals, which set hand strength, trump and the hidden card. Skill levers:\n(a) Bidding from a hand evaluation that accounts for trump and for 2 unknown cards out of play.\n(b) Card counting. Only 20 cards exist and 18 are played, so by mid-hand a counting player can nearly reconstruct the other hands and the hidden card.\n(c) Opponent modelling from public bids. A seat that bid 0 can be fed tricks; a seat that needs one more trick can be blocked.\n(d) Jack management, including dumping JH/JD onto a trick an opponent must win, or eating a Jack when it completes your bid.\n\nAll seats playing well: the outcome turns on how accurately each predicts and steers tricks across 6 hands. The deal adds variance but does not alone decide the winner, because a weak hand can still bid 0 or 1 and earn the same +5 as a strong one. My rough estimate is 30–40% chance, comparable to Oh Hell. A careful player beats a careless one clearly, roughly +10 points per game from bonus rate alone. Hidden information to infer (opponents' hands, the hidden card) and ways to act on it (bids, leads, ducks, Jack dumps) are both present.", "required_changes": []}
+````

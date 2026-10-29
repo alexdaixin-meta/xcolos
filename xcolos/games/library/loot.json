@@ -1,0 +1,617 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "loot",
+    "name": "Loot: Sealed Raids",
+    "players": {
+      "min": 3,
+      "max": 5,
+      "suggested": 4
+    },
+    "blurb": "Each round one seat sails a hidden-value ship and everyone secretly commits crew to defend or raid it, with one-shot Captain and Admiral trumps."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "crew",
+        "visible": "ally",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "gold",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "ships",
+        "visible": "public",
+        "type": "list",
+        "initial": [
+          3,
+          5,
+          7
+        ]
+      },
+      {
+        "key": "captain_used",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "admiral_used",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "committed",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "trump_declared",
+        "visible": "ally",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "strength",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "trump_choice",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "owner",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_ship",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_ship_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "last_taker",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "defense",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "top_attack",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "top_count",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "min_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "max_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "suggested_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "starting_crew",
+        "visible": "public",
+        "type": "number",
+        "initial": 30
+      },
+      {
+        "key": "starting_gold",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "ship_value_small",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "ship_value_medium",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "ship_value_large",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "ships_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "captains_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "admirals_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "captain_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "rounds_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "min_commit",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "unspent_crew_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "outfit the fleets",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "crew",
+            "value": {
+              "calc": "starting_crew"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "gold",
+            "value": {
+              "calc": "starting_gold"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "ships",
+            "value": {
+              "calc": "[ship_value_small, ship_value_medium, ship_value_large]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "captain_used",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "admiral_used",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "round",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "owner",
+      "label": "the next round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "owner",
+            "value": {
+              "calc": "((round - 1) % len(players)) + 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "committed",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "trump_declared",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "strength",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "trump_choice",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "['none'] + (['admiral'] if you.seat == owner and not you.admiral_used else []) + (['captain'] if you.seat != owner and not you.captain_used else [])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "owner",
+      "label": "the owner",
+      "to": "all",
+      "text": "Round {round}: Seat {owner} is the owner. Unsailed ships: {[p.ships for p in players if p.seat == owner][0]}."
+    },
+    {
+      "use": "update",
+      "phase": "sail",
+      "label": "the last ship sails",
+      "when": {
+        "calc": "max([len(p.ships) for p in players if p.seat == owner]) == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "current_ship",
+            "value": {
+              "calc": "max([p.ships[0] for p in players if p.seat == owner])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "ask",
+      "phase": "sail",
+      "label": "sail",
+      "to": {
+        "where": "you.seat == owner and len(you.ships) > 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "ships"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "key": "current_ship",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "You are the owner. Choose which of your unsailed ships sails this round. Its value stays secret until the end of the round."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Say one short thing to the table. Everyone writes at the same time; talk binds no one."
+    },
+    {
+      "use": "poll",
+      "phase": "commit",
+      "label": "commit crew",
+      "to": "acting",
+      "answer": {
+        "type": "number",
+        "min": {
+          "calc": "min_commit"
+        },
+        "max": {
+          "calc": "you.crew"
+        }
+      },
+      "store": "committed",
+      "text": "Round {round}, owner Seat {owner}. Secretly commit a whole number of crew, from {min_commit} up to your remaining crew. The owner's crew defends the ship; everyone else's crew raids it. Committed crew is spent whatever happens."
+    },
+    {
+      "use": "poll",
+      "phase": "commit",
+      "label": "commit trump",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "store": "trump_choice",
+      "text": "At the same moment, declare a trump or none. The owner may declare their unused Admiral (the owner keeps the ship whatever the attack). A non-owner may declare their unused Captain (+{captain_bonus} strength). A trump declared is used up."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "spend and strength",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "trump_declared",
+            "value": {
+              "calc": "you.trump_choice != 'none' and you.trump_choice != '' and you.trump_choice in you.offer"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "crew",
+            "value": {
+              "calc": "-min(you.committed, you.crew)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "strength",
+            "value": {
+              "calc": "you.committed + (captain_bonus if you.seat != owner and you.trump_declared else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "defense",
+            "value": {
+              "calc": "max([p.strength for p in players if p.seat == owner])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve the raid",
+      "do": [
+        {
+          "set": {
+            "key": "top_attack",
+            "value": {
+              "calc": "max([p.strength for p in players if p.seat != owner])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "top_count",
+            "value": {
+              "calc": "count(p.seat != owner and p.strength == top_attack for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_taker",
+            "value": {
+              "calc": "owner if any(p.trump_declared for p in players if p.seat == owner) else (max([p.seat for p in players if p.seat != owner and p.strength == top_attack]) if top_attack > defense and top_count == 1 else owner)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "score",
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "last_taker"
+            },
+            "key": "gold",
+            "value": {
+              "calc": "current_ship"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "last_ship_value",
+            "value": {
+              "calc": "current_ship"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "bookkeeping",
+      "do": [
+        {
+          "remove": {
+            "player": {
+              "calc": "owner"
+            },
+            "key": "ships",
+            "value": {
+              "calc": "current_ship"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == owner and you.trump_declared"
+            },
+            "key": "admiral_used",
+            "value": true
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat != owner and you.trump_declared"
+            },
+            "key": "captain_used",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "resolve",
+      "label": "the reveal",
+      "to": "all",
+      "text": "The ship was worth {last_ship_value}. Seat {last_taker} got it. Admiral used this round by seats: {[p.seat for p in players if p.trump_declared and p.seat == owner]}. Captains used this round by seats: {[p.seat for p in players if p.trump_declared and p.seat != owner]}."
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds_per_player * len(players)"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds_per_player * len(players)"
+      },
+      "rank_by": "you.gold",
+      "text": "Winner: {result}. Final gold [seat, gold]: {[[p.seat, p.gold] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 15,
+    "rounds_max": 15,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Each player starts with {starting_crew} crew (private: only you know your remaining crew), {starting_gold} gold, {ships_per_player} unsailed merchant ships worth {ship_value_small}, {ship_value_medium} and {ship_value_large} gold, {captains_per_player} unused Captain and {admirals_per_player} unused Admiral. Players are seated 1 to N. The game lasts {rounds_per_player} x N rounds (12 with 4 players).\n\nEach round:\n1. Owner. The owner is player ((round - 1) mod N) + 1, so each player is owner exactly {rounds_per_player} times. The owner and the owner's unsailed ships are announced.\n2. Sail. The owner privately chooses one of their unsailed ships to sail. If only one remains, it is sailed automatically. Its value is not revealed until the end of the round.\n3. Talk. Every player writes one short message at the same time, without seeing the others. All messages are then shown to everyone. Talk binds no one.\n4. Commit. At the same moment, every player secretly chooses a whole number of crew to commit, from {min_commit} up to their remaining crew. At the same moment, the owner may declare their Admiral if it is unused, and each non-owner may declare their Captain if it is unused; you are only offered a trump you may legally declare. Invalid amounts are set to 0; invalid trump declarations are ignored.\n5. Spend. Every player's committed crew is subtracted from their remaining crew, whatever the result (30 crew minus a commit of 10 leaves 20).\n6. Strength. The owner's defense equals the crew they committed. Each attacker's strength equals the crew they committed, plus {captain_bonus} if they declared their Captain this round.\n7. Resolve, in this order: (a) If the owner declared the Admiral, the owner keeps the ship, whatever the attack. (b) Otherwise, find the highest attacker strength. The ship goes to that attacker only if their strength is strictly greater than the owner's defense and strictly greater than every other attacker's strength (attack 8 against defense 7 wins). (c) In every other case, including ties between the top attackers (even if they beat the defense) or an attack that does not beat the defense (attack 7 against defense 7 loses), the owner keeps the ship.\n8. Score. Whoever gets the ship adds its value to their gold.\n9. Bookkeeping. The ship is removed from the owner's unsailed ships. Declared trumps are marked used and cannot be declared again; an undeclared trump stays unused.\n10. Announce. The ship's value, who got it, and who used a Captain or Admiral this round are revealed. No crew amounts are revealed.\n\nEnd: after round {rounds_per_player} x N the game ends. Unspent crew is worth {unspent_crew_value}. The player with the most gold wins; players tied for the most gold share the result (a draw)."
+}

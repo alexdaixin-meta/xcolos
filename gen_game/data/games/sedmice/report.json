@@ -1,0 +1,374 @@
+{
+  "game": "sedmice",
+  "attempts": [
+    "it plays, but part of it does nothing: game attribute `full_deck` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "R1 deck is 32 cards: two 8-card hands plus 16 set aside, one trick played (counts only, chance-free)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R2 each hand holds a guaranteed A and 7: A led, 7 followed, leader declines, follower scores 10",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R3 the 16 undealt cards go to set_aside after dealing",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R4 deal 2 starts with seat 2 leading",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R4 deal 3 starts with seat 1 leading",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R5 trick winner leads the next trick",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R6 leader may lead any card in hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R7 non-matching follow: leader wins with 2 cards, no extension asked",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R8 follower playing a 7 is winning; leader without A or 7 cannot extend",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R9 leader extends with a matching card and wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R10 leader declines the extension, follower wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R11 after an extension the follower plays a second card of any rank",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R12 follower's second card is a 7, so the follower wins the extended trick",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R13 no second extension: follower wins after one extension even though leader still holds a 7",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R14 trick winner scores 10 per A and per 10 in the trick",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R15 last trick of a deal gives +10 and ends the deal",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R16 an extended trick that empties both hands ends the deal",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R17 game ends after deal 4 and the higher score wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R17 equal final scores share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R18 a player is offered only cards from their own hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        2
+      ],
+      "results": {
+        "seat 2": 11,
+        "seat 1": 9
+      },
+      "turns_min": 52,
+      "turns_max": 59
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 2": 32,
+      "seat 1": 26,
+      "seats 1 and 2": 2
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 22,
+        "loss": 37,
+        "draw": 1,
+        "win_rate": 0.37
+      },
+      "first@seat2": {
+        "win": 23,
+        "loss": 34,
+        "draw": 3,
+        "win_rate": 0.4
+      },
+      "last@seat1": {
+        "win": 38,
+        "loss": 19,
+        "draw": 3,
+        "win_rate": 0.67
+      },
+      "last@seat2": {
+        "win": 37,
+        "loss": 21,
+        "draw": 2,
+        "win_rate": 0.64
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 66.3,
+      "prompt_chars_avg": 123,
+      "prompt_chars_max": 245
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "Exactly 2 players, suggested 2",
+      "why": "The designer fixed it as a duel. Its trick mechanics (one leader, one follower, an extension answered by the follower) only work with two players."
+    },
+    {
+      "what": "No talk step",
+      "why": "With two directly opposed players, talk gives nothing to coordinate and only adds words."
+    },
+    {
+      "what": "Seat 1 is Player A and seat 2 is Player B",
+      "why": "This maps the source's named players to seats so the first-lead rule can be applied."
+    },
+    {
+      "what": "Cards are stored as rank strings in lists",
+      "why": "Suits do not matter, so a rank fully identifies a card."
+    },
+    {
+      "what": "The match loop runs trick by trick instead of in 32 fixed round slots",
+      "why": "Skipped rounds in a deal do nothing, so ending each deal when the hands empty and counting deals gives the same game."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "The 8-round deal slot is not counted explicitly; a deal ends when both hands are empty",
+      "why": "The rules say the remaining rounds of a deal are skipped, so counting slots adds steps without changing play."
+    },
+    {
+      "what": "Dealing is a single conditional update at the start of a round when new_deal is true",
+      "why": "The engine's step list is flat, and a step with a when condition expresses dealing on the first round of each deal."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 10,
+    "choice_steps_per_round": 4,
+    "attributes": 28,
+    "hidden_elements": 6
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Sedmice is a Central European trick-taking game for 2 to 4 players with a 32-card deck. A trick goes to the last player who matches the led rank or plays a wild Seven. The leader may keep extending a trick they are losing. Aces and Tens are worth 10 points each, the last trick is worth 10 more, and hands are refilled from a talon.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "No simple policy wins. If you always follow with a Seven, the opponent leads worthless 8s and 9s to draw your Sevens out, then cashes Aces and Tens. If you always play your lowest card, you lose every contested Ace or Ten. Leading is not a fixed edge, because the follower answers last; the leader's compensation is the extension."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "weak",
+        "evidence": "Card counting, Seven management and when to extend do matter. But in a short match one deal that gives a player three Sevens and most of the Aces and Tens often decides it. The random refill from the talon adds further variance a player cannot control."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Beginners still take some tricks. Experts improve through counting which ranks are gone, baiting Sevens, timing extensions and saving a Seven for the last trick. The game is not solved."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Opponents' hands and the talon are hidden. Players must infer from what has been played whether the opponent still holds a matching rank or a Seven, and plan which card to give up now to win a later trick."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Trick winners follow mechanically from ranks, and points are simple sums of Aces, Tens and the last-trick bonus."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "weak",
+        "evidence": "The game is turn-based and text-only. Three parts break the limits. Unlimited extensions are an unbounded loop of steps. Refilling every hand from the talon after each trick needs several random draws per round. The 4-player fixed-partnership version adds roles and many choice steps."
+      }
+    ],
+    "problems": [
+      "Unlimited trick extension creates a loop of unbounded length that a flat step list cannot express, and it can exceed 4 choices per round.",
+      "Refilling every hand from the talon after every trick needs several random draws per round, above the limit of 1.",
+      "A single lucky deal (many Sevens, Aces and Tens) can decide the match, so luck can swamp skill.",
+      "The 4-player partnership version and variable player counts multiply the choice steps and the rules for turn order.",
+      "The 'first to 120 across deals, 50+ to win a deal' scoring gives a match of variable length, which is awkward for a fixed number of rounds."
+    ],
+    "changes": [
+      {
+        "what": "The leader may extend a trick at most once: one extra card from each player.",
+        "why": "This keeps the signature extension decision while bounding each trick to at most 4 card plays.",
+        "fixes": "Unlimited trick extension creates a loop of unbounded length that a flat step list cannot express, and it can exceed 4 choices per round."
+      },
+      {
+        "what": "Replace the talon refill with one deal of 8 cards per player at the start of each deal. The 16 undealt cards are set aside face down and never used.",
+        "why": "There is only one random event per deal, at its first round. Hidden information remains, because neither player can deduce the other's hand from their own cards.",
+        "fixes": "Refilling every hand from the talon after every trick needs several random draws per round, above the limit of 1."
+      },
+      {
+        "what": "Use a guaranteed core deal: each player always receives exactly one Seven, one Ace and one Ten, plus 5 random cards. Play 4 deals, with the first lead alternating.",
+        "why": "This caps how lopsided a deal can be and averages luck over four deals. Both players also know the opponent started with at least one Seven, Ace and Ten, which gives a firm basis for inference.",
+        "fixes": "A single lucky deal (many Sevens, Aces and Tens) can decide the match, so luck can swamp skill."
+      },
+      {
+        "what": "Restrict the game to 2 players.",
+        "why": "A strict head-to-head duel keeps the game within 4 choices per round with no partner roles.",
+        "fixes": "The 4-player partnership version and variable player counts multiply the choice steps and the rules for turn order."
+      },
+      {
+        "what": "Fix the length at 4 deals of up to 8 tricks (32 rounds). The higher total of points over all deals wins, and equal totals are a draw.",
+        "why": "This gives a fixed, arithmetic winner rule. The game is purely competitive, so no cooperative option collapses under 'higher total wins'.",
+        "fixes": "The 'first to 120 across deals, 50+ to win a deal' scoring gives a match of variable length, which is awkward for a fixed number of rounds."
+      }
+    ],
+    "keeps": [
+      "The 32-card deck of ranks 7 through Ace, with suits irrelevant.",
+      "Sevens are wild and capture any trick.",
+      "A trick is won by the last player to match the led rank or play a Seven; otherwise the leader wins it.",
+      "The leader's option to extend a trick they are losing.",
+      "Aces and Tens are worth 10 each and the last trick is worth 10.",
+      "The trick winner leads the next trick."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The core decisions (spending Sevens, extending, counting ranks) are rich and survive a bounded extension and a single deal per hand. Only the loop, the refill and the luck needed fixing."
+    },
+    "variation": {
+      "name": "Sedmice Duel",
+      "summary": "A two-player Sedmice over 4 deals. Sevens are wild, and the leader may extend a losing trick once. Each deal gives both players a guaranteed Seven, Ace and Ten plus 5 random cards, so counting and baiting decide the game more than the draw does.",
+      "players": {
+        "min": 2,
+        "max": 2,
+        "suggested": 2
+      },
+      "rules": "CARDS: 32 cards, four each of the ranks 7, 8, 9, 10, J, Q, K, A. Suits do not matter. Aces and Tens are point cards worth 10 each. Sevens are wild.\n\nMATCH: 4 deals. Each deal lasts up to 8 rounds, so the match has 32 rounds. Each round is one trick.\n\nDEALING (first round of each deal): Shuffle the full deck. Each player receives exactly one Seven, one Ace and one Ten. Shuffle the remaining 26 cards and deal 5 more to each player, so each hand has 8 cards. Hands are private. The 16 undealt cards are set aside face down and are never revealed or used in that deal. Both players know the dealing rule.\n\nFIRST LEAD: Player A leads first in deals 1 and 3. Player B leads first in deals 2 and 4. After that, the winner of each trick leads the next one.\n\nA TRICK:\n(1) The leader plays any card face up. Its rank is the 'led rank'.\n(2) The follower plays any card face up. If it matches the led rank or is a Seven, the follower is currently winning. Otherwise the leader wins the trick and it ends.\n(3) If the follower is currently winning, the leader may extend once by playing a second card that matches the led rank or is a Seven. The leader may also decline. If the leader declines or has no such card, the follower wins the trick.\n(4) If the leader extended, the follower must play a second card (any card). If it matches the led rank or is a Seven, the follower wins the trick. Otherwise the leader wins.\nA trick can never be extended more than once.\n\nAFTER EACH TRICK: All cards played in the trick are announced. The winner scores 10 points for each Ace and each Ten among them. Both players always play the same number of cards, so both hands empty together. If the hands are now empty, the winner of this trick also scores 10 points for the last trick, and the deal ends. Any remaining rounds of that deal are skipped. A deal lasts 4 to 8 tricks.\n\nINFORMATION: Each player sees their own hand and every card played. Neither sees the opponent's hand or the set-aside cards.",
+      "objective": "After 4 deals, the player with the higher total points across all deals wins. Equal totals are a draw.",
+      "expected_effect": "Players must count which ranks and Sevens have been played. Each player knows the opponent held at least one Seven, Ace and Ten, so inference has a firm anchor. Good play includes leading cheap ranks to drain the opponent's Sevens, holding a Seven back for an Ace or Ten trick or for the last-trick bonus, and extending only when the follower is unlikely to have a matching card left. The guaranteed core deal and the four alternating deals keep luck in check, so the better counter and planner should usually win. Talk is omitted: with two strictly opposed players there is nothing to bargain over."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 4,
+      "attributes": 14,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 32
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "DECK PER DEAL: each player gets one 7, one A and one 10 for certain. The other 26 cards are 2x7, 2xA, 2x10 and 4 each of 8, 9, J, Q, K. Each player draws 5 of them, so the expected extra Aces and Tens per hand are 5*4/26 = 0.77 and the expected extra Sevens are 5*2/26 = 0.38. Points in play per deal range from 40 (only the guaranteed cards) to 80, plus 10 for the last trick. Holding point cards earns nothing until you win the trick they fall in.\n\nKEY DECISION (leader leads an Ace; points to the leader):\n- Follower plays a non-matching card: +10, or +20 if that card was a Ten.\n- Follower captures with A or 7 and the leader declines to extend: -10.\n- Leader extends with A or 7 and the follower's second card misses: +20 to +30, since the leader wins two Aces or A+7 plus any point card the follower dumped.\n- Leader extends and the follower matches again: -20 to -30.\nNo option dominates. Capturing is right only if the follower still holds a second matching card or Seven, or reads that the leader holds none. That depends on counting the 4 copies of each rank and the 4 Sevens.\n\nTHOUGHTLESS POLICIES UNDER THE WINNER RULE (higher 4-deal total wins):\n(a) Always play the first card or a random card: it dumps its own Ace or Ten into tricks the opponent wins and spends Sevens on zero-point tricks. It loses to sensible play most of the time.\n(b) Always capture when able: a sensible leader leads 8/9/J/Q/K ranks to draw out its Sevens on worthless tricks, then leads point cards it can no longer contest. It loses.\n(c) Always decline extensions: it concedes every contested trick, including its own led Aces and Tens. It loses.\n(d) Always extend when able: it walks into re-captures when the follower holds a second match. It is exploitable.\n(e) Always lead a Seven: it burns its only guaranteed wild. The opponent, who has at least one Seven, can answer or dump.\nNone of these policies never loses.\n\nSEATS: the leader picks the rank, and the follower has the final card in each trick. The first lead alternates A, B, A, B over 4 deals, and the dealing gives both players the same guaranteed cards. There is no structural seat edge.\n\nDRAWS: totals are multiples of 10 and can tie, but the swing per deal is large, so draws are uncommon. Both players can realistically win."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "The rules cover all cases.\n- A trick has at most 4 card plays: lead, follow, optional extension, second follow.\n- When the led card is a Seven, only a Seven matches, because Sevens are wild and also the led rank.\n- A leader with no legal second card cannot extend.\n- An extension needs both hands to hold at least 2 cards. Hand sizes are always equal, so that holds whenever the leader is able to extend.\n- Hands empty together, the last trick bonus is defined, and skipped rounds are handled by `when` conditions on the steps.\n- The game is finite: 4 deals of at most 8 tricks, 32 rounds. It is scored by arithmetic on announced cards.\n\nLIMITS:\n- 13 steps (at most 20).\n- 4 choice steps (at most 4): lead, follow, extend or decline, second follow.\n- 14 attributes (at most 20).\n- 2 hidden elements (at most 3): the two hands. The set-aside cards never enter play.\n- 1 random draw per round, used only in the deal's first round. Because suits do not matter, the guaranteed 7/A/10 allocation is deterministic. A single shuffle-and-deal of the 26 remaining cards covers it, so the text's 'shuffle the full deck' is redundant rather than a second draw.\n- 32 rounds (at most 40).\n\nENGINE FIT: no board, clock, trading, binding agreements or conditional blocks. Each choice is sequential and made by one player, so no simultaneous poll is needed. Legality of a matching card can be checked arithmetically by rank. Two players, so talk is correctly omitted. This is not a cooperation-type repeated game, so the late-round betrayal concern does not apply."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "WHAT IS LEFT TO CHANCE: the 5 random cards per hand.\n- They can give one player 1-2 extra Sevens, roughly a 1 in 3 chance per deal for any given player to receive one.\n- They can give one player more of the 4 swing point cards.\n- The guaranteed 7/A/10 for each player caps how much the deal can decide.\n- Over 4 deals with alternating leads, I estimate about 25-35% of the result is luck.\n\nWHAT THERE IS TO INFER: the opponent's 8 cards drawn from the 24 unseen. You know they hold at least one 7, one A and one 10. You track how many of each rank and how many Sevens remain unplayed, and read declined captures and extensions as signals.\n\nHOW TO ACT ON IT:\n- Choose led ranks the opponent probably lacks.\n- Time your point-card leads after their Sevens are gone.\n- Decide whether to extend based on the chance they can re-match.\n- Hold a wild for the last trick bonus.\n\nWHEN BOTH PLAY WELL: results are decided by small counting edges and by the random extra Sevens and point cards. A strong deal can be partly neutralised by careful leading, and the 4-deal sum smooths variance, so the deal alone does not decide the winner. A counting player clearly beats a non-counting one."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 4,
+      "attributes": 14,
+      "hidden_elements": 2,
+      "random_draws_per_round": 1,
+      "rounds": 32
+    },
+    "measured": {
+      "steps_per_round": 10,
+      "choice_steps_per_round": 4,
+      "attributes": 28,
+      "hidden_elements": 6
+    }
+  },
+  "verdict": "ready_for_review"
+}

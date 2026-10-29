@@ -1,0 +1,704 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "break_the_code",
+    "name": "Break the Code: Duel of Two Tiles",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "Hide a two-tile code each leg, ask property questions or guess your opponent's code; earlier correct guesses score more over 4 legs of 6 turns."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "legs_solved",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "code_low",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "code_high",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "solved",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "last_action",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "last_answer",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "guess_low",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "guess_high",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "code_pick",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "act",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      }
+    ],
+    "game": [
+      {
+        "key": "leg",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "turn_in_leg",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "seat1_code_low",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "seat1_code_high",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "seat2_code_low",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "seat2_code_high",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "legs",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "turns_per_leg",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "total_turns",
+        "visible": "public",
+        "type": "number",
+        "initial": 24
+      },
+      {
+        "key": "starting_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tile_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tile_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "possible_codes",
+        "visible": "public",
+        "type": "number",
+        "initial": 21
+      },
+      {
+        "key": "guess_score_base",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "sum_low_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "sum_middle_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "sum_middle_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "sum_high_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 7
+      },
+      {
+        "key": "sum_high_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "gap_pair",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "gap_adjacent",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "gap_apart_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "big_tile_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "edge_tile_low",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "edge_tile_high",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "wrong_guess_cost",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "tie_break_weight",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "seats and scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "starting_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "legs_solved",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "first leg, first turn",
+      "do": [
+        {
+          "set": {
+            "key": "leg",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "turn_in_leg",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "the rules",
+      "to": "all",
+      "text": "Break the Code: {legs} legs of {turns_per_leg} turns ({total_turns} turns). Each leg you hide one of the {possible_codes} two-tile codes (tiles {tile_min}-{tile_max}, low-high). Each turn ask Sum, Odd, Gap, Big or Edge about your opponent's code, or guess it. A correct guess scores {guess_score_base} minus the turn number; a wrong guess scores 0 and tells you how many guessed tiles appear in the code."
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "score",
+        "legs_solved"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "new leg reset",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "solved",
+            "value": false,
+            "if": {
+              "calc": "turn_in_leg == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "last_action",
+            "value": "",
+            "if": {
+              "calc": "turn_in_leg == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "last_answer",
+            "value": "",
+            "if": {
+              "calc": "turn_in_leg == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "code_pick",
+            "value": "",
+            "if": {
+              "calc": "turn_in_leg == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "act",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "use": "poll",
+      "phase": "code",
+      "label": "choose your secret code",
+      "when": {
+        "calc": "turn_in_leg == 1"
+      },
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "0-0",
+          "0-1",
+          "0-2",
+          "0-3",
+          "0-4",
+          "0-5",
+          "1-1",
+          "1-2",
+          "1-3",
+          "1-4",
+          "1-5",
+          "2-2",
+          "2-3",
+          "2-4",
+          "2-5",
+          "3-3",
+          "3-4",
+          "3-5",
+          "4-4",
+          "4-5",
+          "5-5"
+        ]
+      },
+      "store": "code_pick",
+      "text": "Leg {leg} begins. Choose your secret code for this leg (low tile - high tile). Your opponent will not see it, and it cannot be changed during the leg."
+    },
+    {
+      "use": "update",
+      "phase": "code",
+      "label": "record the codes",
+      "when": {
+        "calc": "turn_in_leg == 1"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "code_low",
+            "value": {
+              "calc": "int(you.code_pick[0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "code_high",
+            "value": {
+              "calc": "int(you.code_pick[2])"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "seat1_code_low",
+            "value": {
+              "calc": "players[0].code_low"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "seat1_code_high",
+            "value": {
+              "calc": "players[0].code_high"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "seat2_code_low",
+            "value": {
+              "calc": "players[1].code_low"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "seat2_code_high",
+            "value": {
+              "calc": "players[1].code_high"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "turn",
+      "label": "your standing",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "code_low",
+        "code_high",
+        "score",
+        "legs_solved"
+      ],
+      "text": "Leg {leg}, turn {turn_in_leg}. Your code and standing:"
+    },
+    {
+      "use": "poll",
+      "phase": "turn",
+      "label": "choose your action this turn",
+      "to": {
+        "where": "not you.solved"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "sum",
+          "odd",
+          "gap",
+          "big",
+          "edge",
+          "guess 0-0",
+          "guess 0-1",
+          "guess 0-2",
+          "guess 0-3",
+          "guess 0-4",
+          "guess 0-5",
+          "guess 1-1",
+          "guess 1-2",
+          "guess 1-3",
+          "guess 1-4",
+          "guess 1-5",
+          "guess 2-2",
+          "guess 2-3",
+          "guess 2-4",
+          "guess 2-5",
+          "guess 3-3",
+          "guess 3-4",
+          "guess 3-5",
+          "guess 4-4",
+          "guess 4-5",
+          "guess 5-5"
+        ]
+      },
+      "store": "act",
+      "text": "Leg {leg}, turn {turn_in_leg}. Pick one action about your opponent's code: sum (LOW 0-3, MIDDLE 4-6, HIGH 7-10), odd (how many odd tiles), gap (PAIR, ADJACENT, APART), big (how many tiles are 3 or more), edge (how many tiles are 0 or 5), or guess a full code. A correct guess now scores {guess_score_base} minus {turn_in_leg}."
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "record the actions",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.solved"
+            },
+            "key": "last_action",
+            "value": "solved"
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "not you.solved"
+            },
+            "key": "last_action",
+            "value": {
+              "calc": "you.act"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "last_answer",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "not you.solved and len(you.act) == 9"
+            },
+            "key": "guess_low",
+            "value": {
+              "calc": "int(you.act[6])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "not you.solved and len(you.act) == 9"
+            },
+            "key": "guess_high",
+            "value": {
+              "calc": "int(you.act[8])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "turn",
+      "label": "answer the actions",
+      "do": [
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 1 and not you.solved"
+            },
+            "key": "last_answer",
+            "value": {
+              "calc": "(('LOW' if seat2_code_low + seat2_code_high <= sum_low_max else ('MIDDLE' if seat2_code_low + seat2_code_high <= sum_middle_max else 'HIGH')) if you.act == 'sum' else (['0', '1', '2'][seat2_code_low % 2 + seat2_code_high % 2] if you.act == 'odd' else (('PAIR' if seat2_code_high - seat2_code_low == gap_pair else ('ADJACENT' if seat2_code_high - seat2_code_low == gap_adjacent else 'APART')) if you.act == 'gap' else (['0', '1', '2'][count(t >= big_tile_min for t in [seat2_code_low, seat2_code_high])] if you.act == 'big' else (['0', '1', '2'][count(t == edge_tile_low or t == edge_tile_high for t in [seat2_code_low, seat2_code_high])] if you.act == 'edge' else ('CORRECT' if you.guess_low == seat2_code_low and you.guess_high == seat2_code_high else 'WRONG, tiles matching: ' + ['0', '1', '2'][(count(t == you.guess_low for t in [seat2_code_low, seat2_code_high]) if you.guess_low == you.guess_high else count(g in [seat2_code_low, seat2_code_high] for g in [you.guess_low, you.guess_high]))]))))))"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == 2 and not you.solved"
+            },
+            "key": "last_answer",
+            "value": {
+              "calc": "(('LOW' if seat1_code_low + seat1_code_high <= sum_low_max else ('MIDDLE' if seat1_code_low + seat1_code_high <= sum_middle_max else 'HIGH')) if you.act == 'sum' else (['0', '1', '2'][seat1_code_low % 2 + seat1_code_high % 2] if you.act == 'odd' else (('PAIR' if seat1_code_high - seat1_code_low == gap_pair else ('ADJACENT' if seat1_code_high - seat1_code_low == gap_adjacent else 'APART')) if you.act == 'gap' else (['0', '1', '2'][count(t >= big_tile_min for t in [seat1_code_low, seat1_code_high])] if you.act == 'big' else (['0', '1', '2'][count(t == edge_tile_low or t == edge_tile_high for t in [seat1_code_low, seat1_code_high])] if you.act == 'edge' else ('CORRECT' if you.guess_low == seat1_code_low and you.guess_high == seat1_code_high else 'WRONG, tiles matching: ' + ['0', '1', '2'][(count(t == you.guess_low for t in [seat1_code_low, seat1_code_high]) if you.guess_low == you.guess_high else count(g in [seat1_code_low, seat1_code_high] for g in [you.guess_low, you.guess_high]))]))))))"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "not you.solved and you.last_answer == 'CORRECT'"
+            },
+            "key": "score",
+            "value": {
+              "calc": "guess_score_base - turn_in_leg"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "not you.solved and you.last_answer == 'CORRECT'"
+            },
+            "key": "legs_solved",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "not you.solved and you.last_answer == 'CORRECT'"
+            },
+            "key": "solved",
+            "value": true,
+            "text": "Seat {player} has solved leg {leg}."
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "turn",
+      "label": "the answers",
+      "to": "all",
+      "text": "Leg {leg}, turn {turn_in_leg}. Seat 1: {players[0].last_action} -> {players[0].last_answer}. Seat 2: {players[1].last_action} -> {players[1].last_answer}. Scores: {players[0].score} / {players[1].score}."
+    },
+    {
+      "use": "tell",
+      "phase": "leg end",
+      "label": "reveal the codes",
+      "when": {
+        "calc": "turn_in_leg == turns_per_leg"
+      },
+      "to": "all",
+      "text": "Leg {leg} is over. Seat 1's code was {seat1_code_low}-{seat1_code_high}; Seat 2's code was {seat2_code_low}-{seat2_code_high}. A leg nobody solved scores nothing."
+    },
+    {
+      "use": "update",
+      "phase": "leg end",
+      "label": "advance the turn",
+      "do": [
+        {
+          "adjust": {
+            "key": "leg",
+            "value": 1,
+            "if": {
+              "calc": "turn_in_leg >= turns_per_leg"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "turn_in_leg",
+            "value": {
+              "calc": "1 if turn_in_leg >= turns_per_leg else turn_in_leg + 1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "leg end",
+      "label": "after the last leg",
+      "when": {
+        "calc": "leg > legs"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "leg > legs"
+      },
+      "rank_by": "you.score * 10 + you.legs_solved",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score} ({players[0].legs_solved} legs solved), Seat 2 {players[1].score} ({players[1].legs_solved} legs solved)."
+    }
+  },
+  "limits": {
+    "rounds": 30,
+    "rounds_max": 30,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "The match is {legs} legs of {turns_per_leg} turns each ({total_turns} turns in all). Scores start at {starting_score}.\n\nCODES. At the start of each leg (turn 1), both players at the same moment secretly choose a code of two tiles. Each tile is a whole number from {tile_min} to {tile_max}. A code is written low tile then high tile, with low no greater than high; equal tiles are allowed, for example 3-3. There are {possible_codes} possible codes. A code cannot be changed during the leg.\n\nTURNS. On each turn of a leg, both players choose at the same moment. Each picks exactly one of the following actions, about the opponent's code:\n- sum: is the sum of the two tiles LOW (0-{sum_low_max}), MIDDLE ({sum_middle_min}-{sum_middle_max}) or HIGH ({sum_high_min}-{sum_high_max})?\n- odd: how many tiles are odd: 0, 1 or 2?\n- gap: is high minus low {gap_pair} (PAIR), {gap_adjacent} (ADJACENT) or {gap_apart_min} or more (APART)?\n- big: how many tiles are {big_tile_min} or more: 0, 1 or 2?\n- edge: how many tiles are {edge_tile_low} or {edge_tile_high}: 0, 1 or 2?\n- guess: name a full code (low, high).\nRepeating a question is allowed, but it gives the same answer again.\n\nANSWERS. After both have chosen, both players are told each player's action and its truthful answer, computed from the opponent's code.\n- If a guess equals the opponent's code exactly, it is CORRECT. The guesser scores {guess_score_base} minus the turn number within the leg: 6 points on turn 1, 5 on turn 2, 4 on turn 3, 3 on turn 4, 2 on turn 5 and 1 on turn 6.\n- If a guess is wrong, it scores 0 and costs nothing else ({wrong_guess_cost}). The answer is WRONG with how many of the guessed tiles appear in the code, which is 0 or 1. Each code tile can match at most one guessed tile (guess 3-3 against code 3-4 answers 1; guess 1-2 against code 3-4 answers 0).\n\nSOLVED. A player who guesses correctly has solved the leg: their legs solved count goes up by 1, and for the rest of that leg they are not asked for an action and score nothing more. The other player keeps playing normally.\n\nEND OF LEG. After turn {turns_per_leg} of a leg, both codes are revealed to both players. Unsolved legs score nothing for anyone. The next leg starts with new codes.\n\nEND OF MATCH. After {legs} legs the match ends. The player with the higher total score wins. If totals are equal, the player who solved more legs wins. If that is also equal, the match is a draw (shared win)."
+}

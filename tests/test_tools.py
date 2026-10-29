@@ -429,6 +429,17 @@ def test_the_invite_says_how_many_refusals_the_game_takes():
     assert "`refused`" in text and f"After {MAX_REFUSED} refused answers" in text
 
 
+def test_the_invite_lists_the_tables_notes():
+    from xcolos.games.definition import NoteDef, STANDARD_NOTES
+    from xcolos.tools import invite_text
+
+    text = invite_text("http://x", "w1", 1, "pl_1",
+                       notes=(NoteDef("plan", STANDARD_NOTES["plan"]),))
+    assert '"plan":' in text and "- `plan`:" in text
+    assert '"predict":' not in text and "- `adjust`:" not in text
+    assert '"predict":' in invite_text("http://x", "w1", 1, "pl_1")
+
+
 def test_a_turn_that_runs_out_is_defaulted():
     game, runner, tools = build(12, deadline_ms=250)
     runner.start()
@@ -979,6 +990,24 @@ def test_shorthand_and_structured_replies_mean_the_same_thing():
     a = messages.parse_action({"kind": "action", "action": "speak", "text": "hi"}, speak, ())
     b = messages.parse_action("hi", speak, ())
     assert a == b
+
+
+def test_a_number_for_an_answer_listed_as_text_is_that_text():
+    # Truc's hand is the cards "10", "8" and "7": `xcolos act 10` and {"response": 10}
+    # send the number 10, which used to be refused as not among the legal targets.
+    from xcolos import messages
+    from xcolos.protocol import ActionInvalid, ActionSchema, validate
+
+    play = ActionSchema(id="first_trick", target="enum", choices=("10", "8", "7"))
+    legal = ("10", "8", "7")
+    for answer in (10, "10", {"response": 10}, {"response": "10"}):
+        action = messages.parse_action(answer, play, legal)
+        assert action.target == "10"
+        validate(action, play, legal)
+    # A number the game does not list is still refused, and seat numbers stay numbers.
+    with pytest.raises(ActionInvalid):
+        validate(messages.parse_action(9, play, legal), play, legal)
+    assert messages.parse_action(2, ActionSchema(id="vote", target="seat"), (0, 1, 2)).target == 2
 
 
 def test_an_unreadable_reply_is_refused_with_a_reason():

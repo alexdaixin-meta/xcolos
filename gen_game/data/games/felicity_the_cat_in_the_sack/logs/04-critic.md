@@ -1,0 +1,58 @@
+# 04 critic
+
+- time: 2026-10-27T18:17:24+00:00 (77.6s)  model: claude-opus-5-5
+- system prompt: [system/37afe4a1-critic.md](system/37afe4a1-critic.md) (sha256 37afe4a1837f349a)
+- sent sha256 a878e3f54ef613ab, reply sha256 00855fc83cc90ce0
+
+## Sent
+
+````
+ORIGINAL GAME: Felicity The Cat In The Sack
+Each player has 10 cards (cats -8,-5,3,5,8,11,15, rabbit 0, large and small dog) and 15 mice money; one random card is discarded from each hand unseen. 9 rounds: each player places one hand card face down in a row forming the sack. Cards are revealed left to right during the auction. Start player bids mice ( >0 ) or passes; bidding proceeds clockwise, must raise to continue. When a player passes, he takes back his bids and collects the mice on the lowest mouse card still available (2,3,4,6) and is out for the round, then next sack card is revealed. Last remaining player pays his bid to the bank and takes the sack. If exactly one dog is in the final row, it removes a cat: large dog removes highest positive cat (or lowest negative if no positive), small dog removes most negative cat (or lowest positive if none). Dogs then discarded. Winner becomes start player. Next round refill mouse cards from bank if possible. After 9 rounds score won cats plus remaining mice money; rabbit 0, dogs 0. Most points wins, tie broken by cat points.
+
+PROPOSED VARIATION: Cat in the Sack: Paid Entry
+Players: 3 to 5
+Rules: SETUP
+- Every player receives the same 9 cards: cats worth -8, -5, 3, 5, 8, 11 and 15, one Rabbit worth 0, and one Dog worth 0.
+- One card is removed at random from each hand. Its owner is told which card it is. No one else is told.
+- Each player starts with 15 mice and 0 cat points. The bank of mice is unlimited.
+- Seats are numbered. Seat 1 is the start player in round 1.
+- The game lasts 8 rounds, so every remaining card is played.
+
+EACH ROUND
+1. Start player. In round 1 it is Seat 1. In each later round it is the next seat in order. The start player matters only for breaking ties.
+2. Fill the sack. All players at the same time secretly choose one card from their hand and place it in the sack. Placed cards never return.
+3. Shuffle. The engine shuffles the sack into a random order.
+4. First reveal. Cards are shown from the front of the shuffled order. With 3 players, 1 card is shown. With 4 or 5 players, 2 cards are shown. Revealed cards do not say who placed them.
+5. Talk. Every player writes one short message at the same time, without seeing the others' messages. All messages are then shown. Claims are not binding and may be lies.
+6. Stay or drop. All players at the same time choose STAY or DROP. A player with fewer than 2 mice must DROP.
+7. Entry and drop payment. Each player who chose STAY pays 1 mouse to the bank immediately. This fee is never refunded. Each player who chose DROP receives 2 mice from the bank and is out for this round.
+8. Second reveal. The next card in the shuffled order is shown to everyone.
+9. Sealed bid. Every player who chose STAY secretly bids a whole number of mice, from 1 up to their current mice (counted after paying the fee). All bids are revealed together.
+10. Winner. The highest bidder wins the sack.
+   - If two or more players tie for the highest bid, the tied player with fewer current mice wins.
+   - If they are still tied, the tied player who comes first in seat order, counting from the start player, wins.
+   - If nobody stayed, nobody wins and the sack is discarded.
+   - If exactly one player stayed, that player wins and pays their bid.
+11. Sack value. All remaining sack cards are revealed. The sack's value is the sum of the cats in it. The Rabbit and Dogs are worth 0.
+   - If exactly one Dog is in the sack and the sack holds at least one cat, the cat with the highest value is removed before summing.
+   - Two or more Dogs have no effect.
+12. Payment. The winner pays their bid to the bank and adds the sack's value to their cat points. The value may be negative.
+13. Losing stayers receive nothing. They have already paid their fee.
+14. Discard. All sack cards are discarded face up, so everyone can count which cards have been used.
+15. End check. After round 8 the game ends.
+
+SCORING
+Each player's total is their cat points plus their mice.
+How the winner is decided: After round 8 the player with the highest total (cat points plus mice) wins. If totals are tied, the tied player with the most cat points wins. If that is also tied, the game is a draw among those players.
+The designer's stated complexity: {"steps_per_round": 15, "choice_steps_per_round": 4, "attributes": 13, "hidden_elements": 3, "random_draws_per_round": 1, "rounds": 8}
+````
+
+## Reply
+
+````
+```json
+{"balanced": {"verdict": "pass", "evidence": "Card pool per hand: cats -8-5+3+5+8+11+15 = 29, plus Rabbit 0 and Dog 0. One random card is removed, expected value 29/9 = 3.2, leaving about 25.8 per player over 8 placed cards. With 3 players, each holding a Dog 8/9 of the time, about 2.7 Dogs reach the sacks. A lone Dog removes the top cat, roughly 8 in a 3-card sack. Total cat value over the game is therefore about 77 - 21 = 56, or about 7 per sack.\n\nThe key decision is STAY or DROP. Relative to dropping (+2), a stayer is 3 mice worse at once (-1 fee), and the winner also pays the bid.\n\nPayoff of STAY relative to DROP, with sack value V and winning bid b:\n- Stay alone (b = 1): V - 4.\n- Contested, you win: V - 3 - b.\n- Contested, you lose: -3.\n- Nobody stays: sack discarded.\nFor V = 7: alone gives +3; contested with b ≈ 3 gives the winner +1 and the loser -3. Staying pays when you have seeded a strong card and expect few rivals. It loses in blind bidding wars. No option is strictly better whatever the opponent does.\n\nThoughtless policies under the winner rule (highest total):\n- Always DROP: a fixed 15 + 16 = 31 total with 0 cat points. It loses to a stayer who picks spots. Example: A seeds 15/11/8 and stays alone in 4 rounds on sacks worth about 8 each. A gains 4 × (8 - 4) = +16 over the drop baseline and finishes about 47 against 31. Always-drop is therefore not a never-lose policy. It does well only when the others burn value in bidding wars, which sensible players avoid.\n- Always STAY and bid max: pays all mice each win. On a 7-point sack with 14 mice that is -8 relative. It loses to almost anyone.\n- Always STAY and bid 1: outbid by any 2. It wins only when alone or on the fewer-mice tie-break. A sensible player who drops often holds more mice, but simply bids 2 and beats it. It is not dominant.\n- Always place the first listed card (-8 first): this poisons the early sacks. The policy has to stay or drop as well, and either half is exploitable.\n\nSeat order: simultaneous card placement, talk, stay and bids leave no informational edge. The start player only breaks the second-level tie, and it rotates. Each player's dealt hand differs only by the random removed card. Every player can realistically win.", "playable"},
+ "playable": {"verdict": "pass", "evidence": "Rules are complete:\n- Same 9 cards each, minus 1 removed, gives 8 cards for exactly 8 rounds, so the last placement is forced.\n- The minimum mice to stay (2) covers the fee plus the minimum bid, so mice never go negative.\n- Winner ties are defined: fewer current mice (after the fee), then seat order from the start player.\n- No-stayer and single-stayer cases are defined.\n- Dog rule: exactly one Dog plus at least one cat removes the highest-valued cat. This is defined even if all cats are negative (the least negative is removed).\n- The end condition and the total/tiebreak/draw rule are pure arithmetic on tracked numbers.\n\nNo board, judge or clock is needed. All simultaneous decisions are polls: placement, stay/drop and bid.\n\nLimits: 15 steps ≤ 20; choice steps 4 ≤ 4 (place, talk, stay/drop, bid); 13 attributes ≤ 20; hidden elements 3 (hands, removed card, shuffled sack order) ≤ 3; 1 random draw per round (the shuffle; the removal is in setup); 8 rounds ≤ 40.\n\nTalk is warranted and simultaneous. Players have opposed interests: each wants rivals to drop on good sacks and to buy poisoned ones. Claims about what one placed can be lies. Players can partly check claims against their own card, the revealed cards and the public discards. Following a rival's 'it's bad, drop' can cost you the sack.\n\nThis is not a cooperation game, so the late-round betrayal test does not apply. The last round is still a live auction.", "reasoning_over_luck": {"verdict": "pass", "evidence": "Sources of chance:\n- The removed card shifts a hand's total from 14 (15 removed) to 37 (-8 removed). But cards go into shared sacks, so this changes your options more than your score.\n- The shuffle decides which cards are seen before stay/bid. With 3 players, 1 of 3 cards is seen before stay and 2 of 3 before the bid.\n\nWhat good play controls:\n- Seeding a high cat in a round you mean to win.\n- Dumping -8/-5 or the Dog in rounds you drop.\n- Counting the public discards to infer the hidden cards: each player's remaining hand can be bounded from the discards and the removed-card uncertainty.\n- Reading talk and rivals' mice to predict who stays.\n- Sizing sealed bids against the fewer-mice tie-break.\n\nRough chance share of the result is about 25-35%. When all players play well, the winner is decided by placement timing and bid modelling, not the shuffle alone. A strong reasoner beats always-drop by about +16 in the worked example. The deal adds variety but can be overcome.", "required_changes": []}
+```
+````

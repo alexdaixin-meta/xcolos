@@ -1,0 +1,1330 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "no_thanks",
+    "name": "No Thanks! (Bounded Laps)",
+    "players": {
+      "min": 3,
+      "max": 4,
+      "suggested": 4
+    },
+    "blurb": "Pay a chip to refuse a card or take it with the pot; a card circles at most twice before it burns. Lowest card points minus chips wins."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "chips",
+        "visible": "ally",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "tableau",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "card_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35
+        ]
+      },
+      {
+        "key": "removed",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_card",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pot",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "lap_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "lead_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "burned",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "burned_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deck_left",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "round_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card_min",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "card_max",
+        "visible": "public",
+        "type": "number",
+        "initial": 35
+      },
+      {
+        "key": "card_total",
+        "visible": "public",
+        "type": "number",
+        "initial": 33
+      },
+      {
+        "key": "cards_removed",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 20
+      },
+      {
+        "key": "starting_chips",
+        "visible": "public",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "pay_cost",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "laps_to_burn",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "max_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 40
+      },
+      {
+        "key": "initial_lead_seat",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "no_card_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "remove thirteen cards unseen",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "key": "removed",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "no_card_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck_left",
+            "value": {
+              "calc": "len(deck)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "starting state",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "chips",
+            "value": {
+              "calc": "starting_chips"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "tableau",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card_points",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "current_card",
+            "value": {
+              "calc": "no_card_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pot",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "lap_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "lead_seat",
+            "value": {
+              "calc": "initial_lead_seat"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "burned",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "burned_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "round_number",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "label": "draw",
+      "phase": "draw",
+      "do": [
+        {
+          "adjust": {
+            "key": "round_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            },
+            "if": {
+              "calc": "current_card == no_card_value and len(deck) > 0"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "current_card == no_card_value and len(deck) > 0"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "lap_count",
+            "value": 0,
+            "if": {
+              "calc": "current_card == no_card_value and pick != no_card_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_card",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "current_card == no_card_value and pick != no_card_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "no_card_value"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck_left",
+            "value": {
+              "calc": "len(deck)"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "['TAKE'] + (['PAY'] if you.chips >= pay_cost else [])"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "announce",
+      "phase": "draw",
+      "to": "all",
+      "text": "Round {round_number}. Current card: {current_card}. Pot: {pot}. Lap count: {lap_count}. First offer to seat {lead_seat}. Tableaus and card points [seat, tableau, points]: {[[p.seat, p.tableau, p.card_points] for p in players]}. Cards left in deck: {deck_left}. Burned cards: {burned_count}."
+    },
+    {
+      "use": "ask",
+      "label": "offer 1",
+      "phase": "offers",
+      "when": {
+        "calc": "current_card != no_card_value"
+      },
+      "to": {
+        "where": "you.seat == ((lead_seat - 1) % len(players)) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "o1"
+      },
+      "each": {
+        "do": [
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "-pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY' and you.chips >= pay_cost"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "key": "pot",
+              "value": {
+                "calc": "pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "card_points",
+              "value": {
+                "calc": "current_card - ((current_card + 1) if (current_card + 1) in you.tableau else 0) - (current_card if (current_card - 1) in you.tableau else 0)"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "append": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "tableau",
+              "value": {
+                "calc": "current_card"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "pot"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "pot",
+              "value": 0,
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "lead_seat",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "current_card",
+              "value": {
+                "calc": "no_card_value"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat}: {value}."
+      },
+      "text": "Card {current_card} is on offer with a pot of {pot}. TAKE it (you get the card and every chip in the pot) or PAY {pay_cost} chip into the pot to refuse it."
+    },
+    {
+      "use": "ask",
+      "label": "offer 2",
+      "phase": "offers",
+      "when": {
+        "calc": "current_card != no_card_value"
+      },
+      "to": {
+        "where": "you.seat == ((lead_seat - 1 + 1) % len(players)) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "o2"
+      },
+      "each": {
+        "do": [
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "-pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY' and you.chips >= pay_cost"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "key": "pot",
+              "value": {
+                "calc": "pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "card_points",
+              "value": {
+                "calc": "current_card - ((current_card + 1) if (current_card + 1) in you.tableau else 0) - (current_card if (current_card - 1) in you.tableau else 0)"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "append": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "tableau",
+              "value": {
+                "calc": "current_card"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "pot"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "pot",
+              "value": 0,
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "lead_seat",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "current_card",
+              "value": {
+                "calc": "no_card_value"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat}: {value}."
+      },
+      "text": "Card {current_card} is on offer with a pot of {pot}. TAKE it (you get the card and every chip in the pot) or PAY {pay_cost} chip into the pot to refuse it."
+    },
+    {
+      "use": "ask",
+      "label": "offer 3",
+      "phase": "offers",
+      "when": {
+        "calc": "current_card != no_card_value"
+      },
+      "to": {
+        "where": "you.seat == ((lead_seat - 1 + 2) % len(players)) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "o3"
+      },
+      "each": {
+        "do": [
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "-pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY' and you.chips >= pay_cost"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "key": "pot",
+              "value": {
+                "calc": "pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "card_points",
+              "value": {
+                "calc": "current_card - ((current_card + 1) if (current_card + 1) in you.tableau else 0) - (current_card if (current_card - 1) in you.tableau else 0)"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "append": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "tableau",
+              "value": {
+                "calc": "current_card"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "pot"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "pot",
+              "value": 0,
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "lead_seat",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "current_card",
+              "value": {
+                "calc": "no_card_value"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat}: {value}."
+      },
+      "text": "Card {current_card} is on offer with a pot of {pot}. TAKE it (you get the card and every chip in the pot) or PAY {pay_cost} chip into the pot to refuse it."
+    },
+    {
+      "use": "ask",
+      "label": "offer 4",
+      "phase": "offers",
+      "when": {
+        "calc": "current_card != no_card_value and len(players) >= 4"
+      },
+      "to": {
+        "where": "you.seat == ((lead_seat - 1 + 3) % len(players)) + 1"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "o4"
+      },
+      "each": {
+        "do": [
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "-pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY' and you.chips >= pay_cost"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "key": "pot",
+              "value": {
+                "calc": "pay_cost"
+              },
+              "if": {
+                "calc": "$answer == 'PAY'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "card_points",
+              "value": {
+                "calc": "current_card - ((current_card + 1) if (current_card + 1) in you.tableau else 0) - (current_card if (current_card - 1) in you.tableau else 0)"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "append": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "tableau",
+              "value": {
+                "calc": "current_card"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "adjust": {
+              "players": {
+                "where": "you.seat == $seat"
+              },
+              "key": "chips",
+              "value": {
+                "calc": "pot"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "pot",
+              "value": 0,
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "lead_seat",
+              "value": "$seat",
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "current_card",
+              "value": {
+                "calc": "no_card_value"
+              },
+              "if": {
+                "calc": "$answer == 'TAKE'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat}: {value}."
+      },
+      "text": "Card {current_card} is on offer with a pot of {pot}. TAKE it (you get the card and every chip in the pot) or PAY {pay_cost} chip into the pot to refuse it."
+    },
+    {
+      "use": "update",
+      "label": "end of lap",
+      "phase": "lap",
+      "when": {
+        "calc": "current_card != no_card_value"
+      },
+      "do": [
+        {
+          "adjust": {
+            "key": "lap_count",
+            "value": 1,
+            "text": "Everyone paid on card {current_card}. Lap {lap_count} of {laps_to_burn} complete."
+          }
+        },
+        {
+          "append": {
+            "key": "burned",
+            "value": {
+              "calc": "current_card"
+            },
+            "if": {
+              "calc": "lap_count >= laps_to_burn"
+            },
+            "text": "Card {current_card} is burned and scores for no one. The pot of {pot} stays on the table."
+          }
+        },
+        {
+          "adjust": {
+            "key": "burned_count",
+            "value": 1,
+            "if": {
+              "calc": "lap_count >= laps_to_burn"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "lead_seat",
+            "value": {
+              "calc": "(lead_seat % len(players)) + 1"
+            },
+            "if": {
+              "calc": "lap_count >= laps_to_burn"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "current_card",
+            "value": {
+              "calc": "no_card_value"
+            },
+            "if": {
+              "calc": "lap_count >= laps_to_burn"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "result",
+      "phase": "lap",
+      "to": "all",
+      "text": "Round {round_number} over. Current card: {current_card} (0 means it was taken or burned). Pot: {pot}. Lap count: {lap_count}. Next first offer: seat {lead_seat}. Burned cards: {burned}. Cards left in deck: {deck_left}."
+    },
+    {
+      "use": "sync",
+      "label": "your chips",
+      "phase": "lap",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "chips",
+        "tableau",
+        "card_points"
+      ],
+      "text": "Your standing:"
+    },
+    {
+      "use": "check",
+      "label": "end check",
+      "phase": "lap",
+      "when": {
+        "calc": "(len(deck) == 0 and current_card == no_card_value) or round_number >= max_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "(len(deck) == 0 and current_card == no_card_value) or round_number >= max_rounds"
+      },
+      "rank_by": "you.chips - you.card_points",
+      "text": "Winner: {result}. Final scores (card points minus chips, lowest wins) [seat, score]: {[[p.seat, p.card_points - p.chips] for p in players]}."
+    }
+  },
+  "limits": {
+    "rounds": 40,
+    "rounds_max": 40,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "SETUP. Take the {card_total} cards numbered {card_min} to {card_max}. {cards_removed} of them are removed at random, unseen by anyone; they stay hidden all game. The other {deck_size} cards, shuffled, form the deck. Each player starts with {starting_chips} chips, an empty tableau and 0 card points. Your chip count is visible only to you. Tableaus, the current card, the pot and the number of burned cards are public. Seats are numbered 1 to N clockwise, and the first offer goes to seat {initial_lead_seat}. A current card of {no_card_value} means there is no card.\n\nEACH ROUND. 1) Draw: only if there is no current card and the deck is not empty, the top card is drawn and becomes the current card, and the lap count resets to 0. The pot is not changed, so it may hold chips left over from a burned card. If a card is already current, nothing is drawn: the same card and pot continue. 2) The current card, pot, every tableau, the cards left in the deck and the number of burned cards are announced. 3) Offers: offer k (k = 1 to N) goes to the seat k-1 places clockwise from the lead seat, and offers are made only while there is a current card. You are always offered TAKE; you are also offered PAY only if you have at least {pay_cost} chip. With 0 chips your only option is TAKE. PAY: you move {pay_cost} chip from your hand into the pot, and the offer passes to the next seat. TAKE: you add the card c to your tableau; your card points change by c, minus (c+1) if you already held c+1, minus c if you already held c-1. You gain all chips in the pot and the pot becomes 0. There is then no current card, you become the lead seat, and no further offers are made this round. 4) End of lap: only if everyone paid, the lap count rises by 1. If it is now below {laps_to_burn}, nothing else changes: the same card and pot stay, the lead seat stays the same, and next round's offers start again at the lead seat. If it reaches {laps_to_burn}, the card is burned (it scores for no one), there is no current card, the pot is kept for the next card, and the lead seat moves one seat clockwise. 5) Everyone is told who paid and who took, or that the card was burned. 6) If the deck is empty and there is no current card, the game ends; it also ends after {max_rounds} rounds.\n\nSCORING. Your final score is card points minus chips in hand. Card points equal the sum of the lowest card of each run of consecutive numbers in your tableau. Chips left in the pot at the end belong to no one. The lowest final score wins; players tied for lowest share the result."
+}

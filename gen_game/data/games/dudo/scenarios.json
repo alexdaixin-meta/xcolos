@@ -1,0 +1,1103 @@
+[
+  {
+    "name": "R1 setup: every seat starts with 5 dice and not out; after seat 1 opens and seat 2 calls Dudo, uninvolved seat 3 still holds 5 and nobody is out",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "out": false
+        },
+        "2": {
+          "out": false
+        },
+        "3": {
+          "dice_count": 5,
+          "out": false
+        }
+      },
+      "game": {
+        "round_num": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 6
+        }
+      ]
+    },
+    "rule_text": "At setup every player has dice_count 5 and out false, and seat 1 opens round 1."
+  },
+  {
+    "name": "R1 seat 1 opens round 1: only seat 1 is asked the opening quantity (T=15, range 5..8)",
+    "rule": "R1",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 7
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_num": 1
+      },
+      "players": {
+        "3": {
+          "dice_count": 5,
+          "out": false
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": 7
+        },
+        {
+          "seat": 1,
+          "option": 8
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": 7
+        },
+        {
+          "seat": 3,
+          "option": 7
+        },
+        {
+          "seat": 2,
+          "option": 8
+        }
+      ]
+    },
+    "rule_text": "At setup every player has dice_count 5 and out false, and seat 1 opens round 1."
+  },
+  {
+    "name": "R2 each seat not out gets exactly dice_count dice and an out seat gets none (faces are random, only the counts are checked)",
+    "rule": "R2",
+    "players": 4,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "dice_count": 3
+        },
+        "2": {
+          "dice_count": 2
+        },
+        "3": {
+          "dice_count": 1
+        },
+        "4": {
+          "dice_count": 0,
+          "out": true
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "players": {
+          "1": {
+            "hand": 3
+          },
+          "2": {
+            "hand": 2
+          },
+          "3": {
+            "hand": 1
+          },
+          "4": {
+            "hand": 0
+          }
+        }
+      },
+      "players": {
+        "3": {
+          "dice_count": 1,
+          "out": false
+        },
+        "4": {
+          "dice_count": 0,
+          "out": true
+        }
+      }
+    },
+    "rule_text": "Each round, every player not out gets a fresh hand of exactly dice_count random faces from 1 to 6, visible only to the owner."
+  },
+  {
+    "name": "R3 total_dice counts only seats not out: dice 1,2 and seat 3 out give T=3, so after an opening bid of 2 only Raise +1 is legal",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "dice_count": 1
+        },
+        "2": {
+          "dice_count": 2
+        },
+        "3": {
+          "dice_count": 0,
+          "out": true
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "3": {
+          "dice_count": 0,
+          "out": true
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "raise1_face2"
+        },
+        {
+          "seat": 2,
+          "option": "dudo"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "raise2_face2"
+        },
+        {
+          "seat": 3,
+          "option": "dudo"
+        }
+      ]
+    },
+    "rule_text": "total_dice equals the sum of dice_count over players not out, and it is told to everyone with every dice_count."
+  },
+  {
+    "name": "R4 with T=15 the opening quantity offers 7 and 8 but not 9",
+    "rule": "R4",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 8
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": 7
+        },
+        {
+          "seat": 1,
+          "option": 8
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": 9
+        },
+        {
+          "seat": 1,
+          "option": 10
+        }
+      ],
+      "players": {
+        "3": {
+          "dice_count": 5
+        }
+      }
+    },
+    "rule_text": "The opener bids a face from 2 to 6 and a quantity Q with max(1, floor(T/3)) <= Q <= ceil(T/2). For example, with T = 15, Q is from 5 to 8."
+  },
+  {
+    "name": "R5 Raise +1 makes the raiser the bidder: seat 3 responds next and seat 1 is not involved in the call",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": "raise1_face4"
+      },
+      {
+        "seat": 3,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "dice_count": 5,
+          "out": false
+        }
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "dudo"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "dudo"
+        }
+      ]
+    },
+    "rule_text": "When a responder chooses Raise +1, current_qty increases by 1, current_face becomes their chosen face from 2 to 6, and they become current_bidder."
+  },
+  {
+    "name": "R6 Raise +2 adds 2: with T=4 a bid of 1 raised by 2 is 3, so the next responder gets Raise +1 but not Raise +2",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "dice_count": 2
+        },
+        "2": {
+          "dice_count": 1
+        },
+        "3": {
+          "dice_count": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "raise2_face6"
+      },
+      {
+        "seat": 3,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "dice_count": 2,
+          "out": false
+        }
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "raise1_face2"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "raise2_face2"
+        }
+      ]
+    },
+    "rule_text": "When a responder chooses Raise +2, current_qty increases by 2, current_face becomes their chosen face from 2 to 6, and they become current_bidder."
+  },
+  {
+    "name": "R7 with T=3 and the bid raised to 3, the next responder is offered only Dudo and Calza",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "dice_count": 1
+        },
+        "2": {
+          "dice_count": 1
+        },
+        "3": {
+          "dice_count": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 2,
+        "options_include": "raise1_face5"
+      },
+      {
+        "seat": 3,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "dice_count": 1,
+          "out": false
+        }
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "dudo"
+        },
+        {
+          "seat": 3,
+          "option": "calza"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "raise2_face5"
+        },
+        {
+          "seat": 3,
+          "option": "raise1_face2"
+        },
+        {
+          "seat": 3,
+          "option": "raise2_face2"
+        }
+      ]
+    },
+    "rule_text": "When a raise would make current_qty exceed total_dice, that raise is not offered. If both raises exceed it, only Dudo and Calza are offered."
+  },
+  {
+    "name": "R8 with 2 players, response 2 is answered by the opener",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": "raise1_face4"
+      },
+      {
+        "seat": 1,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_num": 1
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "dudo"
+        },
+        {
+          "seat": 1,
+          "option": "raise1_face2"
+        }
+      ]
+    },
+    "rule_text": "The responder is always the next seat in order after the current bidder that is not out. With 2 players, response 2 is answered by the opener."
+  },
+  {
+    "name": "R8 the responder skips an out seat: seat 2 is out, so seat 3 responds to seat 1",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "2": {
+          "dice_count": 0,
+          "out": true
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "dice_count": 0,
+          "out": true
+        }
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "dudo"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "dudo"
+        },
+        {
+          "seat": 2,
+          "option": "calza"
+        }
+      ]
+    },
+    "rule_text": "The responder is always the next seat in order after the current bidder that is not out. With 2 players, response 2 is answered by the opener."
+  },
+  {
+    "name": "R9 a Dudo on response 1 ends the bidding, so seat 3 is never asked",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "3": {
+          "dice_count": 5,
+          "out": false
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "dudo"
+        },
+        {
+          "seat": 3,
+          "option": "calza"
+        },
+        {
+          "seat": 1,
+          "option": "dudo"
+        }
+      ]
+    },
+    "rule_text": "Response 2 happens only when response 1 was a raise, and the final response happens only when response 2 was a raise."
+  },
+  {
+    "name": "R10 the final responder is offered only Dudo and Calza even though raises would fit",
+    "rule": "R10",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": "raise1_face3"
+      },
+      {
+        "seat": 3,
+        "options_include": "raise1_face4"
+      },
+      {
+        "seat": 1,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "dice_count": 5,
+          "out": false
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "dudo"
+        },
+        {
+          "seat": 1,
+          "option": "calza"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "raise1_face2"
+        },
+        {
+          "seat": 1,
+          "option": "raise2_face2"
+        }
+      ]
+    },
+    "rule_text": "The final responder may choose only Dudo or Calza."
+  },
+  {
+    "name": "R11 the reveal settles only between bidder and caller (the dice are random): the uninvolved seat keeps its dice",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_num": 1
+      },
+      "players": {
+        "3": {
+          "dice_count": 5,
+          "out": false
+        }
+      }
+    },
+    "rule_text": "At reveal, N counts every die in all hands that shows current_face or shows 1."
+  },
+  {
+    "name": "R12 a Dudo costs a die only to the caller or the bidder (random which): the uninvolved seat keeps 5 and nobody is out",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 2
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "out": false
+        },
+        "2": {
+          "out": false
+        },
+        "3": {
+          "dice_count": 5,
+          "out": false
+        }
+      }
+    },
+    "rule_text": "When Dudo is called and N >= current_qty, the caller loses 1 die."
+  },
+  {
+    "name": "R13 a Dudo after a raise never touches the original opener (random outcome)",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": "raise2_face5"
+      },
+      {
+        "seat": 3,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "dice_count": 5,
+          "out": false
+        },
+        "2": {
+          "out": false
+        },
+        "3": {
+          "out": false
+        }
+      }
+    },
+    "rule_text": "When Dudo is called and N < current_qty, the current bidder loses 1 die."
+  },
+  {
+    "name": "R14 a Calza changes only the caller's dice (random outcome): the bidder and the other seat keep 5",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 5
+      },
+      {
+        "seat": 2,
+        "options_include": "calza"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "dice_count": 5,
+          "out": false
+        },
+        "2": {
+          "out": false
+        },
+        "3": {
+          "dice_count": 5,
+          "out": false
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": "calza"
+        }
+      ]
+    },
+    "rule_text": "When Calza is called and N == current_qty, the caller gains 1 die, but never above 5."
+  },
+  {
+    "name": "R15 a Calza from a 2-die caller leaves it with 1 or 3 dice, never out (random outcome); the others are unchanged",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "2": {
+          "dice_count": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 2,
+        "options_include": "calza"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "dice_count": 5,
+          "out": false
+        },
+        "2": {
+          "out": false
+        },
+        "3": {
+          "dice_count": 5,
+          "out": false
+        }
+      }
+    },
+    "rule_text": "When Calza is called and N != current_qty, the caller loses 1 die."
+  },
+  {
+    "name": "R16 an out seat is skipped and gets no hand: seat 2 is out and is never asked",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "default": "first",
+    "given": {
+      "players": {
+        "2": {
+          "dice_count": 0,
+          "out": true
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": "raise1_face5"
+      },
+      {
+        "seat": 1,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "dice_count": 0,
+          "out": true
+        }
+      },
+      "lens": {
+        "players": {
+          "2": {
+            "hand": 0
+          }
+        }
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "dudo"
+        },
+        {
+          "seat": 2,
+          "option": "calza"
+        },
+        {
+          "seat": 2,
+          "option": "raise1_face2"
+        }
+      ]
+    },
+    "rule_text": "When a player's dice_count reaches 0, out becomes true, and the player is skipped in seat order and gets no hand from then on."
+  },
+  {
+    "name": "R17 the next opener is the loser of the Dudo between seats 1 and 2, so seat 3 never opens round 2 (random which of 1 or 2)",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 2,
+    "default": "first",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 4
+      },
+      {
+        "seat": 1,
+        "options_include": 6
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_num": 2
+      },
+      "not_offered": [
+        {
+          "seat": 3,
+          "option": 7
+        }
+      ]
+    },
+    "rule_text": "The player who lost a die opens the next round. After a successful Calza the caller opens. If that player is out, the next seat in order that is not out opens."
+  },
+  {
+    "name": "R18 when one of two 1-die survivors loses a Dudo the game ends after that round (winner is random)",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 2,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "dice_count": 1
+        },
+        "2": {
+          "dice_count": 1
+        },
+        "3": {
+          "dice_count": 0,
+          "out": true
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": 3
+      },
+      {
+        "seat": 1,
+        "options_include": 1
+      },
+      {
+        "seat": 2,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round_num": 1
+      },
+      "players": {
+        "3": {
+          "dice_count": 0,
+          "out": true
+        }
+      }
+    },
+    "rule_text": "When only one player is not out, the game ends and that player wins."
+  },
+  {
+    "name": "R19 after round 30 the game ends and the seat with the most dice wins",
+    "rule": "R19",
+    "players": 3,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "dice_count": 5
+        },
+        "2": {
+          "dice_count": 2
+        },
+        "3": {
+          "dice_count": 2
+        }
+      },
+      "game": {
+        "round_num": 29,
+        "opener_seat": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": 3
+      },
+      {
+        "seat": 2,
+        "options_include": 4
+      },
+      {
+        "seat": 3,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 5
+      },
+      "players": {
+        "1": {
+          "dice_count": 5,
+          "out": false
+        }
+      },
+      "game": {
+        "round_num": 30
+      }
+    },
+    "rule_text": "When 30 rounds have been played, the game ends and the highest dice_count wins. Players tied at the top share the result as a draw."
+  },
+  {
+    "name": "R19 after round 30 the seats tied for the most dice share the win",
+    "rule": "R19",
+    "players": 4,
+    "default": "first",
+    "given": {
+      "players": {
+        "1": {
+          "dice_count": 5
+        },
+        "2": {
+          "dice_count": 5
+        },
+        "3": {
+          "dice_count": 2
+        },
+        "4": {
+          "dice_count": 2
+        }
+      },
+      "game": {
+        "round_num": 29,
+        "opener_seat": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": 3
+      },
+      {
+        "seat": 3,
+        "options_include": 5
+      },
+      {
+        "seat": 4,
+        "options_include": "dudo"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 5,
+        "2": 5
+      },
+      "game": {
+        "round_num": 30
+      }
+    },
+    "rule_text": "When 30 rounds have been played, the game ends and the highest dice_count wins. Players tied at the top share the result as a draw."
+  }
+]

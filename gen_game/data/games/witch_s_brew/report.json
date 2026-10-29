@@ -1,0 +1,381 @@
+{
+  "game": "witch_s_brew",
+  "attempts": [
+    "the state shown to players is full of empty internal fields (see the bookkeeping rule): blank: the state a player is shown has empty fields (set_pick, named_role); hide bookkeeping attributes (`none` on the table, `ally` on a player) so only what a player can use is printed",
+    "it plays, but part of it does nothing: game attribute `roles` is never changed in 3 random matches, so nothing updates it. No step sets it. Either remove the attribute from the file, or add the update that sets it.. Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.",
+    ""
+  ],
+  "conformance": [],
+  "scenarios": [
+    {
+      "name": "Every player starts with score 0 (a round where nobody holds the named role leaves every score at its starting value)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "At the start of a set hands are chosen and the set's first round plays (role choice by chance, only the named role is asserted)",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A new set empties led_list, so a role led in the previous set can be named again",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Set 3 round 2 with 4 players is led by seat 4",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A role already led cannot be named, and the leader may name a role they do not hold",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "After the role is named everyone talks, and the round still resolves normally",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Only a non-leader holder is asked to contest or yield",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Responses are revealed: one contester claims, one yielder gets the weak reward",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "With two contesters the one furthest clockwise from the leader claims",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A non-leader contester claims Raven Keeper and gains 6",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Leader names a role they do not hold and the only holder yields: no strong reward, the yielder gets the weak 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Thief claimed by a contester robs the highest other score, the tie going to the first seat clockwise, and a score goes below 0",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Thief claimed by the leader holding it: the tie between seats 1 and 3 goes to seat 3, first clockwise after seat 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "A leader holding Herb Hag overtaken by a contester gains 0, and the claimant gains 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Two yielders of Druid each gain 2 while the leader holding it gains 3",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Yielding Raven Keeper gives 0 points",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The named role leaves the hands of the leader and the responder, and a non-holder's hand is unchanged",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "The last round ends the game and the highest score wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Tied top scores at the end share the win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 40,
+      "tables": [
+        3,
+        5
+      ],
+      "results": {
+        "seat 2": 9,
+        "seat 1": 6,
+        "seats 2 and 3": 2,
+        "seat 3": 9,
+        "seats 1 and 3": 2,
+        "seats 2 and 5": 1,
+        "seat 4": 7,
+        "seat 5": 4
+      },
+      "turns_min": 50,
+      "turns_max": 140
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 2": 20,
+      "seat 1": 12,
+      "seats 2 and 3": 2,
+      "seat 3": 23,
+      "seats 1 and 3": 3
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 44,
+        "loss": 13,
+        "draw": 3,
+        "win_rate": 0.77
+      },
+      "first@seat2": {
+        "win": 41,
+        "loss": 16,
+        "draw": 3,
+        "win_rate": 0.72
+      },
+      "last@seat1": {
+        "win": 15,
+        "loss": 44,
+        "draw": 1,
+        "win_rate": 0.25
+      },
+      "last@seat2": {
+        "win": 13,
+        "loss": 41,
+        "draw": 6,
+        "win_rate": 0.24
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 6,
+      "decisions_per_match": 94.3,
+      "prompt_chars_avg": 145,
+      "prompt_chars_max": 243
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "3 to 5 players, suggested 4",
+      "why": "The designer chose 4 and the source range is 3 to 5. Three is the minimum so that claim order and contest bluffing matter; more than 5 would exceed the 6 roles, which could run out within a set."
+    },
+    {
+      "what": "Hand choice offered as one pick from the 20 three-role combinations",
+      "why": "This guarantees exactly 3 different roles in a single simultaneous answer."
+    },
+    {
+      "what": "Talk kept as a simultaneous poll, broadcast to all",
+      "why": "The rules specify simultaneous messages. Players disagree about who should claim, so bluffing about holdings is meaningful."
+    },
+    {
+      "what": "Leader formula ((set_number-1)+(round_in_set-1)) mod N + 1",
+      "why": "This matches 'set k starts with player k' and clockwise passing; with 3 players set 3 starts with player 3."
+    },
+    {
+      "what": "Thief tie-break uses the first tied seat clockwise from the final claimant",
+      "why": "The final claimant is the one using the Thief's reward."
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "A tie for the top score is a shared win rather than a declared draw",
+      "why": "The engine has no separate draw; tied top players share the win."
+    },
+    {
+      "what": "Roles left in a hand at the end of a set are discarded by emptying hands at the start of the next set",
+      "why": "This has the same effect as losing them at the end of the set."
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 16,
+    "choice_steps_per_round": 4,
+    "attributes": 31,
+    "hidden_elements": 4
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "Witch's Brew is a 3-5 player role-claiming card game. Each set, players secretly keep 5 of 12 roles. When a role is led, every other holder must reveal it and either take over the claim, leaving the previous claimant with nothing, or accept a weaker favour. The last claimant performs the strong action, and potions and ingredients turn into points until a raven-count ending.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "Always claiming loses when a later player holds the same role: the early claimant gets nothing instead of the favour. Always accepting never gets strong actions. Turn order matters, but it rotates through the start player, so no seat has a lasting edge."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "Choosing which roles to keep, predicting who else kept them, and timing a contest or a concession are skilled decisions. The only randomness is in how ingredients and potions come out, and it is modest."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "Reading opponents' hands from revealed and spent roles can be refined without limit. A weak player still collects favours."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Hands are hidden. Players must infer who holds which role from earlier reveals and from what each rival needs, and plan their hand across a set."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "The score is potion points plus vial tokens, all countable."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "bad",
+        "evidence": "There are 12 distinct role actions on an ingredient, gold and potion economy, a variable raven-based ending, and a sequential clockwise chain of contests inside each lead. This far exceeds the step and attribute limits."
+      }
+    ],
+    "problems": [
+      "Twelve roles, each with a different action over ingredients, gold, potions and ravens, need far more steps and attributes than the platform allows.",
+      "The ending depends on a raven count reached by an uncertain number of leads, so game length is unpredictable.",
+      "The clockwise contest chain inside one lead is a variable-length sequence of decisions, which the flat step list cannot express. It also hands the last holder perfect information, so nothing is left to infer.",
+      "The leader can run out of held roles to lead after spending cards in responses, which makes leading undefined unless the rules handle it.",
+      "The resource economy hides the core decision (contest or concede) behind bookkeeping that adds no reasoning."
+    ],
+    "changes": [
+      {
+        "what": "Six roles, each with a fixed strong value and weak value paid directly in points. One role, the Thief, takes points from the leader in score instead.",
+        "why": "This keeps the strong-versus-weak trade-off and one interactive role, without an economy.",
+        "fixes": "Twelve roles, each with a different action over ingredients, gold, potions and ravens, need far more steps and attributes than the platform allows."
+      },
+      {
+        "what": "Points are awarded immediately and the separate resource economy is removed.",
+        "why": "The only decisions left are which roles to hold, what to lead and whether to contest, which is the heart of the game.",
+        "fixes": "The resource economy hides the core decision (contest or concede) behind bookkeeping that adds no reasoning."
+      },
+      {
+        "what": "Fixed length: 3 sets, each of exactly N leads (N = number of players). Every player leads once per set, and set k starts with player k.",
+        "why": "Length is predictable and short (9-15 rounds), and leading positions are equal for every seat.",
+        "fixes": "The ending depends on a raven count reached by an uncertain number of leads, so game length is unpredictable."
+      },
+      {
+        "what": "All holders respond at the same moment (Contest or Yield). The claim is then resolved clockwise from the leader: the last contester in clockwise order takes the strong action.",
+        "why": "This keeps the original's 'the later claimant takes over' rule in one simultaneous poll. Nobody sees the others' choices, so a contester must infer whether a later player holds the role and will contest.",
+        "fixes": "The clockwise contest chain inside one lead is a variable-length sequence of decisions, which the flat step list cannot express. It also hands the last holder perfect information, so nothing is left to infer."
+      },
+      {
+        "what": "The leader may name any role not yet led this set, held or not. A leader who does not hold the named role earns nothing even if uncontested, and only the engine knows whether they hold it.",
+        "why": "This guarantees a legal lead. It also adds a bluff: a leader can name a role they think a rival holds, forcing that rival to spend the card on a weak result.",
+        "fixes": "The leader can run out of held roles to lead after spending cards in responses, which makes leading undefined unless the rules handle it."
+      },
+      {
+        "what": "Simultaneous one-message talk after the role is named and before responses.",
+        "why": "Players can claim to hold the role ('I have it and will contest') to scare earlier holders into yielding, or hide their holding. The claims are unenforced, so they must be read for bluffs.",
+        "fixes": "The clockwise contest chain inside one lead is a variable-length sequence of decisions, which the flat step list cannot express. It also hands the last holder perfect information, so nothing is left to infer."
+      }
+    ],
+    "keeps": [
+      "Secretly choosing a subset of roles to hold at the start of each set.",
+      "Leading a role and claiming it; every other holder must reveal it and either contest (take over the claim, leaving the previous claimant with nothing) or concede for the weaker favour.",
+      "The last unchallenged claimant gets the strong action; each role can be led only once per set; cards are spent when used.",
+      "Witch, Raven, Alchemist, Druid, Herb Hag and Thief flavour, with the tension between greed and safety."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "The contest-or-concede core over hidden hands is excellent reasoning material. Only the resource economy and the sequential chain need cutting, and both can be streamlined."
+    },
+    "variation": {
+      "name": "Witch's Brew: Claims",
+      "summary": "Players secretly hold 3 of 6 roles each set. A leader names a role, then all other holders simultaneously contest or yield. The last contester clockwise wins the strong reward, earlier claimants get nothing and yielders get a small favour. Highest total after 3 sets wins.",
+      "players": {
+        "min": 3,
+        "max": 5,
+        "suggested": 4
+      },
+      "rules": "SETUP. N players (3-5) sit in a fixed clockwise order, numbered 1 to N. Everyone starts with 0 points. The game has 3 sets of N rounds each (3N rounds in total).\n\nROLES. There are six roles, each with a strong reward and a weak reward:\n- Witch: strong 5, weak 2.\n- Raven Keeper: strong 6, weak 0.\n- Alchemist: strong 4, weak 1.\n- Druid: strong 3, weak 2.\n- Herb Hag: strong 2, weak 1.\n- Thief: the strong reward is to take 3 points from the other player with the highest current total (ties go to the tied player first clockwise after the Thief). The Thief gains 3, that player loses 3, and a total may go below 0. Weak 1.\n\nSTART OF A SET. At the start of each set, every player secretly and simultaneously chooses exactly 3 different roles to hold for that set. Hands are private; the engine records them. The list of roles led this set is emptied.\n\nLEADER. In set k, the first round's leader is player k (set 3 with 3 players: player 3). Leadership then passes clockwise each round, so every player leads exactly once per set.\n\nEACH ROUND:\n1. The leader is announced.\n2. The leader names one role that has not yet been led in this set. They may name a role they do not hold. The named role is added to this set's led list.\n3. Talk: every player at the same time writes one short message without seeing the others. All messages are then shown to everyone. Messages bind no one.\n4. Responses: every player other than the leader who holds the named role must respond. All of them choose at the same moment, either CONTEST or YIELD. Players who do not hold it pass automatically.\n5. Reveal: all responses are shown, so everyone learns who held the role.\n6. Resolve: start from the leader and go clockwise. The leader is the first claimant, and each contester, in clockwise order, takes over the claim. The final claimant is the last contester in clockwise order after the leader, or the leader if nobody contested.\n   - The final claimant gets the role's strong reward. Exception: if the final claimant is the leader and the leader does not hold the named role, they get nothing.\n   - The leader, if overtaken, gets 0. Every contester overtaken by a later contester gets 0.\n   - Every player who yielded gets the role's weak reward.\n7. The named role is removed from the hand of the leader (if held) and of every responder. A role cannot be led again this set.\n8. Scores are announced and leadership passes clockwise.\n\nRoles held but never led or responded to during a set are simply lost when the set ends. After round 3N, the game ends.",
+      "objective": "After the final round, the player with the highest total points wins. If two or more players tie for the highest total, the game is a draw.",
+      "expected_effect": "Each decision depends on inferring who holds what. A contester close after the leader risks being overtaken by a later holder and ending with 0 instead of the weak reward. A contester last in clockwise order is nearly safe, so position relative to the leader shapes every choice. As roles are revealed and spent, players can increasingly deduce hands, and later leads in a set become sharper. Hand selection is a guessing game: crowded high-value roles (Raven Keeper, Witch) get contested, while quieter roles pay strong rewards more often. The Thief punishes the score leader. Simple policies all lose: always contesting gives 0 too often from early positions, always yielding never collects strong rewards, and always leading your best role invites contests. Talk passes both tests. There is real conflict because only one player can win and claims cost nothing. An early holder who believes a later player's 'I hold it, I'll contest' and yields may have been bluffed out of a strong reward. An early holder who ignores a true warning and contests gets 0. Players disagree over who takes each strong reward, so following someone else's proposal usually hands them the points."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 4,
+      "attributes": 9,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 15
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Reward table (strong/weak, gain from contesting = strong - weak): Witch 5/2 (+3), Raven Keeper 6/0 (+6), Alchemist 4/1 (+3), Druid 3/2 (+1), Herb Hag 2/1 (+1), Thief 3 plus a 3-point swing against the leader / 1. A contester gets the strong reward only if no holder later in clockwise order also contests. Otherwise they get 0.\n\nBreak-even probability p that no later holder contests (contest pays when strong*p > weak): Witch p>0.40, Alchemist p>0.25, Druid p>0.67, Herb Hag p>0.50, Thief p>0.33, Raven Keeper any p>0.\nAt seat leader-1 there is nobody later, so contesting weakly dominates there. For Raven Keeper contesting weakly dominates everywhere (6 or 0, against 0). These are partial trivialities, not a whole-game dominant option.\nFor any other seat, each other player holds a given role with probability about 0.5 (3 of 6). With m later players, P(no later contester) is about 0.5^m when holders contest. At seat leader-2 (m=1) that is 0.5: contest Witch or Alchemist, but yield Druid or Herb Hag unless you infer the later seat lacks the role. Correct play therefore depends on inferring holdings from reveals.\n\nThoughtless policies under the winner rule:\n(a) Always contest, against sensible play. Whenever a later holder contests it gets 0 instead of the weak reward. As leader it can only win roles nobody else holds. Against sensible players who contest exactly when they are the last likely holder, it loses 1-2 points on about half its non-final responses. It is beaten whenever it is not favoured by seating. It does not win or draw almost always.\n(b) Always yield. It never takes a strong reward as a responder, so it scores about weak rewards only (average about 1.2 per response). It loses to sensible play.\n(c) Always hold the top-strong hand {Raven Keeper, Witch, Alchemist}. If everyone does this, every led role has many holders and the latest seat wins. A player who picks Druid or Thief instead faces less competition and wins uncontested strong rewards. Not a never-lose policy.\n(d) Leader always names a role it does not hold. It scores 0 as leader while others collect rewards. Losing.\nNo option is strictly better whatever opponents do. Every seat can win.\n\nSeat edge: each player leads exactly once per set and occupies each relative position once per set, so per-round positional advantage evens out. With N=4 or 5 and only 3 sets, the order of leading within a set is not fully rotated. For N=5, the first leaders are players 1, 2, 3 and the last leaders are players 5, 1, 2, so player 4 is never first or last. This asymmetry concerns information versus role availability and is small; it is not a decisive edge. Payoff labels (strong/weak) match the numbers."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Rules cover hand selection (exactly 3 of 6, i.e. 20 options as a simultaneous poll), legal leads (any unled role, held or not), who responds, simultaneous CONTEST/YIELD, resolution order, the leader exception, Thief targeting with clockwise tie-break and negative totals, removal of roles, lost roles, set rollover and the end after 3N rounds.\nThe game is finite (at most 15 rounds) and decided by arithmetic on stored scores. Draws are defined.\nLimits: 4 choice steps (set-start selection under a `when` condition, lead, talk, respond) is at most 4. 16 steps is at most 20. The plausible cost is the clockwise last-contester calculation by seat offset, plus the highest-other-player Thief target, which uses the attribute-compare workaround; this is tight but feasible. Attributes 9 is at most 20. One hidden element (hands). No random draws. No board, judge or clock.\nTalk is simultaneous and sits where interests conflict: holders race to be the last contester, so bluffing or signalling 'I hold it, yield' can cost a follower points. It is not a copy-the-leader coordination game.\nThe repeated-cooperation late-round check does not apply: there is no cooperate/defect structure that collapses."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "There are zero random draws. Hands are chosen, not dealt, and no chance element exists apart from opponents' simultaneous choices. Chance share is about 0%.\nWhen all players play well, the outcome comes from hand selection (avoiding crowded roles), the leader's choice of a role it holds that others probably lack, and responders inferring whether a later seat holds the role. Each reveal shows exactly who held the led role, and a player who revealed k led roles holds 3-k of the unled ones, so inference sharpens through each set.\nThe Thief adds targeting of the score leader late in the game. A model that tracks holdings and seat order clearly beats one that does not. No hidden random type decides the winner."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 4,
+      "attributes": 9,
+      "hidden_elements": 1,
+      "random_draws_per_round": 0,
+      "rounds": 15
+    },
+    "measured": {
+      "steps_per_round": 16,
+      "choice_steps_per_round": 4,
+      "attributes": 31,
+      "hidden_elements": 4
+    }
+  },
+  "verdict": "ready_for_review"
+}

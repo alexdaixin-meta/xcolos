@@ -1,0 +1,816 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "put",
+    "name": "Put: Sixteen Hands",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "A two-player trick-taking bluffing duel over 16 hands: after the first trick, call Put to raise the stake from 1 to 4."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "card1",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card2",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "card3",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "call",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "response",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "tricks",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "leader",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "stake",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "folded",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 52
+      },
+      {
+        "key": "copies_per_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "lowest_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "highest_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "hands",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "cards_dealt_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "tricks_per_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "tricks_needed_to_win_hand",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "stake_put_seen",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "stake_both_checked",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "fold_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "starting_score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting scores",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "starting_score"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "hand_number",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "match length",
+      "to": "all",
+      "text": "The match lasts exactly {hands} hands. Both players start with a score of {starting_score}."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "reset",
+      "label": "reset",
+      "do": [
+        {
+          "adjust": {
+            "key": "hand_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "1 if hand_number % 2 == 1 else 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck",
+            "value": {
+              "calc": "[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card1",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card2",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "card3",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "call",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "response",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "tricks",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "stake",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "folded",
+            "value": false
+          }
+        }
+      ],
+      "text": "Hand {hand_number} of {hands} begins. Seat {leader} leads."
+    },
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "[v for v in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] if v in you.hand]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "deal",
+      "label": "your hand",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand",
+        "score"
+      ],
+      "text": "Your cards this hand:"
+    },
+    {
+      "use": "ask",
+      "phase": "trick1",
+      "label": "lead",
+      "to": {
+        "where": "you.seat == leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "lead"
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "player": "$seat",
+              "key": "card1",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "You lead hand {hand_number}. Choose one of your cards to play face up to trick 1. Higher value wins the trick; equal values tie."
+    },
+    {
+      "use": "tell",
+      "phase": "trick1",
+      "label": "announce the lead",
+      "to": "all",
+      "text": "Hand {hand_number}: Seat {leader} leads {lead}."
+    },
+    {
+      "use": "ask",
+      "phase": "trick1",
+      "label": "answer",
+      "to": {
+        "where": "you.seat != leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "reply_card"
+      },
+      "each": {
+        "do": [
+          {
+            "set": {
+              "player": "$seat",
+              "key": "card1",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          },
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": {
+                "calc": "int($answer)"
+              }
+            }
+          }
+        ]
+      },
+      "text": "Seat {leader} led {lead}. Choose one of your cards to play face up to trick 1. Higher value wins the trick; equal values tie."
+    },
+    {
+      "use": "update",
+      "phase": "trick1",
+      "label": "trick 1",
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.card1 > max([p.card1 for p in players if p.seat != you.seat])"
+            },
+            "key": "tricks",
+            "value": 1,
+            "text": "Seat {player} wins trick 1."
+          }
+        }
+      ],
+      "text": "Trick 1: Seat 1 played {players[0].card1}, Seat 2 played {players[1].card1}. Equal cards tie the trick."
+    },
+    {
+      "use": "poll",
+      "phase": "put",
+      "label": "put window",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Put",
+          "Check"
+        ]
+      },
+      "store": "call",
+      "text": "Put window: choose Put or Check in secret. Both Put: stake {stake_put_seen}. Both Check: stake {stake_both_checked}. A lone Put: the Checker chooses See (stake {stake_put_seen}) or Fold (the Putter scores {fold_points})."
+    },
+    {
+      "use": "tell",
+      "phase": "put",
+      "label": "announce the calls",
+      "to": "all",
+      "text": "Seat 1 calls {players[0].call}; Seat 2 calls {players[1].call}."
+    },
+    {
+      "use": "ask",
+      "phase": "put",
+      "label": "reply to a lone put",
+      "when": {
+        "calc": "count(p.call == 'Put' for p in players) == 1"
+      },
+      "to": {
+        "where": "you.call == 'Check'"
+      },
+      "answer": {
+        "type": "choice",
+        "options": [
+          "See",
+          "Fold"
+        ]
+      },
+      "store": "response",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} answers the Put: {value}."
+      },
+      "text": "Your opponent called Put and you called Check. See: the hand is played out for a stake of {stake_put_seen}. Fold: your opponent scores {fold_points} and the hand ends."
+    },
+    {
+      "use": "update",
+      "phase": "put",
+      "label": "stake",
+      "do": [
+        {
+          "set": {
+            "key": "stake",
+            "value": {
+              "calc": "stake_put_seen if (count(p.call == 'Put' for p in players) == 2 or any(p.response == 'See' for p in players)) else (stake_both_checked if count(p.call == 'Put' for p in players) == 0 else 0)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "folded",
+            "value": {
+              "calc": "any(p.response == 'Fold' for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "fold",
+      "label": "fold scoring",
+      "when": {
+        "calc": "folded"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.call == 'Put'"
+            },
+            "key": "score",
+            "value": {
+              "calc": "fold_points"
+            },
+            "text": "The Checker folded. Seat {player} scores {fold_points}. The remaining cards are not shown."
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "tricks",
+      "label": "trick 2",
+      "when": {
+        "calc": "not folded"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "card2",
+            "value": {
+              "calc": "max(you.hand)"
+            }
+          }
+        },
+        {
+          "remove": {
+            "players": "all",
+            "key": "hand",
+            "value": {
+              "calc": "you.card2"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.card2 > max([p.card2 for p in players if p.seat != you.seat])"
+            },
+            "key": "tricks",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "tricks",
+      "label": "trick 3",
+      "when": {
+        "calc": "not folded"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "card3",
+            "value": {
+              "calc": "you.hand[0]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "adjust": {
+            "players": {
+              "where": "you.card3 > max([p.card3 for p in players if p.seat != you.seat])"
+            },
+            "key": "tricks",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "reveal",
+      "label": "reveal",
+      "when": {
+        "calc": "not folded"
+      },
+      "to": "all",
+      "text": "Reveal: Seat 1 played {players[0].card1}, {players[0].card2}, {players[0].card3} and won {players[0].tricks} tricks. Seat 2 played {players[1].card1}, {players[1].card2}, {players[1].card3} and won {players[1].tricks} tricks. Stake: {stake}."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "hand scoring",
+      "when": {
+        "calc": "not folded"
+      },
+      "do": [
+        {
+          "adjust": {
+            "players": {
+              "where": "you.tricks >= tricks_needed_to_win_hand"
+            },
+            "key": "score",
+            "value": {
+              "calc": "stake"
+            },
+            "text": "Seat {player} wins the hand and scores {stake}."
+          }
+        }
+      ],
+      "text": "Scores: Seat 1 {players[0].score}, Seat 2 {players[1].score}."
+    },
+    {
+      "use": "check",
+      "phase": "reveal",
+      "label": "end check",
+      "when": {
+        "calc": "hand_number >= hands"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "hand_number >= hands"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score}, Seat 2 {players[1].score}."
+    }
+  },
+  "limits": {
+    "rounds": 16,
+    "rounds_max": 16,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "CARDS. A deck of {deck_size} cards: {copies_per_value} copies of each value from {lowest_value} to {highest_value}. Value 13 is a Three (highest), 12 a Two, 11 an Ace, 10 a King, 9 a Queen, 8 a Jack, 7 a Ten, 6 a Nine, 5 an Eight, 4 a Seven, 3 a Six, 2 a Five and 1 a Four (lowest). There are no suits. In any trick the higher value wins, and equal values tie the trick, which then belongs to no one.\n\nSETUP. Both players start with a score of {starting_score}. The match is exactly {hands} hands. Seat 1 leads in odd-numbered hands and seat 2 leads in even-numbered hands. The other seat is the responder.\n\nEACH HAND, in this order:\n1. Reset. The full deck is restored and shuffled; hands, played cards, calls, responses, trick counts, the stake and the folded marker are cleared.\n2. Deal. {cards_dealt_per_player} cards to each player. Each player sees only their own cards.\n3. Lead. The leader chooses one of their cards and plays it face up.\n4. The lead is announced to both players.\n5. Answer. Having seen the lead, the responder chooses one of their cards and plays it face up.\n6. Trick 1. The higher card wins trick 1; an equal pair is a tie. The result is announced.\n7. Put window. Each player privately chooses Put or Check, without seeing the other's choice.\n8. Both calls are announced.\n9. Reply. Only if exactly one player chose Put: the player who chose Check now chooses See or Fold. If both chose Put, the Put counts as seen. If both chose Check, there is no Put and no reply is asked. The stake is {stake_put_seen} if a Put was seen (by See or by both Putting), {stake_both_checked} if both Checked.\n10. Fold. If the Checker folds, the player who Put scores {fold_points} point and the hand ends there: no further tricks are played and the remaining cards are not shown. If the Checker Sees, the hand is played out.\n11. Trick 2. Each player automatically plays the higher of their two remaining cards. Compared as in trick 1.\n12. Trick 3. Each player automatically plays their last card. Compared as in trick 1.\n13. Reveal. All cards and each player's number of tricks won are shown.\n14. Hand scoring. A player who won at least {tricks_needed_to_win_hand} of the {tricks_per_hand} tricks scores the stake ({stake_both_checked} or {stake_put_seen}). If neither player won {tricks_needed_to_win_hand} tricks, because of tied tricks, no one scores.\n15. After hand {hands} the match ends; otherwise the next hand begins.\n\nThere is no talk phase. After {hands} hands, the player with the higher total score wins. If the totals are equal, the match is a draw (the win is shared)."
+}

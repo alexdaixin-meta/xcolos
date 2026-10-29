@@ -1,0 +1,1448 @@
+[
+  {
+    "name": "Setup: 4 kamons each, centre 11, pot 0, start seat 1, round 1, no held cards",
+    "rule": "R1",
+    "players": 4,
+    "rounds": 0,
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 4,
+          "active": true,
+          "held_rounds": 0
+        },
+        "2": {
+          "kamons": 4,
+          "active": true,
+          "held_rounds": 0
+        },
+        "3": {
+          "kamons": 4,
+          "active": true,
+          "held_rounds": 0
+        },
+        "4": {
+          "kamons": 4,
+          "active": true,
+          "held_rounds": 0
+        }
+      },
+      "game": {
+        "centre": 11,
+        "pot": 0,
+        "start_seat": 1,
+        "round": 1
+      }
+    },
+    "rule_text": "At setup, then each player has 4 kamons, the centre has 11, the pot is 0, the start seat is 1, and nobody holds a card."
+  },
+  {
+    "name": "Deck excludes a held hand card: 3 players, one held card, deck ends round with 15-3-3-2=7",
+    "rule": "R2",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 5,
+          "held_rounds": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 7
+        }
+      },
+      "players": {
+        "1": {
+          "held_rounds": 2,
+          "kamons": 4
+        },
+        "2": {
+          "held_rounds": 1
+        },
+        "3": {
+          "held_rounds": 1
+        }
+      }
+    },
+    "rule_text": "When a round begins, then the deck is the cards 1-15 minus the hand cards held by active players."
+  },
+  {
+    "name": "Players with no card are dealt one; all pass and keep it (held_rounds 1)",
+    "rule": "R3",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 7
+        }
+      },
+      "players": {
+        "1": {
+          "held_rounds": 1,
+          "fight_choice": "PASS"
+        },
+        "2": {
+          "held_rounds": 1,
+          "fight_choice": "PASS"
+        },
+        "3": {
+          "held_rounds": 1,
+          "fight_choice": "PASS"
+        }
+      }
+    },
+    "rule_text": "When a round begins, then each active player with no hand card is dealt one hand card, seen only by them."
+  },
+  {
+    "name": "Reserves, Kobayakawa and Alternate dealt: 4 players leave 15-4-4-2=5 in deck (values are chance)",
+    "rule": "R4",
+    "players": 4,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 4,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 5
+        }
+      }
+    },
+    "rule_text": "When a round begins, then each active player is dealt one face-down reserve card that nobody sees, then a face-up Kobayakawa and a face-down Alternate are dealt."
+  },
+  {
+    "name": "Minimum stake 1 in round 1: lone LOW fighter pays 1 and takes pot 2",
+    "rule": "R5",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 5,
+          "fight_choice": "LOW"
+        },
+        "2": {
+          "kamons": 4
+        },
+        "3": {
+          "kamons": 4
+        }
+      },
+      "game": {
+        "pot": 0,
+        "centre": 10,
+        "start_seat": 1
+      }
+    },
+    "rule_text": "When the round is 1-9, then the minimum stake is 1; when the round is 10, then it is 2."
+  },
+  {
+    "name": "Minimum stake 2 in round 10: LOW costs 2, seat with 2 kamons gets no HIGH",
+    "rule": "R5",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 10,
+        "centre": 2,
+        "pot": 0
+      },
+      "players": {
+        "2": {
+          "kamons": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "players": {
+        "1": {
+          "kamons": 6
+        },
+        "2": {
+          "kamons": 2
+        },
+        "3": {
+          "kamons": 4
+        }
+      },
+      "game": {
+        "pot": 0,
+        "centre": 0
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "LOW"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "HIGH"
+        }
+      ]
+    },
+    "rule_text": "When the round is 1-9, then the minimum stake is 1; when the round is 10, then it is 2."
+  },
+  {
+    "name": "Announced round state advances: everyone passes in round 4",
+    "rule": "R6",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 4,
+        "pot": 2,
+        "start_seat": 2,
+        "centre": 11
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5,
+        "pot": 3,
+        "centre": 10,
+        "start_seat": 3
+      },
+      "players": {
+        "1": {
+          "kamons": 4
+        },
+        "2": {
+          "kamons": 4
+        },
+        "3": {
+          "kamons": 4
+        }
+      }
+    },
+    "rule_text": "When the round is announced, then the announcement gives the round, the Kobayakawa, the pot, every player's kamons, the players holding a kept card with its held_rounds, the start seat and the minimum stake."
+  },
+  {
+    "name": "Every seat is offered KEEP, DRAW, SHIFT and its choice is recorded",
+    "rule": "R7",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "KEEP"
+      },
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 3,
+        "options_include": "SHIFT"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "draw_choice": "KEEP"
+        },
+        "2": {
+          "draw_choice": "DRAW"
+        },
+        "3": {
+          "draw_choice": "SHIFT"
+        }
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "DRAW"
+        },
+        {
+          "seat": 2,
+          "option": "SHIFT"
+        },
+        {
+          "seat": 3,
+          "option": "KEEP"
+        }
+      ]
+    },
+    "rule_text": "When the draw choice is made, then every active player chooses KEEP, DRAW or SHIFT at the same time, and no choice is seen until all are in."
+  },
+  {
+    "name": "Only the drawer is asked OLD or NEW",
+    "rule": "R8",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "draw_choice": "DRAW"
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "OLD"
+        },
+        {
+          "seat": 2,
+          "option": "NEW"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "OLD"
+        },
+        {
+          "seat": 3,
+          "option": "NEW"
+        }
+      ]
+    },
+    "rule_text": "When a player chose DRAW, then they alone see their reserve card."
+  },
+  {
+    "name": "NEW replaces the held card (held_rounds reset, then +1 for passing); OLD keeps it",
+    "rule": "R9",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "hand": 5,
+          "held_rounds": 2
+        },
+        "3": {
+          "hand": 9,
+          "held_rounds": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 2,
+        "options_include": "NEW"
+      },
+      {
+        "seat": 3,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 3,
+        "options_include": "OLD"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "held_rounds": 1,
+          "draw_choice": "DRAW"
+        },
+        "3": {
+          "held_rounds": 3,
+          "draw_choice": "DRAW"
+        }
+      }
+    },
+    "rule_text": "When a drawer chooses NEW, then the reserve card becomes their hand and the old hand card is discarded face up; when they choose OLD, then the reserve card is discarded face up."
+  },
+  {
+    "name": "Undrawn reserves are discarded: reserves list is empty after the draw step",
+    "rule": "R10",
+    "players": 4,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      }
+    ],
+    "expect": {
+      "lens": {
+        "game": {
+          "reserves": 0
+        }
+      },
+      "players": {
+        "1": {
+          "draw_choice": "DRAW"
+        }
+      }
+    },
+    "rule_text": "When drawers have chosen, then every undrawn reserve card is discarded face down and stays unseen."
+  },
+  {
+    "name": "Draw choices revealed: one DRAW-NEW, others KEEP",
+    "rule": "R11",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 4,
+          "held_rounds": 3
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "DRAW"
+      },
+      {
+        "seat": 1,
+        "options_include": "NEW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "draw_choice": "DRAW",
+          "held_rounds": 1
+        },
+        "2": {
+          "draw_choice": "KEEP"
+        },
+        "3": {
+          "draw_choice": "KEEP"
+        }
+      }
+    },
+    "rule_text": "When the draw choices are revealed, then every player's draw choice and every face-up discard is announced."
+  },
+  {
+    "name": "A SHIFT voter keeps their hand card (new Kobayakawa value is chance, not asserted)",
+    "rule": "R12",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 6,
+          "held_rounds": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "SHIFT"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "draw_choice": "SHIFT",
+          "held_rounds": 2,
+          "kamons": 4
+        }
+      }
+    },
+    "rule_text": "When at least 1 player chose SHIFT, then the Alternate replaces the Kobayakawa and the new value is announced; when no player chose SHIFT, then the Kobayakawa is unchanged."
+  },
+  {
+    "name": "Talk step runs and the round completes normally",
+    "rule": "R13",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 2,
+        "pot": 1,
+        "centre": 10
+      }
+    },
+    "rule_text": "When the talk step runs, then every active player writes one short message at the same time, and all messages are shown to everyone."
+  },
+  {
+    "name": "Fight starts at start seat 3: seat 3 may fight LOW, later seats see its HIGH and get no LOW",
+    "rule": "R14",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "start_seat": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "HIGH"
+      }
+    ],
+    "expect": {
+      "players": {
+        "3": {
+          "kamons": 5,
+          "fight_choice": "HIGH",
+          "held_rounds": 0
+        },
+        "1": {
+          "kamons": 4,
+          "held_rounds": 1
+        },
+        "2": {
+          "kamons": 4,
+          "held_rounds": 1
+        }
+      },
+      "game": {
+        "start_seat": 3,
+        "pot": 0
+      },
+      "offered": [
+        {
+          "seat": 3,
+          "option": "LOW"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "LOW"
+        },
+        {
+          "seat": 2,
+          "option": "LOW"
+        }
+      ]
+    },
+    "rule_text": "When the fight runs, then each active player acts once, in seat order starting at the start seat and wrapping around, and sees all earlier choices."
+  },
+  {
+    "name": "With exactly 1 kamon, LOW is offered but HIGH is not; LOW stakes 1",
+    "rule": "R15",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "kamons": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 2,
+          "fight_choice": "LOW"
+        }
+      },
+      "game": {
+        "pot": 0
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "LOW"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "HIGH"
+        }
+      ]
+    },
+    "rule_text": "When nobody earlier this round has fought HIGH and the player has at least the minimum stake in kamons, then FIGHT LOW is offered at a stake equal to the minimum."
+  },
+  {
+    "name": "With 2 kamons HIGH is offered and stakes 2",
+    "rule": "R16",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "kamons": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "HIGH"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 3,
+          "fight_choice": "HIGH"
+        }
+      },
+      "game": {
+        "pot": 0,
+        "centre": 10
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "HIGH"
+        }
+      ]
+    },
+    "rule_text": "When the player has at least the minimum stake + 1 in kamons, then FIGHT HIGH is offered at a stake of the minimum + 1."
+  },
+  {
+    "name": "After a HIGH, later seats are not offered LOW but may still fight HIGH",
+    "rule": "R17",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "HIGH"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 5
+        }
+      },
+      "offered": [
+        {
+          "seat": 2,
+          "option": "HIGH"
+        },
+        {
+          "seat": 3,
+          "option": "HIGH"
+        }
+      ],
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "LOW"
+        },
+        {
+          "seat": 3,
+          "option": "LOW"
+        }
+      ]
+    },
+    "rule_text": "When any earlier player this round fought HIGH, then FIGHT LOW is not offered."
+  },
+  {
+    "name": "Seat with 1 kamon after a HIGH is forced to pass: no stake, keeps card",
+    "rule": "R18",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "2": {
+          "kamons": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "HIGH"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 5
+        },
+        "2": {
+          "kamons": 1,
+          "fight_choice": "PASS",
+          "held_rounds": 1,
+          "active": true
+        }
+      },
+      "game": {
+        "pot": 0
+      },
+      "not_offered": [
+        {
+          "seat": 2,
+          "option": "LOW"
+        },
+        {
+          "seat": 2,
+          "option": "HIGH"
+        }
+      ]
+    },
+    "rule_text": "When a player has fewer kamons than every stake they are allowed, then only PASS is offered."
+  },
+  {
+    "name": "Fighters pay stakes 1 and 2; card 1 plus Kobayakawa (>=3) beats card 2 and takes pot 4",
+    "rule": "R19",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 1
+        },
+        "2": {
+          "hand": 2
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      },
+      {
+        "seat": 2,
+        "options_include": "HIGH"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 7,
+          "held_rounds": 0
+        },
+        "2": {
+          "kamons": 2,
+          "held_rounds": 0
+        },
+        "3": {
+          "kamons": 4,
+          "held_rounds": 1
+        }
+      },
+      "game": {
+        "pot": 0,
+        "centre": 10,
+        "start_seat": 1
+      }
+    },
+    "rule_text": "When the fight ends, then each fighter pays their stake into the pot."
+  },
+  {
+    "name": "Rounds 1-9: centre feeds 1 kamon to the pot",
+    "rule": "R20",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pot": 1,
+        "centre": 10
+      }
+    },
+    "rule_text": "When the fight ends in rounds 1-9, then 1 kamon moves from the centre to the pot if the centre has any."
+  },
+  {
+    "name": "Rounds 1-9: an empty centre feeds nothing",
+    "rule": "R20",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "centre": 0,
+        "pot": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pot": 0,
+        "centre": 0
+      }
+    },
+    "rule_text": "When the fight ends in rounds 1-9, then 1 kamon moves from the centre to the pot if the centre has any."
+  },
+  {
+    "name": "Round 10: whole centre (5) moves to the pot; nobody fights, all level",
+    "rule": "R21",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 10,
+        "centre": 5,
+        "pot": 0
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2,
+        3
+      ],
+      "standings": {
+        "1": 4,
+        "2": 4,
+        "3": 4
+      },
+      "game": {
+        "pot": 5,
+        "centre": 0
+      }
+    },
+    "rule_text": "When the fight ends in round 10, then all remaining centre kamons move to the pot."
+  },
+  {
+    "name": "Nobody fights: pot of 3 carries and grows to 4, start seat moves on",
+    "rule": "R22",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "pot": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pot": 4,
+        "centre": 10,
+        "start_seat": 2
+      },
+      "players": {
+        "1": {
+          "kamons": 4
+        },
+        "2": {
+          "kamons": 4
+        },
+        "3": {
+          "kamons": 4
+        }
+      }
+    },
+    "rule_text": "When nobody fights, then the pot carries to the next round."
+  },
+  {
+    "name": "Lone fighter takes the whole pot (2 carried + 1 stake + 1 centre)",
+    "rule": "R23",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "pot": 2
+      }
+    },
+    "rules": [
+      {
+        "seat": 2,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "2": {
+          "kamons": 7,
+          "held_rounds": 0
+        },
+        "1": {
+          "kamons": 4
+        },
+        "3": {
+          "kamons": 4
+        }
+      },
+      "game": {
+        "pot": 0,
+        "start_seat": 2
+      }
+    },
+    "rule_text": "When exactly one player fights, then they take the whole pot and their card is not revealed."
+  },
+  {
+    "name": "Showdown: lowest card 1 gets the Kobayakawa (>=3) and beats card 2",
+    "rule": "R24",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 2
+        },
+        "2": {
+          "hand": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "HIGH"
+      },
+      {
+        "seat": 2,
+        "options_include": "HIGH"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 2
+        },
+        "2": {
+          "kamons": 7
+        },
+        "3": {
+          "kamons": 4
+        }
+      },
+      "game": {
+        "pot": 0,
+        "start_seat": 2
+      }
+    },
+    "rule_text": "When two or more players fight, then all fighters' cards are revealed, the fighter with the lowest card adds the Kobayakawa value to it, and the unique highest total takes the whole pot."
+  },
+  {
+    "name": "Two fighters in round 1 (a tie depends on chance): only stakes, centre and card cleanup asserted",
+    "rule": "R25",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 3
+        },
+        "2": {
+          "hand": 8
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      },
+      {
+        "seat": 2,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "held_rounds": 0,
+          "fight_choice": "LOW"
+        },
+        "2": {
+          "held_rounds": 0,
+          "fight_choice": "LOW"
+        },
+        "3": {
+          "kamons": 4,
+          "held_rounds": 1
+        }
+      },
+      "game": {
+        "centre": 10
+      }
+    },
+    "rule_text": "When fighters tie for the highest total in rounds 1-9, then nobody takes the pot and it carries."
+  },
+  {
+    "name": "Round 10 showdown (tie depends on chance): the pot is emptied either way",
+    "rule": "R26",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 10,
+        "centre": 0,
+        "pot": 4
+      },
+      "players": {
+        "1": {
+          "hand": 3
+        },
+        "2": {
+          "hand": 8
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      },
+      {
+        "seat": 2,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "game": {
+        "pot": 0,
+        "centre": 0
+      },
+      "players": {
+        "3": {
+          "kamons": 4
+        }
+      }
+    },
+    "rule_text": "When fighters tie for the highest total in round 10, then each tied fighter gets floor(pot / number tied), and the remainder leaves the game."
+  },
+  {
+    "name": "Cleanup: fighter's held_rounds goes to 0, passer's held card count rises",
+    "rule": "R27",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 7,
+          "held_rounds": 2
+        },
+        "2": {
+          "hand": 9,
+          "held_rounds": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "held_rounds": 0,
+          "kamons": 5
+        },
+        "2": {
+          "held_rounds": 2,
+          "kamons": 4
+        },
+        "3": {
+          "held_rounds": 1
+        }
+      }
+    },
+    "rule_text": "When a round is cleaned up, then each fighter's hand card is discarded and their held_rounds is set to 0, and each passer keeps their card and adds 1 to held_rounds."
+  },
+  {
+    "name": "No pot winner: start seat moves from 3 to the next active seat, wrapping to 1",
+    "rule": "R28",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "start_seat": 3
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "game": {
+        "start_seat": 1,
+        "pot": 1
+      }
+    },
+    "rule_text": "When a player wins the pot, then they are the next start player; when nobody wins it, then the next start player is the next active seat after this round's start seat."
+  },
+  {
+    "name": "Pot winner becomes the next start seat",
+    "rule": "R28",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 3,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "game": {
+        "start_seat": 3
+      },
+      "players": {
+        "3": {
+          "kamons": 5
+        }
+      }
+    },
+    "rule_text": "When a player wins the pot, then they are the next start player; when nobody wins it, then the next start player is the next active seat after this round's start seat."
+  },
+  {
+    "name": "A fighter left with 0 kamons is eliminated",
+    "rule": "R29",
+    "players": 3,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 1
+        },
+        "2": {
+          "hand": 2,
+          "kamons": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      },
+      {
+        "seat": 2,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "kamons": 6,
+          "active": true
+        },
+        "2": {
+          "kamons": 0,
+          "active": false
+        },
+        "3": {
+          "kamons": 4,
+          "active": true
+        }
+      },
+      "game": {
+        "start_seat": 1,
+        "round": 2
+      }
+    },
+    "rule_text": "When a player has 0 kamons at the end of a round, then they are eliminated and their card is discarded unseen."
+  },
+  {
+    "name": "Game ends when only one active player remains: card 1 beats cards 2 and 3",
+    "rule": "R30",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "hand": 1
+        },
+        "2": {
+          "hand": 2,
+          "kamons": 1
+        },
+        "3": {
+          "hand": 3,
+          "kamons": 1
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "LOW"
+      },
+      {
+        "seat": 2,
+        "options_include": "LOW"
+      },
+      {
+        "seat": 3,
+        "options_include": "LOW"
+      }
+    ],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 7,
+        "2": 0,
+        "3": 0
+      },
+      "players": {
+        "2": {
+          "active": false
+        },
+        "3": {
+          "active": false
+        }
+      }
+    },
+    "rule_text": "When round 10 ends, or when only 1 active player remains, then the game ends, and the most kamons wins."
+  },
+  {
+    "name": "Game ends after round 10: most kamons wins",
+    "rule": "R30",
+    "players": 3,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 10,
+        "centre": 0,
+        "pot": 0
+      },
+      "players": {
+        "2": {
+          "kamons": 6
+        }
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 2,
+        "options_include": "PASS",
+        "times": "all"
+      },
+      {
+        "seat": 3,
+        "options_include": "PASS",
+        "times": "all"
+      }
+    ],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 4,
+        "2": 6,
+        "3": 4
+      }
+    },
+    "rule_text": "When round 10 ends, or when only 1 active player remains, then the game ends, and the most kamons wins."
+  }
+]

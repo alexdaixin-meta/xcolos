@@ -1330,7 +1330,7 @@ class FlowOrchestrator:
                 # The record notes who was told, which is now the broadcast's
                 # audience rather than a separate visibility field.
                 visible=step.broadcast.to if step.broadcast else "none",
-                reason=action.reason,
+                reason=action.notes.get("reason", ""),
             )
         )
         if step.store:
@@ -1628,6 +1628,11 @@ class FlowOrchestrator:
 
         A `disclose` announces itself, because the message *is* the disclosure
         and it goes to exactly the players who learned it.
+
+        Announcing a change does not make the attribute visible. Every
+        listener gets the words; the new value goes in the payload only to
+        listeners who may see the attribute, by the rule their own view is
+        built by (`FlowState.sees`).
         """
         if operation.op == "disclose":
             return
@@ -1639,15 +1644,19 @@ class FlowOrchestrator:
             Selector.parse(args.get("announce_to", "all"), "announce_to"),
             acting_only=False, subject=subject,
         )
-        self._say(
-            game, heard,
-            str(args.get("text") or ""), str(args.get("llm") or ""),
-            {k: v for k, v in args.items()
-             if k not in ("text", "llm", "announce_to")}
-            | {"player": subject, "subject": subject},
-            f"{kind}_{operation.op}" if kind else operation.op,
-            int(args.get("max_words", 0)),
-        )
+        key = args.get("key")
+        seen = [s for s in heard if key is None or flow.sees(s, str(key), subject)]
+        for listeners, withheld in ((seen, ()), ([s for s in heard if s not in seen], ("value",))):
+            self._say(
+                game, listeners,
+                str(args.get("text") or ""), str(args.get("llm") or ""),
+                {k: v for k, v in args.items()
+                 if k not in ("text", "llm", "announce_to")}
+                | {"player": subject, "subject": subject},
+                f"{kind}_{operation.op}" if kind else operation.op,
+                int(args.get("max_words", 0)),
+                withheld=withheld,
+            )
 
     _NOT_PROSE = {"true", "false", "none", "null", "nil", "na", "undefined"}
 
@@ -1671,6 +1680,7 @@ class FlowOrchestrator:
         fact_type: str,
         max_words: int = 0,
         once: bool = False,
+        withheld: tuple[str, ...] = (),
     ) -> str:
         """Announce something, worded by the game or by a model. Returns the words (the first listener's, when a model wrote one each).
 
@@ -1685,12 +1695,17 @@ class FlowOrchestrator:
         and the whole table listening, it is composed one time from the PUBLIC
         view and told to everyone: the same account for all, from what nobody
         was kept from.
+
+        `withheld` names what a listener may not see in `extra`: the template
+        is filled from all of it, but neither the fact's payload (which an
+        agent reads whole, as `data`) nor a wording model is given it.
         """
         flow = self._state()
         if not heard:
             return ""
         everyone = len(heard) == len(flow.players)
         fallback = self._render(None, text, extra) if text else ""
+        extra = {k: v for k, v in extra.items() if k not in withheld}
 
         if llm and self.judge is not None:
             task = f"{llm}\n\nWhat happened: " + json.dumps(extra, sort_keys=True, default=str)
@@ -1834,10 +1849,15 @@ class FlowOrchestrator:
                 for seat in flow.players:
                     game.seats[seat].attributes[key] = flow.attribute(seat, key)
             result = rule.result
-            if rule.winner:
+            standings: dict[int, float] | None = None
+            if rule.rank_by:
+                result, standings = self._rank(rule)
+            elif rule.winner:
                 result, reason = self._winner(game, rule, step)
             extra = {"winner": result, "result": result,
                      "ending": rule.name, "reason": reason}
+            if standings is not None:
+                extra["standings"] = {str(s): v for s, v in standings.items()}
             if rule.llm:
                 # A model asked how the game went has to be shown how it went.
                 extra["history"] = self._public_history(game)
@@ -1850,7 +1870,7 @@ class FlowOrchestrator:
             )
             # The console shows the ending's own announcement (final scores
             # and all) under the winner, not just a bare name.
-            game.end_game(result, reason, summary=announced)
+            game.end_game(result, reason, summary=announced, standings=standings)
             return True
         return False
 
@@ -1931,6 +1951,40 @@ class FlowOrchestrator:
             result = ("seats " + ", ".join(str(w) for w in winners[:-1])
                       + f" and {winners[-1]}")
         return result, reply.reason or rule.reason
+
+    def _rank(self, rule: Any) -> tuple[str, dict[int, float]]:
+        """Work `rank_by` out for every seat. (result, standings).
+
+        The highest value wins and equal values share it; the result is worded
+        like `_winner`'s ("seat 2", "seats 1, 3 and 4"). No model is involved.
+        With `min_to_win`, a seat below the bar cannot win, and when none
+        reaches it the result is `NO_WINNER`: the standings are logged all the same.
+        """
+        flow = self._state()
+        expr = Expr(rule.rank_by)
+        standings: dict[int, float] = {}
+        for seat in flow.players:
+            value = flow.calc(expr, you=seat)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise FlowError(
+                    f"end.{rule.name}.rank_by: {rule.rank_by!r} gave {value!r} "
+                    f"for seat {seat}, not a number")
+            standings[seat] = value
+        eligible = standings
+        if rule.min_to_win:
+            bar = flow.calc(Expr(rule.min_to_win))
+            if isinstance(bar, bool) or not isinstance(bar, (int, float)):
+                raise FlowError(
+                    f"end.{rule.name}.min_to_win: {rule.min_to_win!r} gave {bar!r}, not a number")
+            eligible = {s: v for s, v in standings.items() if v >= bar}
+            if not eligible:
+                return f"{self.NO_WINNER} (no seat reached the minimum to win)", standings
+        top = max(eligible.values())
+        winners = [s for s, v in eligible.items() if v == top]
+        if len(winners) == 1:
+            return f"seat {winners[0]}", standings
+        return ("seats " + ", ".join(str(w) for w in winners[:-1])
+                + f" and {winners[-1]}"), standings
 
     # ------------------------------------------------------------------
     # Helpers

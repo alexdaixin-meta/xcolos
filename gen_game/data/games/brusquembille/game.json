@@ -1,0 +1,839 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "brusquembille",
+    "name": "Mirror Brusquembille",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "Two players, identical private 16-card piles, 16 tricks; follow suit only in the last three."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pile_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "pile_1",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "AS",
+          "TS",
+          "KS",
+          "7S",
+          "AH",
+          "TH",
+          "KH",
+          "7H",
+          "AD",
+          "TD",
+          "KD",
+          "7D",
+          "AC",
+          "TC",
+          "KC",
+          "7C"
+        ]
+      },
+      {
+        "key": "pile_2",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "AS",
+          "TS",
+          "KS",
+          "7S",
+          "AH",
+          "TH",
+          "KH",
+          "7H",
+          "AD",
+          "TD",
+          "KD",
+          "7D",
+          "AC",
+          "TC",
+          "KC",
+          "7C"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "trump",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "leader",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "led_card",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "follow_card",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "played_cards",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "trick_winner",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "ace_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 11
+      },
+      {
+        "key": "ten_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "king_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "seven_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "suits",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "ranks",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "pile_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "pile_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 100
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "pile_after_deal",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "tricks",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "last_drawing_trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 13
+      },
+      {
+        "key": "first_must_follow_trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 14
+      },
+      {
+        "key": "last_trick_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "total_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 201
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "tell",
+      "label": "the piles",
+      "to": "all",
+      "text": "Each player owns a private, shuffled pile of {pile_size} cards: one Ace, Ten, King and Seven of each of the {suits} suits (Spades, Hearts, Diamonds, Clubs), worth {pile_points} points. Both piles have this same composition. Nobody sees the order of either pile."
+    },
+    {
+      "use": "update",
+      "label": "the deal",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_1[int(uniform(0, len(pile_1)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_1",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_1[int(uniform(0, len(pile_1)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_1",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_1[int(uniform(0, len(pile_1)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_1",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_2[int(uniform(0, len(pile_2)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_2",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_2[int(uniform(0, len(pile_2)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_2",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_2[int(uniform(0, len(pile_2)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_2",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "pile_count",
+            "value": {
+              "calc": "len(pile_1)"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "pile_count",
+            "value": {
+              "calc": "len(pile_2)"
+            }
+          }
+        }
+      ],
+      "text": "Each player takes the top {hand_size} cards of their own pile as their hand, leaving {pile_after_deal} cards in each pile."
+    },
+    {
+      "use": "update",
+      "label": "trump and first leader",
+      "do": [
+        {
+          "set": {
+            "key": "trump",
+            "value": {
+              "calc": "['S', 'H', 'D', 'C'][min(int(uniform(0, suits)), suits - 1)]"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "1 if uniform(0, 1) < 0.5 else 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "trick",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "led_card",
+            "value": "none yet"
+          }
+        },
+        {
+          "set": {
+            "key": "follow_card",
+            "value": "none yet"
+          }
+        }
+      ],
+      "text": "The trump suit is {trump}. Seat {leader} leads the first trick. Both scores start at 0."
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand",
+        "score",
+        "pile_count",
+        "trump",
+        "leader",
+        "trick"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "sync",
+      "phase": "play",
+      "label": "your view",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "hand",
+        "score",
+        "pile_count",
+        "trump",
+        "leader",
+        "trick",
+        "played_cards"
+      ],
+      "text": "Trick {trick} of {tricks}. Trump {trump}, seat {leader} leads. Your state:"
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "the lead",
+      "to": {
+        "where": "you.seat == leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "verify": {
+        "bind": "lead"
+      },
+      "text": "Trick {trick} of {tricks}, trump {trump}. You lead: play any one card from your hand face up."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "the led card",
+      "do": [
+        {
+          "set": {
+            "key": "led_card",
+            "value": "$lead"
+          }
+        },
+        {
+          "remove": {
+            "player": {
+              "calc": "leader"
+            },
+            "key": "hand",
+            "value": "$lead"
+          }
+        },
+        {
+          "append": {
+            "key": "played_cards",
+            "value": {
+              "calc": "('seat 1: ' if leader == 1 else 'seat 2: ') + led_card"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "offer",
+            "value": {
+              "calc": "[c for c in you.hand if c[1] == led_card[1]] if (trick >= first_must_follow_trick and any(c[1] == led_card[1] for c in you.hand)) else you.hand"
+            }
+          }
+        }
+      ],
+      "text": "Seat {leader} leads {led_card}."
+    },
+    {
+      "use": "ask",
+      "phase": "play",
+      "label": "the follow",
+      "to": {
+        "where": "you.seat != leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "verify": {
+        "bind": "follow"
+      },
+      "text": "Trick {trick} of {tricks}, trump {trump}. Seat {leader} led {led_card}. Play one card face up from the cards offered (from trick {first_must_follow_trick} on you must follow the led suit if you can; otherwise any card)."
+    },
+    {
+      "use": "update",
+      "phase": "play",
+      "label": "the followed card",
+      "do": [
+        {
+          "set": {
+            "key": "follow_card",
+            "value": "$follow"
+          }
+        },
+        {
+          "remove": {
+            "player": {
+              "calc": "3 - leader"
+            },
+            "key": "hand",
+            "value": "$follow"
+          }
+        },
+        {
+          "append": {
+            "key": "played_cards",
+            "value": {
+              "calc": "('seat 1: ' if leader == 2 else 'seat 2: ') + follow_card"
+            }
+          }
+        }
+      ],
+      "text": "The follower plays {follow_card}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the trick winner",
+      "do": [
+        {
+          "set": {
+            "key": "trick_winner",
+            "value": {
+              "calc": "((leader if led_card[1] == trump else 3 - leader) if ((led_card[1] == trump) != (follow_card[1] == trump)) else ((3 - leader) if (follow_card[1] == led_card[1] and (ace_points if follow_card[0] == 'A' else ten_points if follow_card[0] == 'T' else king_points if follow_card[0] == 'K' else seven_points) > (ace_points if led_card[0] == 'A' else ten_points if led_card[0] == 'T' else king_points if led_card[0] == 'K' else seven_points)) else leader))"
+            }
+          }
+        }
+      ],
+      "text": "{led_card} against {follow_card}: seat {trick_winner} wins trick {trick}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the points",
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "trick_winner"
+            },
+            "key": "score",
+            "value": {
+              "calc": "(ace_points if led_card[0] == 'A' else ten_points if led_card[0] == 'T' else king_points if led_card[0] == 'K' else seven_points) + (ace_points if follow_card[0] == 'A' else ten_points if follow_card[0] == 'T' else king_points if follow_card[0] == 'K' else seven_points) + (last_trick_bonus if trick == tricks else 0)"
+            }
+          }
+        }
+      ],
+      "text": "Scores: seat 1 {players[0].score}, seat 2 {players[1].score}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the next leader",
+      "do": [
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "trick_winner"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "the draw",
+      "when": {
+        "calc": "trick <= last_drawing_trick"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_1[int(uniform(0, len(pile_1)))]"
+            },
+            "if": {
+              "calc": "trick_winner == 1"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "trick_winner == 1"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_1",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "trick_winner == 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "pile_count",
+            "value": -1,
+            "if": {
+              "calc": "trick_winner == 1"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_2[int(uniform(0, len(pile_2)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_2",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "pile_count",
+            "value": -1
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "pile_1[int(uniform(0, len(pile_1)))]"
+            },
+            "if": {
+              "calc": "trick_winner == 2"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "trick_winner == 2"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "pile_1",
+            "value": {
+              "calc": "pick"
+            },
+            "if": {
+              "calc": "trick_winner == 2"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "pile_count",
+            "value": -1,
+            "if": {
+              "calc": "trick_winner == 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": ""
+          }
+        }
+      ],
+      "text": "Seat {trick_winner} draws from their pile, then the other seat draws from theirs."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "next trick",
+      "do": [
+        {
+          "adjust": {
+            "key": "trick",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "resolve",
+      "label": "after the last trick",
+      "when": {
+        "calc": "trick > tricks"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "trick > tricks"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score}, Seat 2 {players[1].score} (of {total_points})."
+    }
+  },
+  "limits": {
+    "rounds": 16,
+    "rounds_max": 17,
+    "actions_max": 400,
+    "deadline_s": 120
+  },
+  "rules": "CARDS. Four suits (Spades S, Hearts H, Diamonds D, Clubs C) and four ranks. From highest to lowest: Ace A ({ace_points} points), Ten T ({ten_points} points), King K ({king_points} points), Seven 7 ({seven_points} points). Cards are written rank then suit, e.g. TH. Each player owns a private {pile_size}-card pile holding exactly one Ace, Ten, King and Seven of every suit, worth {pile_points} points. Both piles have this same composition.\n\nHIDDEN INFORMATION. Your hand is seen only by you. The order of the cards in both piles is hidden from both players. Everything else is public: the trump suit, the leader, the trick number, both scores, the number of cards left in each pile, and every card played face up so far. No player ever sees the cards in either pile.\n\nSETUP. Each pile is shuffled separately. Each player takes the top {hand_size} cards of their own pile as their hand, leaving {pile_after_deal} in each pile. One suit is drawn at random as trump and announced. The first leader is chosen at random and announced. Both scores start at 0.\n\nEACH TRICK ({tricks} tricks): The leader plays any one card from their hand face up. The follower then plays one card face up. In tricks 1 to {last_drawing_trick} the follower may play any card. From trick {first_must_follow_trick} to {tricks}, the follower must play a card of the led suit if they hold one; if they hold none, they may play any card.\nThe winner is decided in this order: (a) if exactly one card is a trump, that card wins; (b) if both cards are of the same suit, the higher rank wins, and if they are identical in suit and rank, the leader wins; (c) otherwise (different suits, neither a trump), the leader wins.\nThe winner adds the point values of both cards to their score; in trick {tricks} the winner also adds {last_trick_bonus} bonus point. The winner leads the next trick. In tricks 1 to {last_drawing_trick}, the winner draws the top card of their own pile, then the loser draws the top card of their own pile, so both again hold {hand_size} cards. After trick {last_drawing_trick} both piles are empty and no more cards are drawn.\n\nEND. After trick {tricks} the game ends. The points total {total_points}, so the scores cannot be equal: the player with the higher score wins."
+}

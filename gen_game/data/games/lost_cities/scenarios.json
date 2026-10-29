@@ -1,0 +1,930 @@
+[
+  {
+    "name": "Setup: 27-card deck, all expeditions and burials at 0",
+    "rule": "R1",
+    "players": 2,
+    "rounds": 0,
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 27
+        }
+      },
+      "players": {
+        "1": {
+          "red_top": 0,
+          "red_sum": 0,
+          "blue_top": 0,
+          "blue_sum": 0,
+          "green_top": 0,
+          "green_sum": 0,
+          "burial": 0
+        },
+        "2": {
+          "red_top": 0,
+          "red_sum": 0,
+          "blue_top": 0,
+          "blue_sum": 0,
+          "green_top": 0,
+          "green_sum": 0,
+          "burial": 0
+        }
+      },
+      "game": {
+        "round": 0
+      }
+    },
+    "rule_text": "At setup the deck holds exactly 27 cards, Red, Blue and Green each valued 2 to 10, and every expedition top, sum and burial is 0."
+  },
+  {
+    "name": "Odd round 1 gives priority to seat 1",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 1,
+        "priority_seat": 1
+      }
+    },
+    "rule_text": "When the round is odd, priority_seat is 1. When it is even, priority_seat is 2."
+  },
+  {
+    "name": "Even round 2 gives priority to seat 2",
+    "rule": "R2",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 1
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 2,
+        "priority_seat": 2
+      }
+    },
+    "rule_text": "When the round is odd, priority_seat is 1. When it is even, priority_seat is 2."
+  },
+  {
+    "name": "One round draws two cards, so the deck shrinks from 27 to 25",
+    "rule": "R3",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 25
+        }
+      },
+      "game": {
+        "round": 1
+      }
+    },
+    "rule_text": "Each round, two cards are drawn from the deck as Card A and Card B and shown to both players, so the deck shrinks by 2 per round and holds 3 cards after round 12."
+  },
+  {
+    "name": "Both seats are offered a Wager colour in round 5",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 4
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Blue"
+      },
+      {
+        "seat": 2,
+        "options_include": "Green"
+      }
+    ],
+    "expect": {
+      "game": {
+        "round": 5
+      },
+      "offered": [
+        {
+          "seat": 1,
+          "option": "Red"
+        },
+        {
+          "seat": 1,
+          "option": "Blue"
+        },
+        {
+          "seat": 1,
+          "option": "Green"
+        },
+        {
+          "seat": 2,
+          "option": "Red"
+        },
+        {
+          "seat": 2,
+          "option": "Blue"
+        },
+        {
+          "seat": 2,
+          "option": "Green"
+        }
+      ]
+    },
+    "rule_text": "When round is 5, both players name a Wager of Red, Blue or Green simultaneously, before that round's cards are revealed. The Wager is never changed and stays hidden until the end."
+  },
+  {
+    "name": "No Wager is asked outside round 5",
+    "rule": "R4",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "round": 5
+      }
+    },
+    "rules": [],
+    "expect": {
+      "game": {
+        "round": 6
+      },
+      "not_offered": [
+        {
+          "seat": 1,
+          "option": "Red"
+        },
+        {
+          "seat": 1,
+          "option": "Blue"
+        },
+        {
+          "seat": 1,
+          "option": "Green"
+        },
+        {
+          "seat": 2,
+          "option": "Red"
+        },
+        {
+          "seat": 2,
+          "option": "Blue"
+        },
+        {
+          "seat": 2,
+          "option": "Green"
+        }
+      ]
+    },
+    "rule_text": "When round is 5, both players name a Wager of Red, Blue or Green simultaneously, before that round's cards are revealed. The Wager is never changed and stays hidden until the end."
+  },
+  {
+    "name": "Priority seat picks, then the other seat picks the other card",
+    "rule": "R5",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "Red-7",
+          "Red-7"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "A"
+      },
+      {
+        "seat": 2,
+        "options_include": "B"
+      }
+    ],
+    "expect": {
+      "offered": [
+        {
+          "seat": 1,
+          "option": "A"
+        },
+        {
+          "seat": 1,
+          "option": "B"
+        },
+        {
+          "seat": 1,
+          "option": "NONE"
+        },
+        {
+          "seat": 2,
+          "option": "A"
+        },
+        {
+          "seat": 2,
+          "option": "B"
+        },
+        {
+          "seat": 2,
+          "option": "NONE"
+        }
+      ],
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 0
+        },
+        "2": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 0
+        }
+      }
+    },
+    "rule_text": "The priority player chooses A, B or NONE first. The other player is then told that choice and chooses A, B or NONE."
+  },
+  {
+    "name": "Second seat naming the taken card gets nothing",
+    "rule": "R6",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "game": {
+        "deck": [
+          "Red-7",
+          "Red-7"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "A"
+      },
+      {
+        "seat": 2,
+        "options_include": "A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 0
+        },
+        "2": {
+          "red_top": 0,
+          "red_sum": 0,
+          "blue_top": 0,
+          "blue_sum": 0,
+          "green_top": 0,
+          "green_sum": 0,
+          "burial": 0
+        }
+      }
+    },
+    "rule_text": "When the second player names the card the priority player already took, their choice counts as NONE and they receive nothing."
+  },
+  {
+    "name": "Red 7 on red_top 3 raises the top to 7 and the sum by 7",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "red_top": 3,
+          "red_sum": 5
+        }
+      },
+      "game": {
+        "deck": [
+          "Red-7",
+          "Red-7"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 12,
+          "burial": 0
+        }
+      }
+    },
+    "rule_text": "When a player receives a card of colour C and value v, and v is greater than C_top, then C_top becomes v and C_sum rises by v (for example, Red 7 on an empty Red gives red_top 7 and red_sum 7)."
+  },
+  {
+    "name": "Red 7 on an empty Red gives top 7 and sum 7",
+    "rule": "R7",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "deck": [
+          "Red-7",
+          "Red-7"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "B"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 0
+        }
+      }
+    },
+    "rule_text": "When a player receives a card of colour C and value v, and v is greater than C_top, then C_top becomes v and C_sum rises by v (for example, Red 7 on an empty Red gives red_top 7 and red_sum 7)."
+  },
+  {
+    "name": "Red 5 on red_top 7 is buried for +3 burial",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7
+        }
+      },
+      "game": {
+        "deck": [
+          "Red-5",
+          "Red-5"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 3
+        }
+      }
+    },
+    "rule_text": "When a player receives a card of colour C and value v, and v is not greater than C_top, the card is buried and that player's burial rises by 3 (for example, Red 5 on red_top 7 gives burial +3)."
+  },
+  {
+    "name": "A card equal to the top is buried too",
+    "rule": "R8",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 3
+        }
+      },
+      "game": {
+        "deck": [
+          "Red-7",
+          "Red-7"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 6
+        }
+      }
+    },
+    "rule_text": "When a player receives a card of colour C and value v, and v is not greater than C_top, the card is buried and that player's burial rises by 3 (for example, Red 5 on red_top 7 gives burial +3)."
+  },
+  {
+    "name": "Choosing NONE changes nothing for the player",
+    "rule": "R9",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "red_top": 4,
+          "red_sum": 4,
+          "blue_top": 6,
+          "blue_sum": 9,
+          "burial": 6
+        }
+      },
+      "game": {
+        "deck": [
+          "Red-8",
+          "Blue-10",
+          "Green-2"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "NONE"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_top": 4,
+          "red_sum": 4,
+          "blue_top": 6,
+          "blue_sum": 9,
+          "green_top": 0,
+          "green_sum": 0,
+          "burial": 6
+        }
+      }
+    },
+    "rule_text": "When a player chooses NONE, none of their attributes change."
+  },
+  {
+    "name": "Untaken cards leave the game and do not return to the deck",
+    "rule": "R10",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "game": {
+        "deck": [
+          "Red-7",
+          "Blue-4",
+          "Green-9"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "lens": {
+        "game": {
+          "deck": 1
+        }
+      },
+      "players": {
+        "1": {
+          "red_sum": 0,
+          "blue_sum": 0,
+          "green_sum": 0,
+          "burial": 0
+        },
+        "2": {
+          "red_sum": 0,
+          "blue_sum": 0,
+          "green_sum": 0,
+          "burial": 0
+        }
+      }
+    },
+    "rule_text": "Cards in the row that nobody took are removed from the game."
+  },
+  {
+    "name": "After the round both players' public tops, sums and burials show the placements",
+    "rule": "R11",
+    "players": 2,
+    "rounds": 1,
+    "given": {
+      "players": {
+        "2": {
+          "red_top": 9,
+          "red_sum": 9
+        }
+      },
+      "game": {
+        "deck": [
+          "Red-7",
+          "Red-7"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "B"
+      },
+      {
+        "seat": 2,
+        "options_include": "A"
+      }
+    ],
+    "expect": {
+      "players": {
+        "1": {
+          "red_top": 7,
+          "red_sum": 7,
+          "burial": 0
+        },
+        "2": {
+          "red_top": 9,
+          "red_sum": 9,
+          "burial": 3
+        }
+      }
+    },
+    "rule_text": "After each round, both choices, where each card went, all expedition tops and sums, and both burials are announced."
+  },
+  {
+    "name": "Empty Wager colour scores -15, other empty colours score 0",
+    "rule": "R12",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "wager": "Red",
+          "blue_top": 7,
+          "blue_sum": 12
+        },
+        "2": {
+          "wager": "Blue",
+          "green_top": 9,
+          "green_sum": 15
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "Red-2",
+          "Red-3",
+          "Blue-2",
+          "Blue-3",
+          "Green-2"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": -13,
+        "2": -10
+      },
+      "players": {
+        "1": {
+          "score": -13
+        },
+        "2": {
+          "score": -10
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rule_text": "At final scoring, an empty expedition scores 0, unless it is in the player's Wager colour, in which case it scores -15."
+  },
+  {
+    "name": "Non-empty expedition base is sum minus 10",
+    "rule": "R13",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "wager": "Green",
+          "green_top": 10,
+          "green_sum": 10,
+          "red_top": 10,
+          "red_sum": 18,
+          "blue_top": 4,
+          "blue_sum": 6
+        },
+        "2": {
+          "wager": "Red",
+          "red_top": 10,
+          "red_sum": 10,
+          "blue_top": 9,
+          "blue_sum": 13
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "Red-2",
+          "Red-3",
+          "Blue-2",
+          "Blue-3",
+          "Green-2"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 4,
+        "2": 3
+      },
+      "players": {
+        "1": {
+          "score": 4
+        },
+        "2": {
+          "score": 3
+        }
+      }
+    },
+    "rule_text": "At final scoring, a non-empty expedition's base is its sum minus 10 (for example, sum 18 gives base 8 and sum 6 gives base -4)."
+  },
+  {
+    "name": "Wager colour doubles the base, negative or positive",
+    "rule": "R14",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "wager": "Red",
+          "red_top": 4,
+          "red_sum": 6,
+          "blue_top": 10,
+          "blue_sum": 18
+        },
+        "2": {
+          "wager": "Blue",
+          "blue_top": 10,
+          "blue_sum": 18,
+          "red_top": 4,
+          "red_sum": 6
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "Red-2",
+          "Red-3",
+          "Blue-2",
+          "Blue-3",
+          "Green-2"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 2,
+      "standings": {
+        "1": 0,
+        "2": 12
+      },
+      "players": {
+        "1": {
+          "score": 0
+        },
+        "2": {
+          "score": 12
+        }
+      }
+    },
+    "rule_text": "When the expedition is in the player's Wager colour, its base is doubled, negative or not (for example, sum 6 gives -8 and sum 18 gives 16)."
+  },
+  {
+    "name": "Sum of 25 or more adds 10 after doubling",
+    "rule": "R15",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "wager": "Red",
+          "red_top": 10,
+          "red_sum": 27
+        },
+        "2": {
+          "wager": "Green",
+          "blue_top": 10,
+          "blue_sum": 25
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "Red-2",
+          "Red-3",
+          "Blue-2",
+          "Blue-3",
+          "Green-2"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 44,
+        "2": 10
+      },
+      "players": {
+        "1": {
+          "score": 44
+        },
+        "2": {
+          "score": 10
+        }
+      }
+    },
+    "rule_text": "When a non-empty expedition's sum is 25 or more, it gains 10 after any doubling (for example, a Wager-colour sum of 27 scores 2*17 + 10 = 44)."
+  },
+  {
+    "name": "Score is the three colour scores minus burial",
+    "rule": "R16",
+    "players": 2,
+    "rounds": 1,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "wager": "Blue",
+          "blue_top": 10,
+          "blue_sum": 20,
+          "red_top": 8,
+          "red_sum": 12,
+          "burial": 9
+        },
+        "2": {
+          "wager": "Red",
+          "red_top": 9,
+          "red_sum": 14,
+          "green_top": 7,
+          "green_sum": 11,
+          "burial": 3
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "Red-2",
+          "Red-3",
+          "Blue-2",
+          "Blue-3",
+          "Green-2"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": 1,
+      "standings": {
+        "1": 13,
+        "2": 6
+      },
+      "players": {
+        "1": {
+          "score": 13
+        },
+        "2": {
+          "score": 6
+        }
+      }
+    },
+    "rule_text": "A player's score is the sum of their three colour scores minus their burial."
+  },
+  {
+    "name": "Equal final scores share the win",
+    "rule": "R17",
+    "players": 2,
+    "default": "decline",
+    "given": {
+      "players": {
+        "1": {
+          "wager": "Red",
+          "red_top": 9,
+          "red_sum": 15
+        },
+        "2": {
+          "wager": "Blue",
+          "blue_top": 9,
+          "blue_sum": 15
+        }
+      },
+      "game": {
+        "round": 11,
+        "deck": [
+          "Red-2",
+          "Red-3",
+          "Blue-2",
+          "Blue-3",
+          "Green-2"
+        ]
+      }
+    },
+    "rules": [],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": 10,
+        "2": 10
+      },
+      "players": {
+        "1": {
+          "score": 10
+        },
+        "2": {
+          "score": 10
+        }
+      },
+      "game": {
+        "round": 12
+      }
+    },
+    "rule_text": "The game ends after round 12. Wagers are then revealed, the higher score wins, and equal scores are a draw."
+  },
+  {
+    "name": "Full 12-round game with no picks ends after round 12 with 3 cards left and empty Wagers at -15 each",
+    "rule": "R17",
+    "players": 2,
+    "default": "decline",
+    "rules": [
+      {
+        "seat": 1,
+        "options_include": "Red"
+      },
+      {
+        "seat": 2,
+        "options_include": "Red"
+      }
+    ],
+    "expect": {
+      "winner": [
+        1,
+        2
+      ],
+      "standings": {
+        "1": -15,
+        "2": -15
+      },
+      "players": {
+        "1": {
+          "score": -15,
+          "burial": 0
+        },
+        "2": {
+          "score": -15,
+          "burial": 0
+        }
+      },
+      "game": {
+        "round": 12
+      },
+      "lens": {
+        "game": {
+          "deck": 3
+        }
+      }
+    },
+    "rule_text": "The game ends after round 12. Wagers are then revealed, the higher score wins, and equal scores are a draw."
+  }
+]

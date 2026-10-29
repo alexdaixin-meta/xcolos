@@ -1,0 +1,164 @@
+{
+  "original_summary": "Biblios is a 2-4 player card game. In a gift phase each player in turn splits drawn cards between a secret keep, a face-down auction pile and public picks for the others. In an auction phase Gold cards buy the remaining cards. Church cards shift the VP value of five colour categories, and the player with the most VP from winning categories wins.",
+  "review": [
+    {
+      "criterion": "non_degenerate",
+      "verdict": "good",
+      "evidence": "No fixed policy dominates. Always passing in auctions leaves you with only gift-phase cards. Always bidding high drains the Gold needed later. Spreading across categories wins none. Category ties and the Church dice keep choices live. Seat order rotates, so no seat has a lasting edge."
+    },
+    {
+      "criterion": "skill_sensitive",
+      "verdict": "good",
+      "evidence": "Splitting the gift cards (what to hide, what to give away, what to auction) and pricing auctions against the Gold you have left are real skills. The shuffle adds noise, but a strong player reliably beats a weak one over a game."
+    },
+    {
+      "criterion": "headroom",
+      "verdict": "good",
+      "evidence": "Inferring rivals' hidden keeps from what they let go, timing Church moves and budgeting Gold across the auction leave deep room to improve. A novice still wins some categories."
+    },
+    {
+      "criterion": "reasoning_dependent",
+      "verdict": "good",
+      "evidence": "Face-down keeps and face-down auction cards create hidden state. Players must infer rivals' colour totals and Gold from what was passed, bought and paid."
+    },
+    {
+      "criterion": "verifiable",
+      "verdict": "good",
+      "evidence": "Scoring is arithmetic: colour sums, a letter tiebreak and VP totals."
+    },
+    {
+      "criterion": "fits_platform",
+      "verdict": "weak",
+      "evidence": "It is turn-based and text-only, but there are 87 cards, two phases, multi-round ascending auctions, a random-steal penalty for failing to pay, letter tiebreaks and 5 dice. That is far more steps and state than the engine allows. The previous cut-down variation fit the limits but had no talk in a 3-player game full of side deals."
+    }
+  ],
+  "problems": [
+    "The original is too large for the engine: 87 cards, two separate phases, open ascending multi-bidder auctions, a random steal on failed payment, letter tiebreaks and five dice.",
+    "In the previous variation the two bidders share an interest against the active seller: both bidding 0 starves the seller, but each is tempted to bid 1 and buy cheaply. With no talk this dilemma is a blind guess.",
+    "In the previous variation the two trailing players share an interest in blocking the leader's colour, since a tied top total scores nobody. Without talk they cannot propose or test such an alliance.",
+    "In the previous variation the active seller wants to talk up the lot and has no voice, so the seller seat is passive during its own auction.",
+    "The previous variation sits at the attribute limit, so adding talk needs a saving elsewhere (the separate high_count attribute and a separate bid-reset step are redundant)."
+  ],
+  "changes": [
+    {
+      "what": "Add a simultaneous talk step after the lot is announced and before bidding. All three players, including the active player, each write one short free-text message at the same moment. All three are then shown to everyone, and nothing said is binding.",
+      "why": "This gives the bidders' price-fixing dilemma, the trailing players' blocking alliance and the seller's sales pitch something to reason about. Promises can be made, tested against the public bid record and broken. Writing at the same moment stops later speakers from copying the first.",
+      "fixes": "In the previous variation the two bidders share an interest against the active seller: both bidding 0 starves the seller, but each is tempted to bid 1 and buy cheaply. With no talk this dilemma is a blind guess."
+    },
+    {
+      "what": "Bids, results and Church choices stay fully public, and the bought list stays public, so every talk promise can be checked against what each player actually did.",
+      "why": "Reading who can be trusted needs a visible record. Cheating on a 'both bid 0' pact or on a blocking promise is visible next round, so reputation matters.",
+      "fixes": "In the previous variation the two trailing players share an interest in blocking the leader's colour, since a tied top total scores nobody. Without talk they cannot propose or test such an alliance."
+    },
+    {
+      "what": "The active player speaks in the talk step even though they do not bid.",
+      "why": "The seller can talk up the lot, hint at which colour they kept, or offer future Church support to one bidder to break the other bidders' pact. This turns the seller seat into an active one.",
+      "fixes": "In the previous variation the active seller wants to talk up the lot and has no voice, so the seller seat is passive during its own auction."
+    },
+    {
+      "what": "Remove the high_count attribute (the winner is simply the bidder whose bid is strictly greater than the other's and at least 1). Merge the bid reset into the announcement step (bids are reset to 0 right after being announced).",
+      "why": "This frees one attribute and one step, so the per-player message attribute and the talk step fit: 18 steps, 4 choice steps, 20 attributes.",
+      "fixes": "The previous variation sits at the attribute limit, so adding talk needs a saving elsewhere (the separate high_count attribute and a separate bid-reset step are redundant)."
+    },
+    {
+      "what": "Keep the cut-down core from the previous variation: a 24-card deck in three colours, a 2-card gift (keep one secretly, auction the other), a sealed two-bidder auction capped at gold, Church moves clamped once to 1-5, and a strict-majority colour scoring with no letters.",
+      "why": "It already fits the limits and removes the impossible-to-build parts while keeping hidden keeps, Gold-funded auctions and Church manipulation.",
+      "fixes": "The original is too large for the engine: 87 cards, two separate phases, open ascending multi-bidder auctions, a random steal on failed payment, letter tiebreaks and five dice."
+    }
+  ],
+  "keeps": [
+    "The gift dilemma: the active player secretly keeps one card and is forced to offer another.",
+    "Auctions paid in Gold, with Gold also available as cards to keep or buy.",
+    "Church cards that move colour VP values up or down.",
+    "Majority scoring per colour: the single highest total takes that colour's current VP value.",
+    "Hidden hands, so rivals' colour totals must be inferred from what they kept, passed and bought.",
+    "Gold has no value at the end beyond breaking ties, so it must be spent wisely before then."
+  ],
+  "recommendation": {
+    "decision": "adapt",
+    "kind": "none",
+    "reason": "The cut-down core works and fits the limits. It only lacked the talk step a 3-player auction with collusion and blocking incentives needs, and that now fits after merging redundant state."
+  },
+  "variation": {
+    "name": "Biblios: Scriptorium Duel of Three",
+    "summary": "Three scribes take turns drawing two cards, secretly keeping one and auctioning the other to the two rivals in a sealed bid paid in gold. Before each bid all three speak once at the same moment, to fix prices, pitch the lot or propose blocking the leader. Church cards shift colour values. After 12 rounds each colour's value goes to its single strict leader, and the most VP wins.",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "rules": "VISIBILITY.\nV1. Hidden: each player's private hand, colour totals (red, blue, green) and gold are known only to that player. The order of the deck is known to nobody.\nV2. Public: the deck composition (R1), every lot, every talk message and who wrote it, every bid, every auction result and price, every player's bought list, every Church choice and who made it, and the table VP values.\nV3. Opponents can work out part of a rival's gold from sales and purchases, but kept Gold cards are never revealed. All gold is revealed at scoring.\n\nSETUP.\nR1. The deck holds 24 cards:\n- Red, Blue and Green, each with values 1,1,2,2,3,4 (written like 'red-1'), 18 cards;\n- Gold cards with values 2,2,3,3 (written like 'gold-2'), 4 cards;\n- 2 Church cards ('church').\nThe deck is shuffled once at the start and never again.\nR2. Each player starts with:\n- gold 4;\n- an empty private hand and an empty public bought list;\n- red=0, blue=0, green=0;\n- bid=0, church_pending=false, church_choice='none', message empty, vp=0.\nR3. The table starts with vp_red=3, vp_blue=3, vp_green=3, round=0, lot='none' and drawn empty.\n\nEACH ROUND (12 rounds).\nR4. Round r begins (round becomes r). The active seat is ((r-1) mod 3)+1, so seats go 1,2,3,1,2,3,... and each seat is active exactly 4 times.\nR5. The first two cards of the deck are moved, in order, into 'drawn'. Only the active player sees them.\nR6. Keep. The active player alone chooses one of the two drawn cards to keep.\nR7. The kept card goes into the active player's private hand:\n- a colour card adds its value to their matching colour total;\n- a Gold card adds its value to their gold;\n- a Church card sets their church_pending to true.\nThe kept card is never announced.\nR8. The other drawn card becomes the lot and is announced to everyone. 'drawn' is emptied.\n\nTALK.\nR9. All three players, including the active player, each write one short message at the same moment, without seeing the others' messages. All three messages are then shown to everyone with who wrote them. Nothing said is binding. Players may propose prices, alliances or Church moves, bluff about their hands, or say nothing useful.\n\nAUCTION.\nR10. The two non-active players at the same moment each secretly bid a whole number from 0 up to their own current gold. The active player does not bid.\nR11. If one bid is strictly greater than the other and is at least 1, that bidder wins the lot:\n- they pay their bid from their gold to the active player's gold;\n- the lot is added to their public bought list;\n- a colour lot adds its value to their matching total, a Gold lot adds its value to their gold, and a Church lot sets their church_pending to true.\nIf the two bids are equal (including both 0), nobody pays and the lot is discarded.\nR12. Both bids and the result (the winner and the price, or 'discarded') are announced to everyone. Then both bids are reset to 0 and lot becomes 'none'.\n\nCHURCH.\nR13. Every player whose church_pending is true chooses, at the same moment, one of: 'red up', 'red down', 'blue up', 'blue down', 'green up', 'green down'. The choice is stored as church_choice. At most two players can choose in a round: the active player through a kept Church, and the lot winner through a bought Church.\nR14. For each colour, the net change is (number of '<colour> up' choices) minus (number of '<colour> down' choices) made this round. This net change is added to that colour's VP value, and the result is clamped once to between 1 and 5. All choices are announced with who made them. Then church_pending becomes false and church_choice becomes 'none' for everyone.\nR15. If round is 12, go to END. Otherwise start the next round.\n\nEND.\nR16. After round 12 the deck is empty. All hands, colour totals and gold are revealed.\nR17. For each colour, if one player's total is strictly higher than both others, that player adds that colour's current VP value to their vp. If the highest total is tied between two or more players, nobody scores that colour.\nR18. The highest vp wins. A tie on vp is broken by more remaining gold. If that is also tied, the game is a draw.",
+    "objective": "After 12 rounds, each colour's VP value (1 to 5) goes to the single player with the strictly highest total in that colour. A tied top total scores no one. The player with the highest vp wins. A tie on vp is broken by more remaining gold, and a further tie is a draw.",
+    "expected_effect": "Each auction becomes a short non-binding negotiation among three players with clearly opposed interests.\n\nWhat the players disagree about:\n- The two bidders jointly prefer a 'both bid 0' pact that starves the seller of gold. Each can instead bid 1 and take the lot almost free. A player who follows the pact and bids 0 while the other defects loses the card, and the seller gains gold.\n- The two trailing players can agree to block the leader's colour by buying cards in it, or by pushing its value down with a Church card. The leader, or the second-placed player, can quietly defect to take that colour themselves. A follower who spends gold blocking can end up handing the game to their 'ally'.\n- The seller talks up the lot, hints at a kept colour, or offers future Church support to one bidder to break the bidders' pact. A bidder who believes a bluff overpays.\n\nWhy talk takes thought:\n- Bids and Church choices are public, so promises are tested and reputations form across the 4 times each seat is active.\n- Hidden hands mean claims about colour totals cannot be verified until scoring.\n- Gold is worthless at the end except as a tiebreaker, so late rounds bring aggressive spending and sharper betrayals of earlier pacts.\n\nSimple policies all lose against reasoned play:\n- Always bidding 0 forfeits every lot.\n- Always bidding all your gold enriches sellers and leaves you broke when key colours appear.\n- Always keeping the higher-value card ignores what the lot tells rivals."
+  },
+  "model": null,
+  "complexity": {
+    "steps_per_round": 18,
+    "choice_steps_per_round": 4,
+    "attributes": 20,
+    "hidden_elements": 3,
+    "random_draws_per_round": 0,
+    "rounds": 12
+  },
+  "critic": {
+    "rounds": 3,
+    "reviews": [
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Card count: colours 3x(1+1+2+2+3+4)=3x13=39 points over 18 cards, plus 4 Gold (10 gold) and 2 Church, for 24 cards. 12 rounds x 2 cards = 24, so R14 is consistent. Each seat is active 4 times (seat 1 in rounds 1,4,7,10; seat 2 in 2,5,8,11; seat 3 in 3,6,9,12). Each seat therefore sees 8 cards as active, keeps 4 and offers 4 lots, and can bid on the other 8 lots. Gold scores no VP; it only buys lots and breaks ties, and the 22 gold in total only moves from a buyer to the active player.\n\nThoughtless policies against the winner rule:\n(a) Always keep the first card. This is a random keep. It gives up roughly the better of two cards in 4 rounds. Sensible play keeps the higher card in a contested colour. It loses often.\n(b) Always bid 0. Opponents win every lot it would have contested at a price of 1. It ends with about 4 kept cards against roughly 4 kept plus several bought for each rival. It loses most colours.\n(c) Always bid all gold. Round 1: both bidders hold 4, so bid 4 against 4 means high_count=2 and the lot is discarded. An opponent who bids 4 against its 3 (or 3 against its 2) does better. When it does win, it drops to 0 gold and cannot bid until it is active again, and its gold goes to a rival bidder. It beats a random bidder (uniform over 0..gold). Against an adaptive bidder it loses lots in its 0-gold windows and loses gold tiebreaks. It does not win or draw almost always.\n(d) Church always 'X up' on its own leading colour. This is sensible, not a dominant fixed option, because the right colour depends on who leads.\n\nNo bid value is strictly best regardless of the other bid. Bid b wins only if b exceeds the other bid, ties discard, and higher b hands more gold to the active rival.\n\nSeat edge: seat 3 receives the round-12 payment, which can only serve as a tiebreak. Seat 1 sells first, when both bidders are full at 4 gold. Both effects are small and roughly offset. All three can realistically win: max VP is 15, and three colours split among three players."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Limits are within bounds: 17 steps (max 20), 3 choice steps (keep, bid, church; max 4). Attributes: 9 per player (gold, hand, bought, red, blue, green, bid, church_pending, vp) plus about 10 table values (vp_red/blue/green, round, sale_price, lot, drawn, deck, high_bid, high_count), which is at the 20 limit. Hidden elements 2, random draws per round 0 (one shuffle at setup), 12 rounds. Bids are simultaneous, as required. No talk is defensible: sealed bidding is meant to be a guess, and church choices are individual.\n\nGaps that leave a model unable to play every situation:\n(1) Gold visibility is never stated. R5 adds a kept Gold card to gold, but kept cards are 'never announced'. If gold is public, the kept card leaks. If gold is private, opponents cannot see the bid ranges or the R16 tiebreak state. One reading must be specified.\n(2) R13 does not order multiple Church choices. Two players can be pending in the same round (the active player keeps one church and the other church is the lot and is bought). The clamp makes order matter: at vp_red=5, 'red up' then 'red down' gives 4, but 'red down' then 'red up' gives 5. The rule does not say whether the choices are simultaneous or in seat order, or how they combine.\n(3) It is unspecified whether colour totals and private hands are visible. Bought lists are public, but players' colour totals include hidden kept cards."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance: the single shuffle decides which 8 cards each seat sees as active and therefore which 12 cards are kept privately. A seat drawing red-4 and red-3 for itself holds 7 of 13 red points, which secures red. I estimate the deal accounts for about 35-45% of outcome variance.\n\nSkill that counters the deal:\n- Card counting. The composition is known and all 12 lots are announced, so the multiset of kept cards is known. Timing narrows who kept what.\n- Reading bids. Bids are announced and reveal colour interest.\n- Gold timing. Gold has no VP, so its value is purely when to spend it. Ties discard, so you can shade bids around an opponent's known or estimated gold.\n- Keep/lot choice. Choosing which card to give away decides which rival is likely to gain from it.\n- Church targeting. A change of +-1 VP shifts which colour majority matters.\n\nWith equal good play, the winner is decided by these interactions on top of the deal, not by the deal alone. A strong player is clearly favoured over a random keeper or bidder."
+        },
+        "required_changes": [
+          "State the visibility of gold. Recommended: each player's gold is private, revealed only through announced bids and sales; kept Gold cards stay hidden; R16 reveals final gold.",
+          "Make R13 simultaneous with a defined combination: all pending players choose at once, then changes are applied in seat order starting from the active player and clamped after each one. Alternatively, sum the changes and clamp once to 1..5. Announce all choices together.",
+          "State explicitly that colour totals and private hands are hidden, and that only bought lists, lots, bids and church changes are public."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Deck check: 18 colour cards (each colour 1+1+2+2+3+4 = 13), 4 Gold (total 10), 2 Church, 24 in all. 12 rounds x 2 cards = 24, so the deck empties exactly. Total gold in the game is 3x4 + 10 = 22. Gold scores nothing, is only a tiebreak, and moves between players (bidder to active player). Each seat is active exactly 4 times, so it keeps 4 free cards and sells 4 lots.\n\nAuction payoffs for one lot of colour value v, bidder A against bidder B:\n- A > B: A gains v and loses A's bid in gold, and the active player gains that gold.\n- A = B: the lot is discarded and nobody pays.\n- A < B: B takes the lot.\n\nThoughtless policies under the WINNER RULE:\n(1) Always bid 0. Against any rival who bids 1 or more, the rival wins every lot for 1 gold. Over 8 auctions as a bidder this player buys nothing and has only 4 kept cards against the rival's 4 kept plus up to 8 bought. It loses most colour majorities and almost always loses. Against a random bidder (uniform 0 to gold) it still loses about 80% of lots. It fails as a strategy, so it is not dominant.\n(2) Always bid all gold. Round 1: it bids 4 against a sensible bid of 1 or 2, wins, pays 4 and drops to 0 gold. In its next 1 to 3 auctions it can bid only 0, so the sensible rival buys those lots for 1 each. It recovers gold only from its own sales, which go to the rivals it is draining. It wins early and loses tempo later. Against sensible play it usually loses majorities; against random play it does better but does not win almost every time. It is not a never-lose policy.\n(3) Always keep the first drawn card. This discards the active player's choice of the better card. With a 4 against a 1, it gets the worse one half the time. It loses to a player who keeps the better card.\n\nNo bid is strictly better whatever the rival does:\n- A higher bid wins more often but feeds the active player gold.\n- A tie means the lot is discarded, which helps a blocking strategy.\n\nSeat edge: each seat is active 4 times. Seat 3 is active in round 12, when bidders' gold has no further use except the tiebreak, so seat 3 may collect a large final sale. That affects only the gold tiebreak, not vp. Seat 1 sells into full 4-gold purses in round 1. Both effects are small and roughly offset.\n\nAll three seats can realistically win: colour majorities on totals of 13, plus Church swings of +/-1 on VP values from 1 to 5, give several routes to victory."
+        },
+        "playable": {
+          "verdict": "fail",
+          "evidence": "Limits:\n- steps 17 (at most 20), choice steps 3 (at most 4), rounds 12 (at most 40).\n- Attributes: 10 per player (gold, hand, bought, red, blue, green, bid, church_pending, church_choice, vp) plus the table (vp_red, vp_blue, vp_green, round, lot, drawn, deck, high_bid, high_count). That is about 19 to 20, at the limit but acceptable.\n- Hidden elements: private hand/totals, gold, drawn cards/deck order. That is 3 if the colour totals are counted with the hand.\n- Random draws per round 0: one shuffle at setup, then the deck is used in order. Fine.\n- Rules are complete: bids are capped at gold, so the original 'cannot pay' case is removed. Ties discard the lot, Church choices are simultaneous with a single clamp, and scoring is pure arithmetic. The game is finite (12 rounds). No board, clock or judge is needed.\n\nFAIL: it is a 3-player game with NO talk, where players clearly disagree and a proposal could cost the follower:\n- The two bidders have a shared interest in keeping prices low against the active player. Both bidding 0 discards the lot and starves the seller, but each is tempted to defect and bid 1 to buy cheaply.\n- The two trailing players have a shared interest in blocking the leader's colour, since a tied top total scores nobody.\n- The active player wants to talk up the lot's price.\nWithout talk, these coordination and betrayal choices are pure guesses about the other bidder. That is exactly the case where talk belongs. Simultaneous talk before the bid (all three write, all are shown, then the two bid) would make the round a real negotiation over a non-binding deal."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "There is something to infer, and a way to act on it:\n- The deck composition is public and every lot, bid, price and Church choice is announced. The 12 kept cards are hidden, but each is drawn from a known pool, so a careful player can narrow a rival's possible totals by subtracting the known lots from the composition.\n- Rival gold is partly traceable from sales and purchases (only kept Gold cards are hidden).\n- This inference drives the main decisions: how much a lot is worth to you versus your rival (whether it wins or blocks a majority), when to tie deliberately to discard a lot, and which colour to push up or down with a Church.\n\nChance: the deal decides which pairs each seat sees when active. A seat that draws 4s or the Churches has an edge. Roughly 10 of the 24 cards are high-impact (the three 4s, three 3s, two Churches, two gold-3s). Their split across 4 active turns per seat is noisy, so I estimate chance at about 30 to 40% of the result.\n\nThe deal can be overcome: half of all cards (12 lots) are sold at open auction, and the gold from selling a good lot goes to the lucky seat but can then be outbid for. Among equally good players the deal tilts the result but does not alone decide it: majority races on 13-point colours and blocking ties keep outcomes contestable. A player who tracks the remaining cards and prices lots by majority impact should clearly beat one who bids flat amounts."
+        },
+        "required_changes": [
+          "Add a simultaneous talk step each round after the lot is announced (R8) and before bidding (R10): all three players, including the active player, each write one free-text message at the same moment; all messages are then shown to everyone before the two bidders bid. State that nothing said is binding. This gives the bidders' price-fixing and leader-blocking dilemmas something to reason about instead of pure guessing.",
+          "Keep the step count within the limit after adding talk (17 + 1 = 18 at most 20; choice steps 3 + 1 = 4 at most 4). If needed, merge the R9 bid reset into R13 so no limit is exceeded."
+        ],
+        "sound": false
+      },
+      {
+        "balanced": {
+          "verdict": "pass",
+          "evidence": "Card economy: 24 cards over 12 rounds at 2 per round, so the deck runs out exactly. Each seat is active 4 times (seat 1 in rounds 1,4,7,10; seat 2 in 2,5,8,11; seat 3 in 3,6,9,12) and bids 8 times. Each colour holds 1+1+2+2+3+4 = 13 points. Colour VP ranges from 1 to 5, so a player can score at most 15 VP. Gold is a closed loop: payments go to the active player, and only the 4 Gold cards (worth 10 in total) add new gold. Starting gold is 4 each, 12 in all.\n\nWinner rule against thoughtless policies:\n(a) Always bid 0. Against a sensible bidder who bids at least 1, the sensible bidder takes every lot. The passive player ends with only 4 kept cards (each the better of two, about 9-10 colour points spread over 3 colours). Opponents with 4 kept cards plus about 4 bought lots beat that in most colours. Against another always-0 player, every lot is discarded and only kept cards decide, which is a coin-flip on the deal. Against random bidders, a random positive bid takes the lot. Result: the policy loses to sensible play and roughly draws against itself. It is not never-lose.\n(b) Always bid all gold. Round 1: a 4 vs 2 bid wins red-1 for 4. The buyer pays 4 to the active player and then sits on 0 gold until their own active turn. While broke, the sensible bidder takes high lots for 1. Against another all-in bidder, equal gold produces ties, and ties discard the lot, so nobody gains. Against random bidders it wins cheap lots at a high price. The policy loses on value per gold and leaves the tie-break gold with others. It is not never-lose.\n(c) Always keep the first drawn card. This gives up the keep decision and loses to selective keeping.\n\nNo bid is dominant. A first-price sealed bid whose value depends on hidden totals and Church moves has no strictly best number. With 3 players, 3 colours and 'tie scores nobody', every player has realistic winning paths. A 1-1-1 colour split goes to the gold tie-break.\n\nSeat edges: seat 3 is active in round 12. Its kept Church cannot be answered, but the lot winner can also hold a Church that round, and seat 3 cannot bid in round 12. These effects are small and roughly offset. Information is symmetric across seats."
+        },
+        "playable": {
+          "verdict": "pass",
+          "evidence": "Limits:\n- Steps per round: 18 (limit 20).\n- Choice steps per round: 4, namely keep, talk, bid and Church (limit 4).\n- Attributes: 18-20 (limit 20). Per player: gold, hand, bought, red, blue, green, bid, church_pending, church_choice, message, vp, which is 11. Table: vp_red, vp_blue, vp_green, round, lot, drawn, deck, which is 7.\n- Hidden elements: 3 (hand, totals, gold). Deck order and the transient 'drawn' view are standard engine privacy.\n- Random draws per round: 0, because the single shuffle happens at setup.\n- Rounds: 12.\n\nCompleteness:\n- Every case is defined. Two Churches in one draw means one is kept and one goes to lot, and up to two choosers act simultaneously with a net change and one clamp.\n- An equal bid, including 0-0, discards the lot. A discarded Church does nothing.\n- An all-zero colour scores nobody under R17.\n- Bids are bounded by current gold, so payment can never fail. This removes the original's steal rule cleanly.\n- The game is finite and decided by arithmetic.\n\nChoice format: the simultaneous choices (bids, Church) are polls.\n\nTalk: it is simultaneous and fits this game. The two bidders have opposed interests over price, the active player wants high bids, and Church moves help some players and hurt others. Following a proposal can therefore cost a player, and messages give material for bluffing and inference.\n\nNo board, clock, trading or binding agreement is used. The repeated-cooperation concern does not apply, because this is not a dilemma whose safe option takes every late round."
+        },
+        "reasoning_over_luck": {
+          "verdict": "pass",
+          "evidence": "Chance: which pairs a player sees while active. A player sees 8 cards and keeps 4. A pair holding a 4 or a Church is a windfall.\n\nWays good play overcomes the deal:\n- Lots go to the highest bidder, so a strong card drawn by one player can still be bought by others.\n- Colours are won by plurality, so a player can concentrate on two colours.\n- Church moves can shift the value of a colour a rival holds.\n\nInference: the deck composition and all 12 lots are public. The 12 kept cards are therefore known in aggregate as deck minus lots. Bids, bought lists, talk and Church choices then let a player infer who holds which hidden cards and which colour each rival is chasing. Gold is partly trackable from prices and sales.\n\nEstimate: chance decides roughly 25-35% of results.\n\nWhen all players play well, the draws are spread evenly (4 active turns each) and bidding redistributes value. The winner then turns on concentration, pricing and Church timing, not on the deal alone. A careful reasoner is clearly favoured over a careless one."
+        },
+        "required_changes": [],
+        "sound": true
+      }
+    ],
+    "sound": true
+  }
+}

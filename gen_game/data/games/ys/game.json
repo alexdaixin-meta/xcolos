@@ -1,0 +1,778 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "ys",
+    "name": "Ys: Brokers of the Blind Market",
+    "players": {
+      "min": 3,
+      "max": 3,
+      "suggested": 3
+    },
+    "blurb": "Three brokers each secretly favor one gem color, split influence over six rounds, then vote on prices; favored gems score double."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "favored_color",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "red_gems",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "blue_gems",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "green_gems",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "commerce_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "pending_allocation",
+        "visible": "ally",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "alloc_red",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "alloc_blue",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "alloc_green",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "alloc_commerce",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "vote",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "revealed_color",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      }
+    ],
+    "game": [
+      {
+        "key": "round",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "price_red",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "price_blue",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "price_green",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "color_deck",
+        "visible": "none",
+        "type": "list",
+        "initial": [
+          "Red",
+          "Blue",
+          "Green"
+        ]
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "votes_red",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "votes_blue",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "votes_green",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "colors",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "starting_price",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "influence_budget",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "gem_first_award",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "gem_second_award",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "gem_tied_first_award",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "commerce_first_award",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "commerce_second_award",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "commerce_tied_first_award",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "price_rise_per_vote",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "price_fall_no_votes",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "price_floor",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "favored_extra_multiplier",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "update",
+      "label": "set prices",
+      "do": [
+        {
+          "set": {
+            "key": "price_red",
+            "value": {
+              "calc": "starting_price"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "price_blue",
+            "value": {
+              "calc": "starting_price"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "price_green",
+            "value": {
+              "calc": "starting_price"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "empty purses",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "red_gems",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "blue_gems",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "green_gems",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "commerce_points",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "deal favored colors",
+      "do": [
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "color_deck[int(uniform(0, len(color_deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "favored_color",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "color_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "color_deck[int(uniform(0, len(color_deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "favored_color",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "color_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "color_deck[int(uniform(0, len(color_deck)))]"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "favored_color",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "color_deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "your secret color",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "favored_color"
+      ],
+      "text": "Your secret favored color:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "announce",
+      "label": "next round",
+      "do": [
+        {
+          "adjust": {
+            "key": "round",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "pending_allocation",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "vote",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "announce",
+      "label": "announce",
+      "to": "all",
+      "text": "Round {round}. Prices: Red {price_red}, Blue {price_blue}, Green {price_green}. Holdings (red/blue/green gems, commerce): Seat 1 {players[0].red_gems}/{players[0].blue_gems}/{players[0].green_gems}, {players[0].commerce_points}; Seat 2 {players[1].red_gems}/{players[1].blue_gems}/{players[1].green_gems}, {players[1].commerce_points}; Seat 3 {players[2].red_gems}/{players[2].blue_gems}/{players[2].green_gems}, {players[2].commerce_points}."
+    },
+    {
+      "use": "poll",
+      "phase": "talk",
+      "label": "talk",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 40
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short message to the table. Everyone writes at the same time; all messages are shown once all are in. Talk is not binding."
+    },
+    {
+      "use": "poll",
+      "phase": "allocate",
+      "label": "allocate",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "6/0/0/0",
+          "5/1/0/0",
+          "5/0/1/0",
+          "5/0/0/1",
+          "4/2/0/0",
+          "4/1/1/0",
+          "4/1/0/1",
+          "4/0/2/0",
+          "4/0/1/1",
+          "4/0/0/2",
+          "3/3/0/0",
+          "3/2/1/0",
+          "3/2/0/1",
+          "3/1/2/0",
+          "3/1/1/1",
+          "3/1/0/2",
+          "3/0/3/0",
+          "3/0/2/1",
+          "3/0/1/2",
+          "3/0/0/3",
+          "2/4/0/0",
+          "2/3/1/0",
+          "2/3/0/1",
+          "2/2/2/0",
+          "2/2/1/1",
+          "2/2/0/2",
+          "2/1/3/0",
+          "2/1/2/1",
+          "2/1/1/2",
+          "2/1/0/3",
+          "2/0/4/0",
+          "2/0/3/1",
+          "2/0/2/2",
+          "2/0/1/3",
+          "2/0/0/4",
+          "1/5/0/0",
+          "1/4/1/0",
+          "1/4/0/1",
+          "1/3/2/0",
+          "1/3/1/1",
+          "1/3/0/2",
+          "1/2/3/0",
+          "1/2/2/1",
+          "1/2/1/2",
+          "1/2/0/3",
+          "1/1/4/0",
+          "1/1/3/1",
+          "1/1/2/2",
+          "1/1/1/3",
+          "1/1/0/4",
+          "1/0/5/0",
+          "1/0/4/1",
+          "1/0/3/2",
+          "1/0/2/3",
+          "1/0/1/4",
+          "1/0/0/5",
+          "0/6/0/0",
+          "0/5/1/0",
+          "0/5/0/1",
+          "0/4/2/0",
+          "0/4/1/1",
+          "0/4/0/2",
+          "0/3/3/0",
+          "0/3/2/1",
+          "0/3/1/2",
+          "0/3/0/3",
+          "0/2/4/0",
+          "0/2/3/1",
+          "0/2/2/2",
+          "0/2/1/3",
+          "0/2/0/4",
+          "0/1/5/0",
+          "0/1/4/1",
+          "0/1/3/2",
+          "0/1/2/3",
+          "0/1/1/4",
+          "0/1/0/5",
+          "0/0/6/0",
+          "0/0/5/1",
+          "0/0/4/2",
+          "0/0/3/3",
+          "0/0/2/4",
+          "0/0/1/5",
+          "0/0/0/6"
+        ]
+      },
+      "store": "pending_allocation",
+      "text": "Secretly split your {influence_budget} influence as 'Red/Blue/Green/Commerce' (whole numbers, 0 or more, summing to exactly {influence_budget}). Allocations are revealed once everyone has chosen."
+    },
+    {
+      "use": "update",
+      "phase": "reveal",
+      "label": "reveal allocations",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "alloc_red",
+            "value": {
+              "calc": "int(you.pending_allocation[0])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "alloc_blue",
+            "value": {
+              "calc": "int(you.pending_allocation[2])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "alloc_green",
+            "value": {
+              "calc": "int(you.pending_allocation[4])"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "alloc_commerce",
+            "value": {
+              "calc": "int(you.pending_allocation[6])"
+            }
+          }
+        }
+      ],
+      "text": "Allocations (Red/Blue/Green/Commerce): Seat 1 {players[0].alloc_red}/{players[0].alloc_blue}/{players[0].alloc_green}/{players[0].alloc_commerce}; Seat 2 {players[1].alloc_red}/{players[1].alloc_blue}/{players[1].alloc_green}/{players[1].alloc_commerce}; Seat 3 {players[2].alloc_red}/{players[2].alloc_blue}/{players[2].alloc_green}/{players[2].alloc_commerce}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve gem districts",
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "red_gems",
+            "value": {
+              "calc": "0 if you.alloc_red == 0 else (gem_first_award if (you.alloc_red == max([p.alloc_red for p in players]) and count(q.alloc_red == max([p.alloc_red for p in players]) for q in players) == 1) else (gem_tied_first_award if you.alloc_red == max([p.alloc_red for p in players]) else (gem_second_award if (count(q.alloc_red == max([p.alloc_red for p in players]) for q in players) == 1 and you.alloc_red == max([q.alloc_red for q in players if q.alloc_red < max([p.alloc_red for p in players])]) and count(q.alloc_red == you.alloc_red for q in players) == 1) else 0)))"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "blue_gems",
+            "value": {
+              "calc": "0 if you.alloc_blue == 0 else (gem_first_award if (you.alloc_blue == max([p.alloc_blue for p in players]) and count(q.alloc_blue == max([p.alloc_blue for p in players]) for q in players) == 1) else (gem_tied_first_award if you.alloc_blue == max([p.alloc_blue for p in players]) else (gem_second_award if (count(q.alloc_blue == max([p.alloc_blue for p in players]) for q in players) == 1 and you.alloc_blue == max([q.alloc_blue for q in players if q.alloc_blue < max([p.alloc_blue for p in players])]) and count(q.alloc_blue == you.alloc_blue for q in players) == 1) else 0)))"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "players": "all",
+            "key": "green_gems",
+            "value": {
+              "calc": "0 if you.alloc_green == 0 else (gem_first_award if (you.alloc_green == max([p.alloc_green for p in players]) and count(q.alloc_green == max([p.alloc_green for p in players]) for q in players) == 1) else (gem_tied_first_award if you.alloc_green == max([p.alloc_green for p in players]) else (gem_second_award if (count(q.alloc_green == max([p.alloc_green for p in players]) for q in players) == 1 and you.alloc_green == max([q.alloc_green for q in players if q.alloc_green < max([p.alloc_green for p in players])]) and count(q.alloc_green == you.alloc_green for q in players) == 1) else 0)))"
+            }
+          }
+        }
+      ],
+      "text": "Gem districts resolved. Gems (red/blue/green): Seat 1 {players[0].red_gems}/{players[0].blue_gems}/{players[0].green_gems}; Seat 2 {players[1].red_gems}/{players[1].blue_gems}/{players[1].green_gems}; Seat 3 {players[2].red_gems}/{players[2].blue_gems}/{players[2].green_gems}."
+    },
+    {
+      "use": "update",
+      "phase": "resolve",
+      "label": "resolve commerce",
+      "do": [
+        {
+          "adjust": {
+            "players": "all",
+            "key": "commerce_points",
+            "value": {
+              "calc": "0 if you.alloc_commerce == 0 else (commerce_first_award if (you.alloc_commerce == max([p.alloc_commerce for p in players]) and count(q.alloc_commerce == max([p.alloc_commerce for p in players]) for q in players) == 1) else (commerce_tied_first_award if you.alloc_commerce == max([p.alloc_commerce for p in players]) else (commerce_second_award if (count(q.alloc_commerce == max([p.alloc_commerce for p in players]) for q in players) == 1 and you.alloc_commerce == max([q.alloc_commerce for q in players if q.alloc_commerce < max([p.alloc_commerce for p in players])]) and count(q.alloc_commerce == you.alloc_commerce for q in players) == 1) else 0)))"
+            }
+          }
+        }
+      ],
+      "text": "Commerce resolved. Commerce points: Seat 1 {players[0].commerce_points}, Seat 2 {players[1].commerce_points}, Seat 3 {players[2].commerce_points}."
+    },
+    {
+      "use": "poll",
+      "phase": "market",
+      "label": "market vote",
+      "to": "acting",
+      "answer": {
+        "type": "choice",
+        "options": [
+          "Red",
+          "Blue",
+          "Green"
+        ]
+      },
+      "store": "vote",
+      "text": "Market vote: name one color, Red, Blue or Green. Each vote raises that color's price by {price_rise_per_vote}; a color with no votes falls by {price_fall_no_votes}, never below {price_floor}."
+    },
+    {
+      "use": "update",
+      "phase": "market",
+      "label": "price update",
+      "do": [
+        {
+          "set": {
+            "key": "votes_red",
+            "value": {
+              "calc": "count(p.vote == 'Red' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "votes_blue",
+            "value": {
+              "calc": "count(p.vote == 'Blue' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "votes_green",
+            "value": {
+              "calc": "count(p.vote == 'Green' for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "price_red",
+            "value": {
+              "calc": "price_red + votes_red * price_rise_per_vote if votes_red > 0 else max(price_floor, price_red - price_fall_no_votes)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "price_blue",
+            "value": {
+              "calc": "price_blue + votes_blue * price_rise_per_vote if votes_blue > 0 else max(price_floor, price_blue - price_fall_no_votes)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "price_green",
+            "value": {
+              "calc": "price_green + votes_green * price_rise_per_vote if votes_green > 0 else max(price_floor, price_green - price_fall_no_votes)"
+            }
+          }
+        }
+      ],
+      "text": "Votes: Seat 1 {players[0].vote}, Seat 2 {players[1].vote}, Seat 3 {players[2].vote}. New prices: Red {price_red}, Blue {price_blue}, Green {price_green}."
+    },
+    {
+      "use": "update",
+      "phase": "end",
+      "label": "final scoring",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_color",
+            "value": {
+              "calc": "you.favored_color"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": {
+              "calc": "you.red_gems * price_red + you.blue_gems * price_blue + you.green_gems * price_green + favored_extra_multiplier * ((you.red_gems * price_red if you.favored_color == 'Red' else 0) + (you.blue_gems * price_blue if you.favored_color == 'Blue' else 0) + (you.green_gems * price_green if you.favored_color == 'Green' else 0)) + you.commerce_points"
+            }
+          }
+        }
+      ],
+      "text": "Secret colors revealed: Seat 1 {players[0].revealed_color} (score {players[0].score}), Seat 2 {players[1].revealed_color} (score {players[1].score}), Seat 3 {players[2].revealed_color} (score {players[2].score})."
+    },
+    {
+      "use": "check",
+      "phase": "end",
+      "label": "after the last round",
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round >= rounds"
+      },
+      "rank_by": "you.score",
+      "reveal": [
+        "favored_color"
+      ],
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score} ({players[0].revealed_color}), Seat 2 {players[1].score} ({players[1].revealed_color}), Seat 3 {players[2].score} ({players[2].revealed_color}); prices Red {price_red}, Blue {price_blue}, Green {price_green}."
+    }
+  },
+  "limits": {
+    "rounds": 6,
+    "rounds_max": 6,
+    "actions_max": 200,
+    "deadline_s": 120
+  },
+  "rules": "There are {colors} gem colors: Red, Blue and Green. Each color's price starts at {starting_price}. Before round 1, the three colors are dealt randomly, one to each player, as that player's SECRET FAVORED COLOR. Every player has a different color, and each player knows only their own. All players start with 0 gems of each color and 0 commerce points. The game lasts {rounds} rounds.\n\nEach round:\n1. Announce. The round number and the current prices of Red, Blue and Green are shown to all.\n2. Talk. Everyone writes one short message at the same time without seeing the others. All messages are then shown. Talk is not binding.\n3. Allocate (simultaneous, secret). Each player submits four whole numbers, each 0 or more, summing to exactly {influence_budget}: their influence in the Red district, the Blue district, the Green district and the Commerce district, written 'Red/Blue/Green/Commerce'. Only allocations summing to exactly {influence_budget} are offered.\n4. Reveal. All allocations are shown to everyone.\n5. Resolve each of the four districts separately:\n- If one player has the strictly highest influence (above 0), they win FIRST. Otherwise, all players tied at the highest value (above 0) each count as tied-first.\n- If there is a single first, the player with the strictly next-highest influence (above 0) wins SECOND. Second is not awarded if there is a tie for it, or if first was tied.\n- In a gem district, a single first gains {gem_first_award} gems of that color, second gains {gem_second_award} gem, and each tied-first gains {gem_tied_first_award} gem.\n- In Commerce, a single first gains {commerce_first_award} commerce points, second gains {commerce_second_award}, and each tied-first gains {commerce_tied_first_award}.\n- A player with 0 influence in a district gains nothing there; if everyone has 0 in a district, nobody gains.\n6. Market vote (simultaneous). Each player names one color: Red, Blue or Green.\n7. Price update. Each color's price rises by {price_rise_per_vote} for every vote it received. Each color that received 0 votes falls by {price_fall_no_votes}, but never below {price_floor}. The votes are then shown.\n8. End check. After round {rounds} the game ends.\n\nFinal scoring: each player's score is the sum over the three colors of (gems of that color x that color's final price). Then add (gems of their secret favored color x that color's final price) again, so favored gems count double. Then add their commerce points. Secret colors are revealed at the end.\n\nThe player with the highest final score wins. If two or three players tie for the highest score, the game is a draw among them (they share the result)."
+}

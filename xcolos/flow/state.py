@@ -126,6 +126,19 @@ class FlowState:
             return viewer != owner
         return owner in self.allies_of(viewer)  # "ally"
 
+    def sees(self, viewer: int, key: str, owner: int | None = None) -> bool:
+        """May `viewer` see attribute `key`, of `owner` or, with none, of the table?
+
+        The rule a seat's own view is built by: a player attribute by
+        `can_see`, a table attribute only when public. A key the game never
+        declared is not seen.
+        """
+        if owner is None:
+            attribute = self.definition.game_attribute(key)
+            return attribute is not None and attribute.visible == "public"
+        attribute = self.definition.player_attribute(key)
+        return attribute is not None and self.can_see(viewer, owner, attribute)
+
     # ------------------------------------------------------------------
     # Selectors and conditions
     # ------------------------------------------------------------------

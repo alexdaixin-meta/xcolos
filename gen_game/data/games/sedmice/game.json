@@ -1,0 +1,1007 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "sedmice",
+    "name": "Sedmice Duel",
+    "players": {
+      "min": 2,
+      "max": 2,
+      "suggested": 2
+    },
+    "blurb": "A two-player trick-taking duel over 4 deals: Sevens are wild, Aces and Tens score 10, and the leader may extend a trick once to win it back."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "hand",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "score",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "offer",
+        "visible": "ally",
+        "type": "list",
+        "initial": []
+      }
+    ],
+    "game": [
+      {
+        "key": "deck",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "set_aside",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "pick",
+        "visible": "none",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "deal_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "new_deal",
+        "visible": "public",
+        "type": "bool",
+        "initial": true
+      },
+      {
+        "key": "leader",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "led_rank",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "follower_winning",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "extended",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "trick_cards",
+        "visible": "public",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "trick_winner",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "trick_points",
+        "visible": "none",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "deck_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 32
+      },
+      {
+        "key": "copies_per_rank",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "point_card_value",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "deals",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "max_rounds_per_deal",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "total_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 32
+      },
+      {
+        "key": "guaranteed_cards_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 3
+      },
+      {
+        "key": "extra_cards_dealt_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "hand_size",
+        "visible": "public",
+        "type": "number",
+        "initial": 8
+      },
+      {
+        "key": "set_aside_cards",
+        "visible": "public",
+        "type": "number",
+        "initial": 16
+      },
+      {
+        "key": "last_trick_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "max_extensions_per_trick",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "min_tricks_per_deal",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      }
+    ]
+  },
+  "setup": [
+    {
+      "use": "tell",
+      "label": "the seats",
+      "to": "all",
+      "text": "Seat 1 is Player A and seat 2 is Player B."
+    },
+    {
+      "use": "update",
+      "label": "the starting state",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "score",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "key": "deal_number",
+            "value": 1
+          }
+        },
+        {
+          "set": {
+            "key": "new_deal",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "the dealing rule",
+      "to": "all",
+      "text": "The dealing rule: each deal, each hand gets exactly one Seven, one Ace and one Ten, plus {extra_cards_dealt_per_player} random cards from the remaining 26, for {hand_size} cards. The other {set_aside_cards} cards are set aside face down and never used that deal."
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "deal",
+      "label": "the deal",
+      "when": {
+        "calc": "new_deal"
+      },
+      "do": [
+        {
+          "set": {
+            "key": "deck",
+            "value": [
+              "7",
+              "7",
+              "7",
+              "7",
+              "8",
+              "8",
+              "8",
+              "8",
+              "9",
+              "9",
+              "9",
+              "9",
+              "10",
+              "10",
+              "10",
+              "10",
+              "J",
+              "J",
+              "J",
+              "J",
+              "Q",
+              "Q",
+              "Q",
+              "Q",
+              "K",
+              "K",
+              "K",
+              "K",
+              "A",
+              "A",
+              "A",
+              "A"
+            ]
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "hand",
+            "value": []
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": "7"
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": "7"
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": "A"
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": "A"
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": "10"
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": "10"
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": "7"
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": "7"
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": "A"
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": "A"
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": "10"
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": "10"
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 1,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "pick",
+            "value": {
+              "calc": "deck[int(uniform(0, len(deck)))]"
+            }
+          }
+        },
+        {
+          "append": {
+            "player": 2,
+            "key": "hand",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "remove": {
+            "key": "deck",
+            "value": {
+              "calc": "pick"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "set_aside",
+            "value": {
+              "calc": "deck"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "deck",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "1 if deal_number % 2 == 1 else 2"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "new_deal",
+            "value": false
+          }
+        }
+      ],
+      "text": "Deal {deal_number} of {deals} has been dealt: {hand_size} cards each, {set_aside_cards} set aside face down. Seat {leader} leads the first trick."
+    },
+    {
+      "use": "sync",
+      "phase": "trick",
+      "label": "your hand",
+      "mode": "self",
+      "to": "all",
+      "text": "Your state before this trick:"
+    },
+    {
+      "use": "ask",
+      "phase": "trick",
+      "label": "leader's first card",
+      "to": {
+        "where": "you.seat == leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "led_rank",
+              "value": "$answer"
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} leads {value}."
+      },
+      "text": "You lead this trick. Play any card from your hand face up; its rank becomes the led rank."
+    },
+    {
+      "use": "ask",
+      "phase": "trick",
+      "label": "follower's first card",
+      "to": {
+        "where": "you.seat != leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "follower_winning",
+              "value": {
+                "calc": "$answer == led_rank or $answer == '7'"
+              }
+            }
+          },
+          {
+            "set": {
+              "players": "all",
+              "key": "offer",
+              "value": {
+                "calc": "['decline'] + (['7'] if '7' in you.hand else []) + ([led_rank] if (led_rank != '7' and led_rank in you.hand) else [])"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} follows with {value}."
+      },
+      "text": "Seat {leader} led {led_rank}. Play any card from your hand face up. If it is {led_rank} or a 7 you are currently winning; otherwise the leader wins the trick."
+    },
+    {
+      "use": "ask",
+      "phase": "trick",
+      "label": "leader's extension",
+      "when": {
+        "calc": "follower_winning and any(p.seat == leader and len(p.offer) > 1 for p in players)"
+      },
+      "to": {
+        "where": "you.seat == leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "offer"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer",
+              "if": {
+                "calc": "$answer != 'decline'"
+              }
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer",
+              "if": {
+                "calc": "$answer != 'decline'"
+              }
+            }
+          },
+          {
+            "set": {
+              "key": "extended",
+              "value": true,
+              "if": {
+                "calc": "$answer != 'decline'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} extension: {value}."
+      },
+      "text": "The follower is currently winning. You may extend once by playing a {led_rank} or a 7, or decline. If you decline, the follower wins the trick. If you extend, the follower must play a second card: if it is {led_rank} or a 7 the follower wins, otherwise you win."
+    },
+    {
+      "use": "ask",
+      "phase": "trick",
+      "label": "follower's second card",
+      "when": {
+        "calc": "extended"
+      },
+      "to": {
+        "where": "you.seat != leader"
+      },
+      "answer": {
+        "type": "choice",
+        "options": {
+          "attribute": "hand"
+        }
+      },
+      "each": {
+        "do": [
+          {
+            "remove": {
+              "player": "$seat",
+              "key": "hand",
+              "value": "$answer"
+            }
+          },
+          {
+            "append": {
+              "key": "trick_cards",
+              "value": "$answer"
+            }
+          },
+          {
+            "set": {
+              "key": "follower_winning",
+              "value": {
+                "calc": "$answer == led_rank or $answer == '7'"
+              }
+            }
+          }
+        ]
+      },
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} plays a second card: {value}."
+      },
+      "text": "The leader extended. You must play a second card (any card). If it is {led_rank} or a 7 you win the trick; otherwise the leader wins."
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "the trick is won",
+      "do": [
+        {
+          "set": {
+            "key": "trick_winner",
+            "value": {
+              "calc": "[p.seat for p in players if p.seat != leader][0] if follower_winning else leader"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "trick_points",
+            "value": {
+              "calc": "point_card_value * (count(c == 'A' for c in trick_cards) + count(c == '10' for c in trick_cards))"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": {
+              "calc": "trick_winner"
+            },
+            "key": "score",
+            "value": {
+              "calc": "trick_points"
+            }
+          }
+        }
+      ],
+      "text": "Trick cards: {trick_cards}. Seat {trick_winner} wins the trick and scores {trick_points} points."
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "after the trick",
+      "do": [
+        {
+          "adjust": {
+            "player": {
+              "calc": "trick_winner"
+            },
+            "key": "score",
+            "value": {
+              "calc": "last_trick_bonus"
+            },
+            "if": {
+              "calc": "all(len(p.hand) == 0 for p in players)"
+            },
+            "text": "Both hands are empty: seat {player} scores {last_trick_bonus} for the last trick, and deal {deal_number} ends."
+          }
+        },
+        {
+          "set": {
+            "key": "set_aside",
+            "value": [],
+            "if": {
+              "calc": "all(len(p.hand) == 0 for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "new_deal",
+            "value": true,
+            "if": {
+              "calc": "all(len(p.hand) == 0 for p in players)"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "deal_number",
+            "value": 1,
+            "if": {
+              "calc": "all(len(p.hand) == 0 for p in players)"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "leader",
+            "value": {
+              "calc": "trick_winner"
+            },
+            "if": {
+              "calc": "any(len(p.hand) > 0 for p in players)"
+            },
+            "text": "Seat {value} leads the next trick."
+          }
+        }
+      ],
+      "text": "Scores: seat 1 {players[0].score}, seat 2 {players[1].score}."
+    },
+    {
+      "use": "update",
+      "phase": "score",
+      "label": "reset the trick",
+      "do": [
+        {
+          "set": {
+            "key": "trick_cards",
+            "value": []
+          }
+        },
+        {
+          "set": {
+            "key": "led_rank",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "follower_winning",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "key": "extended",
+            "value": false
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "score",
+      "label": "after the last deal",
+      "when": {
+        "calc": "deal_number > deals"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "deal_number > deals"
+      },
+      "rank_by": "you.score",
+      "text": "Winner: {result}. Final scores: Seat 1 {players[0].score}, Seat 2 {players[1].score}."
+    }
+  },
+  "limits": {
+    "rounds": 32,
+    "rounds_max": 32,
+    "actions_max": 1000,
+    "deadline_s": 120
+  },
+  "rules": "Sedmice Duel is played with {deck_size} cards: {copies_per_rank} each of the ranks 7, 8, 9, 10, J, Q, K, A. Suits do not matter. Aces and Tens are point cards worth {point_card_value} each. Sevens are wild. Seat 1 is Player A and seat 2 is Player B.\n\nThe match is {deals} deals. Each deal lasts up to {max_rounds_per_deal} rounds, so the match has {total_rounds} rounds; each round is one trick.\n\nDEALING (first round of each deal): the full deck is shuffled. Each player receives exactly one Seven, one Ace and one Ten, then {extra_cards_dealt_per_player} more random cards from the remaining 26, so each hand has {hand_size} cards. Hands are private. The {set_aside_cards} undealt cards are set aside face down and are never revealed or used in that deal.\n\nFIRST LEAD: Player A (seat 1) leads first in deals 1 and 3. Player B (seat 2) leads first in deals 2 and 4. After that, the winner of each trick leads the next one.\n\nA TRICK:\n(1) The leader plays any card face up. Its rank is the led rank.\n(2) The follower plays any card face up. If it matches the led rank or is a Seven, the follower is currently winning. Otherwise the leader wins the trick and it ends.\n(3) If the follower is currently winning, the leader may extend once by playing a second card that matches the led rank or is a Seven. The leader may also decline. If the leader declines or has no such card, the follower wins the trick.\n(4) If the leader extended, the follower must play a second card (any card). If it matches the led rank or is a Seven, the follower wins the trick. Otherwise the leader wins.\nA trick can never be extended more than {max_extensions_per_trick} time.\n\nAFTER EACH TRICK: all cards played in the trick are announced. The winner scores {point_card_value} points for each Ace and each Ten among them. Both players always play the same number of cards, so both hands empty together. If the hands are now empty, the winner of this trick also scores {last_trick_bonus} points for the last trick, and the deal ends; any remaining rounds of that deal are skipped. A deal lasts {min_tricks_per_deal} to {max_rounds_per_deal} tricks.\n\nINFORMATION: each player sees their own hand and every card played. Neither sees the opponent's hand or the set-aside cards.\n\nAfter {deals} deals, the player with the higher total points wins. Equal totals are a draw (a shared win)."
+}

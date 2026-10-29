@@ -371,7 +371,7 @@ def test_a_backend_outage_while_building_is_not_a_reason_to_drop_a_game():
 
 def test_the_agent_prompt_carries_the_rules_the_interface_the_api_and_how_to_check():
     text = prompt.build("rps", PLAN, SPEC, "fix the payoffs")
-    for must in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`seat 1`", "design/actions.md", "xcolos/games/library/rps.json",
+    for must in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`you.score`", "design/actions.md", "xcolos/games/library/rps.json",
                  "python3 -m gen_game verify rps game", "never `none`", "Do NOT read", "fix the payoffs", "platform genuinely cannot"):
         assert must in text, must
     assert "gen_game/data/games/rps/game.json" in text
@@ -596,7 +596,7 @@ def test_the_lint_reports_every_known_mistake_in_one_message():
 def test_a_model_and_an_agent_get_the_same_game_interface_and_rules_but_reach_the_api_differently():
     agent_text = prompt.build("rps", PLAN, SPEC, agent=True)
     model_text = prompt.build("rps", PLAN, SPEC, agent=False)
-    for shared in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`seat 1`", "never `none`", "bound and then stored" if False else "binds it"):
+    for shared in ("Rock Paper Scissors, weighted", "higher total score", "`score`", "`you.score`", "never `none`", "bound and then stored" if False else "binds it"):
         assert shared in agent_text and shared in model_text, shared
     assert "python3 -m gen_game verify rps game" in agent_text and "design/actions.md" in agent_text
     assert "python3 -m gen_game verify" not in model_text and "design/actions.md" not in model_text  # a reply cannot read files or run commands
@@ -1159,6 +1159,31 @@ def test_triage_can_say_the_tests_are_wrong_and_the_tests_are_rewritten_and_the_
     assert "THE TESTS (written from the rules alone; judge whether they are right)" in triage_prompt and "a test that misreads the rules" in triage_prompt
     report = json.loads((root / "rps" / "report.json").read_text())
     assert report["triage"][0]["decision"] == "fix_tests"
+
+
+def test_a_test_rewrite_does_not_use_up_the_coders_repairs_or_send_the_rules_back():
+    # Hanamikoji: two repairs by the coder, then triage found the tests wrong; that used to count as a third repair, and the
+    # rules, which were sound, went back to the designer
+    wrong = {**ALWAYS_ROCK, "name": "a test that misreads the rules", "expect": {"result": "seat 1"}}
+    inv, root = world()
+    m = Models(games=[wrong_game(), wrong_game(), RPS_TEXT], scenario_lists=[[wrong], [ALWAYS_ROCK, SEAT1_WINS]],
+               triages=[triage_says("fix_game", "set rounds_left to 10")] * 2 + [triage_says("fix_tests", "assert only on the result and the scores")])
+    out = run_flow("rps", m, inv, root, adapt=True, judge=True)
+    assert out.verdict == "ready_for_review", out
+    assert calls(m).count("adapt") == 1 and calls(m).count("encode") == 3 and calls(m).count("scenarios") == 2
+    report = json.loads((root / "rps" / "report.json").read_text())
+    assert [d["decision"] for d in report["triage"]] == ["fix_game", "fix_game", "fix_tests"]
+
+
+def test_tests_still_wrong_after_their_rewrites_are_left_to_a_person_and_the_rules_and_the_file_stand():
+    wrong = {**ALWAYS_ROCK, "name": "a test that misreads the rules", "expect": {"result": "seat 1"}}
+    inv, root = world()
+    m = Models(scenario_lists=[[wrong]], triages=[triage_says("fix_tests", "assert only on the result and the scores")])
+    out = run_flow("rps", m, inv, root, adapt=True, judge=True)
+    assert out.verdict == "needs_review", out
+    assert calls(m).count("adapt") == 1 and calls(m).count("encode") == 1  # no new rules, no new file
+    assert calls(m).count("scenarios") == 1 + flow.FIX_ROUNDS and calls(m).count("triage") == 1 + flow.FIX_ROUNDS
+    assert inv.get("rps").status == "ready" and not inv.get("rps").dropped  # not dropped, and not marked as passing either
 
 
 # -- putting a working game into the platform's library, to play it by hand --------------------------------------------------
