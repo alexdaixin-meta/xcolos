@@ -145,6 +145,46 @@ def test_a_group_operation_does_not_announce_what_it_did_to_a_player_who_is_alre
     assert told == ["Seat 2 answers: x.", "Seat 3 answers: x."], told
 
 
+def _told(attribute: dict, op: str, change: dict) -> list[dict]:
+    """The facts one announced change makes, on the toy with `attribute` declared."""
+    raw = json.loads(toy())
+    raw["attributes"]["player" if "player" in change else "game"].append(attribute)
+    raw["steps"] = [
+        {"use": "update", "label": "the change", "do": [{op: change}]},
+        {"use": "check", "label": "the end", "when": {"calc": "True"}},
+    ]
+    played = harness.play(load(json.dumps(raw)), harness.random_agents(3, 1), 1)
+    return [r for r in played.game.log.records
+            if r.get("category") == "fact" and r.get("type") == f"the_change_{op}"]
+
+
+def test_announcing_a_change_to_a_hidden_table_attribute_tells_the_words_but_not_the_value():
+    told = _told({"key": "slot", "visible": "none", "type": "number", "initial": 0},
+                 "set", {"key": "slot", "value": 7, "text": "Someone put a card face down."})
+    assert [t["payload"]["rendered"] for t in told] == ["Someone put a card face down."]
+    assert sorted(told[0]["entitled"]) == [1, 2, 3]
+    assert "value" not in told[0]["payload"], told[0]["payload"]
+
+
+def test_announcing_a_change_to_a_private_player_attribute_gives_the_value_to_its_owner_alone():
+    told = _told({"key": "cash", "visible": "ally", "type": "number", "initial": 0},
+                 "adjust", {"player": 2, "key": "cash", "value": 12,
+                            "text": "Seat {player} takes a cheque of {value}."})
+    by_seat = {seat: t["payload"] for t in told for seat in t["entitled"]}
+    assert sorted(by_seat) == [1, 2, 3]
+    # The words are the game's, and these say the amount: everyone reads them.
+    assert {p["rendered"] for p in by_seat.values()} == {"Seat 2 takes a cheque of 12."}
+    assert by_seat[2]["value"] == 12
+    assert "value" not in by_seat[1] and "value" not in by_seat[3]
+
+
+def test_announcing_a_change_to_a_public_attribute_is_one_fact_with_its_value_for_everyone():
+    told = _told({"key": "up", "visible": "public", "type": "number", "initial": 0},
+                 "set", {"key": "up", "value": 4, "text": "The face-up card is now {value}."})
+    assert len(told) == 1 and sorted(told[0]["entitled"]) == [1, 2, 3]
+    assert told[0]["payload"]["value"] == 4
+
+
 def test_a_tell_about_a_subject_nobody_was_chosen_for_says_nothing_instead_of_literal_braces():
     raw = json.loads(toy())
     raw["attributes"]["game"].append({"key": "victim", "visible": "public", "type": "number", "initial": 0})

@@ -1628,6 +1628,11 @@ class FlowOrchestrator:
 
         A `disclose` announces itself, because the message *is* the disclosure
         and it goes to exactly the players who learned it.
+
+        Announcing a change does not make the attribute visible. Every
+        listener gets the words; the new value goes in the payload only to
+        listeners who may see the attribute, by the rule their own view is
+        built by (`FlowState.sees`).
         """
         if operation.op == "disclose":
             return
@@ -1639,15 +1644,19 @@ class FlowOrchestrator:
             Selector.parse(args.get("announce_to", "all"), "announce_to"),
             acting_only=False, subject=subject,
         )
-        self._say(
-            game, heard,
-            str(args.get("text") or ""), str(args.get("llm") or ""),
-            {k: v for k, v in args.items()
-             if k not in ("text", "llm", "announce_to")}
-            | {"player": subject, "subject": subject},
-            f"{kind}_{operation.op}" if kind else operation.op,
-            int(args.get("max_words", 0)),
-        )
+        key = args.get("key")
+        seen = [s for s in heard if key is None or flow.sees(s, str(key), subject)]
+        for listeners, withheld in ((seen, ()), ([s for s in heard if s not in seen], ("value",))):
+            self._say(
+                game, listeners,
+                str(args.get("text") or ""), str(args.get("llm") or ""),
+                {k: v for k, v in args.items()
+                 if k not in ("text", "llm", "announce_to")}
+                | {"player": subject, "subject": subject},
+                f"{kind}_{operation.op}" if kind else operation.op,
+                int(args.get("max_words", 0)),
+                withheld=withheld,
+            )
 
     _NOT_PROSE = {"true", "false", "none", "null", "nil", "na", "undefined"}
 
@@ -1671,6 +1680,7 @@ class FlowOrchestrator:
         fact_type: str,
         max_words: int = 0,
         once: bool = False,
+        withheld: tuple[str, ...] = (),
     ) -> str:
         """Announce something, worded by the game or by a model. Returns the words (the first listener's, when a model wrote one each).
 
@@ -1685,12 +1695,17 @@ class FlowOrchestrator:
         and the whole table listening, it is composed one time from the PUBLIC
         view and told to everyone: the same account for all, from what nobody
         was kept from.
+
+        `withheld` names what a listener may not see in `extra`: the template
+        is filled from all of it, but neither the fact's payload (which an
+        agent reads whole, as `data`) nor a wording model is given it.
         """
         flow = self._state()
         if not heard:
             return ""
         everyone = len(heard) == len(flow.players)
         fallback = self._render(None, text, extra) if text else ""
+        extra = {k: v for k, v in extra.items() if k not in withheld}
 
         if llm and self.judge is not None:
             task = f"{llm}\n\nWhat happened: " + json.dumps(extra, sort_keys=True, default=str)
