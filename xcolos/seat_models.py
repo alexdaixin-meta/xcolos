@@ -6,6 +6,7 @@ rest of the platform uses, into one:
     claude[:model]       the `claude` command in print mode (no key to handle)
     muse[:model]         Meta's Model API
     anthropic[:model]    the Anthropic API (needs ANTHROPIC_API_KEY)
+    openai[:model]       OpenAI's Responses API (needs OPENAI_API_KEY)
     command:<program>    any program: prompt on stdin, reply on stdout
     offline              the built-in stub, for checking the wiring
     muse|gateway         either, the first preferred: whichever answers
@@ -52,6 +53,11 @@ def _seat_model(spec: str, timeout_s: int):
         from xcolos.flow.backends import MUSE_FALLBACKS, muse_first_choice
 
         return MuseCompletion(model=rest.strip()) if rest.strip() else MuseCompletion(model=muse_first_choice(), fallbacks=MUSE_FALLBACKS)
+    if kind == "openai":
+        from xcolos.flow.backends import OPENAI_MODEL, OpenAICompletion
+
+        # The seat's own timeout, and no ladder of its own: seat_completion does the retrying.
+        return OpenAICompletion(model=rest.strip() or OPENAI_MODEL, timeout_s=timeout_s, retries=0)
     return from_spec(spec)
 
 

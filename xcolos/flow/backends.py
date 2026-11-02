@@ -15,10 +15,11 @@ entirely in arithmetic with no model at all, and the test suite does exactly
 that. These are here so that wiring one up at runtime is a line of code rather
 than a project.
 
-Four of them, in the order most people will want them:
+Five of them, in the order most people will want them:
 
     MuseCompletion       Meta's internal Model API (Muse Spark), over HTTP.
     AnthropicCompletion  the Claude API. One stateless request per call.
+    OpenAICompletion     OpenAI's Responses API (GPT), over HTTP.
     CommandCompletion    run a program: prompt on stdin, reply on stdout.
                          Works with any CLI, any harness, no dependency.
     EchoCompletion       returns a fixed string. For tests.
@@ -619,8 +620,132 @@ def _cache_key(system: str) -> str:
     return f"xcolos-judge-{digest}"
 
 
+#: OpenAI's own Responses API, the shape Muse Spark borrows. `$OPENAI_BASE_URL` points it at anything else that
+#: speaks it (a proxy); unset, the requests go to OpenAI.
+OPENAI_API_BASE = "https://api.openai.com/v1"
+#: The GPT model Codimango's Codex arm runs.
+OPENAI_MODEL = "gpt-6.1-sol"
+#: Reasoning tokens share the output budget, as on Muse; a GPT reasoning model spends more of them.
+OPENAI_MAX_OUTPUT_TOKENS = 16384
+#: OpenAI's error for a wrong key quotes it masked (a prefix and the last four characters); even that is not repeated.
+OPENAI_KEY_TEXT = re.compile(r"\bsk-[A-Za-z0-9_*-]+")
+
+
+class OpenAICompletion:
+    """OpenAI's Responses API, over plain HTTP. Standard library only.
+
+    The key is `OPENAI_API_KEY`, or a file named by `OPENAI_API_KEY_FILE` (see `read_key`). Unlike Muse, a GPT
+    reasoning model takes no `temperature` or `top_p`: the reasoning effort is the knob, and it is passed as given
+    because the efforts a model accepts differ from model to model. Load is retried on the same ladder as Muse.
+
+    A refusal, a reply cut short and an exhausted quota each fail the call with a sentence saying so: none of them is
+    an answer, and the last is not load, so it is not retried.
+    """
+
+    def __init__(
+        self,
+        model: str = OPENAI_MODEL,
+        *,
+        api_key: str | None = None,
+        base_url: str | None = None,
+        max_output_tokens: int = OPENAI_MAX_OUTPUT_TOKENS,
+        reasoning_effort: str = "low",
+        timeout_s: int = 600,
+        retries: int = MUSE_RETRIES,
+        opener: Any = None,
+    ) -> None:
+        self.model = model
+        base = (base_url or os.environ.get("OPENAI_BASE_URL") or OPENAI_API_BASE).rstrip("/")
+        self.endpoint = f"{base}/responses"
+        self.max_output_tokens = max_output_tokens
+        self.reasoning_effort = reasoning_effort
+        self.timeout_s = timeout_s
+        self.retries = retries
+        self._api_key = read_key(api_key, file_variable="OPENAI_API_KEY_FILE", value_variable="OPENAI_API_KEY")
+        #: Injected in tests. Anything with `.urlopen(request, timeout=)`.
+        self._opener = opener or urllib.request
+
+    def body(self, prompt: str, system: str = "") -> dict[str, Any]:
+        """The request, separated out so a test can read it without a call."""
+        request: dict[str, Any] = {
+            "model": self.model,
+            "input": prompt,
+            "max_output_tokens": self.max_output_tokens,
+            "prompt_cache_key": _cache_key(system),
+            # Nothing is kept on the provider's side: every call carries the seat's whole context.
+            "store": False,
+        }
+        if system:
+            request["instructions"] = system
+        if self.reasoning_effort:
+            request["reasoning"] = {"effort": self.reasoning_effort}
+        return request
+
+    def complete(self, prompt: str, system: str = "") -> str:
+        data = self._post(json.dumps(self.body(prompt, system)).encode("utf-8"))
+        where = f"response id {data.get('id', 'unknown')}"
+        refusals = [
+            str(part.get("refusal", ""))
+            for item in data.get("output") or ()
+            if isinstance(item, dict) and item.get("type") == "message"
+            for part in item.get("content") or ()
+            if isinstance(part, dict) and part.get("type") == "refusal"
+        ]
+        if refusals:
+            # Worded as the Anthropic backend words it, so a seat does not retry it.
+            raise CompletionError(f"the model refused the request ({where}): {' '.join(refusals)[:200]}")
+        if data.get("status") == "incomplete":
+            # Part of an answer reads as an answer to a parser downstream, and the cause would be lost there.
+            reason = (data.get("incomplete_details") or {}).get("reason") or "unknown"
+            budget = (f"; max_output_tokens={self.max_output_tokens} is probably being consumed by reasoning"
+                      if reason == "max_output_tokens" else "")
+            raise CompletionError(f"OpenAI API cut the reply short ({where}, {reason}){budget}")
+        text = extract_output_text(data)
+        if not text.strip():
+            raise CompletionError(f"OpenAI API returned no text ({where}, status {data.get('status', 'unknown')})")
+        return text
+
+    def _post(self, payload: bytes) -> dict[str, Any]:
+        """One request, retried while the backend is shedding load."""
+        if not self._api_key:
+            raise CompletionError("no API key for OpenAI: set OPENAI_API_KEY, or OPENAI_API_KEY_FILE to a file holding it")
+        request = urllib.request.Request(
+            self.endpoint,
+            data=payload,
+            headers={"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        last = ""
+        for attempt in range(self.retries + 1):
+            try:
+                with self._opener.urlopen(request, timeout=self.timeout_s) as reply:
+                    data = json.loads(reply.read().decode("utf-8"))
+            except urllib.error.HTTPError as error:
+                try:
+                    raw = error.read().decode("utf-8", "replace")
+                except Exception:  # noqa: BLE001 - a body that cannot be read still leaves the status
+                    raw = ""
+                detail = OPENAI_KEY_TEXT.sub("sk-...", raw.replace(self._api_key, "..."))[:300]
+                if "insufficient_quota" in raw:
+                    # Billing, not load: no wait clears it. Worded without the status, which callers read as a rate limit.
+                    raise CompletionError(f"OpenAI API quota exhausted (insufficient_quota): {detail}") from None
+                last = f"OpenAI API returned {error.code}: {detail}"
+                if error.code not in MUSE_RETRY_STATUSES or attempt == self.retries:
+                    raise CompletionError(last) from None
+            except Exception as error:
+                last = f"the model call failed: {error}"
+                if attempt == self.retries:
+                    raise CompletionError(last) from None
+            else:
+                if not isinstance(data, dict):
+                    raise CompletionError(f"OpenAI API returned a JSON {type(data).__name__}, not a response")
+                return data
+            _sleep(2.0 ** attempt)
+        raise CompletionError(last)
+
+
 #: The names a spec can start with, so that a bar inside one spec's own text (a shell pipe, a reply) is not read as a choice.
-KINDS = ("anthropic", "gateway", "muse", "command", "echo", "claude", "offline")
+KINDS = ("anthropic", "gateway", "muse", "openai", "command", "echo", "claude", "offline")
 
 
 def split_alternatives(spec: str) -> list[str]:
@@ -684,6 +809,8 @@ def from_spec(spec: str) -> Completion:
         gateway:claude-sonnet-5-5     a named model through the gateway
         muse                          Muse Spark on the internal Model API
         muse:muse-spark-1.1-byoc      a named Muse model
+        openai                        GPT on OpenAI's Responses API (needs OPENAI_API_KEY)
+        openai:gpt-6.1-sol            a named GPT model
         command:ollama run llama3     any program
         echo:{"answer": true}         a fixed reply, for a wiring check
         gateway|muse                  either, the first preferred: whichever answers
@@ -699,6 +826,8 @@ def from_spec(spec: str) -> Completion:
         return gateway_completion(model=rest.strip() or GATEWAY_MODEL)
     if kind == "muse":
         return MuseCompletion(model=rest.strip() or MUSE_MODEL)
+    if kind == "openai":
+        return OpenAICompletion(model=rest.strip() or OPENAI_MODEL)
     if kind == "command":
         if not rest.strip():
             raise CompletionError("command: needs a program to run")
@@ -706,5 +835,5 @@ def from_spec(spec: str) -> Completion:
     if kind == "echo":
         return EchoCompletion(rest or json.dumps({"answer": False, "reason": "echo"}))
     raise CompletionError(
-        f"unknown backend {spec!r}; expected anthropic:, gateway:, muse:, command: or echo:, or several joined by |"
+        f"unknown backend {spec!r}; expected anthropic:, gateway:, muse:, openai:, command: or echo:, or several joined by |"
     )

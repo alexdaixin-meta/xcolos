@@ -22,6 +22,8 @@ from xcolos.flow.backends import (
     EchoCompletion,
     FallbackCompletion,
     MuseCompletion,
+    OPENAI_MODEL,
+    OpenAICompletion,
     from_spec,
     read_key,
     split_alternatives,
@@ -644,6 +646,195 @@ def test_muse_is_reachable_from_a_spec_string():
     assert isinstance(from_spec("muse"), MuseCompletion)
     assert from_spec("muse").model == MUSE_MODEL
     assert from_spec("muse:muse-spark-1.1-byoc").model == "muse-spark-1.1-byoc"
+
+
+# ----------------------------------------------------------------------
+# OpenAI's Responses API (GPT)
+#
+# The same shape as Muse, without Muse's constraints. Against the fake opener too.
+# ----------------------------------------------------------------------
+
+#: Not a key.
+FAKE_OPENAI_KEY = "sk-not-a-real-key"
+
+
+def with_env(**values):
+    """Set (or, with None, unset) variables for one block, and put them back after."""
+    import contextlib
+    import os
+
+    @contextlib.contextmanager
+    def scope():
+        before = {name: os.environ.get(name) for name in values}
+        try:
+            for name, value in values.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+            yield
+        finally:
+            for name, value in before.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+
+    return scope()
+
+
+#: No test reads the machine's own OpenAI settings.
+NO_OPENAI_ENV = {"OPENAI_API_KEY": None, "OPENAI_API_KEY_FILE": None, "OPENAI_BASE_URL": None}
+
+
+def test_openai_is_reachable_from_a_spec_string_and_as_an_alternative():
+    with with_env(**NO_OPENAI_ENV):
+        assert isinstance(from_spec("openai"), OpenAICompletion)
+        assert from_spec("openai").model == OPENAI_MODEL
+        assert from_spec("openai:gpt-test").model == "gpt-test"
+        assert isinstance(from_spec("openai|echo:Pass"), FallbackCompletion)
+    assert split_alternatives("openai|muse") == ["openai", "muse"]
+
+
+def test_an_openai_seat_takes_the_seat_timeout_and_leaves_the_retrying_to_the_seat():
+    from xcolos.seat_models import _seat_model
+
+    with with_env(**NO_OPENAI_ENV):
+        backend = _seat_model("openai:gpt-test", 90)
+    assert isinstance(backend, OpenAICompletion)
+    assert (backend.model, backend.timeout_s, backend.retries) == ("gpt-test", 90, 0)
+
+
+def test_an_openai_request_sends_no_sampling_settings_and_keeps_nothing():
+    with with_env(**NO_OPENAI_ENV):
+        body = OpenAICompletion(api_key=FAKE_OPENAI_KEY).body("the table now", system="the rules")
+        assert "reasoning" not in OpenAICompletion(api_key=FAKE_OPENAI_KEY, reasoning_effort="").body("x")
+    assert body["model"] == OPENAI_MODEL and body["input"] == "the table now"
+    assert body["instructions"] == "the rules"
+    assert body["reasoning"] == {"effort": "low"}
+    assert body["max_output_tokens"] >= 8192 and body["prompt_cache_key"].startswith("xcolos-")
+    assert "temperature" not in body and "top_p" not in body, "GPT reasoning models reject them"
+    assert body["store"] is False
+
+
+def test_an_openai_call_goes_to_openai_with_the_key_from_the_environment():
+    fake = FakeOpener(payload=message("Pass"))
+    with with_env(OPENAI_API_KEY=FAKE_OPENAI_KEY, OPENAI_API_KEY_FILE=None, OPENAI_BASE_URL=None):
+        assert OpenAICompletion(opener=fake).complete("x", system="y") == "Pass"
+    request, timeout = fake.requests[0]
+    assert request.full_url == "https://api.openai.com/v1/responses"
+    assert request.get_header("Authorization") == f"Bearer {FAKE_OPENAI_KEY}"
+    assert timeout >= 600
+
+
+def test_openai_base_url_points_the_requests_elsewhere():
+    fake = FakeOpener(payload=message("Pass"))
+    with with_env(OPENAI_BASE_URL="https://proxy.example/v1/"):
+        OpenAICompletion(api_key=FAKE_OPENAI_KEY, opener=fake).complete("x")
+    assert fake.requests[0][0].full_url == "https://proxy.example/v1/responses"
+
+
+def test_a_missing_openai_key_is_reported_before_any_call():
+    fake = FakeOpener(payload=message("Pass"))
+    with with_env(OPENAI_API_KEY=None, OPENAI_API_KEY_FILE=None):
+        backend = OpenAICompletion(opener=fake)
+    try:
+        backend.complete("x")
+    except CompletionError as error:
+        assert "OPENAI_API_KEY" in str(error)
+    else:
+        raise AssertionError("it must say which key is missing")
+    assert fake.requests == []
+
+
+def test_openai_load_is_retried_and_a_refused_key_is_not():
+    import io
+    import urllib.error
+
+    limited = urllib.error.HTTPError("u", 429, "Too Many Requests", {}, io.BytesIO(b'{"error":"rate_limit"}'))
+    flaky = FlakyOpener(2, limited)
+    backend = OpenAICompletion(api_key=FAKE_OPENAI_KEY, opener=flaky)
+    backend_sleep_free(backend)
+    assert backend.complete("x") == "recovered" and flaky.calls == 3
+
+    refused = FlakyOpener(9, urllib.error.HTTPError("u", 401, "Unauthorized", {}, io.BytesIO(b'{"error":"bad key"}')))
+    try:
+        OpenAICompletion(api_key=FAKE_OPENAI_KEY, opener=refused).complete("x")
+    except CompletionError as error:
+        assert "OpenAI API returned 401" in str(error) and "bad key" in str(error)
+    else:
+        raise AssertionError("a refused key must say so")
+    assert refused.calls == 1
+
+
+def openai_call_fails(opener, **kwargs) -> str:
+    """The CompletionError an OpenAI call raises, as text."""
+    try:
+        OpenAICompletion(api_key=FAKE_OPENAI_KEY, opener=opener, **kwargs).complete("x")
+    except CompletionError as error:
+        return str(error)
+    raise AssertionError("the call should have failed")
+
+
+def test_a_refusal_is_reported_as_one_and_a_seat_does_not_retry_it():
+    from xcolos.seat_models import REFUSED, THROTTLED
+
+    refusal = {"id": "resp_r", "status": "completed", "output": [
+        {"type": "message", "content": [{"type": "refusal", "refusal": "I can't help with that."}]}]}
+    said = openai_call_fails(FakeOpener(payload=refusal))
+    assert REFUSED.search(said) and "can't help" in said and not THROTTLED.search(said)
+
+
+def test_a_reply_cut_short_is_not_returned_as_an_answer():
+    cut = {"id": "resp_cut", "status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"},
+           "output": [{"type": "message", "content": [{"type": "output_text", "text": "I play the 7 of"}]}]}
+    said = openai_call_fails(FakeOpener(payload=cut))
+    assert "resp_cut" in said and "max_output_tokens" in said
+
+
+def test_an_exhausted_quota_is_not_retried_nor_taken_for_a_rate_limit():
+    import io
+    import urllib.error
+
+    from xcolos.seat_models import THROTTLED
+
+    body = b'{"error": {"message": "You exceeded your current quota.", "type": "insufficient_quota", "code": "insufficient_quota"}}'
+    broke = FlakyOpener(9, urllib.error.HTTPError("u", 429, "Too Many Requests", {}, io.BytesIO(body)))
+    said = openai_call_fails(broke)
+    assert broke.calls == 1 and "insufficient_quota" in said and not THROTTLED.search(said)
+
+
+def test_an_openai_error_never_repeats_a_key_even_masked():
+    import io
+    import urllib.error
+
+    body = b'{"error": {"message": "Incorrect API key provided: sk-proj-ab****wxyz.", "code": "invalid_api_key"}}'
+    said = openai_call_fails(FakeOpener(error=urllib.error.HTTPError("u", 401, "Unauthorized", {}, io.BytesIO(body))))
+    assert "401" in said and "invalid_api_key" in said and "wxyz" not in said and FAKE_OPENAI_KEY not in said
+    echoed = json.dumps({"error": {"message": f"key {FAKE_OPENAI_KEY} for task-1", "code": "invalid_api_key"}}).encode()
+    said = openai_call_fails(FakeOpener(error=urllib.error.HTTPError("u", 401, "Unauthorized", {}, io.BytesIO(echoed))))
+    assert FAKE_OPENAI_KEY not in said and "task-1" in said
+
+
+def test_a_reply_that_is_not_a_response_object_is_a_completion_error():
+    assert "list" in openai_call_fails(FakeOpener(payload=["not", "a", "response"]))
+
+
+def test_without_retries_an_openai_call_is_tried_once():
+    flaky = FlakyOpener(9, ConnectionResetError("dropped"))
+    said = openai_call_fails(flaky, retries=0)
+    assert flaky.calls == 1 and "dropped" in said
+
+
+def test_an_empty_openai_reply_names_why_it_stopped():
+    fake = FakeOpener(payload={"id": "resp_gpt", "status": "incomplete",
+                               "incomplete_details": {"reason": "max_output_tokens"}, "output": []})
+    try:
+        OpenAICompletion(api_key=FAKE_OPENAI_KEY, opener=fake).complete("x")
+    except CompletionError as error:
+        assert "resp_gpt" in str(error) and "max_output_tokens" in str(error)
+    else:
+        raise AssertionError("an empty reply is not an answer")
 
 
 # ----------------------------------------------------------------------
