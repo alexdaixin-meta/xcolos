@@ -2,12 +2,13 @@
 
 The designer reviews its own work, and a designer that has just fixed a flaw is the last
 reader to see the one it left in (the stag hunt variation whose mixed payoffs were swapped).
-So a separate call, with no stake in the design, checks the three things XColos needs from a
-game, and a design is only sound when all three pass:
+So a separate call, with no stake in the design, checks the four things XColos needs from a
+game, and a design is only sound when all four pass:
 
   balanced            no seat and no simple policy has the edge; the main decision is a real one
   playable            complete, unambiguous rules a model can follow, inside the platform's restrictions
   reasoning_over_luck what wins is inference, planning and opponent modelling, not the draw
+  open_play           from one fixed deal, more than one plan can win, and the best one depends on the opponents
 
 The critic is told to work the numbers out (write the payoff table, test a thoughtless policy)
 and show the work as evidence, because a verdict with no arithmetic behind it is an opinion.
@@ -23,7 +24,7 @@ from gen_game import adapt, complexity
 from gen_game.repair import refused
 from gen_inventory.crawl import first_json
 
-CHECKS = ("balanced", "playable", "reasoning_over_luck")
+CHECKS = ("balanced", "playable", "reasoning_over_luck", "open_play")
 
 
 class Completion(Protocol):
@@ -37,7 +38,7 @@ turn-based, text-only games between models and scores them by arithmetic. A step
 true or false by a referee model; scores and the winner are always calculated. You did not design the game you are
 shown and you want it to fail review if it should.
 
-You are given the original game's rules and a proposed VARIATION. Check three things, each pass or fail, and
+You are given the original game's rules and a proposed VARIATION. Check four things, each pass or fail, and
 SHOW YOUR WORK as evidence:
 
   balanced
@@ -68,12 +69,18 @@ SHOW YOUR WORK as evidence:
     then decided by the random draw alone (a hidden type, a deal), it fails; a random deal that good play can overcome is fine and adds variety. If a player who reasons well is not clearly favoured over one who does not, or if chance
     alone often decides the winner, it fails. Is there something to infer (hidden information, an opponent's type or
     likely move) and a way to act on it?
+  open_play
+    Take one fixed starting deal: tasks fix it, and opponents that think tend to open the same way every time. List the
+    first decisions on offer and work out at least two different plans that can win, each against some way the opponents
+    play, and show that the best reply changes with what they do. It fails if one move or plan is best whatever the
+    opponents do, if one early choice decides most games, or if only the intended strategy can win.
 
 {adapt.restrictions_text(manifest)}
 Reply with ONE JSON object and nothing else:
   {{"balanced": {{"verdict": "pass" or "fail", "evidence": ...}},
     "playable": {{"verdict": "pass" or "fail", "evidence": ...}},
     "reasoning_over_luck": {{"verdict": "pass" or "fail", "evidence": ...}},
+    "open_play": {{"verdict": "pass" or "fail", "evidence": ...}},
     "required_changes": [specific changes that would make each failing check pass; empty only if nothing fails]}}"""
 
 

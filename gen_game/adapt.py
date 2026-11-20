@@ -29,6 +29,7 @@ CRITERIA = {
     "skill_sensitive": "A better player beats a worse one reliably; skill outweighs luck.",
     "headroom": "A strong player can keep improving, and a weak one can still score; not solved, not hopeless.",
     "reasoning_dependent": "Doing well takes inference from limited information: hidden state, an opponent's likely type or move, or a plan over several rounds. Perfect-information games with nothing to infer fail this.",
+    "open_play": "More than one line of play can win, and which is best depends on what the other players do: no fixed opening, single early choice or one plan wins whatever they do, so players who think differently can each win from the same deal.",
     "verifiable": "The result follows by arithmetic from what happened. No judge decides it.",
     "fits_platform": "Turn-based and text-only, decided by arithmetic, inside what the engine supports, with no spatial board, and short enough to play.",
 }
@@ -81,6 +82,14 @@ THE LOTTERY TRAP. Check the outcome when everyone plays the intended good strate
 winner is then decided by the random draw alone (who was dealt the better hidden type, who drew the better card), reasoning does
 not decide the game. A random deal that only changes what players know or can do, and that good play can overcome, is not a trap: keep it. Make a hidden type matter for WHAT to do, not for who ends ahead: give types that are worth the same
 in total, or compare players on something both can reach, or let play after the draw correct for it.
+
+THE NARROW GAME TRAP. A balanced game can still be narrow: one opening, one early choice or one plan wins whatever the others
+do, so a player only has to find it once and every match from the same deal plays out alike. Tasks fix the starting deal, and
+opponents that think tend to open the same way every time, so check this from one fixed deal: list the first decisions on offer,
+show at least two different plans that can win, and show that which is best changes with what the other players do (a reply
+that is right against one opponent move is wrong against another). If one move or plan is best regardless, or one early choice
+decides most games, change the game: several ways to score that compete for the same resources, information that only play
+reveals, payoffs that depend on what the others chose.
 
 MODEL. If your game is a repeated game in which, every round, all players choose AT THE SAME MOMENT from the same list of
 actions, and a player's payoff for the round depends only on their own action, their private type (if any) and how many

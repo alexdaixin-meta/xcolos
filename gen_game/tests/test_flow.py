@@ -832,6 +832,21 @@ def test_the_designer_and_critic_are_told_that_a_lottery_under_good_play_is_a_fa
     assert "not a trap" in adaptmod.system_prompt()  # a deal that good play can overcome is welcome
 
 
+def test_a_narrow_game_fails_design_and_review_from_one_fixed_deal():
+    # A task fixes the deal and thinking opponents open alike, so one opening or early choice that wins whatever the
+    # others do makes every match the same (jaipur seed A: one round-2 choice decided most games).
+    system = adaptmod.system_prompt()
+    assert "open_play" in adaptmod.CRITERIA and "THE NARROW GAME TRAP" in system
+    assert "one fixed deal" in system and "at least two different plans" in system
+    review = critic.system_prompt()
+    assert "open_play" in critic.CHECKS and "open_play" in review
+    assert "one fixed starting deal" in review and "best reply changes with what they do" in review
+    # Failing open_play alone is not a sound design, and the failure must come with changes.
+    narrow = {**CRITIC_OK, "open_play": {"verdict": "fail", "evidence": "TAKE first wins against every reply"}}
+    assert not critic.sound({**narrow, "required_changes": ["make the reply depend on the opponent's take"]})
+    assert any("required_changes" in p for p in critic.problems(narrow))
+
+
 def test_the_designer_is_told_to_keep_the_idea_and_that_rounds_need_not_be_fixed():
     for need in ("KEEP THE IDEA", "RANDOM STARTS ARE GOOD", "ROUNDS NEED NOT BE FIXED"):
         assert need in adaptmod.IDEA_MODE
