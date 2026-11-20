@@ -1008,3 +1008,36 @@ def test_a_check_match_that_runs_past_its_time_cap_is_abandoned_with_the_reason(
     assert played.result.status == "abandoned" and "time cap" in (played.result.reason or "")
     assert "every combination" in played.end_problems()[0]  # the coder is told what makes a match this slow
     assert harness.CHECK_SECONDS == 30  # every library game plays a random match in under 0.1 s; scopa's runaway build took minutes
+
+
+class _Replies:
+    def __init__(self, replies):
+        self.replies, self.prompts = list(replies), []
+
+    def complete(self, prompt, system=""):
+        self.prompts.append(prompt)
+        return self.replies.pop(0)
+
+
+def test_a_scenario_list_whose_json_breaks_keeps_what_parsed_and_asks_only_for_the_rest():
+    a, b = json.dumps(ALWAYS_ROCK), json.dumps(SEAT1_WINS)
+    m = _Replies([f"[{a}, {b[:-5]} ]", f"[{b}]"])  # the second scenario is cut off: only the first is whole
+    items, error = scenarios.write_scenarios(m, SPEC)
+    assert error == "" and [s["name"] for s in items] == [ALWAYS_ROCK["name"], SEAT1_WINS["name"]]
+    assert "Write ONLY the scenarios that come after them" in m.prompts[1] and ALWAYS_ROCK["name"] in m.prompts[1]
+    assert "one key per line" in m.prompts[1]
+
+
+def test_a_broken_list_with_nothing_whole_is_repaired_from_a_window_not_echoed_in_full():
+    junk = "[" + "x" * 30000 + "]"
+    m = _Replies([junk] * 3)
+    items, error = scenarios.write_scenarios(m, SPEC)
+    assert items is None and "did not parse" in error
+    assert "one key per line" in m.prompts[1] and len(m.prompts[1]) < len(m.prompts[0]) + 3000
+
+
+def test_scenarios_kept_from_a_broken_list_are_used_when_the_attempts_run_out():
+    a, b = json.dumps(ALWAYS_ROCK), json.dumps(SEAT1_WINS)
+    m = _Replies([f"[{a}, {b[:-5]} ]"] + [f"[{b[:-5]} ]"] * 2)
+    items, error = scenarios.write_scenarios(m, SPEC)
+    assert error == "" and [s["name"] for s in items] == [ALWAYS_ROCK["name"]]

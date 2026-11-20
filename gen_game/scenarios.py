@@ -197,26 +197,89 @@ def write_scenarios(completion: Completion, spec: dict, repairs: int = 2, guidan
     if guidance:
         prompt += "\n\nEARLIER TESTS FOR THIS SPEC WERE FOUND WRONG. What to do differently:\n" + guidance
     base, error, reply = prompt, "", ""
+    keys = {sc: [a['key'] for a in spec['attributes'][sc]] for sc in ('player', 'game')}
+    rule_ids = {r['id'] for r in spec.get('rules') or []} or None
+    kept: list[dict] = []  # well-formed scenarios from a list that broke later on: kept, and the rest asked for
     for _ in range(repairs + 1):
         try:
             reply = completion.complete(prompt, system=SYSTEM)
-            start, end = reply.find("["), reply.rfind("]")
-            items = json.loads(reply[start : end + 1]) if start >= 0 < end else first_json(reply)
-            keys = {sc: [a['key'] for a in spec['attributes'][sc]] for sc in ('player', 'game')}
-            found = problems(items, obs, {r['id'] for r in spec.get('rules') or []} or None, keys)
+            items, slip = _parse_list(reply)
+            found = [] if slip else problems(items, obs, rule_ids, keys)
         except (ValueError, TypeError) as exc:
-            items, found = None, [str(exc)]
+            items, slip, found = None, "", [str(exc)]
         except Exception as exc:  # noqa: BLE001 - a backend that is down is not bad scenarios
             return None, f"the model call failed: {str(exc)[:200]}"
+        if slip:
+            good = items if items and not problems(items, obs, rule_ids, keys) else []
+            kept += [s for s in good if s.get("name") not in {k.get("name") for k in kept}]
+            error = f"the JSON did not parse: {slip}"
+            prompt = _continue(base, kept, slip) if kept else refused(base, _around(reply, slip), error + SYNTAX_HELP)
+            continue
         if not found:
-            text = {r["id"]: r["text"] for r in spec.get("rules") or []}
-            for item in items:
-                if item.get("rule") in text:
-                    item["rule_text"] = text[item["rule"]]
-            return items, ""
+            names = {k.get("name") for k in kept}
+            return _with_rule_text(kept + [s for s in items if s.get("name") not in names], spec), ""
         error = "; ".join(found)
         prompt = refused(base, reply, error)
+    if kept:  # the attempts ran out: what parsed and passed is better than no tests at all
+        return _with_rule_text(kept, spec), ""
     return None, error
+
+
+#: Said when a reply's JSON did not parse: a long list on one line is where the brackets go wrong.
+SYNTAX_HELP = (" Write the list again, indented two spaces per level with one key per line, and count the brackets of each"
+               " scenario before you finish.")
+
+
+def _parse_list(reply: str) -> tuple[list, str]:
+    """The reply's scenario list, and "" -- or, when its JSON does not parse, every complete scenario before the slip
+    and where the slip is. A reply with no list falls back to its first JSON object (raises ValueError if none)."""
+    start, end = reply.find("["), reply.rfind("]")
+    if not start >= 0 < end:
+        return first_json(reply), ""
+    text = reply[start : end + 1]
+    try:
+        return json.loads(text), ""
+    except json.JSONDecodeError as exc:
+        slip = str(exc)
+    items, decoder, i = [], json.JSONDecoder(), 1
+    while i < len(text):
+        while i < len(text) and text[i] in " \t\r\n,":
+            i += 1
+        if i >= len(text) or text[i] != "{":
+            break
+        try:
+            obj, i = decoder.raw_decode(text, i)
+        except json.JSONDecodeError:
+            break
+        items.append(obj)
+    return items, slip
+
+
+def _around(reply: str, slip: str, width: int = 400) -> str:
+    """The part of a broken reply around its JSON slip (`... (char N)`), not the whole of it: a long reply echoed back
+    in full is copied, slip and all."""
+    import re as _re
+
+    m = _re.search(r"char (\d+)", slip)
+    at = reply.find("[") + int(m.group(1)) if m else 0
+    lo, hi = max(0, at - width), at + width
+    return ("... " if lo else "") + reply[lo:hi] + (" ..." if hi < len(reply) else "")
+
+
+def _continue(base: str, kept: list[dict], slip: str) -> str:
+    """Ask for the scenarios after the ones kept from a list whose JSON broke: a shorter reply, so fewer slips."""
+    names = "; ".join(str(s.get("name")) for s in kept)
+    return (f"{base}\n\nYOUR PREVIOUS LIST BROKE: its JSON did not parse ({slip}). The {len(kept)} complete scenarios before"
+            f" the break were kept: {names}.\nWrite ONLY the scenarios that come after them (the rules and cases they do not"
+            f" cover yet), as a JSON list in the same format." + SYNTAX_HELP)
+
+
+def _with_rule_text(items: list[dict], spec: dict) -> list[dict]:
+    text = {r["id"]: r["text"] for r in spec.get("rules") or []}
+    for item in items:
+        if item.get("rule") in text:
+            item["rule_text"] = text[item["rule"]]
+    return items
 
 
 @dataclass
