@@ -284,7 +284,10 @@ def install_command(args) -> int:
     source = args.root / args.id / "game.json"
     text = source.read_text()
     spec = json.loads((args.root / args.id / "spec.json").read_text()) if (args.root / args.id / "spec.json").exists() else {}
-    obj, defn, problem = enc.check(text, args.id, set(spec.get("parameters", {})), players=spec.get("players"))
+    tests_path = args.root / args.id / "scenarios.json"
+    tests = json.loads(tests_path.read_text()) if tests_path.exists() else None
+    obj, defn, problem = enc.check(text, args.id, set(spec.get("parameters", {})), tests=tests,
+                                   players=spec.get("players"))
     if defn is None:
         print(f"not installed: the game does not pass the platform checks: {problem}", file=sys.stderr)
         return 1
@@ -454,9 +457,11 @@ def main(argv: list[str] | None = None) -> int:
             if args.what == "game":
                 # the spec's parameters are meant to stay constant, so they are not "dead": the same rule the flow applies
                 spec_path = folder / "spec.json"
-                constants = set(json.loads(spec_path.read_text()).get("parameters", {})) if spec_path.exists() else set()
-                _, defn, problem = enc.check(json.loads((folder / "game.json").read_text()), args.id, constants,
-                                             players=json.loads(spec_path.read_text()).get("players") if spec_path.exists() else None)
+                spec = json.loads(spec_path.read_text()) if spec_path.exists() else {}
+                tests_path = folder / "scenarios.json"
+                tests = json.loads(tests_path.read_text()) if tests_path.exists() else None
+                _, defn, problem = enc.check((folder / "game.json").read_text(), args.id, set(spec.get("parameters", {})),
+                                             tests=tests, players=spec.get("players"))
                 print("ok" if defn else problem)
                 if defn:
                     from gen_game import complexity, lint

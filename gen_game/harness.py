@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from xcolos.agents import BaseAgent, RandomAgent
@@ -328,6 +328,14 @@ def name_seats(seats: list[int]) -> str:
     return "seats " + ", ".join(map(str, seats[:-1])) + f" and {seats[-1]}"
 
 
+@dataclass
+class AttributeChanges:
+    """Attributes initialized by setup and attributes changed by play, by (scope, key)."""
+
+    setup: set[tuple[str, str]] = field(default_factory=set)
+    play: set[tuple[str, str]] = field(default_factory=set)
+
+
 class _GivenOrchestrator(FlowOrchestrator):
     """Starts the match from a stated situation: after setup has dealt and funded everything, the given values overwrite it.
 
@@ -335,12 +343,20 @@ class _GivenOrchestrator(FlowOrchestrator):
     starts at the situation that rule needs, instead of playing twenty turns to reach it.
     """
 
-    def __init__(self, definition: GameDefinition, given: dict, judge=None) -> None:
+    def __init__(self, definition: GameDefinition, given: dict, judge=None,
+                 changes: AttributeChanges | None = None) -> None:
         super().__init__(definition, judge)
         self.given = given
+        self.changes = changes
 
     def setup(self, game: Game) -> None:
         super().setup(game)
+        if self.changes is not None:
+            # Count an actual initialization, not a value changed and reset during setup.
+            self.changes.setup.update(("game", a.key) for a in self.definition.game_attributes
+                                      if self.flow.game_attributes[a.key] != a.initial)
+            self.changes.setup.update(("player", a.key) for a in self.definition.player_attributes
+                                      if any(attrs[a.key] != a.initial for attrs in self.flow.player_attributes.values()))
         for seat, values in (self.given.get("players") or {}).items():
             for key, value in values.items():
                 self.flow.set_attribute(int(seat), key, value)
@@ -350,6 +366,21 @@ class _GivenOrchestrator(FlowOrchestrator):
             self.flow.set_status(int(seat), str(status))
             if not self.flow.acts(int(seat)) and game.seats[int(seat)].alive:
                 game.eliminate(int(seat))
+        if self.changes is not None:
+            self._watch_play(self.changes.play)
+
+    def _watch_play(self, touched: set[tuple[str, str]]) -> None:
+        """Observe this match's writes after setup and scenario givens have been applied."""
+        flow = self.flow
+        set_attribute = flow.set_attribute
+
+        def track(player, key, value, *, dealing=False):
+            before = flow.game_attributes.get(key) if player is None else flow.attribute(player, key)
+            set_attribute(player, key, value, dealing=dealing)
+            if before != value:
+                touched.add(("game" if player is None else "player", key))
+
+        flow.set_attribute = track
 
 
 def offline_judge(answers: dict[str, bool] | None = None, default: bool = False) -> ScriptedJudge:
@@ -375,11 +406,13 @@ def offline_judge(answers: dict[str, bool] | None = None, default: bool = False)
 CHECK_SECONDS = 30
 
 
-def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: dict | None = None, rounds: int | None = None, judge=None) -> Played:
+def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: dict | None = None,
+         rounds: int | None = None, judge=None, *, changes: AttributeChanges | None = None) -> Played:
     """One match to the end. Seat `i + 1` is `agents[i]`.
 
     `given` starts it from a stated situation, and `rounds` stops it after that many rounds (the match is then abandoned, which is
     the point: the state at the stop is what a single-rule test looks at). With no `judge`, judged steps are answered false.
+    Pass `changes` to record which attributes setup initialized or gameplay changed.
     """
     judge = judge if judge is not None else offline_judge()
     if rounds is not None:
@@ -396,7 +429,8 @@ def play(definition: GameDefinition, agents: list[BaseAgent], seed: int, given: 
     for seat, agent in enumerate(agents, 1):
         if isinstance(agent, RuleAgent):
             agent.watch(game.log, seat)
-    orchestrator = _GivenOrchestrator(definition, given, judge) if given else FlowOrchestrator(definition, judge)
+    orchestrator = (_GivenOrchestrator(definition, given or {}, judge, changes)
+                    if given or changes is not None else FlowOrchestrator(definition, judge))
     result = Runner(game, orchestrator, registry, max_seconds=CHECK_SECONDS).run()
     return Played(result, game, orchestrator, agents)
 

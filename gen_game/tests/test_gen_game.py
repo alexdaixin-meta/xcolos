@@ -597,6 +597,42 @@ def test_attributes_that_nothing_ever_changes_are_named_but_parameters_and_scrat
     assert enc.dead_attributes(RPS) == []
 
 
+def test_setup_initialization_counts_but_a_write_that_setup_undoes_does_not():
+    g = json.loads(RPS_TEXT)
+    g["attributes"]["game"] += [{"key": k, "visible": "none", "type": "number", "initial": 0}
+                                for k in ("opening", "sweep")]
+    g.setdefault("setup", []).insert(0, {"use": "update", "label": "prepare", "do": [
+        {"set": {"key": "opening", "value": 2}},
+        {"set": {"key": "sweep", "value": 1}},
+        {"set": {"key": "sweep", "value": 0}},
+    ]})
+    dead = enc.dead_attributes(load(json.dumps(g), source="rps"))
+    assert len(dead) == 1 and "`sweep`" in dead[0]
+
+
+def _rare_branch_game() -> dict:
+    g = json.loads(RPS_TEXT)
+    g["attributes"]["game"].append({"key": "sweep", "visible": "none", "type": "number", "initial": 0})
+    clear = next(s for s in g["steps"] if s.get("label") == "clear the table")
+    clear["do"].append({"set": {"key": "sweep", "value": 1, "if": {"calc": "players[0].score >= 20"}}})
+    return g
+
+
+def test_scenarios_prove_rare_writes_only_when_play_changes_the_value_and_the_scenario_passes():
+    g = _rare_branch_game()
+    _, defn, problem = enc.check(g, "rps")
+    assert defn is None and "`sweep`" in problem  # random matches do not reach 20 points
+    given_only = {**ALWAYS_ROCK, "given": {"game": {"sweep": 1}}}
+    _, defn, problem = enc.check(g, "rps", tests=[given_only])
+    assert defn is None and "`sweep`" in problem  # a passing scenario can set it up without a real update
+    assert enc.check(g, "rps", tests=[SEAT1_WINS])[2] == ""
+
+    wrong = {**SEAT1_WINS, "expect": {"game": {"sweep": 0}}}
+    changed: set[tuple[str, str]] = set()
+    assert not scenarios.run_scenario(load(json.dumps(g), source="rps"), wrong, changed=changed).passed
+    assert changed == set()  # this play did reach the branch, but the scenario failed
+
+
 def test_the_tests_inside_the_coders_loop_name_the_difference_so_a_zero_score_is_seen():
     g = json.loads(RPS_TEXT)
     for a in g["attributes"]["game"]:
@@ -850,6 +886,22 @@ def test_cli_verify_checks_a_game_file_and_a_scenarios_file_written_outside_the_
     (folder / "game.json").write_text("{}")
     (folder / "scenarios.json").write_text("[]")
     assert main([*base, "verify", "rps", "game"]) == 1 and main([*base, "verify", "rps", "scenarios"]) == 1
+
+
+def test_verify_and_install_use_and_enforce_the_games_rule_scenarios():
+    inv, root = world()
+    folder, library = root / "rps", root / "library"
+    folder.mkdir(parents=True)
+    library.mkdir()
+    base = ["--inventory", str(inv.root), "--root", str(root)]
+    (folder / "game.json").write_text(json.dumps(_rare_branch_game()))
+    assert main([*base, "verify", "rps", "game"]) == 1
+    (folder / "scenarios.json").write_text(json.dumps([SEAT1_WINS]))
+    assert main([*base, "verify", "rps", "game"]) == 0
+    assert main([*base, "install", "rps", "--library", str(library)]) == 0
+    (folder / "scenarios.json").write_text(json.dumps([{**SEAT1_WINS, "expect": {"game": {"sweep": 0}}}]))
+    assert main([*base, "verify", "rps", "game"]) == 1
+    assert main([*base, "install", "rps", "--library", str(library)]) == 1
 
 
 def test_cli_verify_checks_a_variation_and_a_spec_too():

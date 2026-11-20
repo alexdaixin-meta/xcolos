@@ -228,7 +228,8 @@ class Outcome:
     trace: str = ""
 
 
-def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
+def run_scenario(defn: GameDefinition, s: dict, *, changed: set[tuple[str, str]] | None = None) -> Outcome:
+    """Run one scenario; add its in-play attribute changes to `changed` only if it passes."""
     n = s["players"]
     if not defn.min_players <= n <= defn.max_players:
         return Outcome(s["name"], False, [f"the game takes {defn.min_players} to {defn.max_players} players, not {n}"])
@@ -248,8 +249,10 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
         return original(self, player, key, value, dealing=dealing)
 
     FlowState.set_attribute = spy
+    observed = harness.AttributeChanges() if changed is not None else None
     try:
-        p = harness.play(defn, agents, int(s.get("seed", 1)), given=s.get("given"), rounds=s.get("rounds"), judge=harness.offline_judge(s.get("judge")))
+        p = harness.play(defn, agents, int(s.get("seed", 1)), given=s.get("given"), rounds=s.get("rounds"),
+                         judge=harness.offline_judge(s.get("judge")), changes=observed)
     except Exception as exc:  # noqa: BLE001
         return Outcome(s["name"], False, [f"the match crashed: {type(exc).__name__}: {exc}"])
     finally:
@@ -342,6 +345,8 @@ def run_scenario(defn: GameDefinition, s: dict) -> Outcome:
             fails.append(f"{a.name} was asked {len(a.overrun)} more question(s) than scripted (first: {a.overrun[0]})")
         elif a.used < len(a.moves):
             fails.append(f"{a.name} scripted {len(a.moves)} answers but the game asked only {a.used}")
+    if not fails and changed is not None and observed is not None:
+        changed.update(observed.play)
     return Outcome(s["name"], not fails, fails, trace)
 
 
@@ -351,11 +356,11 @@ def coverage(spec: dict, items: list[dict]) -> list[str]:
     return [r["id"] for r in spec.get("rules") or [] if r["id"] not in cited]
 
 
-def run_all(defn: GameDefinition, scenarios: list[dict]) -> list[Outcome]:
+def run_all(defn: GameDefinition, scenarios: list[dict], *, changed: set[tuple[str, str]] | None = None) -> list[Outcome]:
     """Run every scenario. A failure of one that cites a rule names it, in the rule's own words."""
     out = []
     for s in scenarios:
-        o = run_scenario(defn, s)
+        o = run_scenario(defn, s, changed=changed)
         if not o.passed and s.get("rule_text"):
             o.failures.insert(0, f"rule {s['rule']} is broken: {s['rule_text']}")
         out.append(o)

@@ -22,6 +22,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import time
+from collections.abc import Set
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
@@ -249,39 +250,29 @@ def explain_dead(dead: list[str], game: dict) -> str:
     return "; ".join(lines)
 
 
-def dead_attributes(defn: GameDefinition, constants: set[str] = frozenset(), matches: int = 3) -> list[str]:
-    """Attributes that are never given a different value in random play: the update that should move them does not work.
+def dead_attributes(defn: GameDefinition, constants: set[str] = frozenset(), matches: int = 3,
+                    *, scenario_changes: Set[tuple[str, str]] = frozenset()) -> list[str]:
+    """Attributes with no actual initialization or in-play change in the verification matches.
 
-    A game whose scoring steps are written but never take effect loads, ends and plays cleanly (the file that scored
-    every round at zero did all three), so this is what says so. It watches every write during the matches, not the
-    end state, so a scratch attribute that is set and reset each round counts as alive. Parameters are meant to stay
-    put and are passed in as `constants`.
+    Setup can initialize a value once, but a write that it undoes before play proves nothing. During play, each
+    actual write counts, so a scratch value that is set and reset each round is alive. Passing independent
+    scenarios can exercise rare branches that random matches miss; their setup overrides do not count.
+    Parameters are intentionally constant and passed in as `constants`.
     """
-    from xcolos.flow.state import FlowState
-
-    touched: set[tuple[str, str]] = set()
-    original = FlowState.set_attribute
-
-    def spy(self, player, key, value, *, dealing=False):
-        now = self.game_attributes.get(key) if player is None else self.player_attributes[player].get(key)
-        if now != value:
-            touched.add(("game" if player is None else "player", key))
-        return original(self, player, key, value, dealing=dealing)
+    observed = harness.AttributeChanges()
 
     # Offline, judged steps are answered false; an attribute only a judged step writes is alive when they are true.
     judges = [None] + ([harness.offline_judge(default=True)] if _judged(defn) else [])
-    FlowState.set_attribute = spy
-    try:
-        for seed in range(1, matches + 1):
-            for judge in judges:
-                try:
-                    harness.play(defn, harness.random_agents(defn.min_players, seed), seed, judge=judge)
-                except Exception:  # noqa: BLE001 - smoke play reports crashes; this is not the place
-                    return []
-    finally:
-        FlowState.set_attribute = original
+    for seed in range(1, matches + 1):
+        for judge in judges:
+            try:
+                harness.play(defn, harness.random_agents(defn.min_players, seed), seed, judge=judge, changes=observed)
+            except Exception:  # noqa: BLE001 - smoke play reports crashes; this is not the place
+                return []
     declared = [("player", a.key) for a in defn.player_attributes] + [("game", a.key) for a in defn.game_attributes]
-    return [f"{scope} attribute `{key}` is never changed in {matches} random matches, so nothing updates it"
+    touched = observed.setup | observed.play | scenario_changes
+    evidence = f"{matches} random matches" + (" or the passing scenarios" if scenario_changes else "")
+    return [f"{scope} attribute `{key}` is never initialized or changed during play in {evidence}, so nothing updates it"
             for scope, key in declared if key not in constants and (scope, key) not in touched]
 
 
@@ -427,19 +418,21 @@ def check(text_or_obj, game_id: str, constants: set[str] = frozenset(), tests: l
             refused = [f for f in tracelint.scan(harness.play(defn, harness.random_agents(n, seed), seed).game.log.records) if f.startswith("refused:")]
             if refused:
                 return obj, None, "an option is offered and then refused (see the offer-only-what-is-allowed pattern): " + " | ".join(refused[:2])
-    if (dead := dead_attributes(defn, set(constants))):
-        return obj, None, ("it plays, but part of it does nothing: " + explain_dead(dead, obj) +
-                           ". Every attribute must be changed by a step that actually runs. If the script in the task lists the attribute, do NOT delete it: "
-                           "write the step that really changes it (for cards, follow the deck recipe). Delete it only if the script does not list it.")
+    scenario_changes: set[tuple[str, str]] = set()
     if tests:
         from gen_game import scenarios
 
-        failed = [o for o in scenarios.run_all(defn, tests) if not o.passed]
+        failed = [o for o in scenarios.run_all(defn, tests, changed=scenario_changes) if not o.passed]
         if failed:
             first = failed[0]
             return obj, None, ("tests written independently from the rules disagree with the game: " +
                                " | ".join(f"{o.name}: " + "; ".join(o.failures)[:240] for o in failed[:4]) +
                                (f". What YOUR game did on the first of them ({first.name}): {first.trace}" if first.trace else ""))
+    if (dead := dead_attributes(defn, set(constants), scenario_changes=scenario_changes)):
+        return obj, None, ("it plays, but part of it does nothing: " + explain_dead(dead, obj) +
+                           " Initialize the attribute or write the step that really changes it. "
+                           "A write undone during setup does not count. A passing independent scenario can exercise a rare play branch. "
+                           "Delete the attribute only if the script does not list it.")
     return obj, defn, ""
 
 
