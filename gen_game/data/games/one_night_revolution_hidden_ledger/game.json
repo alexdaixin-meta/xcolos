@@ -1,0 +1,1203 @@
+{
+  "schema": 1,
+  "meta": {
+    "id": "one_night_revolution",
+    "name": "One Night Revolution: Ten Nights, Hidden Ledger",
+    "players": {
+      "min": 5,
+      "max": 5,
+      "suggested": 5
+    },
+    "blurb": "5 players play 10 rounds as rotating Rebels and Informants with framing, claims, and termination votes for hidden points."
+  },
+  "statuses": [
+    {
+      "id": "playing",
+      "acts": true,
+      "initial": true
+    }
+  ],
+  "attributes": {
+    "player": [
+      {
+        "key": "total_points",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "rebel_points",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "informant_points",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "current_role",
+        "visible": "ally",
+        "type": "text",
+        "initial": "",
+        "values": [
+          "Rebel",
+          "Informant",
+          ""
+        ]
+      },
+      {
+        "key": "partner",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "target",
+        "visible": "ally",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "investigation_result",
+        "visible": "ally",
+        "type": "text",
+        "initial": "",
+        "values": [
+          "Rebel",
+          "Informant",
+          ""
+        ]
+      },
+      {
+        "key": "claim_msg",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "response_msg",
+        "visible": "public",
+        "type": "text",
+        "initial": ""
+      },
+      {
+        "key": "vote",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "is_terminated",
+        "visible": "public",
+        "type": "bool",
+        "initial": false
+      },
+      {
+        "key": "revealed_role",
+        "visible": "public",
+        "type": "text",
+        "initial": "",
+        "values": [
+          "Rebel",
+          "Informant",
+          ""
+        ]
+      }
+    ],
+    "game": [
+      {
+        "key": "round_number",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "pair_order",
+        "visible": "none",
+        "type": "list",
+        "initial": []
+      },
+      {
+        "key": "terminated_informant_count",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "num_players",
+        "visible": "public",
+        "type": "number",
+        "initial": 5
+      },
+      {
+        "key": "num_rounds",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "num_pairs",
+        "visible": "public",
+        "type": "number",
+        "initial": 10
+      },
+      {
+        "key": "initial_points",
+        "visible": "public",
+        "type": "number",
+        "initial": 0
+      },
+      {
+        "key": "informant_rounds_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 4
+      },
+      {
+        "key": "rebel_rounds_per_player",
+        "visible": "public",
+        "type": "number",
+        "initial": 6
+      },
+      {
+        "key": "rebel_correct_vote_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "rebel_team_bonus",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "informant_per_misdirected_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 1
+      },
+      {
+        "key": "informant_survival_gain",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      },
+      {
+        "key": "termination_min_votes",
+        "visible": "public",
+        "type": "number",
+        "initial": 2
+      }
+    ]
+  },
+  "rules": "{num_players} players play {num_rounds} rounds. Each player starts with {initial_points} total points, {initial_points} Rebel points and {initial_points} Informant points. Before round 1 the engine lists all {num_pairs} unordered pairs of players and shuffles the list secretly; this shuffle is the only random event. In round r the pair in position r is the Informants and the other 3 are Rebels, so each player is Informant in exactly {informant_rounds_per_player} rounds with each other player as partner exactly once and Rebel in exactly {rebel_rounds_per_player} rounds. You are told this schedule rule but not the order.\n\nEach round: 1. ROLES: each player is privately told Rebel or Informant for this round, and each Informant is also privately told who the other Informant is; Rebels are told no partner. 2. NIGHT: every player simultaneously names one other player as target; a Rebel target is investigated and an Informant target is framed, and an Informant may name anyone including the partner with no extra effect for framing a partner. 3. NIGHT RESULTS: each Rebel is privately told Informant if the target is an Informant this round or at least one Informant framed that target this round, otherwise Rebel; a Rebel result is always true and an Informant result may be true or a frame; Informants receive no result. 4. CLAIMS: every player simultaneously writes one short message, lying allowed, then all messages are shown to everyone. 5. RESPONSES: every player simultaneously writes one more short message, then all are shown to everyone. 6. VOTE: every player simultaneously names one other player to Terminate, then all votes showing who voted for whom are announced publicly. 7. TERMINATION: if no player received {termination_min_votes} or more votes nobody is terminated; otherwise every player tied for the most votes is terminated, and only the round roles of terminated players are announced publicly while no other roles are revealed; termination removes no one and all {num_players} play every round. 8. SCORING (hidden): a Rebel who voted for an Informant gains {rebel_correct_vote_gain} points and a Rebel who voted for a Rebel gains nothing for that vote; if at least one terminated player is an Informant each Rebel gains {rebel_team_bonus} more point, and if none is an Informant there is no bonus; each Informant gains {informant_per_misdirected_gain} point for every Rebel who voted for a Rebel; each Informant who was not terminated gains {informant_survival_gain} points and a terminated Informant gains no survival points; points gained while Rebel are also added to Rebel points and points gained while Informant also added to Informant points; no totals of any kind are announced during the game and only votes and terminated roles are announced each round.\n\nAfter round {num_rounds} the engine announces every player's final total, Rebel points and Informant points and the game ends. The highest total points wins; tie-break most Rebel points, then most Informant points, then tied top share the win.",
+  "setup": [
+    {
+      "use": "update",
+      "label": "starting points and parameters",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "total_points",
+            "value": {
+              "calc": "initial_points"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "rebel_points",
+            "value": {
+              "calc": "initial_points"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "informant_points",
+            "value": {
+              "calc": "initial_points"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "terminated_informant_count",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "label": "shuffle the pairs",
+      "do": [
+        {
+          "set": {
+            "key": "pair_order",
+            "value": {
+              "calc": "[pair[1] for pair in sorted([[uniform(0, 1), [1, 2]], [uniform(0, 1), [1, 3]], [uniform(0, 1), [1, 4]], [uniform(0, 1), [1, 5]], [uniform(0, 1), [2, 3]], [uniform(0, 1), [2, 4]], [uniform(0, 1), [2, 5]], [uniform(0, 1), [3, 4]], [uniform(0, 1), [3, 5]], [uniform(0, 1), [4, 5]]])]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "label": "the schedule rule",
+      "to": "all",
+      "text": "There are {num_rounds} rounds. The {num_pairs} unordered pairs were shuffled secretly; in round r that pair are the Informants. Each player is Informant in exactly {informant_rounds_per_player} rounds with each other player once, and Rebel in {rebel_rounds_per_player} rounds. The order is secret."
+    },
+    {
+      "use": "update",
+      "label": "round 1 begins",
+      "do": [
+        {
+          "set": {
+            "key": "round_number",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "label": "the table",
+      "mode": "self",
+      "to": "all",
+      "fields": [
+        "total_points",
+        "rebel_points",
+        "informant_points"
+      ],
+      "text": "You start with:"
+    }
+  ],
+  "steps": [
+    {
+      "use": "update",
+      "phase": "roles",
+      "label": "assign roles",
+      "do": [
+        {
+          "set": {
+            "players": "all",
+            "key": "target",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "vote",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "investigation_result",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "is_terminated",
+            "value": false
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "revealed_role",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "claim_msg",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "players": "all",
+            "key": "response_msg",
+            "value": ""
+          }
+        },
+        {
+          "set": {
+            "key": "terminated_informant_count",
+            "value": 0
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == pair_order[round_number - 1][0] or you.seat == pair_order[round_number - 1][1]"
+            },
+            "key": "current_role",
+            "value": "Informant"
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "not (you.seat == pair_order[round_number - 1][0] or you.seat == pair_order[round_number - 1][1])"
+            },
+            "key": "current_role",
+            "value": "Rebel"
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == pair_order[round_number - 1][0]"
+            },
+            "key": "partner",
+            "value": {
+              "calc": "pair_order[round_number - 1][1]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "you.seat == pair_order[round_number - 1][1]"
+            },
+            "key": "partner",
+            "value": {
+              "calc": "pair_order[round_number - 1][0]"
+            }
+          }
+        },
+        {
+          "set": {
+            "players": {
+              "where": "not (you.seat == pair_order[round_number - 1][0] or you.seat == pair_order[round_number - 1][1])"
+            },
+            "key": "partner",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "roles",
+      "label": "private roles",
+      "mode": "self",
+      "to": "acting",
+      "fields": [
+        "current_role",
+        "partner"
+      ],
+      "text": "Round {round_number}: your private role and partner if Informant."
+    },
+    {
+      "use": "poll",
+      "phase": "night",
+      "label": "night targets",
+      "to": "acting",
+      "answer": {
+        "type": "player",
+        "exclude_self": true
+      },
+      "verify": {
+        "tally": "plurality",
+        "on_tie": "random",
+        "bind": "night_common"
+      },
+      "store": "target",
+      "text": "Name one other player as night target. A Rebel target is investigated and an Informant target is framed."
+    },
+    {
+      "use": "update",
+      "phase": "night",
+      "label": "night results",
+      "do": [
+        {
+          "set": {
+            "player": 1,
+            "key": "investigation_result",
+            "value": {
+              "calc": "'Informant' if (players[0].target == pair_order[round_number - 1][0] or players[0].target == pair_order[round_number - 1][1] or players[pair_order[round_number - 1][0] - 1].target == players[0].target or players[pair_order[round_number - 1][1] - 1].target == players[0].target) else 'Rebel'"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Rebel'"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "investigation_result",
+            "value": {
+              "calc": "'Informant' if (players[1].target == pair_order[round_number - 1][0] or players[1].target == pair_order[round_number - 1][1] or players[pair_order[round_number - 1][0] - 1].target == players[1].target or players[pair_order[round_number - 1][1] - 1].target == players[1].target) else 'Rebel'"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Rebel'"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "investigation_result",
+            "value": {
+              "calc": "'Informant' if (players[2].target == pair_order[round_number - 1][0] or players[2].target == pair_order[round_number - 1][1] or players[pair_order[round_number - 1][0] - 1].target == players[2].target or players[pair_order[round_number - 1][1] - 1].target == players[2].target) else 'Rebel'"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Rebel'"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 4,
+            "key": "investigation_result",
+            "value": {
+              "calc": "'Informant' if (players[3].target == pair_order[round_number - 1][0] or players[3].target == pair_order[round_number - 1][1] or players[pair_order[round_number - 1][0] - 1].target == players[3].target or players[pair_order[round_number - 1][1] - 1].target == players[3].target) else 'Rebel'"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Rebel'"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 5,
+            "key": "investigation_result",
+            "value": {
+              "calc": "'Informant' if (players[4].target == pair_order[round_number - 1][0] or players[4].target == pair_order[round_number - 1][1] or players[pair_order[round_number - 1][0] - 1].target == players[4].target or players[pair_order[round_number - 1][1] - 1].target == players[4].target) else 'Rebel'"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Rebel'"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "sync",
+      "phase": "night",
+      "label": "private results",
+      "mode": "self",
+      "to": {
+        "where": "you.current_role == 'Rebel'"
+      },
+      "fields": [
+        "investigation_result",
+        "target"
+      ],
+      "text": "Your private night result for round {round_number}."
+    },
+    {
+      "use": "poll",
+      "phase": "claims",
+      "label": "claims",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "verify": {
+        "tally": "plurality",
+        "on_tie": "random",
+        "bind": "claim_common"
+      },
+      "store": "claim_msg",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one short claim message, e.g. claimed role, target or result. Lying allowed."
+    },
+    {
+      "use": "poll",
+      "phase": "claims",
+      "label": "responses",
+      "to": "acting",
+      "answer": {
+        "type": "text",
+        "max_words": 30
+      },
+      "verify": {
+        "tally": "plurality",
+        "on_tie": "random",
+        "bind": "response_common"
+      },
+      "store": "response_msg",
+      "broadcast": {
+        "to": "all",
+        "text": "Seat {seat} says: {value}"
+      },
+      "text": "Write one more short response message."
+    },
+    {
+      "use": "poll",
+      "phase": "vote",
+      "label": "termination vote",
+      "to": "acting",
+      "answer": {
+        "type": "player",
+        "exclude_self": true
+      },
+      "verify": {
+        "tally": "plurality",
+        "on_tie": "random",
+        "bind": "vote_common"
+      },
+      "store": "vote",
+      "text": "Name one other player to Terminate."
+    },
+    {
+      "use": "tell",
+      "phase": "vote",
+      "label": "votes announced",
+      "to": "all",
+      "text": "Votes round {round_number}: seat 1 voted {players[0].vote}, seat 2 voted {players[1].vote}, seat 3 voted {players[2].vote}, seat 4 voted {players[3].vote}, seat 5 voted {players[4].vote}."
+    },
+    {
+      "use": "update",
+      "phase": "termination",
+      "label": "termination",
+      "do": [
+        {
+          "set": {
+            "player": 1,
+            "key": "is_terminated",
+            "value": {
+              "calc": "count(p.vote == 1 for p in players) == max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) and max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) >= termination_min_votes"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "is_terminated",
+            "value": {
+              "calc": "count(p.vote == 2 for p in players) == max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) and max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) >= termination_min_votes"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "is_terminated",
+            "value": {
+              "calc": "count(p.vote == 3 for p in players) == max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) and max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) >= termination_min_votes"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 4,
+            "key": "is_terminated",
+            "value": {
+              "calc": "count(p.vote == 4 for p in players) == max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) and max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) >= termination_min_votes"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 5,
+            "key": "is_terminated",
+            "value": {
+              "calc": "count(p.vote == 5 for p in players) == max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) and max([count(p.vote == 1 for p in players), count(p.vote == 2 for p in players), count(p.vote == 3 for p in players), count(p.vote == 4 for p in players), count(p.vote == 5 for p in players)]) >= termination_min_votes"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 1,
+            "key": "revealed_role",
+            "value": {
+              "calc": "players[0].current_role if players[0].is_terminated else ''"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 2,
+            "key": "revealed_role",
+            "value": {
+              "calc": "players[1].current_role if players[1].is_terminated else ''"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 3,
+            "key": "revealed_role",
+            "value": {
+              "calc": "players[2].current_role if players[2].is_terminated else ''"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 4,
+            "key": "revealed_role",
+            "value": {
+              "calc": "players[3].current_role if players[3].is_terminated else ''"
+            }
+          }
+        },
+        {
+          "set": {
+            "player": 5,
+            "key": "revealed_role",
+            "value": {
+              "calc": "players[4].current_role if players[4].is_terminated else ''"
+            }
+          }
+        },
+        {
+          "set": {
+            "key": "terminated_informant_count",
+            "value": {
+              "calc": "count(p.is_terminated and p.current_role == 'Informant' for p in players)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "use": "tell",
+      "phase": "termination",
+      "label": "termination announced",
+      "to": "all",
+      "text": "Terminated round {round_number}: seat 1 {players[0].is_terminated} {players[0].revealed_role}, seat 2 {players[1].is_terminated} {players[1].revealed_role}, seat 3 {players[2].is_terminated} {players[2].revealed_role}, seat 4 {players[3].is_terminated} {players[3].revealed_role}, seat 5 {players[4].is_terminated} {players[4].revealed_role}."
+    },
+    {
+      "use": "update",
+      "phase": "scoring",
+      "label": "hidden scoring",
+      "do": [
+        {
+          "adjust": {
+            "player": 1,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Rebel' and (players[0].vote == pair_order[round_number - 1][0] or players[0].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Rebel' and (players[0].vote == pair_order[round_number - 1][0] or players[0].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Rebel' and (players[1].vote == pair_order[round_number - 1][0] or players[1].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Rebel' and (players[1].vote == pair_order[round_number - 1][0] or players[1].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Rebel' and (players[2].vote == pair_order[round_number - 1][0] or players[2].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Rebel' and (players[2].vote == pair_order[round_number - 1][0] or players[2].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Rebel' and (players[3].vote == pair_order[round_number - 1][0] or players[3].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Rebel' and (players[3].vote == pair_order[round_number - 1][0] or players[3].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Rebel' and (players[4].vote == pair_order[round_number - 1][0] or players[4].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_correct_vote_gain"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Rebel' and (players[4].vote == pair_order[round_number - 1][0] or players[4].vote == pair_order[round_number - 1][1])"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "total_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "rebel_points",
+            "value": {
+              "calc": "rebel_team_bonus"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Rebel' and terminated_informant_count >= 1"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "total_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "informant_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "total_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "informant_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "total_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "informant_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "total_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "informant_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "total_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "informant_points",
+            "value": {
+              "calc": "count(p.current_role == 'Rebel' and not (p.vote == pair_order[round_number - 1][0] or p.vote == pair_order[round_number - 1][1]) for p in players) * informant_per_misdirected_gain"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Informant'"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "total_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Informant' and not players[0].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 1,
+            "key": "informant_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[0].current_role == 'Informant' and not players[0].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "total_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Informant' and not players[1].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 2,
+            "key": "informant_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[1].current_role == 'Informant' and not players[1].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "total_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Informant' and not players[2].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 3,
+            "key": "informant_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[2].current_role == 'Informant' and not players[2].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "total_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Informant' and not players[3].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 4,
+            "key": "informant_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[3].current_role == 'Informant' and not players[3].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "total_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Informant' and not players[4].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "player": 5,
+            "key": "informant_points",
+            "value": {
+              "calc": "informant_survival_gain"
+            },
+            "if": {
+              "calc": "players[4].current_role == 'Informant' and not players[4].is_terminated"
+            }
+          }
+        },
+        {
+          "adjust": {
+            "key": "round_number",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "use": "check",
+      "phase": "scoring",
+      "label": "after round 10",
+      "when": {
+        "calc": "round_number > num_rounds"
+      },
+      "against": [
+        "over"
+      ]
+    }
+  ],
+  "end": {
+    "over": {
+      "when": {
+        "calc": "round_number > num_rounds"
+      },
+      "rank_by": "you.total_points * 1000000 + you.rebel_points * 1000 + you.informant_points",
+      "text": "Winner: {result}. Final totals: seat 1 {players[0].total_points} (Rebel {players[0].rebel_points}, Informant {players[0].informant_points}), seat 2 {players[1].total_points} (Rebel {players[1].rebel_points}, Informant {players[1].informant_points}), seat 3 {players[2].total_points} (Rebel {players[2].rebel_points}, Informant {players[2].informant_points}), seat 4 {players[3].total_points} (Rebel {players[3].rebel_points}, Informant {players[3].informant_points}), seat 5 {players[4].total_points} (Rebel {players[4].rebel_points}, Informant {players[4].informant_points})."
+    }
+  },
+  "limits": {
+    "rounds": 10,
+    "rounds_max": 10,
+    "actions_max": 500,
+    "deadline_s": 120
+  }
+}
