@@ -382,7 +382,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--effort", default="medium", choices=("minimal", "low", "medium", "high"))
     p = sub.add_parser("loop", help="play the installed game with real models at its suggested size, review it, and loop back to the generator for confirmed critical and major findings")
     p.add_argument("id")
-    p.add_argument("--players", default="muse|gateway", help="the model for the seats: one name fills the table to the game's suggested size, or a comma-separated list (muse, claude, offline...); muse|gateway is Muse, or Claude when Muse cannot be reached")
+    p.add_argument("--players", default="muse@medium|gateway", help="the model for the seats: one name fills the table to the game's suggested size, or a comma-separated list (muse, claude, offline...); muse@medium|gateway is Muse reasoning at medium effort, or Claude when Muse cannot be reached (a bare `muse` seat answers at `minimal`, with no reasoning)")
     p.add_argument("--plays", type=int, default=2, help="plays per iteration, at different seeds")
     p.add_argument("--max-iterations", type=int, default=3)
     p.add_argument("--seed", type=int, default=1)

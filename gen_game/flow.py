@@ -192,10 +192,24 @@ def _platform_limit(inv: Inventory, rec, folder: Path, decision: dict, tried: li
     return Outcome(rec.id, "platform_limit", missing)
 
 
-def _design_idea(completion, rec, feedback: str, folder: Path, log) -> tuple[dict | None, Outcome | None]:
+def _previous_variation(vpath: Path) -> dict | None:
+    """The variation on disk that feedback is about (a person's --design-feedback, or triage's revise_rules), so the
+    designer revises it instead of starting again from the original game. None when there is none, or it was a drop."""
+    try:
+        plan = json.loads(vpath.read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(plan, dict) or not isinstance(plan.get("variation"), dict):
+        return None
+    if (plan.get("recommendation") or {}).get("decision") == "drop":
+        return None
+    return plan["variation"]
+
+
+def _design_idea(completion, rec, feedback: str, folder: Path, log, previous: dict | None = None) -> tuple[dict | None, Outcome | None]:
     """Design the rules from the idea, once. No critic, no playing it with numbers, no dropping: the game is built as designed."""
     log("step A: designing the rules from the idea")
-    plan, error = adaptmod.adapt(completion, rec.to_dict(), feedback, idea=True)
+    plan, error = adaptmod.adapt(completion, rec.to_dict(), feedback, idea=True, previous=previous)
     if plan is None:
         return None, Outcome(rec.id, "adapt_failed", error)
     if adaptmod.is_drop(plan):  # no variation came with it: ask once more, then say so rather than drop the game
@@ -207,17 +221,19 @@ def _design_idea(completion, rec, feedback: str, folder: Path, log) -> tuple[dic
     return plan, None
 
 
-def _design(completion, rec, feedback: str, folder: Path, log, tried: list[str], inv: Inventory) -> tuple[dict | None, Outcome | None]:
+def _design(completion, rec, feedback: str, folder: Path, log, tried: list[str], inv: Inventory,
+            previous: dict | None = None) -> tuple[dict | None, Outcome | None]:
     """The designer and the critic, back and forth until the critic finds the rules sound.
 
     Returns (the variation, None), or (None, an outcome) when the design stops: the designer recommends
-    dropping the game, cannot fit the limits, or no design gets past the critic.
+    dropping the game, cannot fit the limits, or no design gets past the critic. `previous` is the variation the
+    first `feedback` is about; the critic's and the numbers' feedback below quote the variation they reviewed.
     """
     fb = feedback
     plan, crit, reviews, last_sim = None, None, [], None
     for i in range(1, CRITIC_ROUNDS + 1):
         log("step A: designing the rules" + (" (revising)" if fb else ""))
-        plan, error = adaptmod.adapt(completion, rec.to_dict(), fb)
+        plan, error = adaptmod.adapt(completion, rec.to_dict(), fb, previous=previous if i == 1 else None)
         if plan is None:
             if adaptmod.only_too_complex(error):
                 return None, _drop(inv, rec, folder, "too_complex", f"the designer could not bring a variation within the complexity limits: {error[:300]}", None, tried)
@@ -401,10 +417,11 @@ def convert(
                     for name in ARTIFACTS:
                         if (folder / name).exists():
                             shutil.copy2(folder / name, hist / name)
+                previous = _previous_variation(vpath) if feedback else None
                 if judge:
-                    plan, outcome = _design(completion, rec, feedback, folder, log, tried, inv)
+                    plan, outcome = _design(completion, rec, feedback, folder, log, tried, inv, previous)
                 else:
-                    plan, outcome = _design_idea(completion, rec, feedback, folder, log)
+                    plan, outcome = _design_idea(completion, rec, feedback, folder, log, previous)
                 if outcome is not None:
                     return outcome
                 redo_set |= {"spec"}  # new rules mean a new spec, and so a new everything after it

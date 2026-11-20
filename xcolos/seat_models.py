@@ -4,7 +4,8 @@
 rest of the platform uses, into one:
 
     claude[:model]       the `claude` command in print mode (no key to handle)
-    muse[:model]         Meta's Model API
+    muse[:model]         Meta's Model API, at the client's `minimal` reasoning effort
+    muse[:model]@high    the same, reasoning first: @minimal, @low, @medium or @high (muse only)
     anthropic[:model]    the Anthropic API (needs ANTHROPIC_API_KEY)
     openai[:model]       OpenAI's Responses API (needs OPENAI_API_KEY)
     command:<program>    any program: prompt on stdin, reply on stdout
@@ -21,7 +22,8 @@ import re
 import time
 from typing import Callable
 
-from xcolos.flow.backends import CommandCompletion, CompletionError, FallbackCompletion, MuseCompletion, from_spec, split_alternatives
+from xcolos.flow.backends import (CommandCompletion, CompletionError, FallbackCompletion, MuseCompletion, from_spec, split_alternatives,
+                                  split_effort)
 
 #: Said to every model seat. The game's own rules arrive as the first message, so this says only what a
 #: player is and how to answer; it must fit any game, and must not say what kind of game it is. Reasons are invited before
@@ -44,15 +46,28 @@ THROTTLE_RETRIES = 6
 REFUSED = re.compile(r"\bmodel refused\b", re.I)
 
 
+#: A reasoning seat's output budget: its reasoning is spent from the same budget, and at the client's default the
+#: reply can come back empty.
+REASONING_SEAT_TOKENS = 32000
+
+
 def _seat_model(spec: str, timeout_s: int):
+    spec, effort = split_effort(spec)
     kind, _, rest = spec.partition(":")
     kind = kind.strip().lower()
+    if effort and kind != "muse":
+        raise ValueError(f"a seat's reasoning effort (@{effort}) is for muse seats only, not {kind!r}")
     if kind == "claude":
         return CommandCompletion(["claude", "-p", "--bare", "--model", rest.strip() or "claude-opus-5-5"], timeout_s=timeout_s)
     if kind == "muse":
         from xcolos.flow.backends import MUSE_FALLBACKS, muse_first_choice
 
-        return MuseCompletion(model=rest.strip()) if rest.strip() else MuseCompletion(model=muse_first_choice(), fallbacks=MUSE_FALLBACKS)
+        # `muse@high`: the seat reasons first (the client's own default is `minimal`, an answer with no reasoning).
+        extra: dict = {"reasoning_effort": effort} if effort else {}
+        if effort and effort != "minimal":
+            extra["max_output_tokens"] = REASONING_SEAT_TOKENS
+        return (MuseCompletion(model=rest.strip(), **extra) if rest.strip()
+                else MuseCompletion(model=muse_first_choice(), fallbacks=MUSE_FALLBACKS, **extra))
     if kind == "openai":
         from xcolos.flow.backends import OPENAI_MODEL, OpenAICompletion
 

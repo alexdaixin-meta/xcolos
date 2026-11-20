@@ -13,7 +13,7 @@ Design: `design/2026-10-05-game-generation-pipeline.md`.
 python3 -m gen_game verify ID variation|spec|game|scenarios    # check a file written by hand or by an agent
 python3 -m gen_game show ID                                    # the report
 python3 -m gen_game evaluate ID                                # tiers 0 and 1 on an existing game.json
-.venv/bin/python -m gen_game simulate ID --players 'muse|gateway'   # real model players (installed game), logs under <game>/sim/, then the reasoning check
+.venv/bin/python -m gen_game simulate ID --players 'muse@medium|gateway'   # real model players (installed game), logs under <game>/sim/, then the reasoning check
 .venv/bin/python -m gen_game reasoning ID                      # did winning take reasoning and planning? REASONING.md, with quotes from the plays (also run by simulate and by every loop iteration)
 .venv/bin/python -m gen_game batch --name NAME --ids-file ids.txt   # many games side by side on pinned code (8 at a time), play-tested; BATCH.md; same name resumes
 
@@ -72,7 +72,10 @@ The default is `gateway|muse`: Claude, or Muse when Claude cannot be reached. Sp
 the one that answers goes first from then on, so a model that is down costs one failed call, and the switch is printed
 (`note: ... using <model> instead`). Muse needs the corporate network (off the VPN it answers 403
 `network_access_required`); Claude needs the `anthropic` package (under plain `python3` the gateway is left out and
-Muse is used alone). Model seats default to `muse|gateway`: Muse, or Claude when Muse cannot be reached.
+Muse is used alone). Model seats default to `muse@medium|gateway`: Muse reasoning at medium effort, or Claude when
+Muse cannot be reached. A seat spec takes `@minimal|low|medium|high` (Muse only): a bare `muse` seat answers at the
+client's `minimal`, with no reasoning, which makes a weak play-tester, and the balance and reasoning checks then read
+the plays of players who did not think.
 
 `gateway` is Claude (`claude-opus-5-5` unless you name one, `gateway:<model>`) through Meta's AI Gateway,
 the sanctioned route to third-party models for internal tools. There is no key: the local proxy (`localhost:10054`)

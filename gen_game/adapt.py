@@ -249,16 +249,25 @@ Never recommend dropping: whatever the idea, design the best playable game you c
 
 
 def adapt(completion: Completion, record: dict, feedback: str = "", repairs: int = 2, manifest: dict | None = None,
-          idea: bool = False) -> tuple[dict | None, str]:
+          idea: bool = False, previous: dict | None = None) -> tuple[dict | None, str]:
     """Review one inventory game and propose a variation. Returns (plan, error).
 
     `feedback` is what building and testing the previous variation found; it asks
-    for a revision, not a fresh start.
+    for a revision, not a fresh start. `previous` is that variation (a plan's
+    `variation`): without it the designer sees only the original game and the
+    findings, and so designs afresh instead of revising.
     """
     label = "Idea, as filed" if idea else "Original rules"
     prompt = (f"Original game: {record['name']}\nPlayers in the original: {record['players_min']} to {record['players_max']}\n\n"
               f"{label}:\n{record['rules_text']}")
     if feedback:
+        if previous:
+            players = previous.get("players") or {}
+            prompt += ("\n\nTHE PREVIOUS VARIATION, the one to revise:\n"
+                       f"Name: {previous.get('name', '')}\n"
+                       f"Players: {players.get('min', '?')} to {players.get('max', '?')}\n"
+                       f"Rules: {previous.get('rules', '')}\n"
+                       f"How the winner is decided: {previous.get('objective', '')}")
         prompt += ("\n\nA PREVIOUS VARIATION of this game was reviewed and tested. The findings:\n" + feedback +
                    "\n\nRevise the variation to fix these. Keep what works. Review it again against the criteria.")
     system = system_prompt(manifest) + "\n\n" + TALK_RULE + "\n\n" + ENDGAME_UNRAVELING + (IDEA_MODE if idea else "")

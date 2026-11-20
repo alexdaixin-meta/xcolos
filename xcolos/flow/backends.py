@@ -748,10 +748,20 @@ class OpenAICompletion:
 KINDS = ("anthropic", "gateway", "muse", "openai", "command", "echo", "claude", "offline")
 
 
+def split_effort(spec: str) -> tuple[str, str | None]:
+    """`muse:<model>@high` -> (`muse:<model>`, "high"): a model seat's reasoning effort, one of MUSE_EFFORTS, after a
+    last `@`. Anything else after an `@` is left in the spec (a model name may hold one), and no `@` means no effort."""
+    base, at, effort = spec.strip().rpartition("@")
+    if at and effort.strip().lower() in MUSE_EFFORTS:
+        return base.strip(), effort.strip().lower()
+    return spec.strip(), None
+
+
 def split_alternatives(spec: str) -> list[str]:
-    """`gateway|muse` names two models, the first preferred. Split only when every part names a backend."""
+    """`gateway|muse` names two models, the first preferred. Split only when every part names a backend (a part's
+    `@effort`, as in `muse@high|gateway`, does not change what it names)."""
     parts = [p.strip() for p in spec.split("|")]
-    if len(parts) > 1 and all(p.partition(":")[0].strip().lower() in KINDS for p in parts):
+    if len(parts) > 1 and all(split_effort(p)[0].partition(":")[0].strip().lower() in KINDS for p in parts):
         return parts
     return [spec.strip()]
 

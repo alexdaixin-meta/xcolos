@@ -261,7 +261,7 @@ def test_claude_through_the_gateway_is_the_generators_default_and_muse_is_still_
     for cmd in ("review", "revise", "brief"):
         assert p.parse_args([cmd, "x"]).model == "gateway|muse", cmd
     a = p.parse_args(["loop", "x"])
-    assert (a.model, a.review_model, a.encoder, a.players) == ("gateway|muse", "gateway|muse", "completion", "muse|gateway")
+    assert (a.model, a.review_model, a.encoder, a.players) == ("gateway|muse", "gateway|muse", "completion", "muse@medium|gateway")
 
 
 def test_the_generator_uses_claude_or_muse_whichever_answers():
@@ -714,6 +714,40 @@ def test_feedback_from_testing_goes_to_the_designer_as_a_request_to_revise():
     m = Models()
     adaptmod.adapt(m, record().to_dict(), feedback="- always taking the last option wins 100%")
     assert "PREVIOUS VARIATION" in m.prompts[0] and "wins 100%" in m.prompts[0]
+
+
+def test_a_revision_shows_the_designer_the_variation_it_revises():
+    m = Models()
+    old = {**PLAN["variation"], "rules": "OLD RULES: totals are announced after every round."}
+    adaptmod.adapt(m, record().to_dict(), feedback="- the totals give the roles away", previous=old)
+    p = m.prompts[0]
+    assert "THE PREVIOUS VARIATION, the one to revise:" in p and "OLD RULES: totals are announced" in p
+    assert p.index("THE PREVIOUS VARIATION, the one to revise:") < p.index("The findings:")
+    m = Models()
+    adaptmod.adapt(m, record().to_dict(), feedback="", previous=old)  # no findings: nothing to revise, a fresh design
+    assert "OLD RULES" not in m.prompts[0]
+
+
+def test_design_feedback_revises_the_variation_on_disk():
+    inv, root = world()
+    (root / "rps").mkdir(parents=True, exist_ok=True)
+    old = {**PLAN, "variation": {**PLAN["variation"], "rules": "OLD RULES: the weights are public."}}
+    (root / "rps" / "variation.json").write_text(json.dumps(old))
+    m = Models()
+    run_flow("rps", m, inv, root, adapt=True, judge=True, redo=("adapt",), design_feedback="- hide the weights")
+    first = m.prompts[m.calls.index("adapt")]
+    assert "OLD RULES: the weights are public." in first and "- hide the weights" in first
+
+
+def test_a_dropped_variation_on_disk_is_not_offered_for_revision():
+    inv, root = world()
+    (root / "rps").mkdir(parents=True, exist_ok=True)
+    dropped = {**PLAN, "variation": {**PLAN["variation"], "rules": "OLD RULES: dropped."},
+               "recommendation": {"decision": "drop", "kind": "too_simple", "reason": "x"}}
+    (root / "rps" / "variation.json").write_text(json.dumps(dropped))
+    assert flow._previous_variation(root / "rps" / "variation.json") is None
+    (root / "rps" / "variation.json").write_text("not json")
+    assert flow._previous_variation(root / "rps" / "variation.json") is None
 
 
 def test_the_variation_becomes_the_source_the_spec_is_built_from():

@@ -1108,3 +1108,34 @@ def test_a_connection_refused_is_retried_and_not_taken_for_a_model_refusal():
     inner = Flaky("the model call failed: [Errno 61] Connection refused")
     assert _seat_over(inner, waits)([{"role": "user", "content": "your move"}], None) == "Pass"
     assert inner.calls == 2 and waits
+
+
+def test_a_seat_spec_can_carry_a_reasoning_effort():
+    from xcolos.flow.backends import split_effort
+
+    assert split_effort("muse:watermelon-code-flex-6.2@high") == ("muse:watermelon-code-flex-6.2", "high")
+    assert split_effort("muse@Medium") == ("muse", "medium")
+    assert split_effort("muse:some@model") == ("muse:some@model", None)  # not an effort: part of the name
+    assert split_effort("muse") == ("muse", None)
+    # an effort does not change what a part names, so the bar still splits alternatives
+    assert split_alternatives("muse@high|gateway") == ["muse@high", "gateway"]
+    assert split_alternatives("muse:m@low|gateway:claude-opus-5-5") == ["muse:m@low", "gateway:claude-opus-5-5"]
+
+
+def test_a_muse_seat_reasons_at_the_effort_its_spec_names():
+    from xcolos.seat_models import REASONING_SEAT_TOKENS, _seat_model
+
+    plain = _seat_model("muse:watermelon-code-flex-6.2", 60)
+    assert plain.reasoning_effort == "minimal" and plain.body("hi")["reasoning"] == {"effort": "minimal"}
+    high = _seat_model("muse:watermelon-code-flex-6.2@high", 60)
+    assert high.model == "watermelon-code-flex-6.2" and high.reasoning_effort == "high"
+    assert high.body("hi")["reasoning"] == {"effort": "high"}
+    assert high.body("hi")["max_output_tokens"] == REASONING_SEAT_TOKENS
+    low_default = _seat_model("muse@minimal", 60)
+    assert low_default.reasoning_effort == "minimal" and low_default.max_output_tokens == plain.max_output_tokens
+    try:
+        _seat_model("gateway@high", 60)
+    except ValueError as exc:
+        assert "muse seats only" in str(exc)
+    else:
+        raise AssertionError("an effort on a non-muse seat must be refused, not ignored")
