@@ -1265,3 +1265,48 @@ def test_a_redesign_rebuilds_everything_below_the_design_so_nothing_stale_is_lef
     assert m.calls == ["adapt", "spec", "scenarios", "encode"]   # the design, then the spec, the scenarios and the game, each written again
     assert "a finding the play showed" in m.prompts[0]           # the designer was given the feedback
     assert all((folder / n).exists() for n in before)
+
+
+def test_muse_chat_asks_again_with_twice_the_budget_when_reasoning_spent_it():
+    from gen_game import chat as chatmod
+    from xcolos.flow.backends import CompletionError
+
+    class Fake(chatmod.MuseChat):
+        def __init__(self, replies):
+            super().__init__(model="m", reasoning_effort="medium", api_key="LLM|1|abc", max_output_tokens=32768)
+            self.replies, self.budgets = list(replies), []
+
+        def _call(self, method, url, payload=None):
+            if method == "POST":
+                self.budgets.append(payload["max_output_tokens"])
+                return {"id": f"r{len(self.budgets)}", "status": "queued"}
+            return self.replies.pop(0)
+
+    spent = {"status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"}, "output": []}
+    done = {"status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": "[]"}]}]}
+    saved = chatmod._sleep
+    chatmod._sleep = lambda s: None
+    try:
+        c = Fake([spent, done])
+        assert c.complete("p") == "[]" and c.budgets == [32768, 65536]
+        c = Fake([spent, spent])  # twice: the error is the caller's, as before
+        try:
+            c.complete("p")
+        except CompletionError as exc:
+            assert "max_output_tokens=65536" in str(exc) and c.budgets == [32768, 65536]
+        else:
+            raise AssertionError("a second spent budget must raise")
+        other = {"status": "incomplete", "incomplete_details": {"reason": "content_filter"}, "output": []}
+        c = Fake([other])  # not a budget problem: no second call
+        try:
+            c.complete("p")
+        except CompletionError:
+            assert c.budgets == [32768]
+        c = Fake([spent])
+        c.max_budget = 32768  # already at the cap: no second call
+        try:
+            c.complete("p")
+        except CompletionError:
+            assert c.budgets == [32768]
+    finally:
+        chatmod._sleep = saved

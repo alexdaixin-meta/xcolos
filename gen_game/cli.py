@@ -133,7 +133,7 @@ def _one_model(spec: str, effort: str):
         from gen_game.chat import MuseChat
 
         # a request that has not answered in 3 minutes is hung (a 10,000-character generation takes 25 to 45 seconds): cut it and ask again
-        return Patient(MuseChat(model=rest.strip() or MUSE_MODEL, reasoning_effort=effort, max_output_tokens=16384, timeout_s=180))
+        return Patient(MuseChat(model=rest.strip() or MUSE_MODEL, reasoning_effort=effort, max_output_tokens=32768, timeout_s=180))
     return from_spec(spec)
 
 

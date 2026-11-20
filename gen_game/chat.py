@@ -33,9 +33,13 @@ class MuseChat(MuseCompletion):
     #: Called with {response_id, status, polls, seconds} when a request is accepted and after every poll, so something
     #: outside can show that the model is still working on it. Set by `calls.Recorded`.
     on_status = None
-    #: How long to wait for one reply in all, and how often to ask. A game file at medium effort has taken a few minutes.
-    max_wait_s = 900
+    #: How long to wait for one reply in all, and how often to ask. A game file at medium effort has taken a few minutes;
+    #: a long reply (a scenario list for a big game) on a slow model has used up 16,384 tokens in about 20.
+    max_wait_s = 1800
     poll_s = 3.0
+    #: When reasoning spends the whole output budget and the reply comes back empty or cut short, the call is made once
+    #: more with twice the budget, up to this. A budget is a cap, not a cost: only what the model writes is spent.
+    max_budget = 65536
 
     def converse(self, messages: list[dict], system: str = "") -> str:
         """The next assistant turn, given the whole conversation so far: [{role, content}, ...]."""
@@ -67,6 +71,17 @@ class MuseChat(MuseCompletion):
                 pass
 
     def _background(self, body: dict) -> str:
+        """One reply; asked again once with twice the output budget when reasoning spent all of it (_BudgetSpent)."""
+        try:
+            return self._background_once(body)
+        except _BudgetSpent as exc:
+            budget = int(body.get("max_output_tokens") or self.max_output_tokens)
+            bigger = min(self.max_budget, 2 * budget)
+            if bigger <= budget:
+                raise CompletionError(str(exc)) from None
+            return self._background_once({**body, "max_output_tokens": bigger})
+
+    def _background_once(self, body: dict) -> str:
         job = self._call("POST", self.endpoint, {**body, "background": True, "store": True})
         rid = job.get("id")
         if not rid:
@@ -96,6 +111,12 @@ class MuseChat(MuseCompletion):
         text = extract_output_text(data)
         if status == "incomplete" or not text.strip():
             reason = (data.get("incomplete_details") or {}).get("reason", "no text")
-            raise CompletionError(f"Model API returned {'a reply cut short' if text.strip() else 'no text'} ({reason}); "
-                                  f"max_output_tokens={self.max_output_tokens} may be spent on reasoning")
+            budget = body.get("max_output_tokens") or self.max_output_tokens
+            error = _BudgetSpent if reason == "max_output_tokens" else CompletionError
+            raise error(f"Model API returned {'a reply cut short' if text.strip() else 'no text'} ({reason}); "
+                        f"max_output_tokens={budget} may be spent on reasoning")
         return text
+
+
+class _BudgetSpent(CompletionError):
+    """The reply came back empty or cut short because the output budget ran out (reasoning counts against it)."""

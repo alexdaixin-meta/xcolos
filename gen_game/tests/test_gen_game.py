@@ -925,7 +925,7 @@ def test_muse_defaults_to_the_model_that_stays_up_and_a_named_model_wins():
         named = cli.completion_for("muse:some-other-model", "low")
     except Exception:  # no key on this machine: the constructor reads it lazily, so this is not expected
         return
-    assert built.model == cli.MUSE_MODEL and built.reasoning_effort == "medium" and built.max_output_tokens == 16384
+    assert built.model == cli.MUSE_MODEL and built.reasoning_effort == "medium" and built.max_output_tokens == 32768
     assert named.model == "some-other-model"  # Patient hands attribute lookups to the model it wraps
 
 
