@@ -1041,3 +1041,12 @@ def test_scenarios_kept_from_a_broken_list_are_used_when_the_attempts_run_out():
     m = _Replies([f"[{a}, {b[:-5]} ]"] + [f"[{b[:-5]} ]"] * 2)
     items, error = scenarios.write_scenarios(m, SPEC)
     assert error == "" and [s["name"] for s in items] == [ALWAYS_ROCK["name"]]
+
+
+def test_a_bad_scenario_before_the_break_does_not_throw_away_the_good_ones():
+    a, b = json.dumps(ALWAYS_ROCK), json.dumps(SEAT1_WINS)
+    bad = json.dumps({"name": "no rules", "players": 2, "expect": {"winner": 1}})
+    m = _Replies([f"[{a}, {bad}, {b[:-5]} ]", f"[{b}]"])
+    items, error = scenarios.write_scenarios(m, SPEC)
+    assert error == "" and [s["name"] for s in items] == [ALWAYS_ROCK["name"], SEAT1_WINS["name"]]
+    assert "The 1 complete scenarios before the break were kept" in m.prompts[1]

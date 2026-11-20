@@ -210,7 +210,8 @@ def write_scenarios(completion: Completion, spec: dict, repairs: int = 2, guidan
         except Exception as exc:  # noqa: BLE001 - a backend that is down is not bad scenarios
             return None, f"the model call failed: {str(exc)[:200]}"
         if slip:
-            good = items if items and not problems(items, obs, rule_ids, keys) else []
+            # each whole scenario on its own merits: one that fails its checks is dropped, not the ones beside it
+            good = [s for s in items if not problems([s], obs, rule_ids, keys)] if isinstance(items, list) else []
             kept += [s for s in good if s.get("name") not in {k.get("name") for k in kept}]
             error = f"the JSON did not parse: {slip}"
             prompt = _continue(base, kept, slip) if kept else refused(base, _around(reply, slip), error + SYNTAX_HELP)
