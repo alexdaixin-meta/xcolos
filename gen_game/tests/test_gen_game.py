@@ -490,6 +490,39 @@ def test_tier_one_does_not_flag_a_balanced_game():
     assert evaluate.tier1(RPS, seeds=range(1, 25))["flags"] == []
 
 
+def test_open_play_flags_a_deal_where_the_deal_or_one_first_move_decides():
+    # A task fixes the deal (jaipur seed A: one round-2 choice decided most games), so the build record says whether
+    # a fixed deal plays narrow with random players; the same screen the task kit runs on seeds.
+    v = evaluate.open_verdict
+    assert v(2, 0.5, {"rock": 0.5, "paper": 0.4}) is None
+    assert "the deal decides" in v(2, 0.1, {}) and "the deal decides" in v(2, 0.9, {})
+    assert v(5, 0.1, {}) is None  # five seats: a fair share is 20%, the edge 5%
+    assert "one first move decides: 'rock' won 75%" in v(2, 0.5, {"rock": 0.75, "paper": 0.17, "scissors": 0.0})
+    assert v(2, 0.5, {"rock": 0.9, "paper": 0.45}) is None  # a gap without three times the wins is not enough
+
+
+def test_open_play_finds_a_balanced_game_open_and_a_rigged_first_move_narrow():
+    op = evaluate.open_play(RPS, seeds=range(1, 3))  # the default counts: 4 matches an answer would flag chance
+    assert op["flags"] == [] and [d["seat"] for d in op["deals"]] == [1, 2]
+    assert all(set(d["first_rates"]) and 0 <= d["share"] <= 1 for d in op["deals"])
+    real = harness.play
+
+    def rigged(defn, agents, seed):
+        forced = [a for a in agents if getattr(a, "force", None) is not None]
+        if forced:  # the tested seat wins when it opens with its first option, else loses
+            seat = agents.index(forced[0]) + 1
+            won = str(forced[0].force) == min(map(str, op["deals"][0]["first_rates"]))
+            return SimpleNamespace(result=SimpleNamespace(winner=f"seat {seat if won else 3 - seat}"))
+        return real(defn, agents, seed)
+    harness.play = rigged
+    try:
+        narrow = evaluate.open_play(RPS, seeds=range(1, 2), playouts=8, branch=4)
+    finally:
+        harness.play = real
+    assert narrow["flags"] and "one first move decides" in narrow["flags"][0]
+    assert narrow["deals"][0]["narrow"]
+
+
 def _shared_rps(result: str):
     """RPS where every ending gives the whole table one result, as a team target does."""
     d = json.loads(RPS_TEXT)

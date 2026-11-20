@@ -55,6 +55,12 @@ def write(folder: Path) -> Path:
             out.append(f"- independent scenarios: {sum(o.passed for o in results)} of {len(results)} pass")
             t0 = evaluate.tier0(defn)
             out.append(f"- tier 0 (valid, ends, replays identically): {'passed' if t0['passed'] else 'FAILED'}; results over {t0['metrics']['matches']} random matches: {t0['metrics']['results']}")
+            op = evaluate.open_play(defn)
+            out.append(f"- open play (random players from {len(op['deals'])} fixed deals at {op['players']} players, "
+                       f"{op['playouts']} matches each and {op['branch']} per answer to the tested seat's first choice): "
+                       + (f"**NARROW**: {'; '.join(op['flags'])}" if op["flags"] else
+                          "open: neither the deal nor one first move decides")
+                       + ". Random players cannot show what thinking players make of a deal; the task's run does")
             out.append("- reasoning and balance: not checked here (real models will play it later)")
         out.append("")
     (folder / "VERIFIED.md").write_text("\n".join(out) + "\n")
