@@ -1,0 +1,404 @@
+{
+  "game": "for_sale",
+  "attempts": [],
+  "conformance": [
+    "the spec uses `initialize` but the game file does not"
+  ],
+  "scenarios": [
+    {
+      "name": "Initial holds 18 coins 0 total empty hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Property deck deals 4 to start buying",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Cheque deck reveals 4 cheques in selling",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Round 7 buying then round 8 selling boundary",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "Seven buying rounds deal 28 properties",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R6 reveal next 4 sorted HIGH to LOW",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R7 bids from 0 up to coins are accepted",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R8 tie bids break by priority starting seat 2 in round 2",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R9 first takes HIGH others take lower after half payments",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R10 payments leave public property allocation",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R11 public HIGH SECOND THIRD LOW allocation",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R12 after round 7 each holds 7 properties",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R13 selling reveals 4 cheques sorted high to low",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R14 secretly choose one property from hand",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R15 distinct properties have no ties",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R16 highest property adds highest cheque",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R17 played properties are discarded",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R18 public property and cheque allocation",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R19 hands empty and final money revealed at end",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R20 most final money wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R21 tie final more coins wins",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R21 still tied shares win",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    },
+    {
+      "name": "R22 sealed simultaneous choices",
+      "passed": true,
+      "failures": [],
+      "trace": ""
+    }
+  ],
+  "tier0": {
+    "passed": true,
+    "problems": [],
+    "metrics": {
+      "matches": 20,
+      "tables": [
+        4
+      ],
+      "results": {
+        "seat 1": 3,
+        "seat 4": 4,
+        "seat 2": 5,
+        "seat 3": 8
+      },
+      "turns_min": 52,
+      "turns_max": 52
+    }
+  },
+  "tier1": {
+    "flags": [],
+    "notes": [],
+    "random_results": {
+      "seat 1": 11,
+      "seat 4": 15,
+      "seat 2": 13,
+      "seat 3": 20,
+      "seats 2 and 3": 1
+    },
+    "dominance": {
+      "first@seat1": {
+        "win": 5,
+        "loss": 55,
+        "draw": 0,
+        "win_rate": 0.08
+      },
+      "first@seat2": {
+        "win": 6,
+        "loss": 54,
+        "draw": 0,
+        "win_rate": 0.1
+      },
+      "last@seat1": {
+        "win": 0,
+        "loss": 59,
+        "draw": 1,
+        "win_rate": 0.0
+      },
+      "last@seat2": {
+        "win": 3,
+        "loss": 57,
+        "draw": 0,
+        "win_rate": 0.05
+      }
+    }
+  },
+  "lint": {
+    "findings": [],
+    "metrics": {
+      "matches": 3,
+      "decisions_per_match": 56.0,
+      "prompt_chars_avg": 304,
+      "prompt_chars_max": 402
+    }
+  },
+  "spec_choices": [
+    {
+      "what": "4 to 4 players with suggested 4",
+      "why": "designer fixed 4 seats with 4 cards per round and 28 usable cards for 7 each; smallest table where sealed simultaneous bidding and priority tie-break matter and larger table breaks 4-per-round reveal"
+    },
+    {
+      "what": "no talk poll, sealed poll for bids and for property choice",
+      "why": "source says no talk phase and every choice sealed; simultaneous choice must use poll not ask so later seats do not hear earlier answers"
+    },
+    {
+      "what": "half rounded up as (bid+1)//2",
+      "why": "matches example 0->0 1->1 2->1 3->2 4->2 with integer arithmetic"
+    },
+    {
+      "what": "rank_by you.final_money * 1000 + you.coins",
+      "why": "encodes most final money wins with more remaining coins as tie-break within arithmetic ranking since coins never reach 1000"
+    },
+    {
+      "what": "priority_seat ((round_number-1) mod 4)+1",
+      "why": "concrete arithmetic for stated tie-break rotation"
+    }
+  ],
+  "simplifications": [
+    {
+      "what": "shuffle represented as random draw from list and remove bottom 2 unseen first",
+      "why": "engine shuffles by drawing at random from game list with remove/append operations"
+    },
+    {
+      "what": "current_offer holds sorted HIGH to LOW reveal and property_discard holds played properties",
+      "why": "engine has no board so cards live in table lists and player lists"
+    },
+    {
+      "what": "final_money attribute set to cheque_total+coins after round 14",
+      "why": "enables arithmetic ranking and observable score without model opinion"
+    }
+  ],
+  "complexity_measured": {
+    "steps_per_round": 13,
+    "choice_steps_per_round": 2,
+    "attributes": 37,
+    "hidden_elements": 17
+  },
+  "brief_gaps": [],
+  "variation": {
+    "original_summary": "For Sale: Sealed Bids adapts the two-phase For Sale auction for 3 players with simultaneous sealed buying bids and simultaneous property plays for cheques, won by most cheques plus leftover coins.",
+    "review": [
+      {
+        "criterion": "non_degenerate",
+        "verdict": "good",
+        "evidence": "After the fix no bid is free: winner pays full bid, ranks 2-4 pay ceil(bid/2), so 0 risks LOW and 1 always costs 1. Always-0 gets only LOWs, always-max burns 18 coins in few rounds, always-play-high wastes high cards on low cheque boards; each loses to a counter."
+      },
+      {
+        "criterion": "skill_sensitive",
+        "verdict": "good",
+        "evidence": "Only 2 of 30 properties and 2 of 30 cheques stay unseen; 28 of each are revealed in order. Bidding to price rank, saving coins (1 saved = 1 final money), and timing which property to spend on which 4-cheque board outweigh the small deck-order luck over 14 rounds."
+      },
+      {
+        "criterion": "headroom",
+        "verdict": "good",
+        "evidence": "7 buys and 7 sells with private budgets leave budget-tracking, bid-shading, and property-timing to improve; weak players still score cheques plus saved coins, so not hopeless and not solved."
+      },
+      {
+        "criterion": "reasoning_dependent",
+        "verdict": "good",
+        "evidence": "Coins are private and bid amounts are never announced, only who took HIGH/SECOND/THIRD/LOW. Players must infer rivals' remaining coins and willingness to pay from 7 rounds of takes, and infer who is ahead from announced property and cheque takes."
+      },
+      {
+        "criterion": "open_play",
+        "verdict": "good",
+        "evidence": "From a fixed deal at least two plans can win: economize and win on saved coins plus mid cheques, or pay for HIGH properties to capture 15s/14s. Whether to contest HIGH or settle for SECOND depends on rivals' bids, and whether to spend a high property depends on the 4-cheque board."
+      },
+      {
+        "criterion": "verifiable",
+        "verdict": "good",
+        "evidence": "Final money = cheque total + remaining coins, both integers; winner is max, tie-break more remaining coins, then shared draw. No judge decides."
+      },
+      {
+        "criterion": "fits_platform",
+        "verdict": "good",
+        "evidence": "Text-only, 14 fixed rounds, one simultaneous poll per round, one shuffle per phase, public hands and reveals, private coins/cheques, arithmetic ranking. No board, map, trading, or sequential auction."
+      }
+    ],
+    "problems": [
+      "Free minimal bids: under pay-half-rounded-down, bids of 1 cost 0 unless first, so 39 of 72 sealed bids were 1 and in 10 of 24 rounds every bid was 0 or 1, so rotating priority not reading rivals decided who took the best card.",
+      "Three-player field only gave two rivals to model and an easier win, against the owner's request for four players and harder winning.",
+      "Original open clockwise raise-or-pass auction cannot run on the turn-based simultaneous-poll engine."
+    ],
+    "changes": [
+      {
+        "what": "4 players, 18 coins each, 28 properties and 28 cheques used: 7 buying rounds and 7 selling rounds of 4 cards, bottom 2 of each deck unseen; buying rank 1 takes HIGH, rank 2 SECOND, rank 3 THIRD, rank 4 LOW; priority rotates ((r-1) mod 4)+1.",
+        "why": "More opponents to model and harder win using original 4-player numbers, keeping two phases and deck sizes.",
+        "fixes": "Three-player field only gave two rivals to model and an easier win, against the owner's request for four players and harder winning."
+      },
+      {
+        "what": "Buying payments: first-ranked pays full bid, second-, third- and fourth-ranked each pay half their bid rounded UP (ceil). Bid range stays 0 to current coins, one simultaneous sealed bid, totals private.",
+        "why": "Every positive bid now has real cost win or lose (1 always costs 1, 2 costs 1-2, etc.) while 0 is free but risks LOW, so amounts carry information about valuation and remaining budget.",
+        "fixes": "Free minimal bids: under pay-half-rounded-down, bids of 1 cost 0 unless first, so 39 of 72 sealed bids were 1 and in 10 of 24 rounds every bid was 0 or 1, so rotating priority not reading rivals decided who took the best card."
+      },
+      {
+        "what": "Kept sealed simultaneous buying and simultaneous selling instead of open auction.",
+        "why": "Platform cannot run open ascending auction; sealed bids fit simultaneous polls and preserve bluff and inference.",
+        "fixes": "Original open clockwise raise-or-pass auction cannot run on the turn-based simultaneous-poll engine."
+      }
+    ],
+    "keeps": [
+      "Two phases: buy properties with coins, then play properties to take cheques.",
+      "Property cards 1-30 and cheques 0 and 2-15 two of each.",
+      "Public property hands, private coins and private cheque totals, one shuffle per deck.",
+      "Simultaneous selling where highest property takes highest cheque with no ties.",
+      "Final money cheques plus remaining coins with coin tie-break and shared draw."
+    ],
+    "recommendation": {
+      "decision": "adapt",
+      "kind": "none",
+      "reason": "With 4-player numbers and costly minimal bids the game is balanced, playable, and reasoning-driven inside the limits."
+    },
+    "variation": {
+      "name": "For Sale: Sealed Bids - Four Player",
+      "summary": "Four players sealed-bid for properties over 7 rounds, then simultaneously play properties to capture cheques over 7 rounds; most cheques plus leftover coins wins.",
+      "players": {
+        "min": 4,
+        "max": 4,
+        "suggested": 4
+      },
+      "rules": "SETUP. 4 players numbered 1, 2, 3, 4. Each starts with 18 coins (private) and 0 cheques (private cheque total) and empty property hand (public). Property deck: cards 1 to 30, one each. Cheque deck: values 0,2,3,4,5,6,7,8,9,10,11,12,13,14,15, two of each, 30 cheques. Game lasts 14 rounds: rounds 1-7 BUYING, rounds 8-14 SELLING. No talk phase: every choice is sealed to preserve bluff; promises are unenforceable and following a rival's suggestion to bid low leaves you with LOW. BUYING ROUND (rounds 1-7): 1. In round 1 only, shuffle the property deck. Only the top 28 cards will ever be used; the bottom 2 stay unseen. 2. Reveal the next 4 cards from the property deck. Sort them and call them HIGH, SECOND, THIRD, LOW by value. 3. All players at the same moment secretly submit a bid: whole number 0 up to current coins. 4. Rank bids highest to lowest. Break ties by priority order: in round r priority goes first to player ((r-1) mod 4)+1, then next number wrapping 4 to 1. 5. First-ranked takes HIGH and pays full bid. Second-ranked takes SECOND and pays half bid rounded UP. Third-ranked takes THIRD and pays half bid rounded UP. Fourth-ranked takes LOW and pays half bid rounded UP. Example: bid 0 pays 0, 1 pays 1, 2 pays 1, 3 pays 2, 4 pays 2. 6. Payments go to the bank from private coins. 7. Announce publicly which player took HIGH, SECOND, THIRD, LOW. Bid amounts and coin totals are NOT announced. After round 7 each holds 7 properties. SELLING ROUND (rounds 8-14): 1. In round 8 only, shuffle the cheque deck. Only the top 28 cheques will ever be used; bottom 2 unseen. 2. Reveal the next 4 cheques from the cheque deck, sorted highest to lowest. 3. All players at the same moment secretly choose one property from own hand. 4. Reveal chosen properties. All properties are different so no ties. 5. Highest property adds highest cheque to cheque total; second-highest adds second-highest cheque; third adds third; lowest adds lowest. 6. Played properties are discarded. 7. Announce publicly who played which property and who took which cheque. Running cheque totals stay private. END. After round 14 hands are empty. Reveal cheque totals, remaining coins, and final money = cheque total + remaining coins.",
+      "objective": "Player with most final money (cheques plus remaining coins) wins. If tied for most, tied player with more remaining coins wins. If still tied, game is a draw among them.",
+      "expected_effect": "Bidding 1 now costs 1 win or lose, so cheap bids signal real valuation and budget and can be read; mass 0/1 bidding no longer free-rides on priority because 0 concedes HIGH/SECOND. Players disagree on who gets HIGH versus who saves coins: all want HIGH cheap, but only one rank gets it each round, and a player who just follows a rival's low-bid suggestion pays by taking LOW while the suggester deviates to take HIGH. Four rivals widen inference and timing play in selling."
+    },
+    "model": null,
+    "complexity": {
+      "steps_per_round": 5,
+      "choice_steps_per_round": 1,
+      "attributes": 16,
+      "hidden_elements": 3,
+      "random_draws_per_round": 1,
+      "rounds": 14
+    },
+    "critic": {
+      "rounds": 1,
+      "reviews": [
+        {
+          "balanced": {
+            "verdict": "pass",
+            "evidence": "Cost table: pay = bid if 1st, ceil(bid/2) otherwise. 0->0/0,1->1/1,2->2/1,3->3/2,4->4/2,10->10/5,18->18/9. No dominant bid: higher bid raises P(HIGH) but raises cost. Winner rule = max(cheques+coins), tie=more coins. Always-0: gets 7x LOW (~exp min ~6) keeps 18 coins. Cheques ~2-3 avg => total ~15-20+18=33-38. Sensible rival getting HIGH/SECOND (~18-24 avg prop) gets cheques ~10-12 avg => ~70-84 + leftover ~5 =75-89 >33-38, so Always-0 LOSES to sensible, does not draw/win almost always. Always-max (bid all coins R1): gets one HIGH free-ish then forced 0s thereafter, gets 1 HIGH +6 LOWs, broke, cheque total middling ~35 +0 coins, loses to balanced spender who gets mix of HIGH/SECOND plus coins. No thoughtless policy never-loses. No strictly better option: vs low opponents, bid 1 wins HIGH cheap; vs high opponents, bid 1 loses to LOW but saves, while outbidding costs full. Seat edge: tie priority Round r -> ((r-1) mod4)+1 first. Over 7 buy rounds P1 gets 2, P2 2, P3 2, P4 1 priority. Only matters on exact ties, small, both seats can win; no move-order/info advantage as all choices simultaneous sealed. No labelled ordering to mis-state."
+          },
+          "playable": {
+            "verdict": "pass",
+            "evidence": "Complete: 4 players, 18 coins, decks defined, 14 fixed rounds (7 buy+7 sell), 28/30 cards used, bid 0..coins, ranking+rotating tiebreak, pay full/half-up, announce taker of HIGH/SECOND/THIRD/LOW, sell: play 1 property simultaneous, distinct values=>no ties, map rank to rank, discard, announce plays/takes, final money=cheques+coins with coin tiebreak. Covers 0-coin forced 0, last-property forced play. Finite 14 rounds, arithmetic winner. Limits: stated steps 5<=20, choice 1<=4, attributes 16<=20, hidden 3<=3, draws 1<=1 (shuffle R1/R8 only, deals deterministic), rounds 14<=40. No judge/board/clock. All simultaneous polls, no turns. Supported: simultaneous_choice+hidden_hands+private_values+fixed_rounds. No conditional block, trading, binding, spatial. Talk: 4 players zero-sum auction, no talk. Sensible: promises unenforceable, following low-bid suggestion gives LOW and costs; history (who took HIGH, hands public, cheque values public) gives inference, not pure guess. Not cooperate-then-betray repeated PD; no late-round safe auto-win (sell choice depends on board)."
+          },
+          "reasoning_over_luck": {
+            "verdict": "pass",
+            "evidence": "Luck: shuffle of 30->28 properties and 30->28 cheques, plus tiebreaks. Skill: coin management over 7 buys, valuing HIGH vs SECOND/THIRD/LOW spread, matching property rank to cheque board in sells. Good play beats no-reason: random bidder overspends early / mismatches high property to low cheque board and loses ~30-40 points; economizer that tracks HIGH-takers and saves for high-cheque rounds overcomes bad early LOWs via +coins and efficient conversion. When all play well winner still varies with deal but better play overcomes variance, not decided by draw alone. Inference targets: estimate opp remaining coins from frequency of HIGH takes despite hidden bid amounts; estimate opp threat in sells from public hands + public cheque takes (totals computable despite 'private' label); act by shading bid +1 to steal HIGH cheap vs dropping to save, and by holding high property for high-cheque board vs cashing medium early."
+          },
+          "open_play": {
+            "verdict": "pass",
+            "evidence": "Fixed R1 deal e.g. properties 28,20,11,3, all start 18. Options: bid high ~10 to force HIGH, mid ~3-5 for SECOND/THIRD cheap, 0-1 for LOW free. Plan A Aggressive: bid 8-10 R1 take 28, pay 8-10, keep power for high cheques. Wins vs opponents who all bid low/mid (steals HIGH cheap) and vs opponents who save lows (gets cheque dominance). Plan B Economical: bid 0-1 take 3 or 11 for ~0-1, save 17+, take SECOND/THIRD later mid-price, win on coins+efficient conversion vs opponents who overbid each other for HIGHs at full price. Best reply flips: if opps bid high, best is drop to LOW-save; if opps bid low, best is raise +1 to take HIGH cheap. No single bid best vs all; no early choice decides most games (R1 HIGH helps but costs coins, 6 buys +7 sells remain)."
+          },
+          "required_changes": [],
+          "sound": true
+        }
+      ],
+      "sound": true
+    }
+  },
+  "design_rounds": 1,
+  "design_flags_left": [],
+  "triage": [
+    {
+      "round": 1,
+      "fix": 0,
+      "decision": "fix_tests",
+      "reason": "The game correctly did round-7 buying with bids 4,3,2,1 to award 30,25,15,5, correct half-up payments and priority 3, yet was failed for offering 5 which bid 5 requires, and was failed for shuffled order.",
+      "guidance": "Remove offered/not-offered checks that conflate bid amounts with property values: with 18 coins bid 5 must be offered so never assert not_offered 5 in buying; assert only public results like current_offer and properties counts. Do not predict exact current_offer after the required round-1/round-8 shuffle and do not use illegal duplicate property decks; use legal full decks or allow any sorted draw.",
+      "missing": ""
+    }
+  ],
+  "complexity": {
+    "reported": {
+      "steps_per_round": 5,
+      "choice_steps_per_round": 1,
+      "attributes": 16,
+      "hidden_elements": 3,
+      "random_draws_per_round": 1,
+      "rounds": 14
+    },
+    "measured": {
+      "steps_per_round": 13,
+      "choice_steps_per_round": 2,
+      "attributes": 37,
+      "hidden_elements": 17
+    }
+  },
+  "verdict": "ready_for_review"
+}
